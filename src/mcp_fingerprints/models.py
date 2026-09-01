@@ -72,12 +72,23 @@ class PromptSignature:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> PromptSignature:
+        args_schema = data.get("arguments") or data.get("parameters") or data.get("args") or []
+        arg_keys = list(data.get("argument_keys", ()))
+        req_args = list(data.get("required_arguments", ()))
+        if not arg_keys and isinstance(args_schema, list):
+            for a in args_schema:
+                if isinstance(a, dict) and "name" in a:
+                    arg_keys.append(str(a["name"]))
+                    if a.get("required"):
+                        req_args.append(str(a["name"]))
+                elif isinstance(a, str):
+                    arg_keys.append(a)
         return cls(
-            name=data["name"],
+            name=str(data.get("name", "")),
             description=data.get("description", ""),
-            argument_keys=tuple(data.get("argument_keys", ())),
-            required_arguments=tuple(data.get("required_arguments", ())),
-            arguments_schema=data.get("arguments", []),
+            argument_keys=tuple(arg_keys),
+            required_arguments=tuple(req_args),
+            arguments_schema=args_schema if isinstance(args_schema, list) else [],
         )
 
 
@@ -101,7 +112,10 @@ class ResourceSignature:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ResourceSignature:
         return cls(
-            uri_template=data.get("uri_template") or data.get("uriTemplate", ""),
+            uri_template=data.get("uri_template")
+            or data.get("uriTemplate")
+            or data.get("uri")
+            or "",
             name=data.get("name"),
             description=data.get("description", ""),
             mime_type=data.get("mime_type") or data.get("mimeType"),
