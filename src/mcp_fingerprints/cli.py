@@ -22,10 +22,9 @@ def main() -> None:
     # Sync
     sync_p = subparsers.add_parser("sync", help="Synchronize MCP server passports from registries")
     sync_p.add_argument("--output", default="data/fingerprints", help="Output directory")
-    sync_p.add_argument("--all", action="store_true", help="Sync all registries")
-    sync_p.add_argument("--smithery-pages", type=int, default=5, help="Number of Smithery pages")
-    sync_p.add_argument("--npm-limit", type=int, default=100, help="NPM package limit")
-    sync_p.add_argument("--pypi-limit", type=int, default=100, help="PyPI package limit")
+    sync_p.add_argument("--update-existing", action="store_true", help="Check and update existing MCP versions")
+    sync_p.add_argument("--discover-new", action="store_true", help="Discover and pull new MCP servers")
+    sync_p.add_argument("--all", action="store_true", help="Run both update and discovery")
     sync_p.add_argument("--snapshot", action="store_true", default=True, help="Compile snapshot after sync")
 
     # Validate
@@ -42,18 +41,15 @@ def main() -> None:
 
     if args.command == "sync":
         sync = PassportSynchronizer(output_dir=args.output)
-        if args.all or (not args.smithery_pages and not args.npm_limit and not args.pypi_limit):
+        if args.all or (not args.update_existing and not args.discover_new):
             logger.info("Running full multi-source passport synchronization...")
-            sync.sync_smithery(max_pages=args.smithery_pages)
-            sync.sync_npm(limit=args.npm_limit)
-            sync.sync_pypi(limit=args.pypi_limit)
+            sync.update_existing_passports()
+            sync.discover_new_mcps()
         else:
-            if args.smithery_pages > 0:
-                sync.sync_smithery(max_pages=args.smithery_pages)
-            if args.npm_limit > 0:
-                sync.sync_npm(limit=args.npm_limit)
-            if args.pypi_limit > 0:
-                sync.sync_pypi(limit=args.pypi_limit)
+            if args.update_existing:
+                sync.update_existing_passports()
+            if args.discover_new:
+                sync.discover_new_mcps()
 
         if args.snapshot:
             logger.info("Compiling consolidated snapshot...")
