@@ -39,12 +39,19 @@ def extract_tool_signature(tool_def: dict[str, Any]) -> ToolContractSignature:
     """Extract structural parameters and compute canonical hash for an MCP tool definition."""
     name = str(tool_def.get("name", "")).strip()
     raw_desc = str(tool_def.get("description", ""))
-    input_schema = (
-        tool_def.get("inputSchema", {}) if isinstance(tool_def.get("inputSchema"), dict) else {}
+    raw_schema = (
+        tool_def.get("inputSchema")
+        or tool_def.get("input_schema")
+        or tool_def.get("parameters")
+        or {}
     )
+    input_schema = raw_schema if isinstance(raw_schema, dict) else {}
     output_schema = (
-        tool_def.get("outputSchema") if isinstance(tool_def.get("outputSchema"), dict) else None
+        tool_def.get("outputSchema")
+        or tool_def.get("output_schema")
+        or tool_def.get("returns")
     )
+    output_schema = output_schema if isinstance(output_schema, dict) else None
 
     props = input_schema.get("properties", {})
     prop_keys = tuple(sorted(props.keys())) if isinstance(props, dict) else ()
