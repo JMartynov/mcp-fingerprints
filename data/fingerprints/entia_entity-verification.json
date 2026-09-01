@@ -1,0 +1,1022 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "entia/entity-verification",
+  "purl": "pkg:npm/entia%2Fentity-verification",
+  "ecosystem": "npm",
+  "display_name": "entia/entity-verification",
+  "description": "Verified business-identity intelligence for AI agents & MCP clients — company verification, VAT, BORME, GLEIF, ownership and risk signals across 10 countries. 11.3M verified entities and 40.3M BORME acts. Remote MCP server, free tier (100 req/month). Sources: BORME, VIES, GLEIF, Wikidata.",
+  "repository_url": "https://entity-verification--entia.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "entia/entity-verification"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:d7fda66c6d64aa4869f1b8f09b421acb9e789a28767f68153b4c28c48b99c050",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://entity-verification--entia.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "x-entia-key": {
+                "type": "string",
+                "x-from": {
+                  "header": "x-entia-key"
+                },
+                "x-order": 0,
+                "description": "Optional. Free tier needs no key. Get one at entia.systems/mcp-setup for paid tools."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "entity_lookup",
+          "canonical_hash": "sha256:ba048756b532ea6443f92f9115d4a4fb1df5132173bde2e15119d6224ae677ee",
+          "description": "Look up any business entity by name, CIF/NIF, EU VAT, or LEI. Free callers receive a trace-level identity preview; authenticated callers receive the full paid dossier.",
+          "is_mutating": false,
+          "property_keys": [
+            "name",
+            "q",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "q": "string",
+            "name": "string",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 2,
+                "description": "Company name, CIF/NIF (B82846825), EU VAT (ESB82846825), or LEI (20 chars)"
+              },
+              "name": {
+                "type": "string",
+                "description": "Alias for `q` — accepted for compatibility with clients that send `name`."
+              },
+              "query": {
+                "type": "string",
+                "description": "Alias for `q` — accepted for compatibility with clients that send `query`."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "found": {
+                "type": "boolean",
+                "description": "True only when an identity anchor corroborated the query"
+              },
+              "query": {
+                "type": "string"
+              },
+              "entity": {
+                "type": "object",
+                "description": "Verified identity: legal name, tax id, address, sector"
+              },
+              "signature": {
+                "type": "string",
+                "description": "Provenance signature of this answer"
+              },
+              "error_code": {
+                "type": "string"
+              },
+              "data_coverage": {
+                "type": "object",
+                "description": "Which sources answered and which did not"
+              },
+              "registry_data": {
+                "type": "object",
+                "description": "Official registry payload (BORME/GLEIF/VIES/native)"
+              },
+              "legal_framework": {
+                "type": "object"
+              },
+              "coherence_errors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "economic_profile": {
+                "type": "object"
+              }
+            }
+          },
+          "description_hash": "sha256:33b97ba906da8116c8aa50a798a694bb15f865c3e62fd1672356787147e5cf06"
+        },
+        {
+          "name": "get_competitors",
+          "canonical_hash": "sha256:03bc47985c25252a8ca3ef78feaef2d9c93fbeee523ead8639e004928894a0bd",
+          "description": "Find real competitors in the same sector and city. Ranked entities with identity + location + sector matching. Spain only on the public surface. `sector` is a closed vocabulary — see the enum; aliases such as `abogados` (the slug ENTIA uses in its own Entia Home URLs) resolve to their canonical slug.",
+          "is_mutating": false,
+          "property_keys": [
+            "city",
+            "limit",
+            "sector"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string",
+            "limit": "integer",
+            "sector": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 2,
+                "description": "City name in Spain (Madrid, Barcelona, Valencia, Sevilla, Bilbao)"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 30,
+                "minimum": 1,
+                "description": "Max results (1-30)"
+              },
+              "sector": {
+                "enum": [
+                  "abogados",
+                  "accountingservice",
+                  "asesoria",
+                  "asesorias",
+                  "attorney",
+                  "automocion",
+                  "automotivebusiness",
+                  "autorepair",
+                  "barberia",
+                  "barberias",
+                  "beautysalon",
+                  "belleza",
+                  "clinicas",
+                  "construccion",
+                  "consultoria",
+                  "dental",
+                  "dentist",
+                  "dentista",
+                  "ecommerce",
+                  "educacion",
+                  "energia",
+                  "estetica",
+                  "exercisegym",
+                  "farmacia",
+                  "farmacias",
+                  "financial",
+                  "financialservice",
+                  "fisio",
+                  "fisioterapia",
+                  "foodestablishment",
+                  "generalcontractor",
+                  "gestion",
+                  "gestoria",
+                  "gestorias",
+                  "gimnasio",
+                  "gimnasios",
+                  "hairsalon",
+                  "healthandbeautybusiness",
+                  "healthcare",
+                  "healthclub",
+                  "homeandconstructionbusiness",
+                  "hospital",
+                  "hospitality",
+                  "inmobiliaria",
+                  "inmobiliarias",
+                  "insurance",
+                  "insuranceagency",
+                  "legal",
+                  "legalservice",
+                  "medicalbusiness",
+                  "medicalclinic",
+                  "medico",
+                  "medicos",
+                  "nutricion",
+                  "optica",
+                  "opticas",
+                  "optician",
+                  "peluqueria",
+                  "peluquerias",
+                  "pharmacy",
+                  "physician",
+                  "physiotherapyclinic",
+                  "podologia",
+                  "psicologia",
+                  "psychologist",
+                  "realestate",
+                  "realestateagent",
+                  "reformas",
+                  "restauracion",
+                  "restaurant",
+                  "restaurantes",
+                  "rrhh",
+                  "saas",
+                  "salud",
+                  "security",
+                  "seguros",
+                  "sportsactivitylocation",
+                  "taller",
+                  "talleres",
+                  "telecom",
+                  "turismo",
+                  "veterinario",
+                  "veterinarios",
+                  "veterinarycare"
+                ],
+                "type": "string",
+                "description": "ENTIA sector slug. Canonical: dental, legal, estetica, psicologia, medicos, talleres, veterinarios, reformas, inmobiliarias, asesorias, gimnasios… Aliases (abogados, salud, dentist, beautysalon…) resolve to a canonical slug and the response declares the translation in _meta.sector_resolved_from."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string"
+              },
+              "_meta": {
+                "type": "object",
+                "description": "Carries sector_resolved_from / sector_resolved_to"
+              },
+              "count": {
+                "type": "integer"
+              },
+              "sector": {
+                "type": "string",
+                "description": "Canonical slug actually used after alias resolution"
+              },
+              "country": {
+                "type": "string"
+              },
+              "competitors": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "description_hash": "sha256:acb0f2e276aad45be689e9026f34045f59538aa26b72a66a9ae0a039e8a02b51"
+        },
+        {
+          "name": "get_entia_home",
+          "canonical_hash": "sha256:1e44c71a71e1c950d437b25de92da864d126ef30314be1c1290e7b9a2176fe34",
+          "description": "Retrieve the Schema.org JSON-LD @graph for a specific entity's Entia Home (machine layer at /v1/identity/{country}/{sector}/{city}/{slug}.jsonld). Requires country, sector, city, slug path segments — not cif/q. Obtain the path via entity_lookup / showcase (canonical_url). Fail-closed: never returns ENTIA corporate marketing as if it were the entity.",
+          "is_mutating": false,
+          "property_keys": [
+            "city",
+            "country",
+            "sector",
+            "slug"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string",
+            "slug": "string",
+            "sector": "string",
+            "country": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "maxLength": 100,
+                "minLength": 1,
+                "description": "City slug (madrid, barcelona, london)"
+              },
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "Business slug (clinica-dental-sonrisa)"
+              },
+              "sector": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "maxLength": 50,
+                "minLength": 2,
+                "description": "Industry slug (dental, legal, talleres, …)"
+              },
+              "country": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$",
+                "maxLength": 2,
+                "minLength": 2,
+                "description": "ISO 3166-1 alpha-2 (es, gb, fr)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "@graph": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "description": "WebPage, Entity, Verification Report and Territorial Profile nodes"
+              },
+              "@context": {
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:8e41e6d360553964a9075bc8d3543b74fbe48a2ba8befe2daac71e76e2d4474f"
+        },
+        {
+          "name": "get_entity_home_projection",
+          "canonical_hash": "sha256:6ddf500a05c00c9fdd50df40452b7d9b1572d8da116aebdb33795049fad28b72",
+          "description": "Read the materializer snapshot entia.entity_home_projection.v1 for an Entia Home (claims + projection + policy). Same truth as the public ficha HTML/JSON-LD twin. Serve from R2 sibling .projection.v1.json — no ad-hoc MCP enrichment.",
+          "is_mutating": false,
+          "property_keys": [
+            "city",
+            "country",
+            "include_render_context",
+            "sector",
+            "slug"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string",
+            "slug": "string",
+            "sector": "string",
+            "country": "string",
+            "include_render_context": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "maxLength": 100,
+                "minLength": 1,
+                "description": "City slug (madrid, barcelona)"
+              },
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "Business slug (clinica-dental-ceodent)"
+              },
+              "sector": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "maxLength": 50,
+                "minLength": 2,
+                "description": "Industry slug (dental, legal, …)"
+              },
+              "country": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$",
+                "maxLength": 2,
+                "minLength": 2,
+                "description": "ISO 3166-1 alpha-2 (es, gb, fr)"
+              },
+              "include_render_context": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, keep render_context (large). Default strips it for agents."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "gate": {
+                "type": "string",
+                "description": "PUBLISH / PARTIAL / HOLD / REGISTRY_ONLY"
+              },
+              "_meta": {
+                "type": "object"
+              },
+              "claims": {
+                "type": "object"
+              },
+              "policy": {
+                "type": "object"
+              },
+              "schema": {
+                "type": "string"
+              },
+              "subject": {
+                "type": "object"
+              },
+              "projection": {
+                "type": "object"
+              },
+              "generated_at": {
+                "type": "string"
+              },
+              "corroboration": {
+                "type": "object"
+              },
+              "materializer_version": {
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:8421f70ac0088fe6008697e49e2b0fb1a82df1009a731bfde06ee730f0f9aec5"
+        },
+        {
+          "name": "get_full_dossier",
+          "canonical_hash": "sha256:2a42e33b8e02d13652248036bee551f2e148b775e96e88941d79b14a3c48e6bf",
+          "description": "Aggregator — 90+ fields about an entity in one call. Combines 4 ENTIA sources in parallel: identity, zone, BORME, VIES. Killer tool for due diligence/KYB.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 2,
+                "description": "Company name, CIF/NIF, EU VAT, or LEI"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "found": {
+                "type": "boolean"
+              },
+              "query": {
+                "type": "string"
+              },
+              "entity": {
+                "type": "object"
+              },
+              "signature": {
+                "type": "string"
+              },
+              "trust_score": {
+                "type": "object"
+              },
+              "verification": {
+                "type": "object"
+              },
+              "data_coverage": {
+                "type": "object"
+              },
+              "legal_framework": {
+                "type": "object"
+              }
+            }
+          },
+          "description_hash": "sha256:c6a75b552dd2247c5bae605bb2175c0ea5ea0c4dc81cab50b7f456260d8a4067"
+        },
+        {
+          "name": "get_platform_stats",
+          "canonical_hash": "sha256:5bd3226c0b098dcb1a450a6d76897f290c209d272b2ef5766b28fc4bd64cbb19",
+          "description": "Live platform stats: entities count, countries, sources, homes published.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "status": {
+                "type": "string"
+              },
+              "cache_ttl": {
+                "type": "integer"
+              },
+              "countries": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "borme_acts": {
+                "type": "integer"
+              },
+              "_unverified": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Figures NOT independently verified — honesty marker, do not quote as verified"
+              },
+              "last_updated": {
+                "type": "string"
+              },
+              "sources_active": {
+                "type": "integer"
+              },
+              "total_entities": {
+                "type": "integer"
+              },
+              "homes_published": {
+                "type": "integer"
+              },
+              "countries_active": {
+                "type": "integer"
+              },
+              "jsonld_generated": {
+                "type": "integer"
+              }
+            }
+          },
+          "description_hash": "sha256:910a22ab2daafc75ef4ed99d7a0b08d66e6a472a54c88735168b33cf52b2cc61"
+        },
+        {
+          "name": "get_showcase",
+          "canonical_hash": "sha256:acd68b7561faef97916c3c3f13ff588860c71ef093e9ca0406a456c121272950",
+          "description": "Curated IBEX35 + EU entity examples. FREE — does not consume quota. Use to explore data depth.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "unlock": {
+                "type": "object"
+              },
+              "checkout": {
+                "type": "object"
+              },
+              "entities": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "upgrade_url": {
+                "type": "string"
+              },
+              "access_level": {
+                "type": "string"
+              },
+              "gated_fields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "upgrade_hint": {
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:1815c42fbe18099c6f12289a8939bf0f59ed7431391a7c6e08bd055925eec395"
+        },
+        {
+          "name": "professional_lookup",
+          "canonical_hash": "sha256:189730312fc7a3918f4bffe9df7324e5ab92b311e6a1111d23b18cb601c6feb8",
+          "description": "Verify professional registrations across 24 Spanish health/legal/psychology verticals. Returns colegiado number, college, specialty, status.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 2,
+                "description": "Professional name, colegiado number, or REPS identifier"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              }
+            }
+          },
+          "description_hash": "sha256:e333cadcac6dab38021957b8139d99bc8da10ac5ef11544f24b7604878bfc165"
+        },
+        {
+          "name": "run_risk_audit",
+          "canonical_hash": "sha256:9f80bfef1bcc3f90eac22c71f096fa716a513c280c304fdf5183e34a4eeec2ae",
+          "description": "Run comprehensive AI-readiness + digital risk audit on any domain. Analyzes SSL, DNS, structured data, LLM visibility. Returns risk score 0-100. 5 req/min, 30s timeout.",
+          "is_mutating": false,
+          "property_keys": [
+            "domain",
+            "name",
+            "sector_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "domain": "string",
+            "sector_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Optional business name for context"
+              },
+              "domain": {
+                "type": "string",
+                "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\\.[a-z]{2,}$",
+                "maxLength": 253,
+                "minLength": 3,
+                "description": "Domain to audit (clinicadental.es, example.com)"
+              },
+              "sector_id": {
+                "type": "string",
+                "description": "Optional sector hint (dental, legal, talleres, …)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "audit": {
+                "type": "object"
+              },
+              "domain": {
+                "type": "string"
+              },
+              "job_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "risk_level": {
+                "type": "string"
+              },
+              "risk_score": {
+                "type": "number"
+              },
+              "audit_token": {
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:2469e8493eb032f6a9976e1322261696dc6e7bd8b60f8018253921d386665ed5"
+        },
+        {
+          "name": "search_entities",
+          "canonical_hash": "sha256:47c205e67eb7054c4dfc1a39a2fb80b47ea87b3045b8044d094d22c6405c1b43",
+          "description": "Search verified entities across 10 countries by name, keyword, country, city or sector. Answers 'find me a dentist in Madrid' / 'list law firms in Barcelona'. `sector` is a closed vocabulary — see the enum; aliases such as `abogados` resolve to their canonical slug. Anonymous callers receive a trace-level preview (name + city); authenticated TRACE+ keys unlock full records.",
+          "is_mutating": false,
+          "property_keys": [
+            "city",
+            "country",
+            "limit",
+            "q",
+            "sector"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "q": "string",
+            "city": "string",
+            "limit": "integer",
+            "sector": "string",
+            "country": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 2,
+                "description": "Search query — company name or keywords"
+              },
+              "city": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 2,
+                "description": "City name (Madrid, Barcelona, Valencia, Sevilla, London)"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Max results (default 10, max 50)"
+              },
+              "sector": {
+                "enum": [
+                  "abogados",
+                  "accountingservice",
+                  "asesoria",
+                  "asesorias",
+                  "attorney",
+                  "automocion",
+                  "automotivebusiness",
+                  "autorepair",
+                  "barberia",
+                  "barberias",
+                  "beautysalon",
+                  "belleza",
+                  "clinicas",
+                  "construccion",
+                  "consultoria",
+                  "dental",
+                  "dentist",
+                  "dentista",
+                  "ecommerce",
+                  "educacion",
+                  "energia",
+                  "estetica",
+                  "exercisegym",
+                  "farmacia",
+                  "farmacias",
+                  "financial",
+                  "financialservice",
+                  "fisio",
+                  "fisioterapia",
+                  "foodestablishment",
+                  "generalcontractor",
+                  "gestion",
+                  "gestoria",
+                  "gestorias",
+                  "gimnasio",
+                  "gimnasios",
+                  "hairsalon",
+                  "healthandbeautybusiness",
+                  "healthcare",
+                  "healthclub",
+                  "homeandconstructionbusiness",
+                  "hospital",
+                  "hospitality",
+                  "inmobiliaria",
+                  "inmobiliarias",
+                  "insurance",
+                  "insuranceagency",
+                  "legal",
+                  "legalservice",
+                  "medicalbusiness",
+                  "medicalclinic",
+                  "medico",
+                  "medicos",
+                  "nutricion",
+                  "optica",
+                  "opticas",
+                  "optician",
+                  "peluqueria",
+                  "peluquerias",
+                  "pharmacy",
+                  "physician",
+                  "physiotherapyclinic",
+                  "podologia",
+                  "psicologia",
+                  "psychologist",
+                  "realestate",
+                  "realestateagent",
+                  "reformas",
+                  "restauracion",
+                  "restaurant",
+                  "restaurantes",
+                  "rrhh",
+                  "saas",
+                  "salud",
+                  "security",
+                  "seguros",
+                  "sportsactivitylocation",
+                  "taller",
+                  "talleres",
+                  "telecom",
+                  "turismo",
+                  "veterinario",
+                  "veterinarios",
+                  "veterinarycare"
+                ],
+                "type": "string",
+                "description": "Sector filter. Canonical: dental, legal, estetica, psicologia, medicos, talleres, veterinarios, reformas, inmobiliarias, asesorias, gimnasios… Aliases (abogados, salud, dentist, beautysalon…) resolve to a canonical slug and the response declares the translation in _meta.sector_resolved_from."
+              },
+              "country": {
+                "type": "string",
+                "maxLength": 2,
+                "minLength": 2,
+                "description": "ISO country code (es, gb, fr)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object",
+                "description": "Carries sector_resolved_from when an alias was translated"
+              },
+              "count": {
+                "type": "integer"
+              },
+              "filters": {
+                "type": "object",
+                "description": "Filters actually applied — echoes q/sector/city/country"
+              },
+              "entities": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "description": "Each carries name, city, sector and canonical Entia Home URL"
+              }
+            }
+          },
+          "description_hash": "sha256:6bc6e999b1c6593c70a87fd6feb8f57b332cf93e957a0c2a1b0227ebb5e109c8"
+        },
+        {
+          "name": "verify_vat",
+          "canonical_hash": "sha256:b1f336e258b769c11d5ad6be7cf53e6bc744427b69a9ba6aeb8f539aadb865b0",
+          "description": "Real-time EU VAT validation via VIES (27 countries). Returns {valid, name, address, vat_number, country}.",
+          "is_mutating": false,
+          "property_keys": [
+            "q",
+            "query",
+            "vat"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "q": "string",
+            "vat": "string",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string",
+                "maxLength": 20,
+                "minLength": 4,
+                "description": "EU VAT number (ESA28015865, A28015865, IE6388047V)"
+              },
+              "vat": {
+                "type": "string",
+                "description": "Alias for `q` — the VAT number."
+              },
+              "query": {
+                "type": "string",
+                "description": "Alias for `q`."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "query": {
+                "type": "string"
+              },
+              "result": {
+                "type": "object",
+                "description": "VIES answer: validity, registered name and address"
+              },
+              "vat_number": {
+                "type": "string"
+              },
+              "country_code": {
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:458fcefe2999976b4a82bbca2399c0b47ad3afa6db3f344f324e7160ab11aa22"
+        },
+        {
+          "name": "zone_profile",
+          "canonical_hash": "sha256:c7129183adcc3d985e6bb4218e8a0a316f64f7b8db438a931c11f9752a8c96b4",
+          "description": "Socioeconomic profile of a Spanish postal code — 17 blocks: income, employment, demographics, business census, real estate, FTTH, poverty, tourism.",
+          "is_mutating": false,
+          "property_keys": [
+            "postal_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "postal_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postal_code": {
+                "type": "string",
+                "pattern": "^[0-9]{5}$",
+                "description": "Spanish 5-digit postal code (28013 = Madrid Gran Vía)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "_meta": {
+                "type": "object"
+              },
+              "economy": {
+                "type": "object"
+              },
+              "province": {
+                "type": "string"
+              },
+              "income_aeat": {
+                "type": "object"
+              },
+              "postal_code": {
+                "type": "string"
+              },
+              "real_estate": {
+                "type": "object"
+              },
+              "municipality": {
+                "type": "string"
+              },
+              "employment_sepe": {
+                "type": "object"
+              },
+              "businesses_dirce": {
+                "type": "object"
+              },
+              "demographics_ine": {
+                "type": "object"
+              },
+              "autonomous_community": {
+                "type": "string"
+              },
+              "entia_classification": {
+                "type": "object"
+              },
+              "digital_infrastructure": {
+                "type": "object"
+              },
+              "poverty_inequality_ccaa": {
+                "type": "object"
+              }
+            }
+          },
+          "description_hash": "sha256:7c55ddbfb57a2f65703cdc6c3d3708b83c865022e2e0bce303ed0d3291d3ad53"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

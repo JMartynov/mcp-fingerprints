@@ -1,0 +1,2471 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "framesail/framesail",
+  "purl": "pkg:npm/framesail%2Fframesail",
+  "ecosystem": "npm",
+  "display_name": "framesail/framesail",
+  "description": "Create long-form (faceless YouTube) videos end to end from any MCP client: script, locked character references, storyboard, voiceover, and final video editing — with characters and style held consistent across every shot.\n\nMaking long-form AI video today means 8+ tabs stitched by hand — an LLM for the script, a voice model, an image model, a video model — with characters drifting between tools and style resetting at every export. Framesail replaces the patchwork: the whole pipeline runs in one place and manages your video's context end to end.\n\nSix stages: Style (paste images, videos, or YouTube links and Framesail reverse-engineers the look, voice, and direction), Script (write it yourself or generate it in your narrative style), Reference images (auto-generated for every character, place, and prop), Voiceover (one narrator or many characters, with word-level timing), Storyboard (planned scene by scene), and Editor (captions, music, SFX, then export).\n\nNo black box: you control every prompt, asset, model, and setting.",
+  "repository_url": "https://framesail--framesail.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "framesail/framesail"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:f128e06722d3c646b911566210376167c00edf8b819592344acda9c68666f1c8",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://framesail--framesail.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "activate_script_version",
+          "canonical_hash": "sha256:d6d24196fafc31ccc7bf38a682b55aac2f66101af44e9fdf150ec7d0dd141ca1",
+          "description": "Switch the project's active script to another saved version (ids come\n    from get_script's version list — every save_script creates one). Re-run\n    scan_script / rescan_voice_blocks afterwards if the text differs, since\n    downstream artifacts follow the active version.",
+          "is_mutating": false,
+          "property_keys": [
+            "script_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "script_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "script_id": {
+                "type": "string",
+                "title": "Script Id",
+                "description": "ID of the script version to activate, from get_script's version list"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a2db2ec936deb7bc6b1f1ca8763d6c3dfc79834a4bf75756fa1480d5fe6cfe13"
+        },
+        {
+          "name": "add_music_track",
+          "canonical_hash": "sha256:53ada6b9d7df97d1619ec90cd5bfd414a0dce0e31f3af14ac495010c25de94d9",
+          "description": "Add background music to the project from the audio library (find track\n    ids with browse_audio_library, category=\"music\"). Defaults loop the track\n    under the whole video at bed level (volume 0.2 ≈ -14 dB under narration —\n    don't raise it without being asked); re-run export_video to hear it.",
+          "is_mutating": false,
+          "property_keys": [
+            "library_track_id",
+            "loop",
+            "name",
+            "project_id",
+            "start_frame",
+            "volume"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "loop": "boolean",
+            "name": "string",
+            "volume": "number",
+            "project_id": "string",
+            "start_frame": "integer",
+            "library_track_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "loop": {
+                "type": "boolean",
+                "title": "Loop",
+                "default": true,
+                "description": "True loops the track under the whole video; false plays it once"
+              },
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "default": "Music",
+                "description": "Display name for the track on the project's timeline"
+              },
+              "volume": {
+                "type": "number",
+                "title": "Volume",
+                "default": 0.2,
+                "description": "Playback volume 0-1; the 0.2 default sits at bed level under narration — don't raise it unless asked"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "start_frame": {
+                "type": "integer",
+                "title": "Start Frame",
+                "default": 0,
+                "description": "Timeline frame at which the track starts (0 = start of the video)"
+              },
+              "library_track_id": {
+                "type": "string",
+                "title": "Library Track Id",
+                "description": "Audio library track ID, from browse_audio_library(category=\"music\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d5b636718941697d53e17d373d36663cdeb8e546e926cda9a62ffb8baa6e15f7"
+        },
+        {
+          "name": "add_segment_sfx",
+          "canonical_hash": "sha256:a31fea98b651879d67ab8525ad23cfd5a5a92bb6953e3f4c56a5d57d77870773",
+          "description": "Attach a sound effect from the audio library to a segment (find track\n    ids via browse_audio_library with category=\"sfx\"). Re-run build_scenes to\n    get it onto the timeline.",
+          "is_mutating": false,
+          "property_keys": [
+            "library_track_id",
+            "project_id",
+            "segment_number"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string",
+            "segment_number": "integer",
+            "library_track_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based segment number, as reported by get_segments"
+              },
+              "library_track_id": {
+                "type": "string",
+                "title": "Library Track Id",
+                "description": "Audio library track ID, from browse_audio_library(category=\"sfx\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:046a0ab8c3d29ecf40d12d59e7fd9f9b3f87a14061843fe6be8596c26e349e2c"
+        },
+        {
+          "name": "analyze_style",
+          "canonical_hash": "sha256:5fa1668f259ac8666f73c8420d22615791bee1d5269b7075a1c728a7baf82009",
+          "description": "Re-run style analysis (after changing a style's inputs). Async —\n    await_jobs(style_id=...) until the style_analysis job completes.",
+          "is_mutating": false,
+          "property_keys": [
+            "style_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "style_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "description": "ID of the style to re-analyze, from create_style or list_styles"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a485302e01ac138118987959bd3983fcbe2d16d62c7e7aedd77d013fef4dc1d7"
+        },
+        {
+          "name": "await_jobs",
+          "canonical_hash": "sha256:527af92f8689028ae76e7ec3046e2493e64881a4ede2c7238b269163d15163ac",
+          "description": "Block (server-side) until the scope has no pending/running jobs, or the\n    timeout passes — use this instead of polling get_workflow_status yourself.\n    Returns {done, jobs}. If done=false the work is still running: just call\n    await_jobs again (a 3-5 minute storyboard takes a few consecutive calls).\n    Keep timeout_seconds <= 50 so the client doesn't time out the tool call.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id",
+            "style_id",
+            "timeout_seconds"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "style_id": "string",
+            "project_id": "string",
+            "timeout_seconds": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "default": "",
+                "description": "Style ID whose analysis/template jobs to wait for; pass exactly one of project_id or style_id"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "default": "",
+                "description": "Project ID whose jobs to wait for; pass exactly one of project_id or style_id"
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "title": "Timeout Seconds",
+                "default": 50,
+                "description": "Max seconds to block server-side before returning done=false; keep <= 50 so the client doesn't time out the tool call"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d54d4455e25878c4f3b2fa2494d816d7c2384d336acfc5203a6223aec6a4d827"
+        },
+        {
+          "name": "browse_audio_library",
+          "canonical_hash": "sha256:0ca513f7a2353a67d4165fc3671191361e76143e7dc28406ae939bf56d2b81b9",
+          "description": "Browse the audio library for background music and sound effects.\n    category: \"music\" | \"sfx\". Returns track ids for add_music_track /\n    add_segment_sfx.",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "genre",
+            "mood",
+            "search"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mood": "string",
+            "genre": "string",
+            "search": "string",
+            "category": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mood": {
+                "type": "string",
+                "title": "Mood",
+                "default": "",
+                "description": "Filter by the track's mood tag; empty for no filter"
+              },
+              "genre": {
+                "type": "string",
+                "title": "Genre",
+                "default": "",
+                "description": "Filter by the track's genre tag; empty for no filter"
+              },
+              "search": {
+                "type": "string",
+                "title": "Search",
+                "default": "",
+                "description": "Free-text search over track names/descriptions; empty for no filter"
+              },
+              "category": {
+                "type": "string",
+                "title": "Category",
+                "default": "",
+                "description": "Track kind: \"music\" (background tracks) or \"sfx\" (sound effects); empty returns both"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bc5bce85ad3013be5f0c97c605739c98a1e2fd02d3826beeccd5caf8c64aac1a"
+        },
+        {
+          "name": "build_scenes",
+          "canonical_hash": "sha256:6608d53363da6077d6651317f03352d069e91848ea1bed2a7876a577ca3235ff",
+          "description": "Compile segments + assets + voiceover into the editor/render timeline\n    (scenes). Run after segment assets are complete, before export.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bea2e36ed7c9cd34ee02539e6cc885aebe0f14e11290b39a2c15fc302db03b3f"
+        },
+        {
+          "name": "change_segment_type",
+          "canonical_hash": "sha256:71bd28ff654b4fae595d93ff4bea4eddb66ea5b580d3ad392320feb8540b46ff",
+          "description": "Change a segment's visual type: \"image\" | \"video\" | \"overlay_scene\".\n    carry_frame=true reuses the already-rendered image as the video start\n    frame (or vice versa) instead of recreating it.",
+          "is_mutating": false,
+          "property_keys": [
+            "carry_frame",
+            "project_id",
+            "segment_number",
+            "segment_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string",
+            "carry_frame": "boolean",
+            "segment_type": "string",
+            "segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "carry_frame": {
+                "type": "boolean",
+                "title": "Carry Frame",
+                "default": false,
+                "description": "True reuses the already-rendered frame as the new type's starting visual instead of recreating it from scratch"
+              },
+              "segment_type": {
+                "type": "string",
+                "title": "Segment Type",
+                "description": "New visual type: \"image\", \"video\", or \"overlay_scene\""
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based segment number, as reported by get_segments"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:17b578b7edc64f8239172ff1a5cb341110d283fe8e8377c9906e37ec29c611cf"
+        },
+        {
+          "name": "combine_segments",
+          "canonical_hash": "sha256:b154649dade1a8df501981dc390618ca4104705b2484f00911c64ba5852b1a7e",
+          "description": "Merge a segment with an adjacent one (segment numbers must be\n    neighbors). keep: \"this\" | \"other\" — whose creative data survives. Later\n    segments renumber — re-check get_segments before further edits.",
+          "is_mutating": false,
+          "property_keys": [
+            "keep",
+            "project_id",
+            "segment_number",
+            "with_segment_number"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "keep": "string",
+            "project_id": "string",
+            "segment_number": "integer",
+            "with_segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "keep": {
+                "type": "string",
+                "title": "Keep",
+                "default": "this",
+                "description": "Whose creative data survives the merge: \"this\" (segment_number) or \"other\" (with_segment_number)"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based segment number, as reported by get_segments"
+              },
+              "with_segment_number": {
+                "type": "integer",
+                "title": "With Segment Number",
+                "description": "1-based number of the adjacent segment to merge with (must neighbor segment_number)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5d2565bb427742145b8efc3d603b744a720a8359afd46605aab59676b6316605"
+        },
+        {
+          "name": "create_asset",
+          "canonical_hash": "sha256:ae2d5774789d7259905625a43b0d42822e0446c3668eef21c771f2cc236651ad",
+          "description": "Manually add a character/environment/object the scan missed.\n    asset_type: \"character\" | \"environment\" | \"object\". The description is the\n    generation-facing spec of its look — be specific.",
+          "is_mutating": false,
+          "property_keys": [
+            "asset_type",
+            "description",
+            "name",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "asset_type": "string",
+            "project_id": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "Asset name as the script refers to it (e.g. the character's name)"
+              },
+              "asset_type": {
+                "type": "string",
+                "title": "Asset Type",
+                "description": "Kind of asset: \"character\", \"environment\", or \"object\""
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "description": {
+                "type": "string",
+                "title": "Description",
+                "default": "",
+                "description": "Generation-facing spec of the asset's look; every shot renders from it, so be specific"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f71acb54d439189bc2748082b044740dfc26d2bf1bfb77a6cf494c843e09d4d2"
+        },
+        {
+          "name": "create_channel",
+          "canonical_hash": "sha256:707b2be27d4fee9be9f2f93fb7c1d21b1df3b48c90b8c4d2636b2fd38dff6893",
+          "description": "Create a new channel — the container for projects and their reusable\n    styles. Use when the user wants a fresh creative identity rather than\n    adding to an existing channel.",
+          "is_mutating": false,
+          "property_keys": [
+            "description",
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "Display name for the new channel"
+              },
+              "description": {
+                "type": "string",
+                "title": "Description",
+                "default": "",
+                "description": "Optional free-text description of the channel's content focus"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:475513e6392f4aa428131c55887d106f2af0ee73db7b93ed913d812d85b4d1ea"
+        },
+        {
+          "name": "create_project",
+          "canonical_hash": "sha256:8e5a177ccc112d37cc9c29b9271dff2e87a5d30b29b02e4a0616f7ae0802245b",
+          "description": "Create a project. The description (the video concept/topic) seeds script\n    generation, so write a meaningful one. The response's web_url is the\n    project's page in the web app — share it so the user can follow along.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_id",
+            "description",
+            "title"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "title": "string",
+            "channel_id": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "title": "Title",
+                "description": "Project title shown in the app"
+              },
+              "channel_id": {
+                "type": "string",
+                "title": "Channel Id",
+                "description": "ID of the channel to create the project in, from list_channels or create_channel"
+              },
+              "description": {
+                "type": "string",
+                "title": "Description",
+                "default": "",
+                "description": "The video concept/topic; seeds script generation, so make it specific and meaningful"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4cfb6eb54b26af109565aa585ef6b645655afcf947a8a54e3b292f218c611ba3"
+        },
+        {
+          "name": "create_style",
+          "canonical_hash": "sha256:517acc455dffbfac8d9f190ac75122a39a5d8c19b28a5ac9f52a89fa89081a55",
+          "description": "Create a style. Two mutually exclusive paths:\n\n    References (best): inputs=[{\"input_type\": \"youtube\" | \"text\", \"value\":\n    \"<url or description>\"}] — YouTube videos are watched and text directions\n    read; async analysis writes the style's art/narrative/director fields:\n    await_jobs(style_id=...) before using the style. (Image/video FILE\n    references require the multipart REST endpoint POST /styles.)\n\n    Presets (instant, no analysis): presets={\"art_style\": id,\n    \"narrative_style\": id, \"director_style\": id} — all three axes, ids from\n    list_style_presets.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_id",
+            "inputs",
+            "name",
+            "presets"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "channel_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "description": "Display name for the style"
+              },
+              "inputs": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Inputs",
+                "default": null,
+                "description": "Reference material to analyze, [{\"input_type\": \"youtube\" | \"text\", \"value\": \"<url or description>\"}]; triggers an async analysis job. Mutually exclusive with presets"
+              },
+              "presets": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Presets",
+                "default": null,
+                "description": "Preset IDs per axis, {\"art_style\": id, \"narrative_style\": id, \"director_style\": id}, from list_style_presets; instant, no analysis. Mutually exclusive with inputs"
+              },
+              "channel_id": {
+                "type": "string",
+                "title": "Channel Id",
+                "description": "ID of the channel to create the style in, from list_channels"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:621d370eaaf690273f58b930d2b1ae6ab19a9a904c789f5e605c2e625429af2f"
+        },
+        {
+          "name": "delete_asset",
+          "canonical_hash": "sha256:323aef0cf7428da1abe1bb22b0b8cf25f05106d72341a953f6fcac5d49f932dd",
+          "description": "Delete a project asset (e.g. one the scan over-extracted).",
+          "is_mutating": false,
+          "property_keys": [
+            "asset_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset_id": {
+                "type": "string",
+                "title": "Asset Id",
+                "description": "ID of the asset to delete, from list_assets"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:74818da77173b14ffcccbd307a6ef1d85b19eec179f8a20926a054869718a3fc"
+        },
+        {
+          "name": "delete_project",
+          "canonical_hash": "sha256:150053bdebdb4df321a5dc2b67c6aed107ad92c806edf8f82819ce5d744c20d1",
+          "description": "Permanently delete a project and everything in it (script versions,\n    assets, voiceover, segments, renders). Irreversible — confirm with your\n    user first.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "ID of the project to permanently delete, from list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:258ff087bac2f20bb0ec0df30449f6d8dc33c48994f4fefb1872e51c45002f40"
+        },
+        {
+          "name": "delete_style",
+          "canonical_hash": "sha256:fc7c753db3c149c24263bd720ba5398471fbfe4399e160d4ab51d929a083d2df",
+          "description": "Delete a style (e.g. a failed analysis experiment). Don't delete a\n    style that projects still use as their default — rebind them first with\n    set_project_style.",
+          "is_mutating": false,
+          "property_keys": [
+            "style_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "style_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "description": "ID of the style to delete, from list_styles"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:48ad4e560bf6b0eec419b33bd22af92364fe30b0d4ae024e358f831bba84628d"
+        },
+        {
+          "name": "director_note",
+          "canonical_hash": "sha256:bc7dcf47ea60f06e5db49a7f104f2e74eb144cedfde06f05097b732d1a029541",
+          "description": "Edit ONE scene with a natural-language note (the same director chat the\n    editor UI uses): move/restyle/add/remove layers and overlays, retime, etc.\n    Synchronous — returns the applied mutations + updated scene. Use\n    list_scenes to find scene ids; for notes spanning the whole video use\n    project_director_note instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "conversation_history",
+            "message",
+            "scene_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "message": "string",
+            "scene_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "title": "Message",
+                "description": "Natural-language edit note for this scene, e.g. \"move the caption to the top\" or \"remove the overlay\""
+              },
+              "scene_id": {
+                "type": "string",
+                "title": "Scene Id",
+                "description": "ID of the scene to edit, from list_scenes"
+              },
+              "conversation_history": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Conversation History",
+                "default": null,
+                "description": "Prior chat turns as [{\"role\": ..., \"content\": ...}] to continue an editing conversation on this scene; omit to start fresh"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7cc38020e1a4e8a84c741b63375530807cc61f994c097684bc6c2d5de5c89505"
+        },
+        {
+          "name": "export_video",
+          "canonical_hash": "sha256:a3415ecdd2520fe8b3dbd88da6dea30b3d9aca1c6cdf570d86f3e2ce2dc6f7cb",
+          "description": "Render the final MP4 (Remotion). Fetches the current timeline and queues\n    the render. Async — poll get_workflow_status for the video_export job, then\n    call get_video_url.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e74805479cb42bec9f5f734b857999138a424d2d818277d1c9bab030ae278951"
+        },
+        {
+          "name": "generate_asset_reference",
+          "canonical_hash": "sha256:032d23981247abd3461ac7c1d4178f3c6c2f92fd4e8eec4e996009589deb0a2c",
+          "description": "Render an asset's reference image in the channel's art style — the\n    visual anchor that keeps a character/environment looking identical across\n    every shot. EVERY character, environment, and object asset needs one before\n    generate_voiceover (the server enforces this; fire the jobs for all assets,\n    then one await_jobs). Async — the job writes the image onto the asset row:\n    await_jobs(project_id), then list_assets and view_image the file_path to\n    check likeness.",
+          "is_mutating": false,
+          "property_keys": [
+            "asset_id",
+            "editable_sections",
+            "model",
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "asset_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "Image model ID; empty uses the server default for reference images"
+              },
+              "asset_id": {
+                "type": "string",
+                "title": "Asset Id",
+                "description": "ID of the asset to render a reference image for, from list_assets"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Settings",
+                "default": null,
+                "description": "Model-specific settings (e.g. image quality/orientation); valid keys come from the model's settings_schema in list_models"
+              },
+              "editable_sections": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Editable Sections",
+                "default": null,
+                "description": "Per-call prompt section overrides, keyed by section name; see get_section_template for the reference-image job"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2fbf30504ee16c6f5793706b01ea764fb653bae4d02932038d6bdb396ec82a6e"
+        },
+        {
+          "name": "generate_script",
+          "canonical_hash": "sha256:e22171e50209479b6b7d571f3a973ed7ee9813224e6398fb843d9dc2e1832eb0",
+          "description": "Generate the project's script from its description/concept and the\n    channel's narrative style. Async — returns {job_id}; poll get_workflow_status.",
+          "is_mutating": false,
+          "property_keys": [
+            "editable_sections",
+            "model",
+            "project_id",
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "Model ID to generate with; empty uses the default (see list_models(\"script\"))"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Settings",
+                "default": null,
+                "description": "Model-specific settings; valid keys come from the model's settings_schema in list_models(\"script\")"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "editable_sections": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Editable Sections",
+                "default": null,
+                "description": "Per-call prompt section overrides, keyed by section name; see get_section_template(\"script\") for the sections this job exposes"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:96fd8104b14beefc7f3f03d7edf24129b51dec3d5c5d1f103a4936b2be53d2c2"
+        },
+        {
+          "name": "generate_segments",
+          "canonical_hash": "sha256:4dfa2b68cc02fd883dfcd9ffe8d19c6770673585dffe06371cb8f27c089ac603",
+          "description": "Render every actionable segment asset (images, video clips, overlays)\n    across the project, in dependency order. THE most expensive call in the\n    pipeline: ALWAYS dry_run=true first, show your user the estimate next to\n    get_credit_balance, and wait for a fresh yes before the real run — prior\n    blanket permission (\"do the whole thing\") does not cover this spend. Pass\n    segment_numbers to render only a subset — e.g. segments 1-18 for the\n    opening minute before committing to the full video. Safe to re-run:\n    completed and currently-generating assets are skipped, so a second call\n    only picks up new/failed work. Async — one job per asset; await_jobs until\n    all complete.",
+          "is_mutating": false,
+          "property_keys": [
+            "dry_run",
+            "project_id",
+            "segment_numbers"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dry_run": "boolean",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dry_run": {
+                "type": "boolean",
+                "title": "Dry Run",
+                "default": false,
+                "description": "True returns the credit-cost estimate without rendering anything; ALWAYS run true first and get user approval before the real run"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "segment_numbers": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Segment Numbers",
+                "default": null,
+                "description": "1-based segment numbers (from get_segments) to render only a subset; omit to render every actionable asset in the project"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ae8e4aa0db45a03796e3ae5249765d75988fcaf93d3c09b7f85278e84f673dc3"
+        },
+        {
+          "name": "generate_storyboard",
+          "canonical_hash": "sha256:57ed8e5b707649c7d50b5347b667bda4670499d93e3663538a8c24de6e6c3ef8",
+          "description": "Plan the full visual storyboard: segments, shot pacing, image/video\n    prompts, overlays, continuation chains — driven by the channel's director\n    and art styles. Requires voiceover to exist (timing comes from it).\n    BEFORE calling: confirm the project's asset_mix with your user (image vs\n    video vs generated_graphic percentages, update_project) — the storyboard\n    plans against it and video-heavy mixes multiply the later render cost.\n    Async — returns {job_id}; this is the longest LLM step.",
+          "is_mutating": false,
+          "property_keys": [
+            "editable_sections",
+            "model",
+            "project_id",
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "Model ID to plan with; empty uses the default (see list_models(\"storyboard\"))"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Settings",
+                "default": null,
+                "description": "Model-specific settings; valid keys come from the model's settings_schema in list_models(\"storyboard\")"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "editable_sections": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Editable Sections",
+                "default": null,
+                "description": "Per-call prompt section overrides, keyed by section name; see get_section_template(\"storyboard\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4d6bc52c26c7603c90e73d2609dd0f92e162966b35f8788d7607da84b59f8998"
+        },
+        {
+          "name": "generate_style_template",
+          "canonical_hash": "sha256:047bf7e27203d5078a8721ee5fa93b6c4f1e03130bb6929a434a44d4a2befed6",
+          "description": "Render one of a style's two template images — a REAL step of style\n    setup, not an optional extra: a style isn't finished until both its\n    character and environment templates are rendered (the app shows them on\n    the style card). Asset reference images render against them (characters →\n    character template; environments and objects → environment template), and\n    segment renders fall back on them when a shot has no asset reference — so\n    finish BOTH before generate_asset_reference. Run once per template_type\n    (\"character\" | \"environment\") for every new style; skip only types the\n    style already has (get_style shows them). Async — await_jobs(style_id=...),\n    then get_style.",
+          "is_mutating": false,
+          "property_keys": [
+            "editable_sections",
+            "model",
+            "style_id",
+            "template_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "style_id": "string",
+            "template_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "Image model ID; empty uses the template job's default (see list_models)"
+              },
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "description": "Style ID, as returned by create_style or list_styles"
+              },
+              "template_type": {
+                "type": "string",
+                "title": "Template Type",
+                "description": "Which of the style's two template images to render: \"character\" or \"environment\" — run once for each"
+              },
+              "editable_sections": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Editable Sections",
+                "default": null,
+                "description": "Per-call prompt section overrides, keyed by section name; see get_section_template for the template job"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9e5385a7cf106e13702c970706417e132bf32b398b8986c7948cf6de1b24e17f"
+        },
+        {
+          "name": "generate_voiceover",
+          "canonical_hash": "sha256:93fe18ae2e165e05eca88e1daf1a26d7e88022f8d26d57d1ae446cc083ba450c",
+          "description": "Generate TTS audio for the project's voice blocks. Without\n    voice_block_ids it fills gaps: only blocks with no audio yet run, so\n    re-calling it is always safe (already-generated and currently-generating\n    blocks are skipped, never re-billed). Pass voice_block_ids to explicitly\n    REgenerate those blocks (e.g. after changing a block's voice). Speakers\n    must have voices bound first — set_narrator_voice / set_character_voice.\n    Optional editable_sections/settings apply to every selected block (see\n    get_section_template(\"voice_block\") and list_models(\"voice_block\")).\n    Async — returns one job per block.",
+          "is_mutating": false,
+          "property_keys": [
+            "editable_sections",
+            "model",
+            "project_id",
+            "settings",
+            "voice_block_ids"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "TTS model ID; empty uses the default (see list_models(\"voice_block\"))"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Settings",
+                "default": null,
+                "description": "Model-specific TTS settings applied to every selected block; valid keys come from the model's settings_schema in list_models(\"voice_block\")"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "voice_block_ids": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Voice Block Ids",
+                "default": null,
+                "description": "Block IDs (from list_voice_blocks) to explicitly REgenerate; omit to fill gaps — only blocks with no audio yet run"
+              },
+              "editable_sections": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Editable Sections",
+                "default": null,
+                "description": "Per-call prompt section overrides applied to every selected block; see get_section_template(\"voice_block\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b8ae427dd5e7b15e1765e25f5698f465b7f2ed24f09b960c0c02f1ac23b0fe43"
+        },
+        {
+          "name": "get_credit_balance",
+          "canonical_hash": "sha256:9f7a554d9e87c89c7517d440d90ee44de1589ebde412cb185c50e6c72d57b36f",
+          "description": "Current credit balance + plan info. Check before expensive steps (a\n    full segment render can cost hundreds of credits — generate_segments\n    dry_run gives the estimate). Jobs covered by a BYOK provider key bill 0.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aafae3611e415486a2be9e5dfbe7b33f39e915ca853cbf6662d3d486d506381d"
+        },
+        {
+          "name": "get_pipeline_progress",
+          "canonical_hash": "sha256:5478ea58b8f5f91678ae3bc4004068ec263cfea9ffeb5ff65fec994404737bd4",
+          "description": "THE resume/orientation tool: one call returns every pipeline step's\n    state (script -> scan -> reference_images -> voices -> voiceover ->\n    style_templates -> storyboard -> segment_assets -> scenes -> export), any\n    running jobs, and a next_action telling you exactly what to do next. Call\n    this when picking up an existing project, after any await_jobs, or whenever\n    you're unsure where a video stands — never guess pipeline position.\n\n    Every step carries a web_url — the page in the Framesail web app where your\n    user can see that step's output. Share it whenever you present a step's\n    results (\"review the storyboard here: ...\") so they can inspect and edit in\n    the browser; the app and this API act on the same live state.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8af17146aec77a199bcaebb1f54a5ec8d4a1cea0ea78207ef2e82740ca206183"
+        },
+        {
+          "name": "get_project",
+          "canonical_hash": "sha256:8dcf45382b0b6a0e264df684756504741651c5f4deb1176405e5f08b99f7d040",
+          "description": "Fetch a project row — settings, voice config, default style, export URL.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3534cf14916bbf03689c26f9984c8e9167945f2f6d76d251201bc016f96b7079"
+        },
+        {
+          "name": "get_script",
+          "canonical_hash": "sha256:a08ea5a0eb5cd2559c5420258edceabda4d2875eaeb3f4e506d153fe96298108",
+          "description": "Read the active script's full text + the version list. Use this to show\n    the script to your user for review/feedback before scan_script — the\n    review-edit-resave loop (get_script -> discuss -> save_script) is the\n    expected workflow when the user wants input.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:389d1624d08d7273b5baa314d038119db82deb90fa8ef442c416582eacfae181"
+        },
+        {
+          "name": "get_section_template",
+          "canonical_hash": "sha256:6d5a749415ccc9b5509f3524dd20206abda258d808e37e466dd948e5ca0ab9dd",
+          "description": "Inspect the prompt sections a generation job exposes for per-call\n    override via editable_sections (jobs: script, script_scan, storyboard,\n    segment_image, segment_video, voice_block, ...). Sections marked locked\n    cannot be overridden.",
+          "is_mutating": false,
+          "property_keys": [
+            "job"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "job": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "type": "string",
+                "title": "Job",
+                "description": "Generation job name, e.g. \"script\", \"script_scan\", \"storyboard\", \"segment_image\", \"segment_video\", \"voice_block\""
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:44e5b849b8ded445607785b98e614c64464a83c4c69fa4c2c3b695c1234d6bde"
+        },
+        {
+          "name": "get_segment_assets",
+          "canonical_hash": "sha256:ceedf937b6f7d9507f6b3f5fa65da4f6296ee6ed1775a6722e0ce026830d1976",
+          "description": "List one segment's assets (images/video/overlays) including their\n    status, config (prompts, model), and public URLs of rendered files —\n    pass an image's public_url to view_image to actually look at it.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id",
+            "segment_number"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string",
+            "segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based segment number, as reported by get_segments"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7d2e5e521ef4f8a551c87892873bd1d0759248453c6710bc9439cd329eb82ac9"
+        },
+        {
+          "name": "get_segments",
+          "canonical_hash": "sha256:8fe7ffb33678c9e19e571d8894e5e6b411158d1502ea36420d591fcc83031374",
+          "description": "List the storyboard's segments (narration span, type, duration, creative\n    direction). The 1-based segment_number is the handle every segment tool takes\n    (update/split/combine/continuation/regenerate) — you never need a UUID.\n\n    Each segment also reports `continues_from_segment`. When set, this shot is a\n    CONTINUATION of that earlier segment: its rendered frame carries over (same\n    composition, characters, and setting) and only the delta changes — an added\n    overlay, a shifted expression, a closer angle, a slow reframe. Null means a\n    fresh, independent shot. The storyboard plans these chains automatically;\n    adjust them with set_segment_continuation.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c54f05e7761344357d119106d41fe99f8284ddf56a055b0fe7687106cc175c33"
+        },
+        {
+          "name": "get_style",
+          "canonical_hash": "sha256:559aa9232ef84f8bfadc1d59995f76bc7833aad3e2dba4b382f05aa7fd758fc7",
+          "description": "Fetch one style row — its inputs (reference material) and analyzed\n    fields (art_style, narrative_style, director_style, script_prompt, ...).\n    Show fields to the user for review; fine-tune with update_style_fields.",
+          "is_mutating": false,
+          "property_keys": [
+            "style_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "style_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "description": "Style ID, as returned by create_style or list_styles"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3cb9cd23871704fe633e38eb7f195cce1d87381dda486f57ad56890dc2faeb81"
+        },
+        {
+          "name": "get_video_url",
+          "canonical_hash": "sha256:960ecea146b9cde82f38c3547a1d1309dfb1a44bbe8d44b8883f90b0171fffed",
+          "description": "Download URL for the most recent completed export.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c3eb8d6fcce0fe31f15812497ef28a50caf6d5372f8b827c8e88311377849ff2"
+        },
+        {
+          "name": "get_workflow_status",
+          "canonical_hash": "sha256:8099553035d663c227dd65d3577748d31eb09e06297eafaa633d4f35df2f428e",
+          "description": "Poll this between steps: returns active + recently-finished AI jobs\n    (scope by project_id, or style_id for style analysis), plus per-segment-\n    asset render statuses for projects. A step is done when its jobs reach\n    status=complete (or error, with a user-readable message). NOTE: finished\n    jobs drop out of `jobs` after ~30s — a short list does NOT mean work was\n    lost; judge render batches by `segment_assets` statuses (or\n    get_pipeline_progress), never by counting jobs. Prefer await_jobs over\n    polling this in a tight loop.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id",
+            "style_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "style_id": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "default": "",
+                "description": "Style ID to scope jobs to (style analysis); pass exactly one of project_id or style_id"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "default": "",
+                "description": "Project ID to scope jobs to; pass exactly one of project_id or style_id"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fee63b946bce0d90dd0983f4373c99d7155f645bf41521179ef888325e77963c"
+        },
+        {
+          "name": "list_assets",
+          "canonical_hash": "sha256:d177cadf488e491647f52466becf47a3bb6a3c50c2824ab26925299837cdf514",
+          "description": "List the project's assets extracted by scan_script — characters,\n    environments, objects. Each has a description (the spec every shot uses to\n    render it — surfaced top-level here; the raw row nests it at\n    ai_output.description), an optional reference image (file_path is a public\n    URL — view_image it), and for characters a voice_id. Review these after\n    scan_script: fix descriptions, then generate_asset_reference for each one\n    (all of them need a reference image before voiceover). asset_type filter:\n    \"character\" | \"environment\" | \"object\".",
+          "is_mutating": false,
+          "property_keys": [
+            "asset_type",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset_type": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset_type": {
+                "type": "string",
+                "title": "Asset Type",
+                "default": "",
+                "description": "Optional filter: \"character\", \"environment\", or \"object\"; empty lists all asset types"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a5b347b9e7a3ff4d33e6194cfd0aa371b3d4465934532a6d23b80bfc8a75a2ed"
+        },
+        {
+          "name": "list_channels",
+          "canonical_hash": "sha256:8db76857de0906a78f880d02531d0a3c249b8572ecf989008d6c858bd8985a7f",
+          "description": "List your channels. Every project lives in a channel, which owns the\n    reusable styles (art/narrative/director) that drive generation.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c9d9a80fd775683e7c5b4c5e67f4b75bd3505f07c28b205a3e150c9174dd254f"
+        },
+        {
+          "name": "list_models",
+          "canonical_hash": "sha256:5a48c5bac073e9d883e24535bd0de0ec93fc217bd09635b0ab5cad2a34bfbb6a",
+          "description": "List the models allowed for a generation job, with display names, credit\n    estimates, and each model's settings_schema — the valid keys for that\n    tool's `settings` param (e.g. image quality/orientation, video duration).\n    The first entry is the default every tool uses when model is omitted.",
+          "is_mutating": false,
+          "property_keys": [
+            "job"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "job": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "type": "string",
+                "title": "Job",
+                "description": "Generation job whose allowed models to list, e.g. \"script\", \"storyboard\", \"segment_image\", \"segment_video\", \"voice_block\""
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0d8a92544d47b04e0f42020efce26fd6078cd786cb13461a8f52ed0124f181e2"
+        },
+        {
+          "name": "list_music_tracks",
+          "canonical_hash": "sha256:040bd9192d6a70fc0bd5561baaf228b24b2052226337e627df7b2bccc1400d78",
+          "description": "List the project's background music tracks (volume, loop, timing).",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c84b5d0070051f528cde01d0fc2e892623c95c13cfa282fd9df7f263b6cd0317"
+        },
+        {
+          "name": "list_projects",
+          "canonical_hash": "sha256:9f39cd9adb82029975f617cfd8593a97ef5767aebf91b55f40b49969e6f296c2",
+          "description": "List projects in a channel.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "channel_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channel_id": {
+                "type": "string",
+                "title": "Channel Id",
+                "description": "ID of the channel whose projects to list, from list_channels or create_channel"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:333e11f0cebe8f41a41d99e82fa46914986165a995985f296a12d875427a9e82"
+        },
+        {
+          "name": "list_provider_keys",
+          "canonical_hash": "sha256:ba1d42f3133c7f6aeb2038722e5f62bd6808f6094a16c8523f0b28dbd2ae4d81",
+          "description": "List registered BYOK providers (masked — only the last 4 characters).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c23f09eb849f1e0ddb57aa2592ffc18ecff0bd17ef70150c8f60e822cdff0fcb"
+        },
+        {
+          "name": "list_scenes",
+          "canonical_hash": "sha256:d94354e7c40f5e7db01bc52353b8c7c18f93fdedd1222092f92f2e0b82dd0874",
+          "description": "List the project's scenes (composition layers, durations, layout).",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:57359cde0a7dc646e1e3703e3a2427931abf787fb6ced35231cd3d0947e1e30e"
+        },
+        {
+          "name": "list_style_presets",
+          "canonical_hash": "sha256:978c8318d2288f5b846ef83a9619c0ba6a4c2cb502bf493113fd200f6203003d",
+          "description": "The curated preset catalog for the no-AI style creation path, grouped\n    by axis (art_style / narrative_style / director_style). Show the user the\n    labels + descriptions and let THEM pick one per axis — don't choose\n    silently. Art presets include preview image URLs (view_image works on\n    them). Create with create_style(presets={axis: id, ...}) — instant, no\n    analysis job. Full field text lands on the style row (get_style shows it\n    after creation).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2434e308efdd6c5af2c4eb7dd30bc0f1ed3a1351bc8cb5e7402c68db7102fef5"
+        },
+        {
+          "name": "list_styles",
+          "canonical_hash": "sha256:8bcab711a819734a83ac17466aed5d33a626d569de68d5714206ae484b906885",
+          "description": "List the channel's style rows (variable groups). Styles hold the\n    art_style / narrative_style / director_style / script_prompt fields that\n    drive every generation step, plus any custom @variables.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "channel_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channel_id": {
+                "type": "string",
+                "title": "Channel Id",
+                "description": "ID of the channel that owns the styles, from list_channels"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d496cae198559ec993029bd3755c25a84b4f3560db8ebf8e9123788e30d091fc"
+        },
+        {
+          "name": "list_voice_blocks",
+          "canonical_hash": "sha256:6ad0717a3d099575e02311c5313497e822582a73bcf789b971162172392637e0",
+          "description": "List the project's voice blocks (per-speaker narration chunks) with\n    their audio status and assigned voices.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:06b3572f60e8c36225388c598b6941113b090be212f56ec9d4e4c3bc4dafe292"
+        },
+        {
+          "name": "list_voices",
+          "canonical_hash": "sha256:5053699deb74dc138f12eeffba3f630f4849dd334c59d3ced21410768cfbeddb",
+          "description": "List available TTS voices (id, label, preview audio URL) for a provider:\n    \"minimax\" (default engine) or \"elevenlabs\". Match the project's\n    voice_tts_provider (see get_project) so picked ids work with its engine.",
+          "is_mutating": false,
+          "property_keys": [
+            "provider"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "provider": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "title": "Provider",
+                "default": "minimax",
+                "description": "TTS engine to list voices for: \"minimax\" (default engine) or \"elevenlabs\"; match the project's voice_tts_provider"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4d3c004e3b1d6c14f9c49180442f400e56b01e83b92950a26b910215983c763a"
+        },
+        {
+          "name": "project_director_note",
+          "canonical_hash": "sha256:91891e2a9fe578a796cd4114d861c7a5d5952259c1890060ac349d8ea8d2c507",
+          "description": "Apply a project-WIDE director note (\"make the intro punchier\", \"all\n    captions bigger\", \"tighten pacing in the back half\"). A routing pass picks\n    only the scenes the note applies to and edits each one. Synchronous — a\n    few seconds per affected scene. Returns the per-scene results; re-run\n    export_video afterwards to see changes in the final render.",
+          "is_mutating": false,
+          "property_keys": [
+            "message",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "message": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "title": "Message",
+                "description": "Project-wide director note in natural language, e.g. \"make the intro punchier\" or \"all captions bigger\""
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bf4db4107b4928f387fde1eb70925b98a1ca489aaf386f73bf209b86ed822fdf"
+        },
+        {
+          "name": "regenerate_segment_asset",
+          "canonical_hash": "sha256:4eb3f657df10cccb81f3149ca482dd9e99de641d4b951f62ce1f98bec54b514f",
+          "description": "Regenerate a segment's primary image or video with optional overrides —\n    the API equivalent of the editor's expert drawer. asset_type: \"image\" |\n    \"video\" (for a video segment, \"image\" targets its start frame). Use a\n    different model, override prompt sections (see\n    get_section_template(\"segment_image\")), or tweak settings (e.g. image\n    quality), then re-run just this asset. Async — returns {job_id}.",
+          "is_mutating": false,
+          "property_keys": [
+            "asset_type",
+            "editable_sections",
+            "model",
+            "project_id",
+            "segment_number",
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "asset_type": "string",
+            "project_id": "string",
+            "segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "Model ID to render with; empty uses the job's default (see list_models(\"segment_image\") / list_models(\"segment_video\"))"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Settings",
+                "default": null,
+                "description": "Model-specific settings (e.g. image quality, video duration); valid keys come from the model's settings_schema in list_models"
+              },
+              "asset_type": {
+                "type": "string",
+                "title": "Asset Type",
+                "description": "\"image\" or \"video\"; for a video segment, \"image\" targets its start frame"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based segment number, as reported by get_segments"
+              },
+              "editable_sections": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Editable Sections",
+                "default": null,
+                "description": "Per-call prompt section overrides, keyed by section name; see get_section_template(\"segment_image\") or (\"segment_video\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aba2854804a72106cc393295ba397a97ca92274d8f0e9c25cd1fcfdaafa6f792"
+        },
+        {
+          "name": "remove_music_track",
+          "canonical_hash": "sha256:98edd5d08c8a687c321a175e2304f37657f9ee54385ac88563b0cb9f54b9bcdb",
+          "description": "Remove a music track from the project.",
+          "is_mutating": false,
+          "property_keys": [
+            "track_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "track_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "track_id": {
+                "type": "string",
+                "title": "Track Id",
+                "description": "ID of the music track to remove, from list_music_tracks"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ec006d9cb7747fa45946795218bf4dac5f956efb424df3844317bf8960a83df7"
+        },
+        {
+          "name": "remove_segment_sfx",
+          "canonical_hash": "sha256:b8090eb5a06f05dbc400fda6627cb19d41307854ad12107717cb14d35b444f6f",
+          "description": "Remove a sound effect from a segment. With one SFX attached, no name\n    needed; with several, pass sfx_name (the asset name shown by\n    get_segment_assets).",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id",
+            "segment_number",
+            "sfx_name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sfx_name": "string",
+            "project_id": "string",
+            "segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sfx_name": {
+                "type": "string",
+                "title": "Sfx Name",
+                "default": "",
+                "description": "Name of the SFX asset to remove, as shown by get_segment_assets; needed only when the segment has several SFX attached"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based segment number, as reported by get_segments"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:48f2e2c04f58fe9c15339cd72dda73a7fdbadcabeb937865f5e1f25a9036914a"
+        },
+        {
+          "name": "rescan_voice_blocks",
+          "canonical_hash": "sha256:dd45e64b79032aa0e86277948a74c1f4919e40fba21ac0fdf61191f61120b67a",
+          "description": "Re-extract voice blocks from the active script WITHOUT touching assets\n    or their reference images — the non-destructive alternative to scan_script\n    after a script edit. Existing audio is superseded by the new block split,\n    so re-run generate_voiceover afterwards. Async — returns {job_id}.",
+          "is_mutating": false,
+          "property_keys": [
+            "model",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "Model ID for the re-extraction; empty uses the default (see list_models(\"voice_block_scan\"))"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3d5ba6e26e14cd3f6d0b4fd50410eadfdff860b30ceffb05cdba1530bfec989f"
+        },
+        {
+          "name": "revise_script",
+          "canonical_hash": "sha256:7301a24ae3e4da7591a6787378cd849bb200cfb0a7ed185112e431bc64618a28",
+          "description": "AI-rewrite a passage of the active script in the project's narrative\n    voice (the same in-editor revise the UI offers). selected_text must appear\n    verbatim in the script; omit it to revise the whole script. Synchronous —\n    returns {revised_text}, which is NOT saved: splice it over selected_text\n    (or replace the full script) and call save_script to keep it.",
+          "is_mutating": false,
+          "property_keys": [
+            "instruction",
+            "project_id",
+            "selected_text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string",
+            "instruction": "string",
+            "selected_text": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "instruction": {
+                "type": "string",
+                "title": "Instruction",
+                "description": "Natural-language edit instruction, e.g. \"make the intro punchier\""
+              },
+              "selected_text": {
+                "type": "string",
+                "title": "Selected Text",
+                "default": "",
+                "description": "Exact passage to rewrite; must appear verbatim in the active script. Omit to revise the whole script"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d07dc337c2c338459c1cab57946e6177db7825f67ab74b9889632a7726f528bb"
+        },
+        {
+          "name": "save_script",
+          "canonical_hash": "sha256:d46fdfa75b1bd15fe2f03cbc9e1b641a31eef74107aad3f2311eb805657bb76c",
+          "description": "Save script text (your own draft, or an edited version of the generated\n    one — saving creates a new version, old versions are kept). Run scan_script\n    afterwards so assets and voice blocks reflect the new text.",
+          "is_mutating": false,
+          "property_keys": [
+            "content",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "content": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string",
+                "title": "Content",
+                "description": "Full script text to save as a new version; plain prose narration, optionally with scene headings"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:891dbf97dea63fefa1c1e527ffecc356eae397c022b93941f664de8ed400aff9"
+        },
+        {
+          "name": "scan_script",
+          "canonical_hash": "sha256:052a652de4e71e4929b8a27f324fabfd5f5598f8d0c8afd138518dad095e3ff7",
+          "description": "Analyze the active script: extracts character/environment/object assets\n    and splits narration into voice blocks. DESTRUCTIVE on re-run (assets are\n    recreated, not merged — curated descriptions, reference images, and voices\n    are lost; prefer rescan_voice_blocks after script edits). Async — returns\n    {job_id}.",
+          "is_mutating": false,
+          "property_keys": [
+            "editable_sections",
+            "model",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "title": "Model",
+                "default": "",
+                "description": "Model ID to scan with; empty uses the default (see list_models(\"script_scan\"))"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "editable_sections": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Editable Sections",
+                "default": null,
+                "description": "Per-call prompt section overrides, keyed by section name; see get_section_template(\"script_scan\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1e6fa129b59cc9f70688c5f595a95e4c7120c6faaf350ed4d9d1ae2224104f2b"
+        },
+        {
+          "name": "set_character_voice",
+          "canonical_hash": "sha256:1aec712dd57628d64552200a5646719203333b84cdf42efa114b5406889b20c1",
+          "description": "Bind a TTS voice to a character asset — required before generate_voiceover\n    for every character with dialogue (the narrator's voice is separate:\n    set_narrator_voice). Browse ids with list_voices.",
+          "is_mutating": false,
+          "property_keys": [
+            "asset_id",
+            "voice_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset_id": "string",
+            "voice_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset_id": {
+                "type": "string",
+                "title": "Asset Id",
+                "description": "Character asset ID, from list_assets"
+              },
+              "voice_id": {
+                "type": "string",
+                "title": "Voice Id",
+                "description": "TTS voice ID, from list_voices (use the provider matching the project's voice_tts_provider)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2d5ab1e02b19d09b66f7294e0411edc85dfe8950b29e04cd051d99373203fa64"
+        },
+        {
+          "name": "set_narrator_voice",
+          "canonical_hash": "sha256:c7616df09ae56eb065a0822f2fdc2a35d24dace25e9fb24926bdbff62adfc9ed",
+          "description": "Set the project's narrator TTS voice — required before generate_voiceover\n    whenever the script has narration. Browse ids with list_voices. (Character\n    dialogue voices are separate: set_character_voice.)",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id",
+            "voice_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "voice_id": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "voice_id": {
+                "type": "string",
+                "title": "Voice Id",
+                "description": "TTS voice ID for the narrator, from list_voices (use the provider matching the project's voice_tts_provider)"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:03995e9925224ffa0102fb2e007a32e7bd7fffdd1352498cdfcab978c776207f"
+        },
+        {
+          "name": "set_project_style",
+          "canonical_hash": "sha256:ef728e789f9c4bf6efda4c4d64bf0c313fb71923836e3225c459d0c259e3510b",
+          "description": "Set the project's default style — the style whose art/narrative/director\n    fields drive its generations. Use after create_style to put a new visual\n    identity into effect, or to switch a project between channel styles.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id",
+            "style_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "style_id": "string",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "description": "ID of the style to make the project's default, from create_style or list_styles"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:32f3eda22b6c4db508afbcf5a3884ba4c2baf829ef340f14928db09439806ed2"
+        },
+        {
+          "name": "set_provider_key",
+          "canonical_hash": "sha256:977aba9e974b7938e0665bd3117621a7b56f3246f3ad7688ee729decbd40740c",
+          "description": "Register a BYOK provider API key (encrypted at rest, BYOK plan only).\n    Jobs whose model belongs to this provider then run on YOUR key and charge\n    0 credits. Providers: openai, gemini, anthropic, fal, elevenlabs, minimax.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "provider"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "provider": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "title": "Key",
+                "description": "The provider API key to register; stored encrypted at rest"
+              },
+              "provider": {
+                "type": "string",
+                "title": "Provider",
+                "description": "Provider the key belongs to: \"openai\", \"gemini\", \"anthropic\", \"fal\", \"elevenlabs\", or \"minimax\""
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:15038cf211fbbd721c9753eb2dd269a9c0888c0d3ea3245cff6ae26fddebbfe8"
+        },
+        {
+          "name": "set_segment_continuation",
+          "canonical_hash": "sha256:86e881cceca144284031ca95e1eff8a27c37e4b4d50a0e24a254ea5a34909e47",
+          "description": "Make a segment's image render as a continuation of an EARLIER segment's\n    frame (same composition evolving — the storyboard's continues_from_segment,\n    settable after the fact). continues_from is that earlier segment's number;\n    pass 0 to clear the link. Regenerate the segment's image afterwards — the\n    reference is applied at generation time.",
+          "is_mutating": false,
+          "property_keys": [
+            "continues_from",
+            "project_id",
+            "segment_number"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string",
+            "continues_from": "integer",
+            "segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "continues_from": {
+                "type": "integer",
+                "title": "Continues From",
+                "default": 0,
+                "description": "1-based number of the EARLIER segment whose frame this one continues; pass 0 to clear the link"
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based number of the segment whose image should continue an earlier frame, as reported by get_segments"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:655b79c3d4acc68be97d362407358da3c05e2afa848b25b4c5e758a50b6d1cbd"
+        },
+        {
+          "name": "split_segment",
+          "canonical_hash": "sha256:37cc612fad5878740cbafe190c7511999aedb44b9b14d0a682ed2e863d4c6693",
+          "description": "Split a segment at the given time offsets (ms, 1-3 cuts → 2-4 parts).\n    inherit_index picks which resulting part keeps the original creative data.\n    Later segments renumber — re-check get_segments before further edits.",
+          "is_mutating": false,
+          "property_keys": [
+            "inherit_index",
+            "offsets_ms",
+            "project_id",
+            "segment_number"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offsets_ms": "array",
+            "project_id": "string",
+            "inherit_index": "integer",
+            "segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offsets_ms": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "title": "Offsets Ms",
+                "description": "Cut points as millisecond offsets from the segment start, ascending; 1-3 cuts producing 2-4 parts"
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "inherit_index": {
+                "type": "integer",
+                "title": "Inherit Index",
+                "default": 0,
+                "description": "0-based index of the resulting part that keeps the original creative data (default: the first part)"
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based number of the segment to split, as reported by get_segments"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:23f7f3736b6c69e0946d2c356b347e12bab8ff98ff951d5af0a4563b483475f0"
+        },
+        {
+          "name": "update_asset",
+          "canonical_hash": "sha256:20bd9fd27f8c6d5d74143aa76555dba84cbfc08916705aaca7a6dda86605da91",
+          "description": "Rename an asset and/or rewrite its description. If the look changed,\n    regenerate its reference image afterwards so renders match.",
+          "is_mutating": false,
+          "property_keys": [
+            "asset_id",
+            "description",
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "asset_id": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name",
+                "default": "",
+                "description": "New asset name; empty leaves the name unchanged"
+              },
+              "asset_id": {
+                "type": "string",
+                "title": "Asset Id",
+                "description": "Asset ID, as returned by list_assets or create_asset"
+              },
+              "description": {
+                "type": "string",
+                "title": "Description",
+                "default": "",
+                "description": "New generation-facing look description; empty leaves it unchanged"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3582c038192d6f4c8b9923c0ce934b771f4f558afad2ee0c29137fec3acaa02a"
+        },
+        {
+          "name": "update_caption_config",
+          "canonical_hash": "sha256:6121810d4a9fcae01ee62cf1e8e932717db715ee0863e5efd324b78ff2604d21",
+          "description": "Merge a patch into the project's burned-in caption config (keys like\n    enabled, plus styling). Read the current value from get_project\n    (caption_config). Applies at the next export — no rebuild needed.",
+          "is_mutating": false,
+          "property_keys": [
+            "caption_config",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string",
+            "caption_config": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "caption_config": {
+                "type": "object",
+                "title": "Caption Config",
+                "description": "Partial caption config to merge (keys like enabled, plus styling); read the current value from get_project's caption_config",
+                "additionalProperties": true
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:69190467d486b5d206f1f85127c15cf0d7e03e32fcebce411816d72d86866293"
+        },
+        {
+          "name": "update_music_track",
+          "canonical_hash": "sha256:90458c169ba4121cafeb7c8e9f704032dcd783b8b10ce917b09e0dd0474711bd",
+          "description": "Tweak a music track. fields keys: name, volume (0-1), loop, start_frame,\n    duration_frames, position, trim_start_frame, trim_end_frame.",
+          "is_mutating": false,
+          "property_keys": [
+            "fields",
+            "track_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "fields": "object",
+            "track_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "object",
+                "title": "Fields",
+                "description": "Partial dict of track fields to patch; allowed keys: name, volume (0-1), loop, start_frame, duration_frames, position, trim_start_frame, trim_end_frame",
+                "additionalProperties": true
+              },
+              "track_id": {
+                "type": "string",
+                "title": "Track Id",
+                "description": "Music track ID, from list_music_tracks or add_music_track"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3b0bb683227598ec4e853cbac4f5261235a4b8c2656411140e5e9f018cc40e6a"
+        },
+        {
+          "name": "update_project",
+          "canonical_hash": "sha256:6ae4ff68a59557af4144e85123863a20fde7f8f557b3cdf07519adb3da5cac7d",
+          "description": "Patch project fields. Updatable: title, description, asset_mix,\n    sfx_level, video_concept, voice_mix, voice_tts_provider,\n    script_target_minutes, narrator_speed. (The narrator's TTS voice is NOT\n    here — use set_narrator_voice.)",
+          "is_mutating": false,
+          "property_keys": [
+            "fields",
+            "project_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "fields": "object",
+            "project_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "object",
+                "title": "Fields",
+                "description": "Partial dict of fields to patch; allowed keys: title, description, asset_mix, sfx_level, video_concept, voice_mix, voice_tts_provider, script_target_minutes, narrator_speed",
+                "additionalProperties": true
+              },
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f35dc4bf225d18fcaa8d98af44874340ccaab22ad04dd80a78cdbab161004d3d"
+        },
+        {
+          "name": "update_segment_content",
+          "canonical_hash": "sha256:90e8551b64c0b3f080774ffd70ad8f631f70571704c24e7217329e69d05da6f0",
+          "description": "Rewrite one segment's creative direction from feedback (\"make this shot\n    a close-up\", \"show the machine from above\") — an LLM rewrites the shot's\n    prompts; continuation links, SFX, and overlays are preserved. The visual\n    assets reset to not_started: re-render them afterwards (generate_segments\n    or regenerate_segment_asset). For a precise prompt tweak with no rewrite,\n    use regenerate_segment_asset with editable_sections instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "project_id",
+            "segment_number",
+            "user_input"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "project_id": "string",
+            "user_input": "string",
+            "segment_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_id": {
+                "type": "string",
+                "title": "Project Id",
+                "description": "Project ID, as returned by create_project or list_projects"
+              },
+              "user_input": {
+                "type": "string",
+                "title": "User Input",
+                "description": "Natural-language feedback describing the change to this shot, e.g. \"make this a close-up\" or \"show the machine from above\""
+              },
+              "segment_number": {
+                "type": "integer",
+                "title": "Segment Number",
+                "description": "1-based segment number, as reported by get_segments"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:25c145d85d651cd953f383352e46e1def15304dfdeb6d55a943edbc82b76dfb6"
+        },
+        {
+          "name": "update_style_fields",
+          "canonical_hash": "sha256:eedda5365731aecbaed30734c2ad72f0ca2fbce921ca8b4f8dcf68a4b11f1624",
+          "description": "Hand-edit a style's analyzed fields after reviewing them — e.g. tighten\n    the art_style wording or adjust the director_style pacing rules. `fields`\n    is the FULL flat dict to write: {key: {\"value\": str, \"applies_to\": [...]}}\n    (fetch with get_style, modify, send back). Editing fields does NOT trigger\n    re-analysis, so your edits stick.",
+          "is_mutating": false,
+          "property_keys": [
+            "fields",
+            "style_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "fields": "object",
+            "style_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "object",
+                "title": "Fields",
+                "description": "FULL flat dict of analyzed fields to write, shaped {key: {\"value\": str, \"applies_to\": [...]}} — fetch with get_style, modify, send the whole dict back",
+                "additionalProperties": true
+              },
+              "style_id": {
+                "type": "string",
+                "title": "Style Id",
+                "description": "Style ID, as returned by create_style or list_styles"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bb1ac6aa55ac00ec20d5ef7e9e9612737d8d7d2f00d02a97bc82e09706438e47"
+        },
+        {
+          "name": "update_voice_block",
+          "canonical_hash": "sha256:5cc38a5ea4669dc80056a7526a45cd5ab97df08c9836bb27bb5ad07ad5bd7a50",
+          "description": "Override one voice block's voice or playback volume (block ids from\n    list_voice_blocks). Re-run generate_voiceover for the block afterwards if\n    you changed its voice — existing audio is not regenerated automatically.",
+          "is_mutating": false,
+          "property_keys": [
+            "voice_block_id",
+            "voice_id",
+            "volume"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "voice_id": "string",
+            "voice_block_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "volume": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Volume",
+                "default": null,
+                "description": "Playback volume for this block, 0-1; omit to leave unchanged"
+              },
+              "voice_id": {
+                "type": "string",
+                "title": "Voice Id",
+                "default": "",
+                "description": "New TTS voice ID for this block, from list_voices; empty leaves the voice unchanged"
+              },
+              "voice_block_id": {
+                "type": "string",
+                "title": "Voice Block Id",
+                "description": "Voice block ID, from list_voice_blocks"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:76c7b1134389fef5e49805c1ab71fb4f2b723b2bb3ff0cf054d856ad5ce167b7"
+        },
+        {
+          "name": "view_image",
+          "canonical_hash": "sha256:e55729bd6d3e443af572743e450005dcc1dad8738d70e1c0adafe43f89b6e52a",
+          "description": "Fetch a rendered Framesail image so you (and your user) can SEE it —\n    pass a URL from get_segment_assets, get_style, or asset endpoints. Returns\n    the image inline. Only Framesail media URLs are allowed.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "title": "Url",
+                "description": "Public Framesail media URL to fetch — a public_url from get_segment_assets, a file_path from list_assets, or a template/preset image URL from get_style / list_style_presets; other hosts are rejected"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:68da277de1d320c6c27a328bca3bc9f317f297c28dd93710cf07868ff5cc2b0f"
+        },
+        {
+          "name": "whoami",
+          "canonical_hash": "sha256:323afea7849b199d1d347fd140a0571e859fa53e672545dc2d862854bfcfa189",
+          "description": "Verify the connection: the account email and plan behind the current\n    credential. Call once after connecting — before creating anything — to\n    confirm you're on the right account; costs nothing.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:65787eaeb008e9360b59777a14d4bda5c9a2439956960c6dfa1f1ff0108c0c69"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

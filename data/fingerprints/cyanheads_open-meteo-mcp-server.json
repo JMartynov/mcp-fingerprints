@@ -1,0 +1,1651 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/open-meteo-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fopen-meteo-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/open-meteo-mcp-server",
+  "description": "Global weather via Open-Meteo: forecast, ERA5 archive, marine, air quality, geocoding, elevation.",
+  "repository_url": "https://open-meteo-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/open-meteo-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:161cb8f328392990af50f8ee245f0dcbe5868492b4c0901e26bdd1368478e30a",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://open-meteo-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "openmeteo_dataframe_describe",
+          "canonical_hash": "sha256:6e6ff27ea5d7315df4a092b63c1c8e76d1d1e858fbbaa45ec5aab7a250887274",
+          "description": "List the tables and their columns on a DataCanvas staged by openmeteo_get_historical, openmeteo_get_ensemble, or openmeteo_get_climate. Call this first to discover table names before querying with openmeteo_dataframe_query.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "canvas_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID returned by openmeteo_get_historical, openmeteo_get_ensemble, or openmeteo_get_climate when truncated: true."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "tables": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "kind",
+                    "row_count",
+                    "columns"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "table",
+                        "view"
+                      ],
+                      "type": "string",
+                      "description": "Whether this is a base table or a view."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Table name — pass to openmeteo_dataframe_query."
+                    },
+                    "columns": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "type",
+                          "nullable"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Column name."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "DuckDB type (e.g. VARCHAR, DOUBLE, TIMESTAMP)."
+                          },
+                          "nullable": {
+                            "type": "boolean",
+                            "description": "Whether the column allows NULL."
+                          }
+                        },
+                        "description": "A column: name, DuckDB type, and nullability.",
+                        "additionalProperties": false
+                      },
+                      "description": "Column schema."
+                    },
+                    "row_count": {
+                      "type": "number",
+                      "description": "Number of rows."
+                    }
+                  },
+                  "description": "A table or view on the canvas: name, kind, row count, and column schema.",
+                  "additionalProperties": false
+                },
+                "description": "Tables and views registered on this canvas."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID that was inspected."
+              },
+              "expires_at": {
+                "type": "string",
+                "description": "ISO 8601 expiry after the sliding 24 h TTL."
+              }
+            },
+            "required": [
+              "canvas_id",
+              "tables",
+              "expires_at"
+            ]
+          },
+          "description_hash": "sha256:30635c7a9bc1d2bd12e0f5e436ffb92fad486d1df81e3d4fa59a59c052d58074"
+        },
+        {
+          "name": "openmeteo_dataframe_query",
+          "canonical_hash": "sha256:1b35ad262a18b574d8ca7a8a4704652b7c96718b2fe7c893193b5795a59e7454",
+          "description": "Run a read-only SQL SELECT against tables staged on a DataCanvas by openmeteo_get_historical, openmeteo_get_ensemble, or openmeteo_get_climate. Pass the canvas_id returned when any of those tools spills (truncated: true). Tables are named by the spillover helper (e.g. spilled_<id>); use openmeteo_dataframe_describe to list available tables and their columns before querying.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "sql"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sql": "string",
+            "canvas_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sql": {
+                "type": "string",
+                "description": "Read-only SELECT statement. Reference table names from openmeteo_dataframe_describe. Example: SELECT AVG(temperature_2m) AS avg_temp, strftime(time, '%Y-%m') AS month FROM spilled_abc123 GROUP BY month ORDER BY month"
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID returned by openmeteo_get_historical, openmeteo_get_ensemble, or openmeteo_get_climate when truncated: true."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Result rows (capped at the canvas row limit, default 10 000)."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID that was queried."
+              },
+              "row_count": {
+                "type": "number",
+                "description": "Total rows in the full result before any cap."
+              }
+            },
+            "required": [
+              "rows",
+              "row_count",
+              "canvas_id"
+            ]
+          },
+          "description_hash": "sha256:8b114592a6c08c0ffa3169caef51531f7afe430d0c76f5e84c367296f3f9eae3"
+        },
+        {
+          "name": "openmeteo_geocode",
+          "canonical_hash": "sha256:739b82742957b3526e4a38a1f7407ff8d0a296e785a8e8c4d8c5ed7b958845b7",
+          "description": "Resolve a place name to ranked coordinate matches with country, region, elevation, timezone, and population. Required prerequisite for name-based queries — all weather tools take latitude/longitude, not place names. Search by a bare place name (city, region, or landmark); never fold a qualifier into it — pass \"Baoding\", not \"Baoding Hebei\", and \"Paris\", not \"Paris, France\". To disambiguate places that share a name, set the country input (ISO 3166-1 alpha-2, e.g. \"US\") and/or read the admin1 and country fields on each ranked result — admin1 is a result field for choosing among matches, not a search input. Returns up to 10 matches ranked by population/relevance.",
+          "is_mutating": false,
+          "property_keys": [
+            "count",
+            "country",
+            "language",
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "count": "integer",
+            "country": "string",
+            "language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "description": "Place name to search — a bare city, region, or landmark (\"Seattle\", \"Mount Rainier\"). Do not fold in a region or country qualifier (\"Baoding\", not \"Baoding Hebei\"); use the country input to disambiguate. Weather tools require coordinates — use the lat/lon from this result."
+              },
+              "count": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Max results to return (1–10). Default 5. Return more when disambiguating common names like \"Springfield\" or \"Portland\"."
+              },
+              "country": {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}$",
+                "description": "ISO 3166-1 alpha-2 country code (e.g. \"US\", \"FR\") to disambiguate places that share a name. Omit for a global search."
+              },
+              "language": {
+                "type": "string",
+                "default": "en",
+                "description": "Language for matching and returning place names (ISO 639-1, e.g., \"en\", \"de\", \"zh\"). The API matches name against the localized index for this language, so set it to match the script of name — e.g. language \"zh\" for \"上海\", \"ru\" for \"Москва\". Default \"en\"; a query in a recognized non-Latin script (CJK, Hangul, Cyrillic, Arabic, Greek, Hebrew, Thai, Devanagari) that misses under \"en\" is retried once with the language inferred from its script."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number",
+                "description": "Number of results returned"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "latitude",
+                    "longitude",
+                    "elevation",
+                    "timezone",
+                    "country",
+                    "country_code",
+                    "admin1",
+                    "admin2",
+                    "population",
+                    "feature_code"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "number",
+                      "description": "Open-Meteo place ID — stable reference for this location"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Place name"
+                    },
+                    "admin1": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "State, province, or region"
+                    },
+                    "admin2": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "County or district"
+                    },
+                    "country": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Country name — null for non-country features like continents and oceans"
+                    },
+                    "latitude": {
+                      "type": "number",
+                      "description": "Latitude in decimal degrees"
+                    },
+                    "timezone": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "IANA timezone (e.g., \"America/Los_Angeles\") — pass to weather tools as the timezone parameter. Null when the API omits it."
+                    },
+                    "elevation": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Elevation in meters above sea level"
+                    },
+                    "longitude": {
+                      "type": "number",
+                      "description": "Longitude in decimal degrees"
+                    },
+                    "population": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Population (when available) — useful for disambiguating same-named cities"
+                    },
+                    "country_code": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "ISO 3166-1 alpha-2 country code — null for non-country features like continents and oceans"
+                    },
+                    "feature_code": {
+                      "type": "string",
+                      "description": "GeoNames feature code describing the place type (e.g., \"PPLA2\" = state capital city, \"PPL\" = populated place)"
+                    }
+                  },
+                  "description": "A single geocoding result with coordinates and administrative context",
+                  "additionalProperties": false
+                },
+                "description": "Ranked matches (most relevant first). Never empty — when nothing matches, the tool fails with no_results instead of returning an empty array."
+              }
+            },
+            "required": [
+              "results",
+              "count"
+            ]
+          },
+          "description_hash": "sha256:0b84a7287ef1167bcb983f900f36c1358a27f915dbbeeba36dcaf528a0280859"
+        },
+        {
+          "name": "openmeteo_get_air_quality",
+          "canonical_hash": "sha256:a40e3ff744c8710b6f1adfead7b7a40e8b7ecf702a170264e63044a2e5c3b928",
+          "description": "Modeled CAMS (Copernicus Atmosphere Monitoring Service) air quality forecast: PM2.5, PM10, nitrogen dioxide, sulphur dioxide, ozone, carbon monoxide, dust, pollen, and European/US AQI indices. This is modeled grid data, not measured station readings — for measured data, use openaq-mcp-server. Forecast only (no historical archive). Common variables: pm2_5, pm10, carbon_monoxide, nitrogen_dioxide, sulphur_dioxide, ozone, dust, european_aqi, us_aqi, alder_pollen, birch_pollen, grass_pollen, mugwort_pollen, olive_pollen, ragweed_pollen.",
+          "is_mutating": false,
+          "property_keys": [
+            "forecast_days",
+            "hourly_variables",
+            "latitude",
+            "longitude",
+            "timezone"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "latitude": "number",
+            "timezone": "string",
+            "longitude": "number",
+            "forecast_days": "integer",
+            "hourly_variables": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees. Use openmeteo_geocode to resolve a place name."
+              },
+              "timezone": {
+                "type": "string",
+                "default": "auto",
+                "description": "IANA timezone or \"auto\". Default \"auto\"."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees."
+              },
+              "forecast_days": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 7,
+                "minimum": 1,
+                "description": "Forecast horizon in days (1–7). Default 5."
+              },
+              "hourly_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Hourly air quality variables (e.g., [\"pm2_5\", \"pm10\", \"ozone\", \"nitrogen_dioxide\", \"european_aqi\", \"us_aqi\"]). At least one required."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hourly": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-hour records with \"time\" (ISO 8601) + one key per requested variable. Units: pm2_5/pm10/dust in μg/m³, carbon_monoxide in μg/m³, nitrogen_dioxide/sulphur_dioxide/ozone in μg/m³, european_aqi/us_aqi as index values."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Snapped latitude"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Resolved IANA timezone"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Snapped longitude"
+              },
+              "data_source": {
+                "type": "string",
+                "const": "CAMS",
+                "description": "Data source identifier — this is modeled forecast data from CAMS, not measured station data."
+              },
+              "hourly_units": {
+                "type": "object",
+                "description": "Variable → unit string for hourly data (e.g., {\"pm2_5\": \"μg/m³\", \"european_aqi\": \"EAQI\"}).",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "timezone",
+              "data_source"
+            ]
+          },
+          "description_hash": "sha256:3cd7c5d5744da2cd94cd0a2888e2ee673c6f897df2d4bcce7831a1c99917b947"
+        },
+        {
+          "name": "openmeteo_get_climate",
+          "canonical_hash": "sha256:ec4f07e3247f5e8678bc25b2cc4abfa3c55305ff22911a4ec7b94bb72f610e3d",
+          "description": "Long-range climate projections from bias-corrected daily CMIP6 models, covering 1950-01-01 to 2050-12-31 at any coordinate. Answers \"what will conditions look like through 2050?\" — the future-projection counterpart to openmeteo_get_historical (ERA5, what happened). Daily resolution only. Available models: \"CMCC_CM2_VHR4\", \"FGOALS_f3_H\", \"HiRAM_SIT_HR\", \"MRI_AGCM3_2_S\", \"EC_Earth3P_HR\", \"MPI_ESM1_2_XR\", \"NICAM16_8S\". With 2+ models each variable appears once per model with the model name as suffix (e.g. temperature_2m_max_CMCC_CM2_VHR4); a single or omitted model returns plain variable names. Not all models carry all variables — missing combinations return null. Multi-decade daily pulls across several models produce thousands of records and spill to DataCanvas for SQL querying when canvas is enabled.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "daily_variables",
+            "end_date",
+            "latitude",
+            "longitude",
+            "models",
+            "precipitation_unit",
+            "start_date",
+            "temperature_unit",
+            "timezone",
+            "wind_speed_unit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "models": "array",
+            "end_date": "string",
+            "latitude": "number",
+            "timezone": "string",
+            "canvas_id": "string",
+            "longitude": "number",
+            "start_date": "string",
+            "daily_variables": "array",
+            "wind_speed_unit": "string",
+            "temperature_unit": "string",
+            "precipitation_unit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "models": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 7,
+                "description": "CMIP6 models to include: \"CMCC_CM2_VHR4\", \"FGOALS_f3_H\", \"HiRAM_SIT_HR\", \"MRI_AGCM3_2_S\", \"EC_Earth3P_HR\", \"MPI_ESM1_2_XR\", \"NICAM16_8S\". With 2+ models each variable column is suffixed with the model name (e.g. temperature_2m_max_MRI_AGCM3_2_S). Omit to use the API default (a single model, unsuffixed columns)."
+              },
+              "end_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "End date (YYYY-MM-DD, inclusive, max 2050-12-31). Must be on or after start_date."
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees. Use openmeteo_geocode to resolve a place name to coordinates."
+              },
+              "timezone": {
+                "type": "string",
+                "default": "auto",
+                "description": "IANA timezone or \"auto\". Default \"auto\"."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "DataCanvas token for multi-decade or multi-model queries. When a query exceeds ~500 records, results spill to this canvas for SQL querying. Omit to create a fresh canvas."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees."
+              },
+              "start_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Start date (YYYY-MM-DD, e.g., \"2049-01-01\"). CMIP6 projections cover 1950-01-01 to 2050-12-31."
+              },
+              "daily_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "minItems": 1,
+                "description": "Daily climate variables to fetch (e.g., [\"temperature_2m_max\", \"temperature_2m_min\", \"precipitation_sum\", \"wind_speed_10m_mean\", \"shortwave_radiation_sum\"]). Required — the Climate API is daily-only."
+              },
+              "wind_speed_unit": {
+                "enum": [
+                  "kmh",
+                  "mph",
+                  "ms",
+                  "kn"
+                ],
+                "type": "string",
+                "default": "kmh",
+                "description": "Wind speed unit. Default \"kmh\"."
+              },
+              "temperature_unit": {
+                "enum": [
+                  "celsius",
+                  "fahrenheit"
+                ],
+                "type": "string",
+                "default": "celsius",
+                "description": "Temperature unit. Default \"celsius\"."
+              },
+              "precipitation_unit": {
+                "enum": [
+                  "mm",
+                  "inch"
+                ],
+                "type": "string",
+                "default": "mm",
+                "description": "Precipitation unit. Default \"mm\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-day records with \"time\" (YYYY-MM-DD) + one key per requested variable — per-model suffixed keys when 2+ models were requested (e.g. temperature_2m_max_CMCC_CM2_VHR4). Null values mean the model does not carry that variable. When truncated, contains only a preview; query canvas_id for the full dataset."
+              },
+              "models": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Climate models requested — echoes the models parameter. Absent when models was omitted (API default model; the response carries no provenance)."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Snapped latitude (Open-Meteo snaps to nearest grid point)"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Resolved IANA timezone"
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "DataCanvas token — present only when truncated is true (data spilled). Query with SQL using this token."
+              },
+              "elevation": {
+                "type": "number",
+                "description": "Elevation at grid point (meters)"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Snapped longitude"
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when the response exceeded inline record limit and data spilled to canvas_id. Query the canvas for the full dataset."
+              },
+              "date_range": {
+                "type": "object",
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "properties": {
+                  "end": {
+                    "type": "string",
+                    "description": "Actual end date of returned data"
+                  },
+                  "start": {
+                    "type": "string",
+                    "description": "Actual start date of returned data"
+                  }
+                },
+                "description": "Date range of returned data",
+                "additionalProperties": false
+              },
+              "daily_units": {
+                "type": "object",
+                "description": "Column → unit string for daily data (e.g., {\"temperature_2m_max_CMCC_CM2_VHR4\": \"°C\"}).",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "record_count": {
+                "type": "number",
+                "description": "Total number of daily records in this response"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "elevation",
+              "timezone",
+              "date_range",
+              "record_count",
+              "daily",
+              "truncated"
+            ]
+          },
+          "description_hash": "sha256:b1e5f3a41f58eaf44e616a3f8aefe2c3105f9f6064c5463dd8a9e3f8dbefe7b3"
+        },
+        {
+          "name": "openmeteo_get_elevation",
+          "canonical_hash": "sha256:a555495081b852f3fbeae5c15ef0b43a8089347d5143a91d74505af084f0e73d",
+          "description": "Terrain elevation from the Copernicus Digital Elevation Model (~90m resolution) for one or more coordinate pairs. Accepts up to 100 pairs per call. Useful for geographic context, elevation-adjusted weather interpretation, or route planning.",
+          "is_mutating": false,
+          "property_keys": [
+            "latitudes",
+            "longitudes"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "latitudes": "array",
+            "longitudes": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "latitudes": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "maximum": 90,
+                  "minimum": -90
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Array of latitudes in decimal degrees (up to 100). Must be same length as longitudes."
+              },
+              "longitudes": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "maximum": 180,
+                  "minimum": -180
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Array of longitudes in decimal degrees (up to 100). Must be same length as latitudes."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "elevations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "latitude",
+                    "longitude",
+                    "elevation_m"
+                  ],
+                  "properties": {
+                    "latitude": {
+                      "type": "number",
+                      "description": "Input latitude"
+                    },
+                    "longitude": {
+                      "type": "number",
+                      "description": "Input longitude"
+                    },
+                    "elevation_m": {
+                      "type": "number",
+                      "description": "Terrain elevation in meters above sea level"
+                    }
+                  },
+                  "description": "Elevation for a single coordinate pair",
+                  "additionalProperties": false
+                },
+                "description": "Elevation values in input order"
+              }
+            },
+            "required": [
+              "elevations"
+            ]
+          },
+          "description_hash": "sha256:b42ed99d55c2a7b618dd2110219bd92ced3e37a0e10649a74375f47f2121e2ce"
+        },
+        {
+          "name": "openmeteo_get_ensemble",
+          "canonical_hash": "sha256:000de71b021ddfec852704bf22f2bf6da8916f138895b0ba6de48a6fa330a30e",
+          "description": "Probabilistic ensemble weather forecast — up to 51 ensemble members, up to 16 days ahead with optional past_days (0–92). Each member's values appear as separate columns named with a member suffix (e.g. temperature_2m_member01, temperature_2m_member02). Use the spread across members to compute exceedance probabilities, quantify forecast uncertainty, and build decision thresholds. Available models: \"ecmwf_ifs025\" (51 members, global, 0.25°), \"gfs025\" (31 members, global, 0.25°), \"icon_seamless\" (40 members, global/Europe blend), \"gem_global\" (21 members, global, 0.25°). Omit models to use the API default blend. Large multi-member, multi-day pulls produce thousands of records and spill to DataCanvas when canvas is enabled. At least one of hourly_variables or daily_variables is required.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "daily_variables",
+            "forecast_days",
+            "hourly_variables",
+            "latitude",
+            "longitude",
+            "models",
+            "past_days",
+            "precipitation_unit",
+            "temperature_unit",
+            "timezone",
+            "wind_speed_unit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "models": "string",
+            "latitude": "number",
+            "timezone": "string",
+            "canvas_id": "string",
+            "longitude": "number",
+            "past_days": "integer",
+            "forecast_days": "integer",
+            "daily_variables": "array",
+            "wind_speed_unit": "string",
+            "hourly_variables": "array",
+            "temperature_unit": "string",
+            "precipitation_unit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "models": {
+                "type": "string",
+                "description": "Ensemble model to use: \"ecmwf_ifs025\" (51 members, global 0.25°), \"gfs025\" (31 members), \"icon_seamless\" (40 members), \"gem_global\" (21 members). Omit to use the API default blend."
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees. Use openmeteo_geocode to resolve a place name to coordinates."
+              },
+              "timezone": {
+                "type": "string",
+                "default": "auto",
+                "description": "IANA timezone (e.g., \"America/Los_Angeles\") or \"auto\" to use the location's local timezone. Default \"auto\"."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "DataCanvas token for large multi-member queries. When records exceed ~500, results spill to this canvas for SQL querying. Omit to create a fresh canvas."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees."
+              },
+              "past_days": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 92,
+                "minimum": 0,
+                "description": "Include this many days of past ensemble data before today (0–92). Default 0."
+              },
+              "forecast_days": {
+                "type": "integer",
+                "default": 7,
+                "maximum": 16,
+                "minimum": 1,
+                "description": "Forecast horizon in days (1–16). Default 7."
+              },
+              "daily_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Daily variables to fetch across all ensemble members (e.g., [\"temperature_2m_max\", \"temperature_2m_min\", \"precipitation_sum\"]). Each variable appears as temperature_2m_max_member01, … At least one of hourly_variables or daily_variables required."
+              },
+              "wind_speed_unit": {
+                "enum": [
+                  "kmh",
+                  "mph",
+                  "ms",
+                  "kn"
+                ],
+                "type": "string",
+                "default": "kmh",
+                "description": "Wind speed unit. Default \"kmh\"."
+              },
+              "hourly_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Hourly variables to fetch across all ensemble members (e.g., [\"temperature_2m\", \"precipitation\", \"wind_speed_10m\"]). Each variable appears as temperature_2m_member01, temperature_2m_member02, … in the output. At least one of hourly_variables or daily_variables required."
+              },
+              "temperature_unit": {
+                "enum": [
+                  "celsius",
+                  "fahrenheit"
+                ],
+                "type": "string",
+                "default": "celsius",
+                "description": "Temperature unit. Default \"celsius\"."
+              },
+              "precipitation_unit": {
+                "enum": [
+                  "mm",
+                  "inch"
+                ],
+                "type": "string",
+                "default": "mm",
+                "description": "Precipitation unit. Default \"mm\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-day records with \"time\" (YYYY-MM-DD) + per-member columns (e.g., temperature_2m_max_member01). Absent when only hourly_variables were requested. When truncated, contains a preview only; query canvas_id for the full dataset."
+              },
+              "model": {
+                "type": "string",
+                "description": "Ensemble model used (e.g. \"ecmwf_ifs025\") — echoes the requested models parameter. Absent when models was omitted (API default blend; the API reports no provenance)."
+              },
+              "hourly": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-hour records with \"time\" (ISO 8601) + per-member columns for each requested variable (e.g., temperature_2m_member01, temperature_2m_member02). Absent when only daily_variables were requested. When truncated, contains a preview only; query canvas_id for the full dataset."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Snapped latitude (Open-Meteo snaps to nearest grid point)"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Resolved IANA timezone"
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "DataCanvas token — present only when truncated is true (data spilled). Query with SQL using this token."
+              },
+              "elevation": {
+                "type": "number",
+                "description": "Terrain elevation at grid point (meters)"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Snapped longitude"
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when the response exceeded the inline record limit and data spilled to canvas_id. Query the canvas for the full dataset."
+              },
+              "daily_units": {
+                "type": "object",
+                "description": "Variable → unit string for daily data. Absent when no daily_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "hourly_units": {
+                "type": "object",
+                "description": "Variable → unit string for hourly data (e.g., {\"temperature_2m_member01\": \"°C\"}). Absent when no hourly_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "member_count": {
+                "type": "number",
+                "description": "Number of distinct perturbed ensemble members in the response, counted from the _memberNN column suffixes. The unsuffixed base column (the control run) is not included in this count."
+              },
+              "record_count": {
+                "type": "number",
+                "description": "Total number of records (hourly + daily rows) in this response"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "elevation",
+              "timezone",
+              "record_count",
+              "truncated"
+            ]
+          },
+          "description_hash": "sha256:f74b09bf4d26da786ed2eb157fda7f24fb72d746a2d3194889f8f05928dd3beb"
+        },
+        {
+          "name": "openmeteo_get_flood",
+          "canonical_hash": "sha256:61db973adf8fcdebb5bbb9931375defafbbb0ce78bb2f61804306002cb8ff5f7",
+          "description": "GloFAS (Global Flood Awareness System) river discharge forecast and historical reanalysis. Returns daily ensemble river discharge (m³/s) for the river nearest to the given coordinates — no river ID needed, the API snaps to the nearest stream. Forecast horizon up to 210 days ahead; reanalysis history back to 1984-01-01. Use start_date/end_date for historical pulls and forecast_days for future forecasts; both can be combined. Available daily variables: \"river_discharge\" (ensemble mean), \"river_discharge_mean\", \"river_discharge_min\", \"river_discharge_max\", \"river_discharge_median\", \"river_discharge_p25\" (25th percentile), \"river_discharge_p75\" (75th percentile). Returns null for coordinates far from any river or in areas without GloFAS coverage.",
+          "is_mutating": false,
+          "property_keys": [
+            "daily_variables",
+            "end_date",
+            "forecast_days",
+            "latitude",
+            "longitude",
+            "start_date",
+            "timezone"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "end_date": "string",
+            "latitude": "number",
+            "timezone": "string",
+            "longitude": "number",
+            "start_date": "string",
+            "forecast_days": "integer",
+            "daily_variables": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "end_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "End date for historical reanalysis (YYYY-MM-DD, inclusive). Must be on or after start_date."
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees. The API snaps to the nearest river — no river ID required. Use openmeteo_geocode to resolve a place name."
+              },
+              "timezone": {
+                "type": "string",
+                "default": "auto",
+                "description": "IANA timezone or \"auto\". Default \"auto\"."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees."
+              },
+              "start_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Start date for historical reanalysis (YYYY-MM-DD, e.g., \"2023-01-01\"). GloFAS reanalysis covers from 1984-01-01."
+              },
+              "forecast_days": {
+                "type": "integer",
+                "maximum": 210,
+                "minimum": 1,
+                "description": "Number of forecast days ahead (1–210). Omit when fetching historical data only via start_date/end_date."
+              },
+              "daily_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "description": "Daily discharge variables to fetch (e.g., [\"river_discharge\", \"river_discharge_p25\", \"river_discharge_p75\", \"river_discharge_min\", \"river_discharge_max\"]). Required."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-day records with \"time\" (YYYY-MM-DD) + one key per requested variable containing discharge in m³/s, or null for coordinates outside GloFAS coverage."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Snapped latitude (nearest river grid point)"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Resolved IANA timezone"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Snapped longitude"
+              },
+              "daily_units": {
+                "type": "object",
+                "description": "Variable → unit string for daily data (e.g., {\"river_discharge\": \"m³/s\"}).",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "timezone",
+              "daily"
+            ]
+          },
+          "description_hash": "sha256:1ed3dfe434fb455d0cfe8f872c3b60395aa939f82281b93db56d8ee571024bdc"
+        },
+        {
+          "name": "openmeteo_get_forecast",
+          "canonical_hash": "sha256:1e676cf660c2ef745666721d542defed722009a2965fbbd69987b80677755092",
+          "description": "Weather forecast for coordinates: hourly and/or daily variables for up to 16 days ahead, with optional past_days (up to 92) for recent history. Use past_days instead of openmeteo_get_historical for dates within the last 1–5 days, since ERA5 has a variable lag. Returns per-timestamp records — each hourly entry contains a \"time\" field (ISO 8601) plus one key per requested variable; each daily entry contains a \"time\" field (YYYY-MM-DD) plus requested variables. Common hourly variables: temperature_2m, precipitation, wind_speed_10m, relative_humidity_2m, cloud_cover, uv_index, apparent_temperature, precipitation_probability, weather_code, surface_pressure, visibility, wind_direction_10m, wind_gusts_10m, dew_point_2m. Common daily variables: temperature_2m_max, temperature_2m_min, precipitation_sum, wind_speed_10m_max, sunrise, sunset, uv_index_max, precipitation_hours, weather_code. At least one of hourly_variables or daily_variables is required.",
+          "is_mutating": false,
+          "property_keys": [
+            "daily_variables",
+            "forecast_days",
+            "hourly_variables",
+            "latitude",
+            "longitude",
+            "past_days",
+            "precipitation_unit",
+            "temperature_unit",
+            "timezone",
+            "wind_speed_unit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "latitude": "number",
+            "timezone": "string",
+            "longitude": "number",
+            "past_days": "integer",
+            "forecast_days": "integer",
+            "daily_variables": "array",
+            "wind_speed_unit": "string",
+            "hourly_variables": "array",
+            "temperature_unit": "string",
+            "precipitation_unit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees (e.g., 47.6062 for Seattle). Use openmeteo_geocode to resolve a place name to coordinates."
+              },
+              "timezone": {
+                "type": "string",
+                "default": "auto",
+                "description": "IANA timezone (e.g., \"America/Los_Angeles\") or \"auto\" to use the location's local timezone. Default \"auto\". The timezone from openmeteo_geocode is ideal to pass here."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees (e.g., -122.3321 for Seattle)."
+              },
+              "past_days": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 92,
+                "minimum": 0,
+                "description": "Include this many days of past data before today (0–92). Use for recent history — ERA5 archive has a variable ~5-day lag. Default 0."
+              },
+              "forecast_days": {
+                "type": "integer",
+                "default": 7,
+                "maximum": 16,
+                "minimum": 1,
+                "description": "Number of forecast days (1–16). Default 7."
+              },
+              "daily_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Daily summary variables (e.g., [\"temperature_2m_max\", \"temperature_2m_min\", \"precipitation_sum\", \"wind_speed_10m_max\", \"sunrise\", \"sunset\", \"uv_index_max\"]). At least one of hourly_variables or daily_variables is required."
+              },
+              "wind_speed_unit": {
+                "enum": [
+                  "kmh",
+                  "mph",
+                  "ms",
+                  "kn"
+                ],
+                "type": "string",
+                "default": "kmh",
+                "description": "Wind speed unit: \"kmh\" (km/h), \"mph\", \"ms\" (m/s), or \"kn\" (knots). Default \"kmh\"."
+              },
+              "hourly_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Hourly variables to fetch (e.g., [\"temperature_2m\", \"precipitation\", \"wind_speed_10m\", \"relative_humidity_2m\", \"cloud_cover\", \"uv_index\", \"apparent_temperature\"]). At least one of hourly_variables or daily_variables is required."
+              },
+              "temperature_unit": {
+                "enum": [
+                  "celsius",
+                  "fahrenheit"
+                ],
+                "type": "string",
+                "default": "celsius",
+                "description": "Temperature unit. Default \"celsius\"."
+              },
+              "precipitation_unit": {
+                "enum": [
+                  "mm",
+                  "inch"
+                ],
+                "type": "string",
+                "default": "mm",
+                "description": "Precipitation unit: \"mm\" or \"inch\". Default \"mm\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-day records. Each object has a \"time\" field (YYYY-MM-DD) plus one key per requested variable with its value. Units are in the daily_units map. Absent when only hourly_variables were requested."
+              },
+              "hourly": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-hour records. Each object has a \"time\" field (ISO 8601) plus one key per requested variable with its value. Units are in the hourly_units map. Absent when only daily_variables were requested."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Snapped latitude (Open-Meteo snaps to nearest grid point)"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Resolved IANA timezone"
+              },
+              "elevation": {
+                "type": "number",
+                "description": "Terrain elevation at grid point (meters)"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Snapped longitude"
+              },
+              "daily_units": {
+                "type": "object",
+                "description": "Map of variable name → unit string for daily data. Absent when no daily_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "hourly_units": {
+                "type": "object",
+                "description": "Map of variable name → unit string for hourly data (e.g., {\"temperature_2m\": \"°C\", \"precipitation\": \"mm\"}). Absent when no hourly_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "utc_offset_seconds": {
+                "type": "number",
+                "description": "UTC offset in seconds for this timezone at query time"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "elevation",
+              "timezone",
+              "utc_offset_seconds"
+            ]
+          },
+          "description_hash": "sha256:d45c0ca9fecc7627745cf158ee4cbd6c91fe3c9df5ca919e84f8f1424996f2f3"
+        },
+        {
+          "name": "openmeteo_get_historical",
+          "canonical_hash": "sha256:932b84721e163ad4a01b0b18da0c3749fcaea720df7d953d65e661e5692cffaa",
+          "description": "Historical weather from the ERA5 reanalysis archive (1940–present). Requires start_date and end_date (ISO 8601 date, e.g., \"2024-07-01\"). ERA5 has a variable lag of up to ~5 days — for dates within the last week, use openmeteo_get_forecast with past_days instead. Uses the same variable names as the forecast API for direct comparison. Large date ranges (multi-year hourly) produce thousands of records — these spill to DataCanvas for SQL querying when canvas is enabled. At least one of hourly_variables or daily_variables is required.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "daily_variables",
+            "end_date",
+            "hourly_variables",
+            "latitude",
+            "longitude",
+            "precipitation_unit",
+            "start_date",
+            "temperature_unit",
+            "timezone",
+            "wind_speed_unit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "end_date": "string",
+            "latitude": "number",
+            "timezone": "string",
+            "canvas_id": "string",
+            "longitude": "number",
+            "start_date": "string",
+            "daily_variables": "array",
+            "wind_speed_unit": "string",
+            "hourly_variables": "array",
+            "temperature_unit": "string",
+            "precipitation_unit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "end_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "End date (YYYY-MM-DD, inclusive). Must be on or after start_date. For dates within the last ~5 days, use openmeteo_get_forecast with past_days instead."
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees. Use openmeteo_geocode to resolve a place name to coordinates."
+              },
+              "timezone": {
+                "type": "string",
+                "default": "auto",
+                "description": "IANA timezone or \"auto\". Default \"auto\"."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "DataCanvas token for multi-year or multi-variable queries. When a query exceeds ~500 records, results spill to this canvas for SQL querying. Omit to create a fresh canvas."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees."
+              },
+              "start_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Start date (YYYY-MM-DD, e.g., \"2024-07-01\"). ERA5 covers from 1940-01-01 to approximately 5 days ago."
+              },
+              "daily_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Daily summary variables (e.g., [\"temperature_2m_max\", \"temperature_2m_min\", \"precipitation_sum\", \"wind_speed_10m_max\"]). At least one of hourly_variables or daily_variables required."
+              },
+              "wind_speed_unit": {
+                "enum": [
+                  "kmh",
+                  "mph",
+                  "ms",
+                  "kn"
+                ],
+                "type": "string",
+                "default": "kmh",
+                "description": "Wind speed unit. Default \"kmh\"."
+              },
+              "hourly_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Hourly ERA5 variables (e.g., [\"temperature_2m\", \"precipitation\", \"wind_speed_10m\", \"relative_humidity_2m\", \"cloud_cover\", \"soil_moisture_0_to_7cm\"]). At least one of hourly_variables or daily_variables required."
+              },
+              "temperature_unit": {
+                "enum": [
+                  "celsius",
+                  "fahrenheit"
+                ],
+                "type": "string",
+                "default": "celsius",
+                "description": "Temperature unit. Default \"celsius\"."
+              },
+              "precipitation_unit": {
+                "enum": [
+                  "mm",
+                  "inch"
+                ],
+                "type": "string",
+                "default": "mm",
+                "description": "Precipitation unit. Default \"mm\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-day records with \"time\" (YYYY-MM-DD) + variable keys. Absent when only hourly_variables were requested. When truncated, contains only a preview; query canvas_id for the full dataset."
+              },
+              "hourly": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-hour records with \"time\" (ISO 8601) + variable keys. Absent when only daily_variables were requested. When truncated, contains only a preview; query canvas_id for the full dataset."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Snapped latitude"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Resolved IANA timezone"
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "DataCanvas token — present only when truncated is true (data spilled). Query with SQL using this token."
+              },
+              "elevation": {
+                "type": "number",
+                "description": "Elevation at grid point (meters)"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Snapped longitude"
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when the response exceeded inline record limit and data spilled to canvas_id. Query the canvas for the full dataset."
+              },
+              "date_range": {
+                "type": "object",
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "properties": {
+                  "end": {
+                    "type": "string",
+                    "description": "Actual end date of returned data"
+                  },
+                  "start": {
+                    "type": "string",
+                    "description": "Actual start date of returned data"
+                  }
+                },
+                "description": "Date range of returned data",
+                "additionalProperties": false
+              },
+              "daily_units": {
+                "type": "object",
+                "description": "Variable → unit string for daily data. Absent when no daily_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "hourly_units": {
+                "type": "object",
+                "description": "Variable → unit string for hourly data (e.g., {\"temperature_2m\": \"°C\", \"precipitation\": \"mm\"}). Absent when no hourly_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "record_count": {
+                "type": "number",
+                "description": "Total number of records (hourly or daily rows) in this response"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "elevation",
+              "timezone",
+              "date_range",
+              "record_count",
+              "truncated"
+            ]
+          },
+          "description_hash": "sha256:8eee85a9c8538e644a5a431f1426ce27f3c0243dc39a5f025bc779eed7220e71"
+        },
+        {
+          "name": "openmeteo_get_marine",
+          "canonical_hash": "sha256:e94335a7060c5e6d84b76312d64b214a20ce64e79f67a9389d1dee37160f5859",
+          "description": "Marine weather forecast for a coastal or ocean coordinate: wave height, wave period, wave direction, wind-wave height, swell height, sea-surface temperature. Forecast horizon up to 7 days. Returns per-timestamp records — each entry contains a \"time\" field plus one key per requested variable. Best for open-ocean and coastal exposed points — sheltered inland waters return near-zero wave values. Common hourly variables: wave_height, wave_direction, wave_period, wind_wave_height, wind_wave_direction, wind_wave_period, swell_wave_height, swell_wave_direction, swell_wave_period. Common daily: wave_height_max, wave_direction_dominant, wave_period_max. Note: ocean_current_velocity is null for non-open-ocean coordinates.",
+          "is_mutating": false,
+          "property_keys": [
+            "daily_variables",
+            "forecast_days",
+            "hourly_variables",
+            "latitude",
+            "longitude",
+            "timezone"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "latitude": "number",
+            "timezone": "string",
+            "longitude": "number",
+            "forecast_days": "integer",
+            "daily_variables": "array",
+            "hourly_variables": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude of a coastal or ocean point. Use openmeteo_geocode to resolve a place name. Inland points return near-zero wave values."
+              },
+              "timezone": {
+                "type": "string",
+                "default": "auto",
+                "description": "IANA timezone or \"auto\". Default \"auto\"."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees."
+              },
+              "forecast_days": {
+                "type": "integer",
+                "default": 7,
+                "maximum": 7,
+                "minimum": 1,
+                "description": "Forecast horizon in days (1–7). Default 7."
+              },
+              "daily_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Daily marine summary variables (e.g., [\"wave_height_max\", \"wave_direction_dominant\", \"wave_period_max\"]). At least one of hourly_variables or daily_variables required."
+              },
+              "hourly_variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "description": "Hourly marine variables (e.g., [\"wave_height\", \"wave_direction\", \"wave_period\", \"wind_wave_height\", \"swell_wave_height\"]). At least one of hourly_variables or daily_variables required."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-day summary records with \"time\" (YYYY-MM-DD) + variable keys (e.g., wave_height_max in meters, wave_direction_dominant in degrees, wave_period_max in seconds)."
+              },
+              "hourly": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Per-hour records with \"time\" (ISO 8601) + one key per requested variable (e.g., wave_height in meters, wave_direction in degrees, wave_period in seconds). Absent when only daily_variables were requested."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Snapped latitude"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Resolved IANA timezone"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Snapped longitude"
+              },
+              "daily_units": {
+                "type": "object",
+                "description": "Variable → unit string for daily data. Absent when no daily_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "hourly_units": {
+                "type": "object",
+                "description": "Variable → unit string for hourly data (e.g., {\"wave_height\": \"m\", \"wave_period\": \"s\"}). Absent when no hourly_variables were requested.",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "timezone"
+            ]
+          },
+          "description_hash": "sha256:eff793de7a6d34009b117f3a4e88cf20926e169f2740dc5976cd74623575bbe8"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

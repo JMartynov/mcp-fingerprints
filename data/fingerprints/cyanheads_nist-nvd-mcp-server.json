@@ -1,0 +1,978 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/nist-nvd-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fnist-nvd-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/nist-nvd-mcp-server",
+  "description": "Search and audit NIST NVD CVEs by keyword, severity, CWE, CISA KEV status, and CPE.",
+  "repository_url": "https://nist-nvd-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/nist-nvd-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:23f38d4731dd7d9d6364cce2dc2e0146323cc003d1524b5d56c64709a9640664",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://nist-nvd-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "nvd_audit_cpe",
+          "canonical_hash": "sha256:524929b0a7873b4f77507db784ff5b959acd2faae5582502317fd17685db7a08",
+          "description": "Find all CVEs affecting a specific product and version using CPE (Common Platform Enumeration). Requires either an exact CPE name (cpeName) or a partial match string (virtualMatchString) with optional version range bounds. With cpeName, NVD scopes results to configurations where the product is directly vulnerable, not merely referenced as a dependency. Use nvd_search_cpes first to resolve the correct CPE string for a product. Returns full CVE records.",
+          "is_mutating": false,
+          "property_keys": [
+            "cpeName",
+            "limit",
+            "severityMin",
+            "versionEnd",
+            "versionEndType",
+            "versionStart",
+            "versionStartType",
+            "virtualMatchString"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "cpeName": "string",
+            "versionEnd": "string",
+            "severityMin": "string",
+            "versionStart": "string",
+            "versionEndType": "string",
+            "versionStartType": "string",
+            "virtualMatchString": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 2000,
+                "minimum": 1,
+                "description": "Maximum number of CVEs to return (default 20, max 2000)."
+              },
+              "cpeName": {
+                "type": "string",
+                "description": "Full CPEv2.3 name (e.g., \"cpe:2.3:a:apache:http_server:2.4.51:*:*:*:*:*:*:*\"). NVD adds isVulnerable automatically. Mutually exclusive with virtualMatchString."
+              },
+              "versionEnd": {
+                "type": "string",
+                "description": "Upper version bound. Requires virtualMatchString."
+              },
+              "severityMin": {
+                "enum": [
+                  "LOW",
+                  "MEDIUM",
+                  "HIGH",
+                  "CRITICAL"
+                ],
+                "type": "string",
+                "description": "Filter out CVEs below this severity level."
+              },
+              "versionStart": {
+                "type": "string",
+                "description": "Lower version bound. Requires virtualMatchString."
+              },
+              "versionEndType": {
+                "enum": [
+                  "including",
+                  "excluding"
+                ],
+                "type": "string",
+                "default": "including",
+                "description": "Whether the upper version bound is inclusive or exclusive."
+              },
+              "versionStartType": {
+                "enum": [
+                  "including",
+                  "excluding"
+                ],
+                "type": "string",
+                "default": "including",
+                "description": "Whether the lower version bound is inclusive or exclusive."
+              },
+              "virtualMatchString": {
+                "type": "string",
+                "description": "Partial CPE match pattern (e.g., \"cpe:2.3:a:apache:http_server:*\"). Use with versionStart/versionEnd for version range audits. Mutually exclusive with cpeName."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cves": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "cveId",
+                    "vulnStatus",
+                    "published",
+                    "lastModified",
+                    "descriptions",
+                    "cvssScores",
+                    "weaknesses",
+                    "configurations"
+                  ],
+                  "properties": {
+                    "cveId": {
+                      "type": "string",
+                      "description": "CVE identifier (e.g., \"CVE-2021-44228\")."
+                    },
+                    "cisaKev": {
+                      "type": "object",
+                      "required": [
+                        "exploitAddDate",
+                        "actionDueDate",
+                        "requiredAction",
+                        "vulnerabilityName"
+                      ],
+                      "properties": {
+                        "actionDueDate": {
+                          "type": "string",
+                          "description": "Federal agency remediation deadline."
+                        },
+                        "exploitAddDate": {
+                          "type": "string",
+                          "description": "Date added to CISA KEV catalog."
+                        },
+                        "requiredAction": {
+                          "type": "string",
+                          "description": "Required remediation steps."
+                        },
+                        "vulnerabilityName": {
+                          "type": "string",
+                          "description": "CISA's vulnerability name."
+                        }
+                      },
+                      "description": "CISA KEV fields. Present only when CVE is in the KEV catalog.",
+                      "additionalProperties": false
+                    },
+                    "severity": {
+                      "type": "object",
+                      "required": [
+                        "label",
+                        "score",
+                        "fromVersion"
+                      ],
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "description": "Highest severity label across all CVSS versions."
+                        },
+                        "score": {
+                          "type": "number",
+                          "description": "Highest base score (0.0–10.0)."
+                        },
+                        "fromVersion": {
+                          "type": "string",
+                          "description": "Which CVSS version this top score came from."
+                        }
+                      },
+                      "description": "Top severity. Absent if no CVSS scores present.",
+                      "additionalProperties": false
+                    },
+                    "published": {
+                      "type": "string",
+                      "description": "ISO 8601 publication datetime."
+                    },
+                    "cvssScores": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "version",
+                          "sourceType",
+                          "baseScore",
+                          "severity"
+                        ],
+                        "properties": {
+                          "version": {
+                            "type": "string",
+                            "description": "CVSS version (e.g., \"2.0\", \"3.1\", \"4.0\")."
+                          },
+                          "severity": {
+                            "type": "string",
+                            "description": "Severity label: CRITICAL, HIGH, MEDIUM, or LOW."
+                          },
+                          "baseScore": {
+                            "type": "number",
+                            "description": "Base score (0.0–10.0)."
+                          },
+                          "sourceType": {
+                            "type": "string",
+                            "description": "Score source: \"Primary\" = NVD, \"Secondary\" = CNA."
+                          },
+                          "vectorString": {
+                            "type": "string",
+                            "description": "CVSS vector string."
+                          }
+                        },
+                        "description": "One CVSS score entry.",
+                        "additionalProperties": false
+                      },
+                      "description": "All available CVSS scores across versions."
+                    },
+                    "references": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "url"
+                        ],
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Reference URL."
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "description": "One classification tag."
+                            },
+                            "description": "Classification tags."
+                          },
+                          "source": {
+                            "type": "string",
+                            "description": "Reference source."
+                          }
+                        },
+                        "description": "One external reference.",
+                        "additionalProperties": false
+                      },
+                      "description": "External references."
+                    },
+                    "vulnStatus": {
+                      "type": "string",
+                      "description": "NVD analysis status."
+                    },
+                    "weaknesses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "source",
+                          "cweIds"
+                        ],
+                        "properties": {
+                          "cweIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "description": "One CWE identifier."
+                            },
+                            "description": "CWE identifiers for this source."
+                          },
+                          "source": {
+                            "type": "string",
+                            "description": "Weakness source (NVD or CNA)."
+                          }
+                        },
+                        "description": "One weakness classification entry.",
+                        "additionalProperties": false
+                      },
+                      "description": "CWE weakness classifications."
+                    },
+                    "descriptions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "lang",
+                          "value"
+                        ],
+                        "properties": {
+                          "lang": {
+                            "type": "string",
+                            "description": "Language code."
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "CVE description."
+                          }
+                        },
+                        "description": "One localized CVE description.",
+                        "additionalProperties": false
+                      },
+                      "description": "CVE descriptions by language."
+                    },
+                    "lastModified": {
+                      "type": "string",
+                      "description": "ISO 8601 last-modified datetime."
+                    },
+                    "configurations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "nodes"
+                        ],
+                        "properties": {
+                          "nodes": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "cpeMatch"
+                              ],
+                              "properties": {
+                                "cpeMatch": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "required": [
+                                      "vulnerable",
+                                      "criteria"
+                                    ],
+                                    "properties": {
+                                      "criteria": {
+                                        "type": "string",
+                                        "description": "CPEv2.3 match criteria string."
+                                      },
+                                      "vulnerable": {
+                                        "type": "boolean",
+                                        "description": "Whether this CPE is the vulnerable component."
+                                      },
+                                      "versionEndExcluding": {
+                                        "type": "string",
+                                        "description": "Exclusive upper version bound."
+                                      },
+                                      "versionEndIncluding": {
+                                        "type": "string",
+                                        "description": "Inclusive upper version bound."
+                                      },
+                                      "versionStartExcluding": {
+                                        "type": "string",
+                                        "description": "Exclusive lower version bound."
+                                      },
+                                      "versionStartIncluding": {
+                                        "type": "string",
+                                        "description": "Inclusive lower version bound."
+                                      }
+                                    },
+                                    "description": "One CPE match criterion.",
+                                    "additionalProperties": false
+                                  },
+                                  "description": "CPE match criteria for this node."
+                                },
+                                "operator": {
+                                  "type": "string",
+                                  "description": "Logical operator (AND/OR)."
+                                }
+                              },
+                              "description": "One configuration node with its CPE match criteria.",
+                              "additionalProperties": false
+                            },
+                            "description": "Configuration nodes."
+                          }
+                        },
+                        "description": "One affected product configuration group.",
+                        "additionalProperties": false
+                      },
+                      "description": "Affected product configurations."
+                    }
+                  },
+                  "description": "Full CVE record for one vulnerability affecting the product.",
+                  "additionalProperties": false
+                },
+                "description": "Full CVE records for CVEs affecting the specified product."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no CVEs were found — suggests verifying the CPE name."
+              },
+              "returned": {
+                "type": "number",
+                "description": "Number of CVE records returned."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total CVEs matched before pagination."
+              },
+              "auditTarget": {
+                "type": "string",
+                "description": "The CPE name or virtual match string used for this audit."
+              }
+            },
+            "required": [
+              "cves",
+              "totalCount",
+              "returned",
+              "auditTarget"
+            ]
+          },
+          "description_hash": "sha256:fdbbf8b1b2f9bc9c16f17b59d67f8711ee1d6c06fef9289de9d36ee4b994d3ef"
+        },
+        {
+          "name": "nvd_get_cve",
+          "canonical_hash": "sha256:a94e812273ebc8eaac00b5481dbc5e4fa25af0b0d294bf9e330b0b0f4cfa5789",
+          "description": "Fetch one or more CVEs by ID from the NIST National Vulnerability Database. Returns CVSS scores across all available versions (v2.0, v3.0, v3.1, v4.0), CWE weakness classifications, affected CPE configurations, CISA KEV fields, and references. Up to 100 CVE IDs per call. For bulk lookups of more than 10 IDs, use brief: true — full records for 100 CVEs can exceed 1MB and exhaust context budgets.",
+          "is_mutating": false,
+          "property_keys": [
+            "brief",
+            "cveIds",
+            "includeReferences"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "brief": "boolean",
+            "includeReferences": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "brief": {
+                "type": "boolean",
+                "default": false,
+                "description": "When true, returns trimmed records (ID, status, top CVSS score, KEV name, published date) instead of full detail. Recommended for batches of more than 10 IDs."
+              },
+              "cveIds": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "description": "A single CVE ID (e.g., \"CVE-2021-44228\")."
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 100,
+                    "minItems": 1,
+                    "description": "An array of CVE IDs — at least 1, up to 100 per call."
+                  }
+                ],
+                "description": "One CVE ID or an array of up to 100 CVE IDs to fetch."
+              },
+              "includeReferences": {
+                "type": "boolean",
+                "default": true,
+                "description": "When false, omits the references array to reduce response size."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cves": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "description": "One CVE record. Full mode includes CVSS scores, configurations, weaknesses, and references. Brief mode includes ID, status, top severity, and CISA KEV name.",
+                  "additionalProperties": {}
+                },
+                "description": "CVE records. In full mode: complete records with CVSS scores, configurations, weaknesses, and references. In brief mode: trimmed records with ID, status, top severity, and CISA KEV name."
+              },
+              "brief": {
+                "type": "boolean",
+                "description": "Whether brief or full records were returned."
+              },
+              "returned": {
+                "type": "number",
+                "description": "Number of CVE records returned."
+              },
+              "requested": {
+                "type": "number",
+                "description": "Number of CVE IDs requested."
+              },
+              "missingIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "A CVE ID not found in NVD."
+                },
+                "description": "CVE IDs requested but not found in NVD. Absent when all IDs matched."
+              }
+            },
+            "required": [
+              "brief",
+              "cves",
+              "requested",
+              "returned"
+            ]
+          },
+          "description_hash": "sha256:c14bb8b40344ffe64a9ebaaf3d11f0f1cae0c93455cf8feeeeb57ebdb9227933"
+        },
+        {
+          "name": "nvd_get_cve_history",
+          "canonical_hash": "sha256:10b6e3ca8c42b62e13e655a29537caf283bf25171b3e7d2e755116379005e5c3",
+          "description": "Retrieve the change history for a single CVE — CVSS score revisions, reference additions, status transitions (e.g., \"Received\" → \"Analyzed\"), and CPE configuration updates. Use when tracking a CVE's escalation or investigating when a score changed. For the current record, call nvd_get_cve instead. The NVD history endpoint is significantly slower than other NVD endpoints, especially without an API key — set NVD_API_KEY for reliable operation.",
+          "is_mutating": false,
+          "property_keys": [
+            "cveId",
+            "limit",
+            "offset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cveId": "string",
+            "limit": "integer",
+            "offset": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cveId": {
+                "type": "string",
+                "description": "CVE identifier to retrieve history for (e.g., \"CVE-2021-44228\")."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 2000,
+                "minimum": 1,
+                "description": "Maximum number of change events to return (default 20, max 2000)."
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Zero-based offset for paginating through change events."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cveId": {
+                "type": "string",
+                "description": "The CVE ID for which history was retrieved."
+              },
+              "offset": {
+                "type": "number",
+                "description": "Page offset used in this query."
+              },
+              "changes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "changeDate",
+                    "details"
+                  ],
+                  "properties": {
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "description": "The type of data changed (e.g., \"CVSS V3.1\", \"CWE\", \"Reference\")."
+                          },
+                          "action": {
+                            "type": "string",
+                            "description": "The action taken (e.g., \"Added\", \"Changed\", \"Removed\")."
+                          },
+                          "newValue": {
+                            "type": "string",
+                            "description": "The value after the change."
+                          },
+                          "oldValue": {
+                            "type": "string",
+                            "description": "The value before the change."
+                          }
+                        },
+                        "description": "One field-level change within this event.",
+                        "additionalProperties": false
+                      },
+                      "description": "Individual change detail entries within this event."
+                    },
+                    "eventName": {
+                      "type": "string",
+                      "description": "Name of the change event (e.g., \"CVE Modified\", \"Initial Analysis\")."
+                    },
+                    "changeDate": {
+                      "type": "string",
+                      "description": "ISO 8601 datetime when this change occurred."
+                    }
+                  },
+                  "description": "One CVE change event with its field-level details.",
+                  "additionalProperties": false
+                },
+                "description": "CVE change events in reverse-chronological order."
+              },
+              "returned": {
+                "type": "number",
+                "description": "Number of change events returned in this response."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total change events on record for this CVE."
+              }
+            },
+            "required": [
+              "cveId",
+              "changes",
+              "totalCount",
+              "returned",
+              "offset"
+            ]
+          },
+          "description_hash": "sha256:9abd4c0d15639ff17027ad3a82b62d0fd2f19b8e0945eab91b31538075666cb5"
+        },
+        {
+          "name": "nvd_search_cpes",
+          "canonical_hash": "sha256:b831d668b7843da7fe28cdd0e6c01359b669d447c9f26236a706255624cca7b3",
+          "description": "Search the NVD CPE (Common Platform Enumeration) dictionary by product keyword or partial match string. Returns CPE names, human-readable titles, and deprecation status. Use before nvd_audit_cpe to resolve the correct CPE name for a product — CPE strings are precise identifiers (e.g., cpe:2.3:a:apache:http_server:2.4.51:*:*:*:*:*:*:*) and must match exactly to audit the right product.",
+          "is_mutating": false,
+          "property_keys": [
+            "cpeMatchString",
+            "keyword",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "keyword": "string",
+            "cpeMatchString": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 10000,
+                "minimum": 1,
+                "description": "Maximum number of CPE entries to return (default 20, max 10000). If totalResults > returned, narrow the keyword for a more specific result."
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Product name or vendor keyword (e.g., \"apache http server\", \"openssl\", \"nginx\"). At least one of keyword or cpeMatchString is required."
+              },
+              "cpeMatchString": {
+                "type": "string",
+                "description": "Partial CPEv2.3 pattern (e.g., \"cpe:2.3:a:apache:http_server\"). At least one of keyword or cpeMatchString is required."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cpes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "cpeName",
+                    "deprecated"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "description": "Human-readable product title. Absent when NVD has no English title."
+                    },
+                    "cpeName": {
+                      "type": "string",
+                      "description": "Full CPEv2.3 name (use this as the cpeName in nvd_audit_cpe)."
+                    },
+                    "deprecated": {
+                      "type": "boolean",
+                      "description": "Whether this CPE has been deprecated in the NVD dictionary."
+                    },
+                    "deprecatedBy": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Superseding CPE name."
+                      },
+                      "description": "CPE names that supersede this deprecated entry."
+                    },
+                    "lastModified": {
+                      "type": "string",
+                      "description": "ISO 8601 datetime when this CPE was last modified."
+                    }
+                  },
+                  "description": "One CPE dictionary entry.",
+                  "additionalProperties": false
+                },
+                "description": "Matching CPE dictionary entries."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no CPEs matched or results were truncated."
+              },
+              "returned": {
+                "type": "number",
+                "description": "Number of entries returned in this response."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching CPE entries before the limit was applied."
+              }
+            },
+            "required": [
+              "cpes",
+              "totalCount",
+              "returned"
+            ]
+          },
+          "description_hash": "sha256:34e31f3f52e5e4e36c8a50f7ab61f5e1784584479bccba9314bb86bf96226f1a"
+        },
+        {
+          "name": "nvd_search_cves",
+          "canonical_hash": "sha256:5a572ae391d886031f928ec3effa936a79a89c033d82c83347108567d40bb850",
+          "description": "Search CVEs by keyword, severity, CWE, date range, or CISA KEV status. The primary discovery tool for vulnerability surveillance and triage workflows. pubDays and lastModDays are convenience shorthands that expand to date pairs; values over 120 days are clamped to the NVD maximum and reported in queryMeta. Returns brief summaries — call nvd_get_cve for full detail on specific IDs. At least one filter is recommended; omitting all filters returns CVEs in default NVD index order (oldest first by CVE ID).",
+          "is_mutating": false,
+          "property_keys": [
+            "cweId",
+            "kevOnly",
+            "keyword",
+            "lastModDays",
+            "lastModEndDate",
+            "lastModStartDate",
+            "limit",
+            "noRejected",
+            "offset",
+            "pubDays",
+            "pubEndDate",
+            "pubStartDate",
+            "severity",
+            "severityVersion"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cweId": "string",
+            "limit": "integer",
+            "offset": "integer",
+            "kevOnly": "boolean",
+            "keyword": "string",
+            "pubDays": "integer",
+            "severity": "string",
+            "noRejected": "boolean",
+            "pubEndDate": "string",
+            "lastModDays": "integer",
+            "pubStartDate": "string",
+            "lastModEndDate": "string",
+            "severityVersion": "string",
+            "lastModStartDate": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cweId": {
+                "type": "string",
+                "description": "Filter by CWE weakness ID (e.g., \"CWE-79\", \"NVD-CWE-Other\")."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 2000,
+                "minimum": 1,
+                "description": "Maximum number of results to return (default 20, max 2000)."
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Zero-based page offset for pagination."
+              },
+              "kevOnly": {
+                "type": "boolean",
+                "default": false,
+                "description": "When true, filters results to CVEs in the CISA Known Exploited Vulnerabilities catalog."
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Full-text search across CVE descriptions (AND-semantics across words)."
+              },
+              "pubDays": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "description": "CVEs published in the last N days (max 120; values over 120 are clamped). Mutually exclusive with pubStartDate/pubEndDate.",
+                "exclusiveMinimum": 0
+              },
+              "severity": {
+                "enum": [
+                  "LOW",
+                  "MEDIUM",
+                  "HIGH",
+                  "CRITICAL"
+                ],
+                "type": "string",
+                "description": "Filter to CVEs at this CVSS severity level or above."
+              },
+              "noRejected": {
+                "type": "boolean",
+                "default": true,
+                "description": "When true (default), excludes CVEs with REJECT/Rejected status."
+              },
+              "pubEndDate": {
+                "type": "string",
+                "description": "ISO 8601 datetime for publication range end. Both pubStartDate and pubEndDate required together."
+              },
+              "lastModDays": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "description": "CVEs last modified in the last N days (max 120; values over 120 are clamped). Mutually exclusive with lastModStartDate/lastModEndDate.",
+                "exclusiveMinimum": 0
+              },
+              "pubStartDate": {
+                "type": "string",
+                "description": "ISO 8601 datetime for publication range start. Both pubStartDate and pubEndDate required together. Mutually exclusive with pubDays."
+              },
+              "lastModEndDate": {
+                "type": "string",
+                "description": "ISO 8601 datetime for last-modified range end. Both required together."
+              },
+              "severityVersion": {
+                "enum": [
+                  "v2",
+                  "v3",
+                  "v4"
+                ],
+                "type": "string",
+                "default": "v3",
+                "description": "CVSS version to use for the severity filter. Default: v3 (maps to cvssV3Severity)."
+              },
+              "lastModStartDate": {
+                "type": "string",
+                "description": "ISO 8601 datetime for last-modified range start. Both required together. Mutually exclusive with lastModDays."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cves": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "cveId",
+                    "vulnStatus",
+                    "published"
+                  ],
+                  "properties": {
+                    "cveId": {
+                      "type": "string",
+                      "description": "CVE identifier (e.g., \"CVE-2021-44228\")."
+                    },
+                    "severity": {
+                      "type": "object",
+                      "required": [
+                        "label",
+                        "score",
+                        "fromVersion"
+                      ],
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "description": "Highest severity label across all CVSS versions."
+                        },
+                        "score": {
+                          "type": "number",
+                          "description": "Highest base score (0.0–10.0)."
+                        },
+                        "fromVersion": {
+                          "type": "string",
+                          "description": "CVSS version this score came from."
+                        }
+                      },
+                      "description": "Top severity. Absent if no CVSS scores are present.",
+                      "additionalProperties": false
+                    },
+                    "published": {
+                      "type": "string",
+                      "description": "ISO 8601 publication datetime."
+                    },
+                    "vulnStatus": {
+                      "type": "string",
+                      "description": "NVD analysis status."
+                    },
+                    "cisaVulnerabilityName": {
+                      "type": "string",
+                      "description": "CISA KEV vulnerability name. Present only when in the KEV catalog."
+                    }
+                  },
+                  "description": "Brief summary for one matching CVE.",
+                  "additionalProperties": false
+                },
+                "description": "Matching CVE summaries. Call nvd_get_cve for full detail on specific IDs."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no CVEs matched or the page offset is past the result set."
+              },
+              "offset": {
+                "type": "number",
+                "description": "Page offset used in this query."
+              },
+              "returned": {
+                "type": "number",
+                "description": "Number of CVEs returned in this response."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching CVEs in NVD before pagination."
+              },
+              "datesClamped": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "param",
+                    "original",
+                    "clamped"
+                  ],
+                  "properties": {
+                    "param": {
+                      "type": "string",
+                      "description": "The parameter that was clamped (pubDays or lastModDays)."
+                    },
+                    "clamped": {
+                      "type": "number",
+                      "description": "The clamped value used (max 120)."
+                    },
+                    "original": {
+                      "type": "number",
+                      "description": "The original value supplied."
+                    }
+                  },
+                  "description": "A single clamping event for one convenience date parameter.",
+                  "additionalProperties": false
+                },
+                "description": "Entries for any pubDays/lastModDays values that exceeded 120 and were auto-clamped. Absent when no clamping occurred."
+              }
+            },
+            "required": [
+              "cves",
+              "totalCount",
+              "returned",
+              "offset"
+            ]
+          },
+          "description_hash": "sha256:538aaa6625853f9e7589ec7a1c8ee06d483843c561ab1229e27f1676959150d9"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

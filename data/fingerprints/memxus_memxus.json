@@ -1,0 +1,746 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "memxus/memxus",
+  "purl": "pkg:npm/memxus%2Fmemxus",
+  "ecosystem": "npm",
+  "display_name": "memxus/memxus",
+  "description": "**Memxus** is multi-platform persistent memory for AI assistants. Save project context, preferences, and decisions once — recall them in Claude, ChatGPT, Cursor, and other MCP clients.\n\n## What it does\n- **Remember** — store facts, preferences, and project context with collections and tags\n- **Recall** — semantic search across your memories\n- **Get context** — formatted context blocks for the current topic\n- **Manage** — list, inspect, update scope, and delete memories\n\n## Connect\n- **OAuth** (recommended): sign in with Google via your Memxus dashboard\n- **API key**: create an `aimem_*` key at [dashboard.memxus.com](https://dashboard.memxus.com)\n\n**MCP endpoint:** `https://mcp.memxus.com/mcp`  \n**Docs:** [memxus.com/docs/mcp](https://www.memxus.com/docs/mcp)  \n**Install:** [memxus.com/install](https://www.memxus.com/install)  \n**Privacy:** [memxus.com/privacy](https://www.memxus.com/privacy)\n\n## Tools\n`remember`, `recall`, `get_context`, `list_memories`, `get_memory`, `list_collections`, `forget`, `memory_stats`\n\nBuilt for developers and power users who work across multiple AI tools without repeating the same context every session.",
+  "repository_url": "https://memxus--memxus.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "memxus/memxus"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:d1933e6a2a826d2dddbb8c971530700db74deb47fa32b4795f14dbc76570c06c",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://memxus--memxus.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "forget",
+          "canonical_hash": "sha256:6e2ec4d1cd5d24700834bc98c3aabbfe8eff6251d95a4469269c9ae1f23d13a9",
+          "description": "Delete a specific memory by ID.",
+          "is_mutating": false,
+          "property_keys": [
+            "memory_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "memory_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "memory_id": {
+                "type": "string",
+                "description": "UUID of the memory to delete (from list_memories or recall)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "deleted": {
+                "type": "boolean",
+                "description": "True when deletion succeeded."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable confirmation (same as content text)."
+              },
+              "memory_id": {
+                "type": "string",
+                "description": "UUID of the deleted memory."
+              }
+            },
+            "required": [
+              "memory_id",
+              "deleted",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:8aa794de20632ba5e37771472c5b69fd4835f7332423d8e977fa54e9f76f7b31"
+        },
+        {
+          "name": "get_context",
+          "canonical_hash": "sha256:314921d092a5b23ce72fb69648fff4fac6c7a2ba8c55ef96b90129319a15ee2a",
+          "description": "Build a formatted context block for the current topic. Use collection to limit results to one domain (project, preferences, etc.).",
+          "is_mutating": false,
+          "property_keys": [
+            "collection",
+            "max_memories",
+            "tags",
+            "topic",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tags": "array",
+            "type": "string",
+            "topic": "string",
+            "collection": "string",
+            "max_memories": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional tags. A tag like project:my-app also sets collection automatically."
+              },
+              "type": {
+                "enum": [
+                  "general",
+                  "preference",
+                  "fact",
+                  "instruction",
+                  "conversation"
+                ],
+                "type": "string",
+                "description": "Memory category: general, preference, fact, instruction, or conversation. Omit to include all types."
+              },
+              "topic": {
+                "type": "string",
+                "description": "Subject to build context for (e.g. \"current project\", \"client meeting notes\")."
+              },
+              "collection": {
+                "type": "string",
+                "description": "Scope slug for this memory (e.g. project:henry-memory, personal:preferences, work:client-x). Use the same collection in recall/get_context when the user asks about that topic."
+              },
+              "max_memories": {
+                "type": "number",
+                "description": "Max memories in context block. Omit for server default (10). Capped per your plan."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number",
+                "description": "Number of memories included."
+              },
+              "topic": {
+                "type": "string",
+                "description": "Topic that was searched."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable output (same as content text)."
+              },
+              "memories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "memory_type",
+                    "content"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Memory UUID."
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags attached to the memory."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Full memory text."
+                    },
+                    "collection": {
+                      "type": "string",
+                      "description": "Collection slug, or null if uncategorized."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "ISO 8601 creation timestamp."
+                    },
+                    "importance": {
+                      "type": "number",
+                      "description": "Relevance weight from 0 to 1."
+                    },
+                    "memory_type": {
+                      "type": "string",
+                      "description": "Category of the memory."
+                    }
+                  },
+                  "description": "A single memory record."
+                },
+                "description": "Memories used to build the context block."
+              },
+              "context_block": {
+                "type": "string",
+                "description": "Formatted context block for injection into the conversation."
+              }
+            },
+            "required": [
+              "topic",
+              "count",
+              "context_block",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:510af8d68dbbf8ec1235e668a0e4f3718e8a7888ea082b333e8d57a8602b45d9"
+        },
+        {
+          "name": "get_memory",
+          "canonical_hash": "sha256:13dfc5c0b26b707a8cc665e8d7596c044e04a95e1a39934de00ab7c8aee2ba38",
+          "description": "Get the full content of a single memory by its UUID (from list_memories or recall).",
+          "is_mutating": false,
+          "property_keys": [
+            "memory_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "memory_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "memory_id": {
+                "type": "string",
+                "description": "UUID of the memory to retrieve."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Memory UUID."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Tags attached to the memory."
+              },
+              "content": {
+                "type": "string",
+                "description": "Full memory text."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable detail (same as content text)."
+              },
+              "collection": {
+                "type": "string",
+                "description": "Collection slug, or null if uncategorized."
+              },
+              "created_at": {
+                "type": "string",
+                "description": "ISO 8601 creation timestamp."
+              },
+              "importance": {
+                "type": "number",
+                "description": "Relevance weight from 0 to 1."
+              },
+              "memory_type": {
+                "type": "string",
+                "description": "Category of the memory."
+              }
+            },
+            "required": [
+              "id",
+              "memory_type",
+              "content",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:12ccb90b2427326165c6075a4e87157dd7c715e53135078e9d34de71c011ab89"
+        },
+        {
+          "name": "list_collections",
+          "canonical_hash": "sha256:92c8b184d1d8bf1cfe983406d18d46e7f8a494be74b178009af22888001fc4b0",
+          "description": "List memory collections (folders/scopes) for this user. Use slugs in remember/recall/get_context.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number",
+                "description": "Number of collections."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable listing (same as content text)."
+              },
+              "collections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "slug",
+                    "name"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Display name."
+                    },
+                    "slug": {
+                      "type": "string",
+                      "description": "Collection identifier used in remember/recall."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Optional description."
+                    }
+                  }
+                },
+                "description": "Collection slugs and metadata."
+              }
+            },
+            "required": [
+              "count",
+              "collections",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:5131ab5a6241c988e2ddd697618f93ee16e42268eafb25fa250bfeee51681f34"
+        },
+        {
+          "name": "list_memories",
+          "canonical_hash": "sha256:0e938926cf079ede60ee3e66640355e9e0fdedb79f1d6c7e34d723f1c09485ac",
+          "description": "List recent memories. Filter by collection, tags, or type to browse one group.",
+          "is_mutating": false,
+          "property_keys": [
+            "collection",
+            "full_content",
+            "limit",
+            "tags",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tags": "array",
+            "type": "string",
+            "limit": "number",
+            "collection": "string",
+            "full_content": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional tags. A tag like project:my-app also sets collection automatically."
+              },
+              "type": {
+                "enum": [
+                  "general",
+                  "preference",
+                  "fact",
+                  "instruction",
+                  "conversation"
+                ],
+                "type": "string",
+                "description": "Memory category: general, preference, fact, instruction, or conversation. Omit to include all types."
+              },
+              "limit": {
+                "type": "number",
+                "description": "How many memories to return. Omit for server default (20). Capped per your plan."
+              },
+              "collection": {
+                "type": "string",
+                "description": "Scope slug for this memory (e.g. project:henry-memory, personal:preferences, work:client-x). Use the same collection in recall/get_context when the user asks about that topic."
+              },
+              "full_content": {
+                "type": "boolean",
+                "default": false,
+                "description": "When true, return full memory text instead of a 120-character preview."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number",
+                "description": "Number of memories listed."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable listing (same as content text)."
+              },
+              "memories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "memory_type",
+                    "content"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Memory UUID."
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags attached to the memory."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Full memory text."
+                    },
+                    "collection": {
+                      "type": "string",
+                      "description": "Collection slug, or null if uncategorized."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "ISO 8601 creation timestamp."
+                    },
+                    "importance": {
+                      "type": "number",
+                      "description": "Relevance weight from 0 to 1."
+                    },
+                    "memory_type": {
+                      "type": "string",
+                      "description": "Category of the memory."
+                    }
+                  },
+                  "description": "A single memory record."
+                },
+                "description": "Recent memories matching filters."
+              }
+            },
+            "required": [
+              "count",
+              "memories",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:79db89e2bcd70da2b432a9ac8c6372d0df247de9b9797774c5936c9c95b147f2"
+        },
+        {
+          "name": "memory_stats",
+          "canonical_hash": "sha256:7a742ff141a2d597a43db5dc5469ac05c144d9e6f5259cc641e5b3cbb8ed9950",
+          "description": "Show statistics about stored memories (by type and collection).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number",
+                "description": "Total number of memories."
+              },
+              "by_type": {
+                "type": "object",
+                "description": "Count per memory_type.",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable statistics (same as content text)."
+              },
+              "by_collection": {
+                "type": "object",
+                "description": "Count per collection slug.",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              }
+            },
+            "required": [
+              "total",
+              "by_type",
+              "by_collection",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:eb3eea2d102ed10edbfeccb87537791fc94e438315d01e790dded836e341fe85"
+        },
+        {
+          "name": "recall",
+          "canonical_hash": "sha256:41bfa2d79d48456e2e120dc881b340c3599736fc27d5c6132a93599307434d71",
+          "description": "Search long-term memory. Pass collection (and/or tags, type) to search only that scope — e.g. collection=project:henry-memory for project questions, collection=personal:preferences for tastes.",
+          "is_mutating": false,
+          "property_keys": [
+            "collection",
+            "limit",
+            "query",
+            "tags",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tags": "array",
+            "type": "string",
+            "limit": "number",
+            "query": "string",
+            "collection": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional tags. A tag like project:my-app also sets collection automatically."
+              },
+              "type": {
+                "enum": [
+                  "general",
+                  "preference",
+                  "fact",
+                  "instruction",
+                  "conversation"
+                ],
+                "type": "string",
+                "description": "Memory category: general, preference, fact, instruction, or conversation. Omit to include all types."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Max results. Omit for server default (10). Capped per your plan on the server."
+              },
+              "query": {
+                "type": "string",
+                "description": "Natural-language search query (e.g. \"Henry project stack\", \"user prefers dark mode\")."
+              },
+              "collection": {
+                "type": "string",
+                "description": "Scope slug for this memory (e.g. project:henry-memory, personal:preferences, work:client-x). Use the same collection in recall/get_context when the user asks about that topic."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number",
+                "description": "Number of memories returned."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable summary (same as content text)."
+              },
+              "memories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "memory_type",
+                    "content"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Memory UUID."
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags attached to the memory."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Full memory text."
+                    },
+                    "collection": {
+                      "type": "string",
+                      "description": "Collection slug, or null if uncategorized."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "ISO 8601 creation timestamp."
+                    },
+                    "importance": {
+                      "type": "number",
+                      "description": "Relevance weight from 0 to 1."
+                    },
+                    "memory_type": {
+                      "type": "string",
+                      "description": "Category of the memory."
+                    }
+                  },
+                  "description": "A single memory record."
+                },
+                "description": "Matching memories, ordered by relevance."
+              }
+            },
+            "required": [
+              "count",
+              "memories",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:5ac402fd425b9a609acfa48d329d112c3335a122ccefb46ed90c96451f112d37"
+        },
+        {
+          "name": "remember",
+          "canonical_hash": "sha256:72641fb106800fcb2ba311b2bd0c8829ec4cddf7170f513a105660cc3da14dd1",
+          "description": "Save important information to long-term memory. Always set collection when the topic is clear: project work → project:<slug>, personal tastes → personal:preferences. Use append_to to extend an existing memory instead of creating duplicates.",
+          "is_mutating": false,
+          "property_keys": [
+            "append_to",
+            "collection",
+            "content",
+            "importance",
+            "tags",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tags": "array",
+            "type": "string",
+            "content": "string",
+            "append_to": "string",
+            "collection": "string",
+            "importance": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional tags. A tag like project:my-app also sets collection automatically."
+              },
+              "type": {
+                "enum": [
+                  "general",
+                  "preference",
+                  "fact",
+                  "instruction",
+                  "conversation"
+                ],
+                "type": "string",
+                "default": "general",
+                "description": "Category for this memory. Default: general. Use preference for tastes, fact for stable truths, instruction for rules."
+              },
+              "content": {
+                "type": "string",
+                "description": "The information to remember."
+              },
+              "append_to": {
+                "type": "string",
+                "description": "UUID of an existing memory to append to (same user). Keeps revision history."
+              },
+              "collection": {
+                "type": "string",
+                "description": "Scope slug for this memory (e.g. project:henry-memory, personal:preferences, work:client-x). Use the same collection in recall/get_context when the user asks about that topic."
+              },
+              "importance": {
+                "type": "number",
+                "default": 0.5,
+                "maximum": 1,
+                "minimum": 0,
+                "description": "Relevance weight from 0 (low) to 1 (high) for ranking in recall. Default: 0.5."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Tags applied to the memory."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable confirmation (same as content text)."
+              },
+              "memory_id": {
+                "type": "string",
+                "description": "UUID of the saved memory."
+              },
+              "collection": {
+                "type": "string",
+                "description": "Collection slug, or empty string if none."
+              },
+              "importance": {
+                "type": "number",
+                "description": "Stored importance (0–1)."
+              },
+              "memory_type": {
+                "type": "string",
+                "description": "Stored memory category."
+              }
+            },
+            "required": [
+              "memory_id",
+              "memory_type",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:866376b0dc4d44e259745f77537e08e84863171f62149ba35fdc9f9907a49cd8"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": [
+        {
+          "uri_template": "memory://recent",
+          "name": "Recent Memories",
+          "description": "",
+          "mime_type": "text/html"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}

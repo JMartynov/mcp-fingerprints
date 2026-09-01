@@ -1,0 +1,3629 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "j4th/mtg-mcp-server",
+  "purl": "pkg:npm/j4th%2Fmtg-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "j4th/mtg-mcp-server",
+  "description": "Magic: The Gathering card search, combo lookup, draft analytics, and Commander tools.",
+  "repository_url": "https://mtg-mcp-server--j4th.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "j4th/mtg-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:40608b73f947ef57bfc238de3c5ec4fae1de78e6cfb1b490b6aff3f74bfa63ba",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://mtg-mcp-server--j4th.run.tools",
+          "configSchema": {
+            "type": "object",
+            "title": "SmitheryConfig",
+            "properties": {
+              "MTG_MCP_LOG_LEVEL": {
+                "enum": [
+                  "DEBUG",
+                  "INFO",
+                  "WARNING",
+                  "ERROR"
+                ],
+                "type": "string",
+                "title": "Log Level",
+                "default": "INFO",
+                "x-order": 3,
+                "description": "Server logging level"
+              },
+              "MTG_MCP_ENABLE_EDHREC": {
+                "type": "boolean",
+                "title": "Enable EDHREC",
+                "default": true,
+                "x-order": 1,
+                "description": "Enable EDHREC commander metagame backend (uses undocumented endpoints)"
+              },
+              "MTG_MCP_ENABLE_17LANDS": {
+                "type": "boolean",
+                "title": "Enable 17Lands",
+                "default": true,
+                "x-order": 0,
+                "description": "Enable 17Lands draft analytics backend for card ratings and archetype stats"
+              },
+              "MTG_MCP_ENABLE_BULK_DATA": {
+                "type": "boolean",
+                "title": "Enable Bulk Data",
+                "default": true,
+                "x-order": 2,
+                "description": "Enable Scryfall bulk card data for rate-limit-free lookups (~80 MB download on first use)"
+              },
+              "MTG_MCP_SCRYFALL_RATE_LIMIT_MS": {
+                "type": "integer",
+                "title": "Scryfall Rate Limit (ms)",
+                "default": 100,
+                "maximum": 5000,
+                "minimum": 10,
+                "x-order": 4,
+                "description": "Minimum delay between Scryfall API calls in milliseconds"
+              },
+              "MTG_MCP_BULK_DATA_REFRESH_HOURS": {
+                "type": "integer",
+                "title": "Bulk Data Refresh Interval (hours)",
+                "default": 12,
+                "maximum": 168,
+                "minimum": 1,
+                "x-order": 5,
+                "description": "Hours between Scryfall bulk data refreshes"
+              }
+            },
+            "description": "Session configuration exposed to Smithery users."
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "archetype_comparison",
+          "canonical_hash": "sha256:88a09e33a261eba4ee7f688fcc229db5baf7d9881053a056da6a2fb4605d50ad",
+          "description": "Compare 2-4 competitive archetypes side-by-side.\n\nShows price, colors, key cards, shared staples, and differences.",
+          "is_mutating": false,
+          "property_keys": [
+            "archetypes",
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "archetypes": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Competitive format (e.g. 'Modern', 'Legacy', 'Pioneer', 'Pauper')"
+              },
+              "archetypes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "2-4 archetype names to compare (fuzzy matched)"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b9a92cfabc099ebbdc6fb3490cebcc78c41f7e5347c9cb8ff3ba584171ebf308"
+        },
+        {
+          "name": "archetype_decklist",
+          "canonical_hash": "sha256:ef0bb63c859bef265fbbfe5e572463bd538cb5001d2430db4424293bc9f1d644",
+          "description": "Get the stock decklist for a competitive archetype.\n\nReturns a full decklist (mainboard + sideboard) with deck metadata and\ntotal price when available. Archetype name is fuzzy-matched.",
+          "is_mutating": false,
+          "property_keys": [
+            "archetype",
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "archetype": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Competitive format (e.g. 'Modern', 'Legacy', 'Pioneer', 'Pauper')"
+              },
+              "archetype": {
+                "type": "string",
+                "description": "Archetype name (e.g. 'Boros Energy', 'Mono-Blue Terror') — fuzzy matched"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:33f7122540040b84f941fa056605440c33ec6a3d99280a2a55158e3def93be3b"
+        },
+        {
+          "name": "budget_upgrade",
+          "canonical_hash": "sha256:41c17cf9b3cea6d70a159c51df68ac6034b9b2041823ef804c54dafd46af7671",
+          "description": "Suggest budget-friendly upgrades for a commander deck.\n\nRanks EDHREC staples by synergy-per-dollar within the given budget ceiling.\nRequires EDHREC (for staples) and Scryfall (for prices).",
+          "is_mutating": false,
+          "property_keys": [
+            "budget",
+            "commander_name",
+            "num_suggestions",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "budget": "number",
+            "commander_name": "string",
+            "num_suggestions": "integer",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "budget": {
+                "type": "number",
+                "description": "Maximum price per card in USD (e.g. 5.0 for cards under $5)"
+              },
+              "commander_name": {
+                "type": "string",
+                "description": "Commander the deck is built around"
+              },
+              "num_suggestions": {
+                "type": "integer",
+                "default": 10,
+                "description": "Number of upgrade suggestions to return"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:12f6dd5a5382f185ded7a3eb9058763ecd196a8cb1a93b47596ebd019604a4ee"
+        },
+        {
+          "name": "build_around",
+          "canonical_hash": "sha256:740e43f645e227a55aea06d985993ca9bc38e1c92efc696413d51b06009fde5a",
+          "description": "Find synergistic cards for 1-5 build-around cards in any format.\n\nAnalyzes oracle text for key mechanics, searches for synergies,\nand checks combo potential. Groups results by role (enablers, payoffs, support).",
+          "is_mutating": false,
+          "property_keys": [
+            "budget",
+            "cards",
+            "format",
+            "limit",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cards": "array",
+            "limit": "integer",
+            "format": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cards": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "1-5 card names to build around"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum number of suggestions"
+              },
+              "budget": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Maximum price per card in USD"
+              },
+              "format": {
+                "type": "string",
+                "description": "Format to build for (e.g. 'standard', 'modern', 'commander')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b2325b8bd44e9733e1a817a0b8e3fe86153fbc65df5498c75af31b5e37965e42"
+        },
+        {
+          "name": "bulk_ban_list",
+          "canonical_hash": "sha256:738e87519048d3921ff278f9b3bea1453f84360e0473af18ded53df8a215f8a7",
+          "description": "Get the banned and restricted cards for a format.\n\nReturns alphabetically sorted lists of banned and restricted cards,\nincluding their type lines.",
+          "is_mutating": false,
+          "property_keys": [
+            "format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Format to check ban list for (e.g. 'commander', 'modern', 'standard')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d52a99d641459a632c9c84d590a3562d83e5c6595aa13f2e0ac4318ab63fe540"
+        },
+        {
+          "name": "bulk_card_in_formats",
+          "canonical_hash": "sha256:34e2fe396216a84d1bc417c3743df79ff4f0c3ffbda23799c344f34df4de077a",
+          "description": "Show a card's legality across all Magic formats.\n\nReturns a table with the card's legality status in each format,\nordered with the most common formats first.",
+          "is_mutating": false,
+          "property_keys": [
+            "card_name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "card_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "card_name": {
+                "type": "string",
+                "description": "Card name to check format legality for"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d5e253c04949894e78555f5da83a3781781dd3eec2e8c60d2e18e381cc12b37e"
+        },
+        {
+          "name": "bulk_card_lookup",
+          "canonical_hash": "sha256:e7e4d65234d34eab9487d764dc6848e1ca1b071f8efac489896adbd852e07236",
+          "description": "Look up a Magic card by exact name using Scryfall bulk data.\n\nReturns full card details including mana cost, type, oracle text,\ncolors, power/toughness, prices, legalities, and EDHREC rank.\nCase-insensitive.",
+          "is_mutating": false,
+          "property_keys": [
+            "name",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Card name for exact lookup, case-insensitive (e.g. 'Sol Ring')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5ce1261e151817e3719080b5c3b9c95ea3e69829e05d05db8e87e778605133ba"
+        },
+        {
+          "name": "bulk_card_search",
+          "canonical_hash": "sha256:1847a7adadb61ed552042c37868975d7575d79137a7586cc93d85d0991b0dd4a",
+          "description": "Search for Magic cards in Scryfall bulk data.\n\nArgs:\n    query: Substring to search for (case-insensitive).\n    search_field: Field to search in -- \"name\", \"type\", or \"text\".\n    limit: Maximum number of results to return (default 20).",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query",
+            "response_format",
+            "search_field"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "search_field": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum number of results to return"
+              },
+              "query": {
+                "type": "string",
+                "description": "Substring to search for, case-insensitive"
+              },
+              "search_field": {
+                "enum": [
+                  "name",
+                  "type",
+                  "text"
+                ],
+                "type": "string",
+                "default": "name",
+                "description": "Field to search in -- 'name' (card name), 'type' (type line), or 'text' (oracle text)"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:83bed26d7a1eb098967be5ccb6f02a8ebdda5f97b209795981e5290267630a10"
+        },
+        {
+          "name": "bulk_format_legality",
+          "canonical_hash": "sha256:7948e26a572a743fcc743c14f6661ad7be913ed40b590005f9138c1a249ceb5b",
+          "description": "Batch legality check for cards in a specific format.\n\nReturns a markdown table showing the legality status of each card\nin the specified format. Handles common format aliases (e.g. 'edh'\nfor 'commander').",
+          "is_mutating": false,
+          "property_keys": [
+            "cards",
+            "format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cards": "array",
+            "format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cards": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of card names to check legality for"
+              },
+              "format": {
+                "type": "string",
+                "description": "Format to check (e.g. 'commander', 'modern', 'standard', 'legacy')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d540c914e728600ae59f09059d69334663c225a2660dc0d3131d48c5ddda7eb0"
+        },
+        {
+          "name": "bulk_format_search",
+          "canonical_hash": "sha256:1cd121bd4532fbe33bf6bbfc579d91ae73520b2977c72a37549fb5de86ee1585",
+          "description": "Search for legal cards in a specific format using natural language.\n\nCombines format legality filtering with name/type/text search and\noptional color identity, price, and rarity constraints. Results are\nsorted by EDHREC rank (most popular first).",
+          "is_mutating": false,
+          "property_keys": [
+            "color_identity",
+            "format",
+            "limit",
+            "max_price",
+            "query",
+            "rarity",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "format": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum results to return"
+              },
+              "query": {
+                "type": "string",
+                "description": "Search query -- card name, type, or oracle text substring (e.g. 'flying creatures', 'destroy target')"
+              },
+              "format": {
+                "type": "string",
+                "description": "Format to search in (e.g. 'commander', 'modern', 'standard')"
+              },
+              "rarity": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Rarity filter (e.g. 'common', 'uncommon', 'rare', 'mythic')"
+              },
+              "max_price": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Maximum USD price filter"
+              },
+              "color_identity": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Color identity filter (e.g. 'sultai', 'WU', 'red'). Only returns cards within this identity."
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3c605021d1ee7a02d5cb86fec0bd712d8e0b9f33f2d7533689e1154207dade2b"
+        },
+        {
+          "name": "bulk_format_staples",
+          "canonical_hash": "sha256:4392f3d426b7e790789a88a40f79a691de8fc9482d1250d7229d4abbed25e8a0",
+          "description": "Find the most popular (staple) cards legal in a format.\n\nRanking adapts to the format: singleton formats (Commander, Brawl, Oathbreaker)\nuse EDHREC rank; competitive formats use MTGGoldfish tournament frequency when\navailable, falling back to a mana-efficiency heuristic.",
+          "is_mutating": false,
+          "property_keys": [
+            "card_type",
+            "color",
+            "format",
+            "limit",
+            "ranking_mode",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "format": "string",
+            "ranking_mode": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "color": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Color identity filter (e.g. 'sultai', 'WU', 'red'). Only returns cards within this identity."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum results to return"
+              },
+              "format": {
+                "type": "string",
+                "description": "Format to find staples for (e.g. 'commander', 'modern', 'legacy')"
+              },
+              "card_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Card type filter (e.g. 'creature', 'instant', 'land')"
+              },
+              "ranking_mode": {
+                "enum": [
+                  "auto",
+                  "edhrec",
+                  "competitive",
+                  "tournament"
+                ],
+                "type": "string",
+                "default": "auto",
+                "description": "How to rank staples: 'auto' (default) picks the best mode for the format, 'edhrec' uses Commander popularity, 'competitive' uses a mana-efficiency heuristic, 'tournament' uses MTGGoldfish metagame frequency."
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e243f805f0f7691113e0086b5af2e4ca2ef9fcf0ba38c007691f1706ab933b72"
+        },
+        {
+          "name": "bulk_random_card",
+          "canonical_hash": "sha256:97ea3f96664e79a6ce3a96ac22bbb76595bcf74f40e0ce681032e255f893eeae",
+          "description": "Get a random Magic card, optionally filtered by format, color, type, and rarity.\n\nReturns full card details in the same format as card_lookup.",
+          "is_mutating": false,
+          "property_keys": [
+            "card_type",
+            "color_identity",
+            "format",
+            "rarity"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Format filter (e.g. 'commander', 'modern'). Only returns legal cards."
+              },
+              "rarity": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Rarity filter (e.g. 'common', 'uncommon', 'rare', 'mythic')"
+              },
+              "card_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Card type filter (e.g. 'creature', 'instant', 'land')"
+              },
+              "color_identity": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Color identity filter (e.g. 'sultai', 'WU', 'red'). Only returns cards within this identity."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e5b4d567c3256646ea89e38c12c6c400e48e6385bfdc137fc47e715c13e91b7f"
+        },
+        {
+          "name": "bulk_similar_cards",
+          "canonical_hash": "sha256:648a341e7c4127121107ecef0c7a56227979322d01110c4c948453250be9fc62",
+          "description": "Find cards similar to a given card.\n\nScores similarity based on shared keywords, type words, CMC\nproximity, and oracle text overlap. Optionally filter by format\nlegality and price.",
+          "is_mutating": false,
+          "property_keys": [
+            "card_name",
+            "format",
+            "limit",
+            "max_price",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "card_name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Maximum results to return"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Format filter (e.g. 'commander', 'modern'). Only returns legal cards."
+              },
+              "card_name": {
+                "type": "string",
+                "description": "Name of the card to find similar cards for"
+              },
+              "max_price": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Maximum USD price filter"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e19918ded3da9eca415dc15d22c28dfeae1089218d3fc971bdc5ec70813868db"
+        },
+        {
+          "name": "card_comparison",
+          "canonical_hash": "sha256:6a82823235de0592e96a03efd75d695cdc0a4aac70193bd4fe0987529b388b4e",
+          "description": "Compare 2-5 cards side-by-side for a specific commander deck.\n\nShows mana cost, type, synergy, inclusion rate, combo count, and price for each card.\nScryfall and Spellbook required; EDHREC optional.",
+          "is_mutating": false,
+          "property_keys": [
+            "cards",
+            "commander_name",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cards": "array",
+            "commander_name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cards": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "2-5 card names to compare side-by-side"
+              },
+              "commander_name": {
+                "type": "string",
+                "description": "Commander the deck is built around"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4a8b5fe8d3b349239d0937ac1e45a14fbabfe20eeacf2ce28e92e696abeb6825"
+        },
+        {
+          "name": "color_identity_staples",
+          "canonical_hash": "sha256:cbc334a54fe8c89043fc4dc1cd598d7002e6c281cb1e748facdfba5759a9b7db",
+          "description": "Top cards across ALL commanders in a color identity.\n\nUses EDHREC aggregated data when available, falls back to EDHREC rank from bulk data.",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "color_identity",
+            "limit",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "color_identity": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum number of results"
+              },
+              "category": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Card category filter (e.g. 'creatures', 'instants', 'lands')"
+              },
+              "color_identity": {
+                "type": "string",
+                "description": "Color identity (e.g. 'sultai', 'BUG', 'WR', 'mono-red')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:665cdf457b1976ce9be54434140d8411a0cc72eea580b7029c7417361e7572b9"
+        },
+        {
+          "name": "combat_calculator",
+          "canonical_hash": "sha256:dc02ff36870fe4fa8949eadc4ed79d6fdcecdf9ebc0ee64305482f441040102a",
+          "description": "Calculate combat step-by-step with keyword interactions.\n\nResolves declare attackers → declare blockers → damage steps → state-based actions.\nLooks up card keywords from bulk data if card names are provided.",
+          "is_mutating": false,
+          "property_keys": [
+            "attackers",
+            "blockers",
+            "keywords",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "blockers": "array",
+            "attackers": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "blockers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Blocking creature names or descriptions"
+              },
+              "keywords": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Additional keyword abilities to consider (e.g. 'deathtouch', 'trample')"
+              },
+              "attackers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Attacking creature names or descriptions"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:301c613e5044622534f4458ffd5019047b6b0c5ad8009aa52f759bbc1f5819a0"
+        },
+        {
+          "name": "commander_comparison",
+          "canonical_hash": "sha256:4f13d010c9bf6822dc7556f5c6f98482b461bb6dd648cf2206b9e2f3fe10be54",
+          "description": "Compare 2-5 commanders head-to-head: stats, combos, staples, popularity.\n\nSide-by-side comparison table with mana cost, color identity, EDHREC rank,\ncombo count, and shared/unique staples.",
+          "is_mutating": false,
+          "property_keys": [
+            "commanders",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "commanders": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "commanders": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "2-5 commander names to compare head-to-head"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e2dce77317e64cbeeaba9ef89295ce7a75d6cbc4d7ecf9e5d482a5db631888cf"
+        },
+        {
+          "name": "commander_overview",
+          "canonical_hash": "sha256:2115f730e29a2bf9a4e016394312850248619252503e8468054556534bcf3525",
+          "description": "Comprehensive commander profile combining data from all available sources.\n\nReturns card details, top combos, EDHREC staples, and synergy scores.\nDegrades gracefully if optional sources (EDHREC, Spellbook) are unavailable.",
+          "is_mutating": false,
+          "property_keys": [
+            "commander_name",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "commander_name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "commander_name": {
+                "type": "string",
+                "description": "Commander card name (e.g. 'Muldrotha, the Gravetide')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:41705e650cb5db882655192bbb41dc20b9de2b6269630336a90c14b87749a566"
+        },
+        {
+          "name": "complete_deck",
+          "canonical_hash": "sha256:4c17562863dd639fbf8aa3ec469fbdb7c3e46729e5f2ff97469564ebabb83a9f",
+          "description": "Identify gaps in a partial decklist and suggest cards to fill them.\n\nAnalyzes mana curve, card roles, and format-specific ratios, then suggests\ncards for underrepresented categories.",
+          "is_mutating": false,
+          "property_keys": [
+            "budget",
+            "commander",
+            "decklist",
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "decklist": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "budget": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Maximum price per suggested card in USD"
+              },
+              "format": {
+                "type": "string",
+                "description": "Format to build for (e.g. 'standard', 'modern', 'commander')"
+              },
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Partial decklist — card names already chosen"
+              },
+              "commander": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Commander name (required for Commander format)"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:472b4b404d084e386b9264df34c9133f4f738f8971518a6db784304b302aa0b3"
+        },
+        {
+          "name": "deck_analysis",
+          "canonical_hash": "sha256:fd9a63f6b6c04f7c9834d32b641b6c8557ac44ff3fe7760874b157671f21ce5d",
+          "description": "Full decklist health check — mana curve, colors, combos, bracket, budget, synergy.\n\nUses all available backends: Scryfall bulk data for rate-limit-free card resolution,\nScryfall API as fallback, Spellbook for combos and bracket estimation, EDHREC for\nsynergy scores. Degrades gracefully if optional backends are unavailable.",
+          "is_mutating": false,
+          "property_keys": [
+            "commander_name",
+            "decklist",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "decklist": "array",
+            "commander_name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of card names in the deck (99 cards for Commander)"
+              },
+              "commander_name": {
+                "type": "string",
+                "description": "Commander the deck is built around"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c4ab286a95ea4190b32cfedbdb311fd518a119c4dcbb27eaa19051ca474c194d"
+        },
+        {
+          "name": "deck_validate",
+          "canonical_hash": "sha256:81ea1bb068bd80a1427e9cd7a6ce9c4d86d60be7b0f38ea29e0597257fe0d5c5",
+          "description": "Validate a decklist against a format's construction rules.\n\nChecks legality, deck size, copy limits, color identity (Commander), singleton\nrules, and Pauper rarity. Returns VALID or INVALID with actionable error messages.",
+          "is_mutating": false,
+          "property_keys": [
+            "commander",
+            "decklist",
+            "format",
+            "response_format",
+            "sideboard"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "decklist": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Format to validate against (e.g. 'commander', 'modern', 'standard', 'legacy')"
+              },
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Card names, optionally prefixed with quantity (e.g. '4x Lightning Bolt' or 'Lightning Bolt')"
+              },
+              "commander": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Commander card name (required for Commander format)"
+              },
+              "sideboard": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Sideboard card names, same format as decklist"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9c93e6c6d4984a479f6a0dc8f0b0fc7803d10802fc251f9110f4f589e61a13b2"
+        },
+        {
+          "name": "draft_archetype_stats",
+          "canonical_hash": "sha256:bb99056f9efda6e01b215295114cc710a44d7f51bcdd7fd7fecf9c5a9e01f1d4",
+          "description": "Get win rates by color pair/archetype for a draft set.\n\nNote: start_date and end_date are required by the 17Lands API.\n\nArgs:\n    set_code: Three-letter set code (e.g. \"LCI\", \"MKM\", \"OTJ\").\n    start_date: Start date in YYYY-MM-DD format.\n    end_date: End date in YYYY-MM-DD format.\n    event_type: Draft format — \"PremierDraft\" (default) or \"TradDraft\".",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "event_type",
+            "set_code",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "end_date": "string",
+            "set_code": "string",
+            "event_type": "string",
+            "start_date": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "end_date": {
+                "type": "string",
+                "description": "End date in YYYY-MM-DD format (required by 17Lands API)"
+              },
+              "set_code": {
+                "type": "string",
+                "description": "Three-letter set code (e.g. 'LCI', 'MKM', 'OTJ', 'BLB')"
+              },
+              "event_type": {
+                "type": "string",
+                "default": "PremierDraft",
+                "description": "Draft format — 'PremierDraft' (default) or 'TradDraft'"
+              },
+              "start_date": {
+                "type": "string",
+                "description": "Start date in YYYY-MM-DD format (required by 17Lands API)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c95bcc6ca38cdd8923b2c831cbb62ebf58ca7ac4c440dd2e452096d0c789510a"
+        },
+        {
+          "name": "draft_card_ratings",
+          "canonical_hash": "sha256:3b474cf4777a0dbf6bd76c9734a9db9cf87e7c597840f7ee227b1c4c5c1df320",
+          "description": "Get win rate and draft performance data for cards in a set.\n\nKey metrics: GIH WR (ever_drawn_win_rate), ALSA (avg_seen), OH WR\n(opening_hand_win_rate), IWD (drawn_improvement_win_rate).\n\nNote: 17Lands data skews toward above-average players (~56% baseline WR).\nCards with <500 games may not have reliable data.",
+          "is_mutating": false,
+          "property_keys": [
+            "event_type",
+            "limit",
+            "response_format",
+            "set_code",
+            "sort_by"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "sort_by": "string",
+            "set_code": "string",
+            "event_type": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 50,
+                "description": "Max cards to return (default 50, 0 for all)"
+              },
+              "sort_by": {
+                "type": "string",
+                "default": "gih_wr",
+                "description": "Sort order: 'gih_wr' (default), 'alsa', 'iwd', 'name'"
+              },
+              "set_code": {
+                "type": "string",
+                "description": "Three-letter set code (e.g. 'LCI', 'MKM', 'OTJ', 'BLB')"
+              },
+              "event_type": {
+                "type": "string",
+                "default": "PremierDraft",
+                "description": "Draft format — 'PremierDraft' (default) or 'TradDraft'"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1138f4bc8c64605b00d8d6d430c48cd490a9fa526a48f01f4739d9e2c467259c"
+        },
+        {
+          "name": "draft_log_review",
+          "canonical_hash": "sha256:a1532a7dfa632073c6099c814bf98057893f6d58be91d39ed27d901dd27803bc",
+          "description": "Review a completed draft — pick-by-pick GIH WR analysis and key decision points.\n\nIdentifies where you could have taken a higher-WR card, pivot points,\nand overall draft grade.",
+          "is_mutating": false,
+          "property_keys": [
+            "final_deck",
+            "picks",
+            "response_format",
+            "set_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "picks": "array",
+            "set_code": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "picks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Cards drafted in order (pack 1 pick 1 through pack 3 pick 14)"
+              },
+              "set_code": {
+                "type": "string",
+                "description": "Three-letter set code (e.g. 'LCI', 'MKM')"
+              },
+              "final_deck": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Final deck submitted — enables 'made the deck' analysis"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a0bde4f2e3682c3d2222a84d69727cf9622110ee67321587f2e8567d7a24ef14"
+        },
+        {
+          "name": "draft_pack_pick",
+          "canonical_hash": "sha256:12bde7db9c6aad1c9827afe6d5146e7e5e210eb72f4052bbf998ea60cfda6d95",
+          "description": "Rank cards in a draft pack using 17Lands win rate data.\n\nProvides GIH WR, ALSA, IWD stats, and color fit analysis based on current picks.\nRequires 17Lands to be enabled.",
+          "is_mutating": false,
+          "property_keys": [
+            "current_picks",
+            "pack",
+            "response_format",
+            "set_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pack": "array",
+            "set_code": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pack": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of card names currently in the draft pack"
+              },
+              "set_code": {
+                "type": "string",
+                "description": "Three-letter set code for the draft format (e.g. 'LCI', 'MKM')"
+              },
+              "current_picks": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Cards already drafted — enables color fit analysis when provided"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:069ec5dc5ae4d5813501566be0aabf1dfbd6b931eee813a5f8fded87d81145c0"
+        },
+        {
+          "name": "draft_signal_read",
+          "canonical_hash": "sha256:a947414611404d992e642c3a93261ad0fdb6e5622344440ef36dfdcea8b4526c",
+          "description": "Analyze draft picks and recommend a direction based on color signals.\n\nUses ALSA data to detect which colors are open (cards seen later than expected = open).",
+          "is_mutating": false,
+          "property_keys": [
+            "current_pack",
+            "picks",
+            "response_format",
+            "set_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "picks": "array",
+            "set_code": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "picks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Cards already drafted, in pick order"
+              },
+              "set_code": {
+                "type": "string",
+                "description": "Three-letter set code (e.g. 'LCI', 'MKM')"
+              },
+              "current_pack": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Current pack contents — if provided, cards are ranked with signal context"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0240fa91aea85214278557bae00f1efd251b38c2e6c4ac96ef17d44afcb4b226"
+        },
+        {
+          "name": "edhrec_card_synergy",
+          "canonical_hash": "sha256:205da56b07038a081c3a32ebd791e5e3cddd21cd8151fea6fd497a90bc5d6ad6",
+          "description": "Get synergy data for a specific card with a specific commander.\n\nShows how synergistic the card is with the commander compared to its\ngeneral popularity, plus how many decks include it.\n\nArgs:\n    card_name: The card to check (e.g. \"Spore Frog\").\n    commander_name: The commander to check against (e.g. \"Muldrotha, the Gravetide\").",
+          "is_mutating": false,
+          "property_keys": [
+            "card_name",
+            "commander_name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "card_name": "string",
+            "commander_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "card_name": {
+                "type": "string",
+                "description": "Card to check synergy for (e.g. 'Spore Frog')"
+              },
+              "commander_name": {
+                "type": "string",
+                "description": "Commander to check synergy against (e.g. 'Muldrotha, the Gravetide')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8dadd0ead1fa4f52ac0496d5ad7b7141ae08622046ed724e5de65e756a18060e"
+        },
+        {
+          "name": "edhrec_commander_staples",
+          "canonical_hash": "sha256:b4efded6bb26588b322df123e4b082a4dbe282b2dd9892405e81d58f23b92efa",
+          "description": "Get the most-played cards for a commander with synergy scores and inclusion rates.\n\nShows which cards are most commonly played with this commander and how\nsynergistic they are (vs. generic popularity).",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "commander_name",
+            "limit",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "commander_name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max cards per category (default 10, 0 for all)"
+              },
+              "category": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter by card type: 'creatures', 'enchantments', 'artifacts', 'instants', 'sorceries', 'lands', 'planeswalkers'"
+              },
+              "commander_name": {
+                "type": "string",
+                "description": "Full commander name (e.g. 'Muldrotha, the Gravetide')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:69fd34d0421079bb25b8a4f11e84953c9768e6b85b31028be3b5a34e0c041fcc"
+        },
+        {
+          "name": "evaluate_upgrade",
+          "canonical_hash": "sha256:9967d4143d68d7b1c962552f13dfef3de48b00c6e0672b07b5575178f12364f7",
+          "description": "Assess whether a card is worth adding to a specific commander deck.\n\nReturns card details, price, synergy score, and combos enabled for the caller to assess.\nDegrades gracefully if optional sources (EDHREC, Spellbook) are unavailable.",
+          "is_mutating": false,
+          "property_keys": [
+            "card_name",
+            "commander_name",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "card_name": "string",
+            "commander_name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "card_name": {
+                "type": "string",
+                "description": "Card to evaluate for the deck (e.g. 'Spore Frog')"
+              },
+              "commander_name": {
+                "type": "string",
+                "description": "Commander the deck is built around"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b9cff54d29d32eede92eb893c9e5ed7fd8d8594d49c96782b999851f386a49b7"
+        },
+        {
+          "name": "format_entry_guide",
+          "canonical_hash": "sha256:421883d51b0f0cb32ad0a33d025221b1b5d2e0ce18a6972e192447f1e222b2c8",
+          "description": "Get a beginner-oriented guide for entering a competitive format.\n\nShows archetypes sorted by budget accessibility, cross-archetype staples\n(buy once, play everywhere), and format rules summary.",
+          "is_mutating": false,
+          "property_keys": [
+            "budget",
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "budget": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Max budget in USD — filters archetypes to this price ceiling"
+              },
+              "format": {
+                "type": "string",
+                "description": "Competitive format (e.g. 'Modern', 'Legacy', 'Pioneer', 'Pauper')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:20e57e6f73930d0dec32af407111e3abb50ff00e114520acacae92e89a910462"
+        },
+        {
+          "name": "goldfish_archetype_list",
+          "canonical_hash": "sha256:48923b7db4767d8694578df79db5df4625c8c90a19a3becfb6bbb2f39f62acdf",
+          "description": "Get a sample decklist for an archetype in a format.\n\nReturns deck metadata (author, event, result, date) and the full\nmainboard and sideboard card list.",
+          "is_mutating": false,
+          "property_keys": [
+            "archetype",
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "archetype": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "MTG format name (e.g. 'Modern', 'Legacy', 'Pioneer')"
+              },
+              "archetype": {
+                "type": "string",
+                "description": "Archetype name (e.g. 'Boros Energy', 'Azorius Control')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b326b08e7f74e7cb97fe769a7e5e257b890d74c758adad5dbe2c78907ad77fa4"
+        },
+        {
+          "name": "goldfish_deck_price",
+          "canonical_hash": "sha256:2ab9a494254a4d0ee5ec15f38ccf391f43cacec322846ee418a26a103838c5b1",
+          "description": "Get the estimated paper price for an archetype deck.\n\nReturns the total estimated cost of the deck based on current card\nprices from MTGGoldfish.",
+          "is_mutating": false,
+          "property_keys": [
+            "archetype",
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "archetype": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "MTG format name (e.g. 'Modern', 'Legacy', 'Pioneer')"
+              },
+              "archetype": {
+                "type": "string",
+                "description": "Archetype name (e.g. 'Boros Energy', 'Azorius Control')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ded52920d99f392222ce27ae44b82001e5ef4ee9744a4e75463087cb0319552e"
+        },
+        {
+          "name": "goldfish_format_staples",
+          "canonical_hash": "sha256:ba722d8b69bfa797b24bf3e7e013b156a788dafb8982e6bad5e41afeb6f9b156",
+          "description": "Get the most-played cards in a format with deck inclusion percentages.\n\nShows which cards appear most frequently across all archetypes in\nthe format, with average copies played per deck.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "limit",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "format": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum number of staples to return (default 20)"
+              },
+              "format": {
+                "type": "string",
+                "description": "MTG format name (e.g. 'Modern', 'Legacy', 'Pioneer')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f9e9148dc00db717770208f48321b3c42644511de5586bb83d97d79271a8dbff"
+        },
+        {
+          "name": "goldfish_metagame",
+          "canonical_hash": "sha256:0f9e198956b6ccfacaef4062a4538c11fc52f96b0445374f15f29698012d056b",
+          "description": "Get the current metagame breakdown for a competitive format.\n\nShows top archetypes with meta share percentages, deck counts, and\nestimated paper prices.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "MTG format name (e.g. 'Modern', 'Legacy', 'Pioneer', 'Pauper')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1b8f67d80ee9cdeb57a43ebbcd91361f912552e5e7779c2848f6b8698a202906"
+        },
+        {
+          "name": "keyword_explain",
+          "canonical_hash": "sha256:60fdb3973c0938e57c78f962c094965f2e33bf585760ceb5e7463a3617dce8a8",
+          "description": "Explain an MTG keyword with rules text, examples, and interactions.\n\nReturns the rules definition, reminder text, and up to 5 example cards from bulk data.",
+          "is_mutating": false,
+          "property_keys": [
+            "keyword",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "keyword": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "keyword": {
+                "type": "string",
+                "description": "MTG keyword to explain (e.g. 'trample', 'deathtouch')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d2a9326eeb2f2831f829dcedff2e83bbc1764ea6a5355e46ac9d63330592390f"
+        },
+        {
+          "name": "metagame_snapshot",
+          "canonical_hash": "sha256:643b219ce59a89d351b0bd2013622f56d7ce6d0bef558bffb63ea39137b69fd0",
+          "description": "Get the current metagame breakdown for a competitive format.\n\nShows top archetypes with meta share %, tier classification, and prices.\nUses MTGGoldfish as primary source with Spicerack tournament data as fallback.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Competitive format (e.g. 'Modern', 'Legacy', 'Pioneer', 'Pauper')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0c7b4fd325ae5c521b179d40ca3ea9695b3c3abd8859204a76c55c826e56cfea"
+        },
+        {
+          "name": "moxfield_deck_info",
+          "canonical_hash": "sha256:3fb386e8262d865bd63118b3c4968ee46fb53c476147aa549fd6e03e119ab422",
+          "description": "Get metadata for a Moxfield deck (name, format, author, dates).\n\nReturns deck metadata without the full card list. Use ``decklist``\nfor the complete card list.",
+          "is_mutating": false,
+          "property_keys": [
+            "deck_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "deck_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "deck_id": {
+                "type": "string",
+                "description": "Moxfield deck ID or full URL (e.g. 'abc123' or 'https://www.moxfield.com/decks/abc123')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c4f34d460736fdcfc206d04f57910688975bf143ae54a13e6267ea971d6fd3a7"
+        },
+        {
+          "name": "moxfield_decklist",
+          "canonical_hash": "sha256:6fb3d6c43f66c685d0221ad30b3b109c774c2ab020be6126d9553e09a21571df",
+          "description": "Fetch a full decklist from Moxfield by deck ID or URL.\n\nReturns the complete decklist organized by board (commanders, mainboard,\nsideboard, companions) with card names and quantities.",
+          "is_mutating": false,
+          "property_keys": [
+            "deck_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "deck_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "deck_id": {
+                "type": "string",
+                "description": "Moxfield deck ID or full URL (e.g. 'abc123' or 'https://www.moxfield.com/decks/abc123')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9f8c5e2043e490f6e847955b76d732996ffc1638ed9ad40995ffad3a3924698c"
+        },
+        {
+          "name": "moxfield_search_decks",
+          "canonical_hash": "sha256:edc7417dc0a30d64d296dd9bcad779b7572afc8acb74814a55517c829b715ed8",
+          "description": "Search public Moxfield decks by format, keyword, or sort order.\n\nReturns a paginated list of deck summaries with name, format, author,\ncolors, and card counts.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "page",
+            "page_size",
+            "query",
+            "sort"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "sort": "string",
+            "page_size": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1,
+                "description": "Page number (1-indexed)"
+              },
+              "sort": {
+                "type": "string",
+                "default": "Updated",
+                "description": "Sort order: 'Updated', 'Created', or 'Views'"
+              },
+              "query": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional search text to filter decks by name or description"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Format filter (e.g. 'pauper', 'commander', 'modern'). Leave empty for all formats."
+              },
+              "page_size": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Results per page (max 100)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a790fc201a22f9ae199071a4f8d9501f3232b7bcdc72945b77e85e7e2a9eccdf"
+        },
+        {
+          "name": "moxfield_user_decks",
+          "canonical_hash": "sha256:36580b316c194b299f0c1ffd28b4b79f7c50092a86bd0164396379baad759851",
+          "description": "List a user's public decks on Moxfield.\n\nVerifies the user exists, then searches for their public decks.\nOptionally filter by format.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "username"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "username": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional format filter (e.g. 'commander', 'modern')"
+              },
+              "username": {
+                "type": "string",
+                "description": "Moxfield username to look up"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9f891820d1b0c41f301ec0edea13fdc30c084689a3ed5132520191b309ceeca7"
+        },
+        {
+          "name": "ping",
+          "canonical_hash": "sha256:8ec3d7d38559bcc22e4b02620919d3cca1196e6d7be2afadb47a48cd04d02639",
+          "description": "Health check — returns 'pong'.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:6df538792a1ffbc2ed2ef7de14ecf6a96565d86581be5c257173b80f90c1ae57"
+        },
+        {
+          "name": "precon_upgrade",
+          "canonical_hash": "sha256:6863d002cf4c3e9a172af0c9863f96c9bdaf23b51bef9a17ad95b91ff0961b88",
+          "description": "Analyze and upgrade a Commander precon — identify weakest cards, suggest replacements.\n\nPairs each upgrade with a specific cut, explaining the synergy improvement.",
+          "is_mutating": false,
+          "property_keys": [
+            "budget",
+            "commander",
+            "decklist",
+            "num_upgrades",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "budget": "number",
+            "decklist": "array",
+            "commander": "string",
+            "num_upgrades": "integer",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "budget": {
+                "type": "number",
+                "default": 50,
+                "description": "Maximum price per upgrade card in USD"
+              },
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Full precon decklist — card names"
+              },
+              "commander": {
+                "type": "string",
+                "description": "Commander card name"
+              },
+              "num_upgrades": {
+                "type": "integer",
+                "default": 10,
+                "description": "Number of upgrade suggestions"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4b8ebef6796e934637176d939aa813d27da4c4549a084bf0e88932cfcef8f87a"
+        },
+        {
+          "name": "price_comparison",
+          "canonical_hash": "sha256:5ca6157a2f4943321d074a687e799c73cb3069295f423f435a29fce9a7f29118",
+          "description": "Compare prices across multiple cards using Scryfall bulk data.\n\nReturns a markdown table with USD, USD foil, and EUR prices sorted by USD descending.",
+          "is_mutating": false,
+          "property_keys": [
+            "cards",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cards": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cards": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "2-20 card names to compare prices"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e560f8fe36e16b288a8ecbf33ea0b97092aa49aeaa34901dc40bb1428c6b79bc"
+        },
+        {
+          "name": "rotation_check",
+          "canonical_hash": "sha256:e7ff8f72a975687f23eca60684e3e534f1a21581b18f4421f6c2308879cf7866",
+          "description": "Check Standard rotation status and identify which cards are rotating.\n\nShows sets currently in Standard with rotation dates. If cards provided,\nidentifies which are in rotating sets and suggests replacements.",
+          "is_mutating": false,
+          "property_keys": [
+            "cards",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cards": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Card names to check for rotation — omit for general rotation info"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:284f7f6a9dca072aeda5b3d16c5660c5b0956c7e9c7c149e1459d35f082c9c56"
+        },
+        {
+          "name": "rules_interaction",
+          "canonical_hash": "sha256:d5aab624a85ce9bcf52a60829a422d2020bc86660587c8b1770d06a9f9125a82",
+          "description": "Explain how two mechanics or cards interact under MTG rules.\n\nReturns relevant rules, step-by-step resolution, and common misconceptions.",
+          "is_mutating": false,
+          "property_keys": [
+            "mechanic_a",
+            "mechanic_b",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mechanic_a": "string",
+            "mechanic_b": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mechanic_a": {
+                "type": "string",
+                "description": "First mechanic or card name"
+              },
+              "mechanic_b": {
+                "type": "string",
+                "description": "Second mechanic or card name"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6816fde6c5b527bd44529e201b9a294cda0e981d39f9fa2ca9feb0c8b61e5f7a"
+        },
+        {
+          "name": "rules_lookup",
+          "canonical_hash": "sha256:744af619efeff95b9f3ae578685135fde61436581fa2bc6010f0335d6300f840",
+          "description": "Look up MTG Comprehensive Rules by number or keyword search.\n\nReturns matching rules with full text, parent context, and subrules.",
+          "is_mutating": false,
+          "property_keys": [
+            "query",
+            "response_format",
+            "section"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Rule number (e.g. '704.5k') or keyword to search for"
+              },
+              "section": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Narrow search to a section (e.g. 'combat', 'stack', 'lands', 'state-based')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e2dec4d897110e1fc9d6ba473ba77cb97d4c84d78b3e06c50c6a738c62051522"
+        },
+        {
+          "name": "rules_scenario",
+          "canonical_hash": "sha256:3ab1975ce3a0da224f1697ed16aa683e9ac0746244d7f294235ae530524b784e",
+          "description": "Resolve a game scenario step-by-step using MTG rules.\n\nCovers priority, stack resolution, state-based actions, and triggers with rule citations.",
+          "is_mutating": false,
+          "property_keys": [
+            "response_format",
+            "scenario"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "scenario": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scenario": {
+                "type": "string",
+                "description": "Game scenario to resolve (describe the board state and action)"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1ade84f2e200e20c570edb476e80be73eb06137d9c316ff41ed2748e1f1f4ce3"
+        },
+        {
+          "name": "scryfall_card_details",
+          "canonical_hash": "sha256:0d54f8c2d826debf08e181d63f900c8ec77ab1a5ca8962bd05e12f427a4a1aa6",
+          "description": "Get full details for a Magic card by exact or fuzzy name.",
+          "is_mutating": false,
+          "property_keys": [
+            "fuzzy",
+            "name",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "fuzzy": "boolean",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Card name — exact match by default (e.g. 'Muldrotha, the Gravetide')"
+              },
+              "fuzzy": {
+                "type": "boolean",
+                "default": false,
+                "description": "Use fuzzy matching for approximate names (e.g. 'muldrotha' finds 'Muldrotha, the Gravetide')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:27f7316f4a9bf427ccc13dbc629e1d54a422ab01fc4685023402037d1377e392"
+        },
+        {
+          "name": "scryfall_card_price",
+          "canonical_hash": "sha256:8d31b6db64ac542795095964be0cc78ab4a999a4cccdad50e93c2490953fffa7",
+          "description": "Get current prices for a Magic card. Prices update once per day.",
+          "is_mutating": false,
+          "property_keys": [
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Card name for price lookup (exact match)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:32cb72ce9467016a1bb96b10f794c8b2f6f238e75f601e1fe9e7b8250ec3fde8"
+        },
+        {
+          "name": "scryfall_card_rulings",
+          "canonical_hash": "sha256:48b31ee2b2a9d52e58a57949904e74ab0289436d141018df3147587692259c88",
+          "description": "Get official rulings and clarifications for a Magic card.",
+          "is_mutating": false,
+          "property_keys": [
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Card name to get official rulings for (exact match)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aa0d527531af5d288730d7dbffebec9022b6ea1093fcc051c8dfa81fa1bafde5"
+        },
+        {
+          "name": "scryfall_search_cards",
+          "canonical_hash": "sha256:096147b05fcb3c3ac6b52123883ffc9a5f624f68c9e5e6bd4dde340f07d02a74",
+          "description": "Search for Magic cards using Scryfall syntax.\n\nExamples: \"f:commander id:sultai t:creature\", \"o:destroy t:instant cmc<=3\"\nSee https://scryfall.com/docs/syntax for full syntax reference.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page",
+            "query",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "limit": "integer",
+            "query": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "description": "Page number for paginated results, 1-indexed"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 30,
+                "description": "Max cards to return (default 30, 0 for all)"
+              },
+              "query": {
+                "type": "string",
+                "description": "Scryfall search query (e.g. 'f:commander id:sultai t:creature cmc<=3'). See scryfall.com/docs/syntax"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:65d9f518e3f41c2ee411752f5dd5568b2686ac75a1115f75d3a2521ea5aa9aae"
+        },
+        {
+          "name": "scryfall_set_info",
+          "canonical_hash": "sha256:8c84f3a1867145d44bd04fea938d3fb044ae29b23d9d506e83ea9e1ad2d916a5",
+          "description": "Get metadata for a Magic set by its code.",
+          "is_mutating": false,
+          "property_keys": [
+            "set_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "set_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "set_code": {
+                "type": "string",
+                "description": "Set code (e.g. 'dom', 'mh2', 'lci')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:311ca2414e4393bac49906d4ae0fee23f7b496547c9a58323ceeac4cdc0a9c0d"
+        },
+        {
+          "name": "scryfall_whats_new",
+          "canonical_hash": "sha256:8eca9a25e2d1a0ea8cc1f52aef1f1fe202c14ab9b4ade1808031c13ab749c653",
+          "description": "Find recently printed or released Magic cards.\n\nSearches Scryfall for cards released within the given number of days.\nOptionally filter by set or format legality.",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "format",
+            "limit",
+            "response_format",
+            "set_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "integer",
+            "limit": "integer",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "integer",
+                "default": 30,
+                "description": "Look back this many days for recent cards (minimum 1)"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 30,
+                "description": "Max cards to return (default 30, 0 for all)"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter to cards legal in a format (e.g. 'standard', 'commander', 'modern')"
+              },
+              "set_code": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter to a specific set code (e.g. 'mh3', 'lci')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:903a1137a6ad33be0ba81136b73fcbdf2556d7697654d33c1bf037f0bdf719f8"
+        },
+        {
+          "name": "sealed_pool_build",
+          "canonical_hash": "sha256:7e4d46e8bf405c3de56961dafa2318dd04396448b8f4d8b342022d475a9dc411",
+          "description": "Build 1-3 decks from a sealed pool using card quality and color pair analysis.\n\nEvaluates each 2-color pair, selects best cards, and suggests land splits.\nUses 17Lands data when available for card quality scoring.",
+          "is_mutating": false,
+          "property_keys": [
+            "pool",
+            "response_format",
+            "set_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pool": "array",
+            "set_code": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pool": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Card names in the sealed pool (typically 84-90)"
+              },
+              "set_code": {
+                "type": "string",
+                "description": "Three-letter set code (e.g. 'LCI', 'MKM')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fad1c1b10c0085d4cfdb38ccd2286790bf6d38a21ee46a083b55ffb9d0b5545a"
+        },
+        {
+          "name": "set_overview",
+          "canonical_hash": "sha256:3eb44f82d7c86827e9e3b56b27ea7e5f43159d65de8bdafff1318f7fcadb8246",
+          "description": "Draft format overview — top commons/uncommons and trap rares.\n\nUses 17Lands card ratings to provide a data-driven format breakdown.\nRequires 17Lands to be enabled.",
+          "is_mutating": false,
+          "property_keys": [
+            "event_type",
+            "response_format",
+            "set_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "set_code": "string",
+            "event_type": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "set_code": {
+                "type": "string",
+                "description": "Three-letter set code for the draft format (e.g. 'LCI', 'MKM')"
+              },
+              "event_type": {
+                "type": "string",
+                "default": "PremierDraft",
+                "description": "Draft format — 'PremierDraft' (default) or 'TradDraft'"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:41a1001f4001974dedc565f3c86762d0727c64a98072b3bf8c5d0f83529577e7"
+        },
+        {
+          "name": "sideboard_guide",
+          "canonical_hash": "sha256:0f83e2b468ac791b28a8b214da06b5135c50aff12d6d06ba6ebd9a711470cdfb",
+          "description": "Get a specific sideboard in/out plan for a named matchup.\n\nGiven a full 75 and a matchup archetype, produces specific boarding\ninstructions with reasoning.",
+          "is_mutating": false,
+          "property_keys": [
+            "decklist",
+            "format",
+            "matchup",
+            "response_format",
+            "sideboard"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "matchup": "string",
+            "decklist": "array",
+            "sideboard": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Competitive format (e.g. 'Modern', 'Pauper')"
+              },
+              "matchup": {
+                "type": "string",
+                "description": "Matchup archetype name (e.g. 'Mono-Red Aggro') — fuzzy matched"
+              },
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Main deck card names (e.g. ['4 Lightning Bolt', '4 Goblin Guide'])"
+              },
+              "sideboard": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Sideboard card names (e.g. ['2 Hydroblast', '3 Tormod\\'s Crypt'])"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45ded4a6bd82fbfe13a05f9d87e72979bf70045c25145990e2ff7a8be52f87e0"
+        },
+        {
+          "name": "sideboard_matrix",
+          "canonical_hash": "sha256:93c75d0bbedbef94464e11661c68f7786a0c5cb8fcc34eb4b65a3ad4cddf2800",
+          "description": "Generate a sideboard matrix for a deck across common matchups.\n\nMatrix shows which sideboard cards come IN/OUT/FLEX for each matchup.\nAuto-detects top matchups from metagame data or uses provided matchup list.",
+          "is_mutating": false,
+          "property_keys": [
+            "decklist",
+            "format",
+            "matchups",
+            "response_format",
+            "sideboard"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "decklist": "array",
+            "sideboard": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Competitive format (e.g. 'Modern', 'Pauper')"
+              },
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Main deck card names (e.g. ['4 Lightning Bolt', '4 Goblin Guide'])"
+              },
+              "matchups": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Matchup names to include — omit to auto-detect from metagame data"
+              },
+              "sideboard": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Sideboard card names (e.g. ['2 Hydroblast', '3 Tormod\\'s Crypt'])"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0d7ac530a2858d9600db350ae308d3d4f7d30f0e759f20b5fc046fbeea223fca"
+        },
+        {
+          "name": "spellbook_combo_details",
+          "canonical_hash": "sha256:a763abb8a65ce8068202307ea23c62e71fded4fe128f68da48f61e4d9599aecd",
+          "description": "Get detailed steps for a specific combo by its Spellbook ID.\n\nUse an ID from find_combos results (e.g. \"1414-2730-5131-5256\").",
+          "is_mutating": false,
+          "property_keys": [
+            "combo_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "combo_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "combo_id": {
+                "type": "string",
+                "description": "Spellbook combo ID from find_combos results (e.g. '1414-2730-5131-5256')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a1291fe65e13bb0a0713a18391cd1b09a581097110cf00eee88448c20fac6fda"
+        },
+        {
+          "name": "spellbook_estimate_bracket",
+          "canonical_hash": "sha256:aee13a6af7ca5cafebd24bc1163a6160ca0c15c978d269e1ecdddb2271a251e8",
+          "description": "Estimate the Commander bracket (power level) for a decklist.\n\nProvide commander name(s) and a list of card names in the main deck.\nReturns bracket tag and any bracket-relevant findings.",
+          "is_mutating": false,
+          "property_keys": [
+            "commanders",
+            "decklist"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "decklist": "array",
+            "commanders": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of card names in the main deck"
+              },
+              "commanders": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Commander card name(s) (e.g. ['Muldrotha, the Gravetide'])"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f78e2998651a5e6afcfa8f771f9587280f326e1225242ebb4acd5aa5c6d3dc1a"
+        },
+        {
+          "name": "spellbook_find_combos",
+          "canonical_hash": "sha256:7a2c1968ebfbb6ab273581f3c5a7d3cd2c2fee68fcd8730da4a57d25992bbb06",
+          "description": "Search for known combos involving a specific card.\n\nOptionally filter by color identity (e.g. \"sultai\", \"BUG\", \"wubrg\").\nReturns up to `limit` combos with cards involved and results produced.",
+          "is_mutating": false,
+          "property_keys": [
+            "card_name",
+            "color_identity",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "card_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Maximum number of combos to return"
+              },
+              "card_name": {
+                "type": "string",
+                "description": "Card name to search for combos (e.g. 'Muldrotha, the Gravetide')"
+              },
+              "color_identity": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter by color identity — name ('sultai'), letters ('BUG'), or 'wubrg'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:db61539b7287d6f71532f740e4e744e1094114b59bc3fc5be4d04b9e089fb1ab"
+        },
+        {
+          "name": "spellbook_find_decklist_combos",
+          "canonical_hash": "sha256:81103a41d19c9f5d3cc9e9c3395d08b75ce78cf396907d860cdc23821388413e",
+          "description": "Find combos present in (or nearly present in) a Commander decklist.\n\nProvide commander name(s) and a list of card names in the main deck.\nReturns combos that are fully included and those that are almost included.",
+          "is_mutating": false,
+          "property_keys": [
+            "commanders",
+            "decklist"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "decklist": "array",
+            "commanders": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of card names in the main deck"
+              },
+              "commanders": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Commander card name(s) (e.g. ['Muldrotha, the Gravetide'])"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:157fee78600dc0185e3c340cb041022cc517bd621ad4d73a804ba6ce82ce2f76"
+        },
+        {
+          "name": "spicerack_format_decklists",
+          "canonical_hash": "sha256:6b616f71bfd08ca1e85e9ce4c507c9e9f2e877222a3c58cec2a595a561068379",
+          "description": "Find top-performing decklists across recent tournaments for a format.\n\nCollects top-4 finishers with Moxfield decklists from recent events.\nUse ``moxfield_decklist`` to fetch the full card list for a deck.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "limit",
+            "num_days",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "format": "string",
+            "num_days": "integer",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Maximum number of decklists to return (default 10)"
+              },
+              "format": {
+                "type": "string",
+                "description": "MTG format name (e.g. 'Modern', 'Legacy', 'Pauper')"
+              },
+              "num_days": {
+                "type": "integer",
+                "default": 14,
+                "description": "Number of days to look back (default 14)"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:da42ddf76e4d42bb9af53c26607cddef676737caf8f9b44cd468736aa42bdea4"
+        },
+        {
+          "name": "spicerack_recent_tournaments",
+          "canonical_hash": "sha256:ce6ebb2689b29b0e91ced2a1688634404a8555e50ca5cd5dbfaecb2b895ec7e5",
+          "description": "List recent tournaments for a format with dates, player counts, and IDs.\n\nUse the tournament ID from the results with ``tournament_results`` to\nsee full standings and decklists.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "limit",
+            "num_days",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "format": "string",
+            "num_days": "integer",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Maximum number of tournaments to return (default 10)"
+              },
+              "format": {
+                "type": "string",
+                "description": "MTG format name (e.g. 'Modern', 'Legacy', 'Pauper')"
+              },
+              "num_days": {
+                "type": "integer",
+                "default": 14,
+                "description": "Number of days to look back (default 14)"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:94d4a1567cd60744984bd288ac6b14b6df433a7a5c08a624b9712d88a1da8404"
+        },
+        {
+          "name": "spicerack_tournament_results",
+          "canonical_hash": "sha256:192f458f2935f47ef898d925c7f77adae6c01442a5e2c46634ee7a54fa4f1cdb",
+          "description": "Get full standings and decklists for a specific tournament.\n\nLook up a tournament by its Spicerack ID. Use ``recent_tournaments``\nfirst to find tournament IDs.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "num_days",
+            "response_format",
+            "top_n",
+            "tournament_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "top_n": "integer",
+            "num_days": "integer",
+            "tournament_id": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "top_n": {
+                "type": "integer",
+                "default": 8,
+                "description": "Number of top standings to show (default 8)"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Format to search within (optional, helps narrow results)"
+              },
+              "num_days": {
+                "type": "integer",
+                "default": 30,
+                "description": "Number of days to look back (default 30)"
+              },
+              "tournament_id": {
+                "type": "string",
+                "description": "Spicerack tournament ID (e.g. '3135276')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:17869108ec71d4750eea6f1887a9e15f6da48e21990391b1dee58854f08d720e"
+        },
+        {
+          "name": "suggest_cuts",
+          "canonical_hash": "sha256:687a41f01bd22df60780a37f83027dfb204acf16f04603a1d51bf4f6c7f9c992",
+          "description": "Identify the weakest cards to cut from a commander decklist.\n\nScores cards by synergy, inclusion rate, and combo membership.\nDegrades gracefully if EDHREC or Spellbook backends fail (uses whatever data is available).",
+          "is_mutating": false,
+          "property_keys": [
+            "commander_name",
+            "decklist",
+            "num_cuts",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "decklist": "array",
+            "num_cuts": "integer",
+            "commander_name": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of card names in the deck"
+              },
+              "num_cuts": {
+                "type": "integer",
+                "default": 5,
+                "description": "Number of cut candidates to suggest"
+              },
+              "commander_name": {
+                "type": "string",
+                "description": "Commander the deck is built around"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9a43b50dd5d47e43a1aae04150574937720bb47cc414a5cdb227aec9adb7d732"
+        },
+        {
+          "name": "suggest_mana_base",
+          "canonical_hash": "sha256:f0409803ad3f734278422534ec6fa50c63e6d7020ad03565011c38b5902190c0",
+          "description": "Suggest a mana base for a decklist based on color pip distribution.\n\nAnalyzes color requirements, recommends land count, and suggests format-legal\ndual lands. Handles hybrid and phyrexian mana.",
+          "is_mutating": false,
+          "property_keys": [
+            "decklist",
+            "format",
+            "response_format",
+            "total_lands"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "decklist": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Format for land legality checking (e.g. 'commander', 'modern')"
+              },
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Non-land card names in the deck"
+              },
+              "total_lands": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Override total land count (default: auto-calculated from avg CMC)"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:da004dfb954007a35598ff464aac70884670ad240ac20f9e7c3e47dadb1010a9"
+        },
+        {
+          "name": "suggest_sideboard",
+          "canonical_hash": "sha256:f16d364aa250a034dd132a71deb1c50bb0dcec84d1b8e49767e51915dccecb49",
+          "description": "Suggest a 15-card sideboard for a competitive deck.\n\nAnalyzes the main deck's weaknesses and recommends sideboard cards with\nper-card reasoning. Works with heuristic analysis alone; enhanced with\nMTGGoldfish frequency data when available.",
+          "is_mutating": false,
+          "property_keys": [
+            "decklist",
+            "format",
+            "meta_context",
+            "response_format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "decklist": "array",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "description": "Competitive format (e.g. 'Modern', 'Pauper')"
+              },
+              "decklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Main deck card names (e.g. ['4 Lightning Bolt', '4 Goblin Guide'])"
+              },
+              "meta_context": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional context about local metagame (e.g. 'heavy on Mono-Red and Affinity')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:842e2265c818cddeb050b7e7e78067a1e84f8b1a5fe059b3563d3bdf2b8ae6fe"
+        },
+        {
+          "name": "theme_search",
+          "canonical_hash": "sha256:2d7c53405a311fe5243d5043c048ca0f39c086f8cd99b8aaac2ffb92aac774c2",
+          "description": "Find cards matching a theme — mechanical, tribal, or abstract/flavorful.\n\nMaps themes to oracle text patterns and searches bulk data. Groups results\nby relevance tier (strong match, moderate match, flavor match).",
+          "is_mutating": false,
+          "property_keys": [
+            "color_identity",
+            "format",
+            "limit",
+            "max_price",
+            "response_format",
+            "theme"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "theme": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum number of results"
+              },
+              "theme": {
+                "type": "string",
+                "description": "Theme to search for — mechanical (aristocrats, voltron, tokens), tribal (goblin, merfolk), or abstract (music, death, ocean)"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Format legality filter (e.g. 'standard', 'modern', 'commander')"
+              },
+              "max_price": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Maximum card price in USD"
+              },
+              "color_identity": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Color identity filter (e.g. 'sultai', 'BUG', 'WR')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:358b752b69c7f6df79361b8af628f36ac3a2bee2c7cf52f75a38d22465603560"
+        },
+        {
+          "name": "tribal_staples",
+          "canonical_hash": "sha256:69f27edeff30a8b76fc7f400a28edd6d2a812951ab89339d18c6f316abc6b247",
+          "description": "Best cards for a creature type — lords, synergy pieces, and top members.\n\nGroups results by: lords/anthems, tribal synergy, best members, tribal support.",
+          "is_mutating": false,
+          "property_keys": [
+            "color_identity",
+            "format",
+            "limit",
+            "response_format",
+            "tribe"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "tribe": "string",
+            "response_format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Maximum number of results"
+              },
+              "tribe": {
+                "type": "string",
+                "description": "Creature type (e.g. 'Goblin', 'Merfolk', 'Samurai')"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Format legality filter (e.g. 'commander', 'modern')"
+              },
+              "color_identity": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Color identity filter (e.g. 'sultai', 'WR')"
+              },
+              "response_format": {
+                "enum": [
+                  "detailed",
+                  "concise"
+                ],
+                "type": "string",
+                "default": "detailed",
+                "description": "Output verbosity: 'detailed' (default) or 'concise'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:afd683681049748a0fc8164687b864beca472373063fbe506f12f617b2e0bbe0"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "evaluate_commander_swap",
+          "description": "",
+          "argument_keys": [
+            "adding",
+            "commander",
+            "cutting"
+          ],
+          "required_arguments": [
+            "adding",
+            "commander",
+            "cutting"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "deck_health_check",
+          "description": "",
+          "argument_keys": [
+            "commander"
+          ],
+          "required_arguments": [
+            "commander"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "draft_strategy",
+          "description": "",
+          "argument_keys": [
+            "set_code"
+          ],
+          "required_arguments": [
+            "set_code"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "find_upgrades",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "commander"
+          ],
+          "required_arguments": [
+            "budget",
+            "commander"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "build_deck",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "concept",
+            "format"
+          ],
+          "required_arguments": [
+            "concept",
+            "format"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "evaluate_collection",
+          "description": "",
+          "argument_keys": [
+            "cards"
+          ],
+          "required_arguments": [
+            "cards"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "format_intro",
+          "description": "",
+          "argument_keys": [
+            "format"
+          ],
+          "required_arguments": [
+            "format"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "card_alternatives",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "card_name",
+            "format"
+          ],
+          "required_arguments": [
+            "budget",
+            "card_name",
+            "format"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "rules_question",
+          "description": "",
+          "argument_keys": [
+            "question"
+          ],
+          "required_arguments": [
+            "question"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "build_around_deck",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "cards",
+            "format"
+          ],
+          "required_arguments": [
+            "cards",
+            "format"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "build_tribal_deck",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "commander",
+            "format",
+            "tribe"
+          ],
+          "required_arguments": [
+            "format",
+            "tribe"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "build_theme_deck",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "color_identity",
+            "format",
+            "theme"
+          ],
+          "required_arguments": [
+            "format",
+            "theme"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "upgrade_precon",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "commander"
+          ],
+          "required_arguments": [
+            "budget",
+            "commander"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "sealed_session",
+          "description": "",
+          "argument_keys": [
+            "set_code"
+          ],
+          "required_arguments": [
+            "set_code"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "draft_review",
+          "description": "",
+          "argument_keys": [
+            "set_code"
+          ],
+          "required_arguments": [
+            "set_code"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "compare_commanders",
+          "description": "",
+          "argument_keys": [
+            "commanders"
+          ],
+          "required_arguments": [
+            "commanders"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "rotation_plan",
+          "description": "",
+          "argument_keys": [],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "explore_format",
+          "description": "",
+          "argument_keys": [
+            "format"
+          ],
+          "required_arguments": [
+            "format"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "build_constructed_deck",
+          "description": "",
+          "argument_keys": [
+            "budget",
+            "concept",
+            "format"
+          ],
+          "required_arguments": [
+            "concept",
+            "format"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "mtg://rules/keywords",
+          "name": "list_keywords",
+          "description": "",
+          "mime_type": "text/plain"
+        },
+        {
+          "uri_template": "mtg://rules/sections",
+          "name": "list_sections",
+          "description": "",
+          "mime_type": "text/plain"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}

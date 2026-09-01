@@ -1,0 +1,744 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "malinoto/tracepass-mcp-server",
+  "purl": "pkg:npm/malinoto%2Ftracepass-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "malinoto/tracepass-mcp-server",
+  "description": "MCP server for TracePass — the EU Digital Product Passport (DPP) compliance platform for the ESPR and EU Battery Regulation. Lets AI assistants create products, build and audit Digital Product Passports (battery: 91 fields; electronics: 166), set economic-operator parties, and read or capture GS1 EPCIS 2.0 supply-chain events. 6 tools, 2 resources, 5 prompts. Connect to the hosted endpoint (https://ai.tracepass.eu/mcp) with a TracePass tp_ API key, or run locally via npx -y tracepass-mcp-server.",
+  "repository_url": "https://tracepass-mcp-server--malinoto.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "malinoto/tracepass-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:f2c5424b179a54bbb6684708f7862be781c67ab51de142ff528ff92901c93e93",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://tracepass-mcp-server--malinoto.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "tracepass_epcis",
+          "canonical_hash": "sha256:81544792133695b22dae6efb8396c6f7ec4e41182d7dfdd483f1b73a1a2dfe1b",
+          "description": "GS1 EPCIS 2.0 supply-chain events. `export` is included on Starter plans and up; `capture`, `capture_job`, and `query` require the paid EPCIS add-on (those actions return a 403-style message without it).\n\nActions (pass via `action`, with `args`):\n- export — args: { id }. Export a passport's events as an EPCIS 2.0 JSON-LD document. Read-only.\n- export_by_serial — args: { serial, gtin? }. Same as export, addressed by your own serial. A serial is unique only WITHIN a GTIN — if it isn't unique in your account the call returns 409 ambiguous_serial; pass `gtin` (or use export by id). Read-only.\n- capture — args: { events }. `events` is an EPCISDocument, a single event, or an array of events (JSON-LD). Returns a 202 with a captureJobId.\n- capture_job — args: { jobId }. Poll an async capture job. Read-only.\n- query — args: { params? }. `params` is a key/value map of standard EPCIS query parameters (EQ_bizStep, GE_eventTime, MATCH_epc, …). Read-only.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "args"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "object",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Passport id. Required for export."
+                  },
+                  "gtin": {
+                    "type": "string",
+                    "description": "GTIN disambiguator for export_by_serial when the serial isn't unique (else 409)."
+                  },
+                  "jobId": {
+                    "type": "string",
+                    "description": "Capture job id to poll. Required for capture_job."
+                  },
+                  "events": {
+                    "description": "EPCIS 2.0 event payload (an EPCISDocument or event list). Required for capture."
+                  },
+                  "params": {
+                    "type": "object",
+                    "description": "EPCIS query parameters as key→value strings (query, optional).",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "serial": {
+                    "type": "string",
+                    "description": "Your serial. Required for export_by_serial."
+                  }
+                },
+                "description": "Arguments for the chosen action; required fields depend on `action`."
+              },
+              "action": {
+                "enum": [
+                  "export",
+                  "export_by_serial",
+                  "capture",
+                  "capture_job",
+                  "query"
+                ],
+                "type": "string",
+                "description": "EPCIS 2.0: export a passport's events (export | export_by_serial), capture new events, poll a capture job, or query events."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The resource's TracePass id, when the response is a single entity."
+              },
+              "page": {
+                "type": "number",
+                "description": "Current page number (list actions)."
+              },
+              "error": {
+                "type": "string",
+                "description": "Machine-readable error code, when the API rejected the request."
+              },
+              "items": {
+                "type": "array",
+                "items": {},
+                "description": "The page of results, when the action is a list."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Page size (list actions)."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total matching records across all pages (list actions)."
+              },
+              "result": {
+                "description": "Wraps a non-object response body (e.g. a QR code string)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error or status detail, when present."
+              },
+              "totalPages": {
+                "type": "number",
+                "description": "Total number of pages (list actions)."
+              }
+            }
+          },
+          "description_hash": "sha256:21469a4bc0d6c303cc27441f72e4c2781c760b117b23724423db9b01f692ca4d"
+        },
+        {
+          "name": "tracepass_passport_fields",
+          "canonical_hash": "sha256:626cb2efa95d3f28e9fe87f5984cb363bd602cd9458ffef8b9cf3bce064ff1ea",
+          "description": "Update field values on a Digital Product Passport. Every change is recorded in the passport's audit trail, tagged as an API-key update.\n\nActions (pass via `action`, with `args`):\n- update — args: { id, fieldKey, value }. `value` type matches the field's dataType (string, number, boolean, array, object).\n- update_by_serial — args: { serial, fieldKey, value, gtin? }. Same as update, addressed by your own serial. A serial is unique only WITHIN a GTIN — if it isn't unique in your account the call returns 409 ambiguous_serial; pass `gtin` (or use update by id) to resolve exactly.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "args"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "object",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Passport id. Required for update."
+                  },
+                  "gtin": {
+                    "type": "string",
+                    "description": "GTIN disambiguator for update_by_serial when the serial isn't unique (else 409)."
+                  },
+                  "value": {
+                    "description": "The new value for the field (required). Type depends on the field's dataType."
+                  },
+                  "serial": {
+                    "type": "string",
+                    "description": "Your serial. Required for update_by_serial."
+                  },
+                  "fieldKey": {
+                    "type": "string",
+                    "description": "The field key to set (required)."
+                  }
+                },
+                "description": "Arguments for the chosen action; required fields depend on `action`."
+              },
+              "action": {
+                "enum": [
+                  "update",
+                  "update_by_serial"
+                ],
+                "type": "string",
+                "description": "Update one passport field, addressed by passport id (update) or by your serial (update_by_serial)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The resource's TracePass id, when the response is a single entity."
+              },
+              "page": {
+                "type": "number",
+                "description": "Current page number (list actions)."
+              },
+              "error": {
+                "type": "string",
+                "description": "Machine-readable error code, when the API rejected the request."
+              },
+              "items": {
+                "type": "array",
+                "items": {},
+                "description": "The page of results, when the action is a list."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Page size (list actions)."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total matching records across all pages (list actions)."
+              },
+              "result": {
+                "description": "Wraps a non-object response body (e.g. a QR code string)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error or status detail, when present."
+              },
+              "totalPages": {
+                "type": "number",
+                "description": "Total number of pages (list actions)."
+              }
+            }
+          },
+          "description_hash": "sha256:a2291773917daeac0f55f915252f1b98d5f13f7354c52e5a6e3447d88575a187"
+        },
+        {
+          "name": "tracepass_passport_parties",
+          "canonical_hash": "sha256:21a16e13da3cc503d051177ec1d34bd707113ce75909d2fd0f0fe8c29b153c39",
+          "description": "Manage the economic-operator parties on a passport — manufacturer, importer, authorisedRepresentative, distributor, recycler, producerResponsibilityOrg. Each party carries a legal name and ideally a validated 13-digit GS1 GLN.\n\nActions (pass via `action`, with `args`):\n- set — args: { id, role, legalName, gln?, country?, legacyOperatorId? }. Sets or updates one role.\n- remove — args: { id, role }. Clears one role.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "args"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "object",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Passport id (required)."
+                  },
+                  "gln": {
+                    "type": "string",
+                    "description": "GS1 Global Location Number for the party (set, optional)."
+                  },
+                  "role": {
+                    "type": "string",
+                    "description": "Economic-operator role, e.g. manufacturer | importer | distributor | authorised_representative (required)."
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Party country code (set, optional)."
+                  },
+                  "legalName": {
+                    "type": "string",
+                    "description": "Party legal name. Required for set."
+                  },
+                  "legacyOperatorId": {
+                    "type": "string",
+                    "description": "Your internal operator id for the party (set, optional)."
+                  }
+                },
+                "description": "Arguments for the chosen action; required fields depend on `action`."
+              },
+              "action": {
+                "enum": [
+                  "set",
+                  "remove"
+                ],
+                "type": "string",
+                "description": "Set (add/replace) or remove an economic-operator party on a passport by its role."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The resource's TracePass id, when the response is a single entity."
+              },
+              "page": {
+                "type": "number",
+                "description": "Current page number (list actions)."
+              },
+              "error": {
+                "type": "string",
+                "description": "Machine-readable error code, when the API rejected the request."
+              },
+              "items": {
+                "type": "array",
+                "items": {},
+                "description": "The page of results, when the action is a list."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Page size (list actions)."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total matching records across all pages (list actions)."
+              },
+              "result": {
+                "description": "Wraps a non-object response body (e.g. a QR code string)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error or status detail, when present."
+              },
+              "totalPages": {
+                "type": "number",
+                "description": "Total number of pages (list actions)."
+              }
+            }
+          },
+          "description_hash": "sha256:fcfe40f1455d7725ce8327015958f74538c1534555f34fbac7ede079af4c8144"
+        },
+        {
+          "name": "tracepass_passports",
+          "canonical_hash": "sha256:fa296eb6e1af96bfe634d1f9e2d788bb6dd8f38002858b634182d40a06faf5d4",
+          "description": "Manage Digital Product Passports — create, read, and run lifecycle actions.\n\nIMPORTANT: `create` consumes a DPP slot on the account's plan and IS BILLABLE. Creating a passport beyond the included quota incurs a per-passport overage charge; if over quota the tool returns a 402-style message — only re-run with args.confirmOverage=true after the user explicitly agrees to the charge. `archive` is IRREVERSIBLE (the public QR permanently 404s); prefer `suspend` when a change might be undone.\n\nActions (pass via `action`, with `args`):\n- list — args: { page?, limit? (≤100), productId?, status?, search? }. status ∈ draft|in_review|approved|published|suspended|expired|archived. Read-only.\n- get — args: { id, format? (summary|full), lang? }. Read-only.\n- get_by_serial — args: { serial, format?, lang?, gtin? }. Read-only. Addresses the passport by your own serial. A serial is unique only WITHIN a GTIN — if the same serial exists under two GTINs in your account the call returns 409 ambiguous_serial; pass `gtin` (or use the by-id action) to resolve exactly.\n- compliance — args: { id }. Read-only. Returns a three-tier compliance verdict (compliant | compliant_with_warnings | incomplete) with regulation-cited findings — use to gap-check a passport against the rules for its category, fix the cited fields/parties, then re-check.\n- create — args: { productId, gtin, serialNumber, confirmOverage? }. BILLABLE.\n- suspend — args: { id }. Reversible — public QR shows 'suspended'.\n- suspend_by_serial — args: { serial, gtin? }. Same as suspend, addressed by your serial. 409 ambiguous_serial if the serial isn't unique in your account — pass `gtin`.\n- archive — args: { id }. IRREVERSIBLE — confirm with the user first.\n- archive_by_serial — args: { serial, gtin? }. IRREVERSIBLE, addressed by your serial — confirm first. 409 ambiguous_serial if the serial isn't unique — pass `gtin`.\n- get_qr — args: { id, format? (svg|png) }. Read-only.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "args"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "object",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Passport id. Required for get/compliance/create-result/suspend/archive/get_qr (the by-id actions)."
+                  },
+                  "gtin": {
+                    "type": "string",
+                    "description": "GTIN disambiguator for *_by_serial actions when a serial isn't unique across GTINs (else 409 ambiguous_serial)."
+                  },
+                  "lang": {
+                    "type": "string",
+                    "description": "Resolve field values to one of the 24 EU locales server-side (get/get_by_serial)."
+                  },
+                  "page": {
+                    "type": "number",
+                    "description": "Page number for list (1-based)."
+                  },
+                  "limit": {
+                    "type": "number",
+                    "description": "Page size for list, max 100."
+                  },
+                  "format": {
+                    "type": "string",
+                    "description": "get/get_by_serial: summary|full. get_qr: svg|png."
+                  },
+                  "search": {
+                    "type": "string",
+                    "description": "Filter list by a search term."
+                  },
+                  "serial": {
+                    "type": "string",
+                    "description": "Your own serial number. Required for the *_by_serial actions."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Filter list by status: draft|in_review|approved|published|suspended|expired|archived."
+                  },
+                  "productId": {
+                    "type": "string",
+                    "description": "Parent product id. Required for create."
+                  },
+                  "serialNumber": {
+                    "type": "string",
+                    "description": "Serial for the new passport. Required for create."
+                  },
+                  "confirmOverage": {
+                    "type": "boolean",
+                    "description": "Set true to accept a per-passport overage charge when create is over the plan quota (402)."
+                  }
+                },
+                "description": "Arguments for the chosen action; required fields depend on `action` (see each action above)."
+              },
+              "action": {
+                "enum": [
+                  "list",
+                  "get",
+                  "get_by_serial",
+                  "compliance",
+                  "create",
+                  "suspend",
+                  "suspend_by_serial",
+                  "archive",
+                  "archive_by_serial",
+                  "get_qr"
+                ],
+                "type": "string",
+                "description": "Which passport operation to run. Reads: list | get | get_by_serial | compliance | get_qr. Lifecycle: create (BILLABLE) | suspend (reversible) | archive (IRREVERSIBLE), each with a _by_serial variant."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The resource's TracePass id, when the response is a single entity."
+              },
+              "page": {
+                "type": "number",
+                "description": "Current page number (list actions)."
+              },
+              "error": {
+                "type": "string",
+                "description": "Machine-readable error code, when the API rejected the request."
+              },
+              "items": {
+                "type": "array",
+                "items": {},
+                "description": "The page of results, when the action is a list."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Page size (list actions)."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total matching records across all pages (list actions)."
+              },
+              "result": {
+                "description": "Wraps a non-object response body (e.g. a QR code string)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error or status detail, when present."
+              },
+              "totalPages": {
+                "type": "number",
+                "description": "Total number of pages (list actions)."
+              }
+            }
+          },
+          "description_hash": "sha256:c7c8f9168f5f7869b2364c61c9b1b2ffccf0edcfe493c55e9bc4b86573ddb28e"
+        },
+        {
+          "name": "tracepass_products",
+          "canonical_hash": "sha256:d6afabf8d5fc0807075a472a93c7cc5b4aeea765ddd25eddec081a421d21bcd7",
+          "description": "Manage the TracePass product catalogue. A product is the catalogue layer — one product can have many passports (one per serialised unit). Products are not billable on their own.\n\nActions (pass via `action`, with `args`):\n- list — args: { page?, limit? (≤100), category?, status?, search? }. Read-only.\n- get — args: { id }. Read-only.\n- create — args: { name, model, category, description? }. `category` is one of: battery, textile, electronics, construction, steel, chemicals, packaging, furniture, tyres, jewelry, toys, fmcg.\n- update — args: { id, name?, model?, description? }; pass at least one field to change.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "args"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "object",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Product id. Required for get and update."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Product name. Required for create; optional on update."
+                  },
+                  "page": {
+                    "type": "number",
+                    "description": "Page number for list (1-based)."
+                  },
+                  "limit": {
+                    "type": "number",
+                    "description": "Page size for list, max 100."
+                  },
+                  "model": {
+                    "type": "string",
+                    "description": "Manufacturer model / SKU. Required for create; optional on update."
+                  },
+                  "search": {
+                    "type": "string",
+                    "description": "Filter list by a search term."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Filter list by product status."
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "DPP category for create: battery | textile | electronics | construction | steel | chemicals | packaging | furniture | tyres | jewelry | toys | fmcg."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Free-text product description (create/update)."
+                  }
+                },
+                "description": "Arguments for the chosen action; required fields depend on `action` (see each action above)."
+              },
+              "action": {
+                "enum": [
+                  "list",
+                  "get",
+                  "create",
+                  "update"
+                ],
+                "type": "string",
+                "description": "Which product operation to run: list | get | create | update."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The resource's TracePass id, when the response is a single entity."
+              },
+              "page": {
+                "type": "number",
+                "description": "Current page number (list actions)."
+              },
+              "error": {
+                "type": "string",
+                "description": "Machine-readable error code, when the API rejected the request."
+              },
+              "items": {
+                "type": "array",
+                "items": {},
+                "description": "The page of results, when the action is a list."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Page size (list actions)."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total matching records across all pages (list actions)."
+              },
+              "result": {
+                "description": "Wraps a non-object response body (e.g. a QR code string)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error or status detail, when present."
+              },
+              "totalPages": {
+                "type": "number",
+                "description": "Total number of pages (list actions)."
+              }
+            }
+          },
+          "description_hash": "sha256:ac94b73c3b54457836d323bf8fb007ba1fafd1adf11ad3e790a346ac6973fe39"
+        },
+        {
+          "name": "tracepass_templates",
+          "canonical_hash": "sha256:d835eed15b2a9760682944f7d9b3260d4a27551e74a43df0533c34d10f7e8b68",
+          "description": "Discover the regulatory field schema for each DPP category — what a COMPLIANT passport must contain, per the governing EU regulation. Read-only reference data. Use this to advise on requirements before creating products/passports, and to gap-check a draft against the rules.\n\nActions (pass via `action`, with `args`):\n- list — args: {}. Lists all 12 categories with their field count, required-field count, and governing regulation (name + number + effective/mandatory dates).\n- get — args: { category }. Full field schema for one category: every field's key, label, dataType, whether it is REQUIRED, its access level (public/restricted/authority), enum options, validation bounds, and — where known — the regulation article/annex that mandates it. `category` is one of: battery, textile, electronics, construction, steel, chemicals, packaging, furniture, tyres, jewelry, toys, fmcg.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "args"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "object",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "description": "DPP category to fetch (required for get): battery | textile | electronics | construction | steel | chemicals | packaging | furniture | tyres | jewelry | toys | fmcg."
+                  }
+                },
+                "description": "Arguments for the chosen action; `category` is required for get, ignored for list."
+              },
+              "action": {
+                "enum": [
+                  "list",
+                  "get"
+                ],
+                "type": "string",
+                "description": "List all DPP category templates, or get one template by category."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The resource's TracePass id, when the response is a single entity."
+              },
+              "page": {
+                "type": "number",
+                "description": "Current page number (list actions)."
+              },
+              "error": {
+                "type": "string",
+                "description": "Machine-readable error code, when the API rejected the request."
+              },
+              "items": {
+                "type": "array",
+                "items": {},
+                "description": "The page of results, when the action is a list."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Page size (list actions)."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total matching records across all pages (list actions)."
+              },
+              "result": {
+                "description": "Wraps a non-object response body (e.g. a QR code string)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error or status detail, when present."
+              },
+              "totalPages": {
+                "type": "number",
+                "description": "Total number of pages (list actions)."
+              }
+            }
+          },
+          "description_hash": "sha256:eeafd3a0c62e25a6c1ad5991025e56c6b0a0c42d498730b0f6d2c3ad941a53a5"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "audit_passport",
+          "description": "",
+          "argument_keys": [
+            "passportId"
+          ],
+          "required_arguments": [
+            "passportId"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "onboard_product",
+          "description": "",
+          "argument_keys": [
+            "category",
+            "productName"
+          ],
+          "required_arguments": [
+            "category",
+            "productName"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "explain_dpp_requirements",
+          "description": "",
+          "argument_keys": [
+            "category"
+          ],
+          "required_arguments": [
+            "category"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "compliance_gap_check",
+          "description": "",
+          "argument_keys": [
+            "passportId"
+          ],
+          "required_arguments": [
+            "passportId"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "review_epcis_events",
+          "description": "",
+          "argument_keys": [
+            "passportId"
+          ],
+          "required_arguments": [
+            "passportId"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "tracepass://products",
+          "name": "products",
+          "description": "",
+          "mime_type": "application/json"
+        },
+        {
+          "uri_template": "tracepass://templates",
+          "name": "templates",
+          "description": "",
+          "mime_type": "application/json"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}

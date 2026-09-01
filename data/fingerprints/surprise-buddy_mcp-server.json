@@ -1,0 +1,385 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "surprise-buddy/mcp-server",
+  "purl": "pkg:npm/surprise-buddy%2Fmcp-server",
+  "ecosystem": "npm",
+  "display_name": "surprise-buddy/mcp-server",
+  "description": "## What is Surprise Buddy?\n\nSurprise Buddy is a curated, country-scoped gift database exposed via a public Model Context Protocol (MCP) server. International coverage — every result is a real product page on a real marketplace (Amazon, Etsy, Mercado Libre, Otto, Bol.com, Allegro, Jochen Schweizer) and the link can be presented to the user as-is.\n\n**Live MCP endpoint:** `https://www.surprise-buddy.com/api/mcp`\n\n## Exposed tools\n\n- **`find_gifts`** — main search (country required, all other filters optional)\n- `list_supported_countries`\n- `list_supported_occasions(country?)`\n- `list_supported_interests`\n- `list_supported_colors`\n\n## Authentication\n\nNone — the MCP server is fully open. Reasonable rate limiting may apply.\n\n## License\n\n[MIT](LICENSE) © Surprise Buddy\n",
+  "repository_url": "https://mcp-server--surprise-buddy.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "surprise-buddy/mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:749f256230e0715382268339cb58ec61a83b8584de4c679aec36f489be3bb63d",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://mcp-server--surprise-buddy.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "find_gifts",
+          "canonical_hash": "sha256:c4a91dac9a27361eb6110c9a86adf87626ac00c66cd628e0f040d7391b7a3b01",
+          "description": "Search the curated Surprise Buddy database for gift ideas matching a recipient. Returns product cards with title, image, price, why-it-fits, and a clickable product URL. Country is required and is a hard filter — results are scoped to the marketplace + currency of that country.",
+          "is_mutating": false,
+          "property_keys": [
+            "age",
+            "budget_max_cents",
+            "budget_min_cents",
+            "country",
+            "favorite_color",
+            "gender",
+            "interests",
+            "limit",
+            "occasion",
+            "profession"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "age": "integer",
+            "limit": "integer",
+            "gender": "string",
+            "country": "string",
+            "occasion": "string",
+            "interests": "array",
+            "profession": "string",
+            "favorite_color": "string",
+            "budget_max_cents": "integer",
+            "budget_min_cents": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": "integer",
+                "maximum": 120,
+                "minimum": 0,
+                "description": "Recipient age in years. Filters gifts whose age range covers this value."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 20,
+                "minimum": 1,
+                "description": "Maximum number of gifts to return (1–20, default 5)."
+              },
+              "gender": {
+                "enum": [
+                  "male",
+                  "female",
+                  "unisex"
+                ],
+                "type": "string",
+                "description": "Recipient gender. Gifts tagged \"unisex\" are always included regardless of this value."
+              },
+              "country": {
+                "type": "string",
+                "description": "ISO-3166 alpha-2 country code (e.g. \"DE\", \"US\", \"MX\"). REQUIRED."
+              },
+              "occasion": {
+                "type": "string",
+                "description": "Occasion code. Common values: birthday | christmas | easter | valentines | mothers-day | fathers-day | wedding | anniversary | graduation. Locale-specific occasions are also supported (e.g. einschulung, sinterklaas, midsommar). Call list_supported_occasions for the live list."
+              },
+              "interests": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Interest/hobby tags used for soft-match scoring (more matches rank higher). Call list_supported_interests for the canonical vocabulary."
+              },
+              "profession": {
+                "type": "string",
+                "description": "Recipient profession used as an exact-match filter, e.g. \"teacher\", \"developer\", \"chef\", \"athlete\", \"photographer\", \"gamer\"."
+              },
+              "favorite_color": {
+                "enum": [
+                  "red",
+                  "blue",
+                  "green",
+                  "yellow",
+                  "purple",
+                  "pink",
+                  "orange",
+                  "black",
+                  "white",
+                  "gold",
+                  "silver"
+                ],
+                "type": "string",
+                "description": "Recipient's favorite color. Only returns gifts that explicitly match this color; color-agnostic gifts are skipped when this filter is set."
+              },
+              "budget_max_cents": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum budget in cents of the country currency (e.g. 10000 = 100.00 EUR for DE)."
+              },
+              "budget_min_cents": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Minimum budget in cents of the country currency (e.g. 5000 = 50.00 EUR for DE)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "gifts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "product_url",
+                    "price",
+                    "price_cents",
+                    "currency",
+                    "shop",
+                    "shop_display_name",
+                    "country_code"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Stable UUID of the gift entry."
+                    },
+                    "shop": {
+                      "type": "string",
+                      "description": "Marketplace slug (amazon, etsy, mercadolibre, otto, bolcom, allegro, jochenschweizer, jumia)."
+                    },
+                    "price": {
+                      "type": "string",
+                      "description": "Price as a decimal string in the country currency (e.g. \"49.99\"). Snapshot from last verification, not live."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Product title to display in the chat card."
+                    },
+                    "category": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Optional product category tag."
+                    },
+                    "currency": {
+                      "type": "string",
+                      "description": "ISO-4217 currency code matching the country."
+                    },
+                    "image_url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Product image URL for the card thumbnail; may be null."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Short product description (1–2 sentences)."
+                    },
+                    "price_cents": {
+                      "type": "integer",
+                      "description": "Price in minor units of the country currency."
+                    },
+                    "product_url": {
+                      "type": "string",
+                      "description": "Full product URL ready to be rendered as a clickable link. Do not strip query parameters."
+                    },
+                    "why_it_fits": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Reasoning for why this gift suits the supplied filters; may be null."
+                    },
+                    "country_code": {
+                      "type": "string",
+                      "description": "ISO-2 country code of the marketplace this entry belongs to."
+                    },
+                    "favorite_color": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Favorite-color tag this gift matches, or null if color-agnostic."
+                    },
+                    "shop_display_name": {
+                      "type": "string",
+                      "description": "Human-readable marketplace name suitable for the card label."
+                    }
+                  },
+                  "description": "A single curated gift entry returned by find_gifts."
+                },
+                "description": "Ranked list of gift entries matching the filters (may be empty)."
+              }
+            },
+            "required": [
+              "gifts"
+            ]
+          },
+          "description_hash": "sha256:5757fc5f3fa1e154735c9cc7a1fd9e223f236c4b5a0c5ebd8b748068d4f85c09"
+        },
+        {
+          "name": "list_supported_colors",
+          "canonical_hash": "sha256:ee223679e11ab6c253f1f5859983e6e5308b3283b0216dbe7f318b26b586d72f",
+          "description": "List the canonical favorite-color vocabulary used by find_gifts.favorite_color. Matches the color picker shown in the website UI.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "colors": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "red",
+                    "blue",
+                    "green",
+                    "yellow",
+                    "purple",
+                    "pink",
+                    "orange",
+                    "black",
+                    "white",
+                    "gold",
+                    "silver"
+                  ],
+                  "type": "string"
+                },
+                "description": "Canonical favorite-color codes."
+              }
+            },
+            "required": [
+              "colors"
+            ]
+          },
+          "description_hash": "sha256:a4eceab80764189b970c1df36f2e27d3ff984663f1b82a5da05a719eb1b46080"
+        },
+        {
+          "name": "list_supported_countries",
+          "canonical_hash": "sha256:05a73ee50442df77ee65f884417cd5767b52644e21ba52b38c3be270085a32ef",
+          "description": "List ISO-2 country codes that currently have at least one active gift entry in the database. Coverage grows over time.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "countries": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Sorted list of ISO-3166 alpha-2 country codes."
+              }
+            },
+            "required": [
+              "countries"
+            ]
+          },
+          "description_hash": "sha256:b693bbc4a40fac75a2e10925f4478008dbdd1c795a74b833209b25272e218415"
+        },
+        {
+          "name": "list_supported_interests",
+          "canonical_hash": "sha256:881761f79093df3787e4b772669a77182466faae72f1241b26e74584a8522527",
+          "description": "List the canonical interest/hobby tag vocabulary used by find_gifts.interests. Matches the tags shown in the website UI.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "interests": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Canonical interest/hobby tag codes."
+              }
+            },
+            "required": [
+              "interests"
+            ]
+          },
+          "description_hash": "sha256:9d58a0032c2bd6c7d02a30fea74e55e7528f522b2469b4be0376322d43ec892f"
+        },
+        {
+          "name": "list_supported_occasions",
+          "canonical_hash": "sha256:743e9c6912fedbda48d7e6641e9e8bda17cc76186a2087c7c758b0464b058679",
+          "description": "List occasion codes that have active gift entries, optionally narrowed to a specific country.",
+          "is_mutating": false,
+          "property_keys": [
+            "country"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "country": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "country": {
+                "type": "string",
+                "description": "Optional ISO-2 country code to scope the result (e.g. \"DE\" returns Einschulung; \"NL\" returns Sinterklaas)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "occasions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Sorted list of occasion codes."
+              }
+            },
+            "required": [
+              "occasions"
+            ]
+          },
+          "description_hash": "sha256:2794a1924dff53baf98056f1303918d548260bfc288b067632d0b527038dae35"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

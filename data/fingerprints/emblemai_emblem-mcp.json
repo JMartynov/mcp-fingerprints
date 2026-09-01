@@ -1,0 +1,4947 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "emblemai/emblem-mcp",
+  "purl": "pkg:npm/emblemai%2Femblem-mcp",
+  "ecosystem": "npm",
+  "display_name": "emblemai/emblem-mcp",
+  "description": "# EmblemAI MCP\n\nEmblemAI is a hosted Model Context Protocol server that gives AI agents a full-featured crypto wallet plus **200+ tools** for trading, DeFi, NFTs, and on-chain analytics across **7 blockchains**:\n\n- **Bitcoin** — native BTC, Ordinals inscriptions, Runes, BRC-20, Stamps / SRC-20, Alkanes, rare sats\n- **Solana** — SOL + SPL tokens, Jupiter-routed swaps, Solana memecoin discovery, RugCheck\n- **Ethereum** — native ETH, ERC-20, ERC-721 / ERC-1155 NFTs, ETH swaps\n- **Base** — native ETH on L2, ERC-20, NFTs, Clanker discovery\n- **BSC** — native BNB, BEP-20, FourMeme bonding-curve discovery and trading\n- **Polygon** — native MATIC, ERC-20, swaps\n- **Hedera** — HBAR, HTS tokens, MemeJob discovery and trading\n\nPlus prediction markets via **Polymarket**, market research, conditional orders (limit / stop-loss / take-profit) on supported chains, and on-chain analytics.\n\n## Quick start\n\nThe Smithery deployment connects directly to the hosted EmblemAI MCP at `https://emblemvault.ai/api/mcp`. You only need an API key:\n\n1. Sign in at [emblemvault.ai](https://emblemvault.ai).\n2. Open **Settings → Vault Access Key** and copy your key.\n3. Paste it as the `apiKey` parameter in the Smithery connection form.\n\nBrowsing tools (`tools/list`) works anonymously, so you can inspect the catalog before authenticating.\n\n## Auth modes\n\n| Mode | When to use | Scope |\n| --- | --- | --- |\n| **API key** (`x-api-key`) | Unattended agents, cron jobs, server-to-server, any workflow that mints tokens or sends transactions | Full read + write, no expiry until revoked |\n| **OAuth 2.0 + PKCE** (RFC 7591 Dynamic Client Registration) | Interactive sessions where a human can click a browser popup | Read-only `vault:read`, short-lived JWT |\n| **x402 micropayments** | Pay-per-call across the public catalog without an account | Per-tool-call USDC settlement |\n\nThe Smithery deployment defaults to the API-key path, configured via the `apiKey` parameter (sent to the upstream as the `x-api-key` header).\n\n## Enabling transactional tools\n\nState-changing tools (sends, swaps, mints, conditional-trade creates) are hidden by default. Opt in by setting the `enableTransactions` parameter to `enabled` — Smithery's gateway forwards it as the `x-mcp-transactions: enabled` header. Transactional tools then surface in `tools/list` with a `-transaction` suffix, which makes them easy to allow- or block-list with wildcard rules in the host client.\n\nNote: transactional tools also require API-key auth — OAuth bearers do not pass the `vault:write` gate.\n\n## Specialized listings (filter)\n\nThe full 200-tool surface is wide. For Bitcoin-only, Solana-only, or any other curated slice, use the stdio bridge `@emblemvault/mcp` (npm) and set:\n\n```\nEMBLEMAI_TOOLS_FILTER=\"bitcoin*,*Rune*,*Inscription*\"\n```\n\nThe bridge applies the glob filter to both `tools/list` and `tools/call`, exposing only the matching subset to the host LLM. The hosted Smithery deployment always exposes the full catalog; the filter is a stdio-side feature.\n\n## Categories\n\nTrading · DeFi · NFTs · Wallet · Bitcoin Ordinals · Polymarket prediction markets · Cross-chain · Market analytics · Research / web search.\n\n## Links\n\n- Hosted MCP: `https://emblemvault.ai/api/mcp`\n- Stdio bridge: `@emblemvault/mcp` ([github](https://github.com/EmblemCompany/Agent-skills/tree/main/mcp-bridge))\n- Repo: [EmblemCompany/Agent-skills](https://github.com/EmblemCompany/Agent-skills)\n- Web app: [emblemvault.ai](https://emblemvault.ai)\n- Glama listing: [glama.ai/mcp/servers/EmblemCompany/Agent-skills](https://glama.ai/mcp/servers/EmblemCompany/Agent-skills)\n- Docs: [emblemvault.ai/docs/mcp](https://emblemvault.ai/docs/mcp)\n\n## License\n\nMIT (stdio bridge + documentation). Hosted MCP is managed SaaS.",
+  "repository_url": "https://emblem-mcp--emblemai.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "emblemai/emblem-mcp"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:0820346662bafb761efb8a09999926f5414814ec6dde9420d293f6abda237548",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://emblem-mcp--emblemai.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "apiKey": {
+                "type": "string",
+                "x-to": {
+                  "header": "x-api-key"
+                },
+                "x-from": {
+                  "header": "apiKey"
+                },
+                "x-order": 0,
+                "description": "Generate at https://emblemvault.ai → Settings → Vault Access Key. tools/list works anonymously,"
+              },
+              "transactions": {
+                "type": "string",
+                "x-to": {
+                  "header": "x-mcp-transactions"
+                },
+                "x-from": {
+                  "header": "transactions"
+                },
+                "x-order": 1,
+                "description": "Set to \"enabled\" to expose state-changing tools.\nOmit for read-only."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "baseFindClankerTokens",
+          "canonical_hash": "sha256:920d7da25d923f3de481a8ca8c8643c328cc6b185fe417d4cec3c9f9c35bfdce",
+          "description": "Find meme tokens on Base via Clanker (clanker.world). Returns tokens with price, market cap, 24h volume, and price changes. Use 'q' param to search by name/symbol. Sort by market-cap or created-at. To buy/sell Clanker tokens, use baseSwap — they are regular ERC20s on Base.",
+          "is_mutating": false,
+          "property_keys": [
+            "chainId",
+            "includeMarket",
+            "includeUser",
+            "limit",
+            "offset",
+            "q",
+            "sort",
+            "sortBy"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "q": "string",
+            "sort": "string",
+            "limit": "number",
+            "offset": "number",
+            "sortBy": "string",
+            "chainId": "number",
+            "includeUser": "boolean",
+            "includeMarket": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string"
+              },
+              "sort": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string",
+                "default": "desc"
+              },
+              "limit": {
+                "type": "number",
+                "default": 20
+              },
+              "offset": {
+                "type": "number",
+                "default": 0
+              },
+              "sortBy": {
+                "enum": [
+                  "market-cap",
+                  "created-at"
+                ],
+                "type": "string",
+                "default": "market-cap"
+              },
+              "chainId": {
+                "type": "number",
+                "default": 8453
+              },
+              "includeUser": {
+                "type": "boolean",
+                "default": false
+              },
+              "includeMarket": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6a4ed43ffe721836e550621ca25a2ddaa1348f06cafb0762c63fe934a3c3a218"
+        },
+        {
+          "name": "baseGetBalances",
+          "canonical_hash": "sha256:40352ea64ef8c0de0c759f4939bd10bb01e7e7b69b93f432038ea5afe0c1bcd6",
+          "description": "Get wallet balances on Base. CRITICAL: Use 'balance' for trades (exact units), NOT 'humanReadableBalance' (rounded for display).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3a57f5f59ab36fde8806b738bbb660774d4c108eb21cb8f37ff94fdeb8c47349"
+        },
+        {
+          "name": "baseSwapQuote",
+          "canonical_hash": "sha256:8e9f7acdf31d4f44d98d60823ea10daf343b4bf4d113fc207ba262a9b5c03d94",
+          "description": "Get current USD price and swap quote for Base tokens. ALWAYS fetch fresh prices - crypto is volatile. Use 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE for native ETH.",
+          "is_mutating": false,
+          "property_keys": [
+            "amount",
+            "fromTokenAddress",
+            "toTokenAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amount": "string",
+            "toTokenAddress": "string",
+            "fromTokenAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "description": "Amount to swap (human readable)"
+              },
+              "toTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap to"
+              },
+              "fromTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap from"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6abc49956a6ab78c6e22910903e1e3f5a759ddbe44cae5da99dea848b85aa82a"
+        },
+        {
+          "name": "birdeyeTradeData",
+          "canonical_hash": "sha256:01cfa809cbfa42203ad22108d3022c96925461bf4d5112747e5ced3f99c9ad7d",
+          "description": "Get detailed trade data for a specific token from Birdeye. Supported chains: solana, ethereum, arbitrum, avalanche, bsc, optimism, polygon, base, zksync, sui. NOT supported: Hedera (use hederaTokensSwapQuote instead).",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "chain"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "solana",
+                  "ethereum",
+                  "arbitrum",
+                  "avalanche",
+                  "bsc",
+                  "optimism",
+                  "polygon",
+                  "base",
+                  "zksync",
+                  "sui"
+                ],
+                "type": "string",
+                "default": "solana",
+                "description": "Chain to fetch token data from. NOT supported: hedera"
+              },
+              "address": {
+                "type": "string",
+                "description": "Token address to fetch trade data for"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:284444435eb4cc7d3c3852a47a3bdcede398f9f87e2183e293807cd92ff6acd9"
+        },
+        {
+          "name": "birdeyeTrendingTokens",
+          "canonical_hash": "sha256:d83921788422c86f8031be3f66cee7eae7202c758895ee1f5984ebce513a050e",
+          "description": "Get trending tokens from Birdeye with real-time price and market data. Supports multiple chains and sorting options.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "limit",
+            "offset",
+            "sortBy",
+            "sortType"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "limit": "number",
+            "offset": "number",
+            "sortBy": "string",
+            "sortType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "solana",
+                  "ethereum",
+                  "arbitrum",
+                  "avalanche",
+                  "bsc",
+                  "optimism",
+                  "polygon",
+                  "base",
+                  "zksync",
+                  "sui"
+                ],
+                "type": "string",
+                "description": "Chain to fetch trending tokens from (e.g., solana, ethereum)"
+              },
+              "limit": {
+                "type": "number",
+                "maximum": 5,
+                "minimum": 1,
+                "description": "Number of trending tokens to fetch (MAX 5)"
+              },
+              "offset": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Number of items to skip"
+              },
+              "sortBy": {
+                "enum": [
+                  "rank"
+                ],
+                "type": "string",
+                "description": "Field to sort by. Currently only supports \"rank\""
+              },
+              "sortType": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string",
+                "description": "Sort direction: \"asc\" for ascending, \"desc\" for descending"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6592f6989a5fdf67ce42b43f14f04775cf0bcfd8225e1c94ac00033639e35cee"
+        },
+        {
+          "name": "bscGetBalances",
+          "canonical_hash": "sha256:3017bf071771f3d614af29e3b94269bbf216fea991c571f7a8658475cf3a0d00",
+          "description": "Return the user's wallet holdings on BNB Smart Chain (chain ID 56): native BNB plus all detected BEP-20 token balances with contract address, symbol, decimals, and USD value where pricing is available.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2bbed99929d47d30ea8153c355eb8f11d0342e41f88fea61cbddf9ca595a1004"
+        },
+        {
+          "name": "bscSwapQuote",
+          "canonical_hash": "sha256:1f7c3e83af5b96ee2b92de3bba04f7d46ab99f801102d4b4cd693ab6929f1a49",
+          "description": "Get swap quote for BSC tokens. Uses Uniswap X or 0x. Use 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE for native BNB.",
+          "is_mutating": false,
+          "property_keys": [
+            "amount",
+            "fromTokenAddress",
+            "toTokenAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amount": "string",
+            "toTokenAddress": "string",
+            "fromTokenAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "description": "Amount to swap (human readable)"
+              },
+              "toTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap to"
+              },
+              "fromTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap from"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:13a2feeaee46ac8dd642ed24ebc589f7dd49c00a8462ab8e78e5c7ba38aeed5d"
+        },
+        {
+          "name": "bscfindMemeCoinsViaFourMeme",
+          "canonical_hash": "sha256:1fab4395123263fbe34e650d9610729162e5c57a41f43fd1637e06c080c8ef9c",
+          "description": "Find meme coins on BSC via FourMeme. Market cap is in BNB, price in USD.",
+          "is_mutating": false,
+          "property_keys": [
+            "labels",
+            "listedPancake",
+            "orderBy",
+            "pageIndex",
+            "pageSize",
+            "symbol",
+            "tokenName"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "labels": "string",
+            "symbol": "string",
+            "orderBy": "string",
+            "pageSize": "number",
+            "pageIndex": "number",
+            "tokenName": "string",
+            "listedPancake": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "labels": {
+                "enum": [
+                  "AI",
+                  "Defi",
+                  "Games",
+                  "Meme",
+                  "Infra",
+                  "DeSci",
+                  "Social",
+                  "Depin",
+                  "Charity",
+                  "Others"
+                ],
+                "type": "string"
+              },
+              "symbol": {
+                "type": "string"
+              },
+              "orderBy": {
+                "enum": [
+                  "TimeDesc",
+                  "Hot",
+                  "ProgressDesc"
+                ],
+                "type": "string",
+                "default": "Hot"
+              },
+              "pageSize": {
+                "type": "number",
+                "default": 30
+              },
+              "pageIndex": {
+                "type": "number",
+                "default": 1
+              },
+              "tokenName": {
+                "type": "string"
+              },
+              "listedPancake": {
+                "type": "boolean"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:275e164bff0a9561b00a9862b2749cebc60a7ab15fe2c8979829fa67d40b24c4"
+        },
+        {
+          "name": "checkRuneUnlock",
+          "canonical_hash": "sha256:afaf2fd7f3a100d3c30b5e7b486d6296dfc382fc2f53f4b7e8b563dcb3b76f0a",
+          "description": "Check when a specific rune name becomes available to etch.",
+          "is_mutating": false,
+          "property_keys": [
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the rune (spacers like • are automatically removed)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:43c8ef3d9df5c35355aafbd96e7779cf6a61c6539d307816a6487186ee733660"
+        },
+        {
+          "name": "discoverLaunchLabTokens",
+          "canonical_hash": "sha256:596e64fb40d628f795c284b24ddcb02ef4d026d93ba44ee0a040476f2c30405a",
+          "description": "Get LaunchLab / bonk.fun tokens. Pass size=5, paginate with nextPageId.",
+          "is_mutating": false,
+          "property_keys": [
+            "includeNsfw",
+            "mintType",
+            "nextPageId",
+            "platformId",
+            "size",
+            "sort"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "size": "number",
+            "sort": "string",
+            "mintType": "string",
+            "nextPageId": "string",
+            "platformId": "string",
+            "includeNsfw": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "number",
+                "default": 5
+              },
+              "sort": {
+                "enum": [
+                  "marketCap",
+                  "new",
+                  "lastTrade"
+                ],
+                "type": "string"
+              },
+              "mintType": {
+                "enum": [
+                  "default"
+                ],
+                "type": "string",
+                "default": "default"
+              },
+              "nextPageId": {
+                "type": "string"
+              },
+              "platformId": {
+                "type": "string",
+                "default": "PlatformWhiteList"
+              },
+              "includeNsfw": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c17c64ecdfc525069e3c1f1207bf646e82199c3e20f52c4d36d06e1a2b2b0165"
+        },
+        {
+          "name": "emblemGetCollectionAssets",
+          "canonical_hash": "sha256:a5a5aa9c5262737c1a9f699bd892673de3cdefd2938e03723a93f9f7c7baa36b",
+          "description": "Get all assets within a specific curated collection for vault creation",
+          "is_mutating": false,
+          "property_keys": [
+            "collectionName"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "collectionName": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "collectionName": {
+                "type": "string",
+                "description": "Collection name (e.g., \"Darkfarms\", \"SoG\") - use emblem list collections first"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:345e3202d0c47808e93316349be705b29f08e0426b0d0c347edc118370af7d95"
+        },
+        {
+          "name": "emblemGetDepositAddress",
+          "canonical_hash": "sha256:156b776fc5fce81be705dbfae2821a44ba42c6726cae65b603ac660de69e35cc",
+          "description": "Get the deposit address for a vault where you can send assets. Shows which coins are accepted.",
+          "is_mutating": false,
+          "property_keys": [
+            "tokenId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tokenId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenId": {
+                "type": "string",
+                "description": "The vault token ID - get from emblem list my vaults"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f421c5ec2ed622deebc50d6f20bfb9cfb4e7b92f928970abeb6837a62a1feac0"
+        },
+        {
+          "name": "emblemListCollections",
+          "canonical_hash": "sha256:deefef8aa3457fa7a147d7489b631145f969df18964e9871a8b6a1e73c3da3d6",
+          "description": "List all available curated collections for vault creation with asset details",
+          "is_mutating": false,
+          "property_keys": [
+            "showAll"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "showAll": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "showAll": {
+                "type": "boolean",
+                "default": false,
+                "description": "Show all collections including hidden ones"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1556d8bdd40fd3fbb54cacf7ab1eaa471a43b889cbdf7da5f8e1c6af3edb5c88"
+        },
+        {
+          "name": "emblemListMyVaults",
+          "canonical_hash": "sha256:b94a275d5d37daa73406f521e496a16fcd0b414fb625bd2a3f75eae7595467cb",
+          "description": "List all vaults owned by the connected wallet (or a specified address), with optional filtering by status",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "status": "string",
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "unclaimed",
+                  "claimed",
+                  "unminted"
+                ],
+                "type": "string",
+                "description": "Filter by vault status - empty to show all"
+              },
+              "address": {
+                "type": "string",
+                "description": "EVM wallet address (0x...). Omit to use connected wallet."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:509bcf3d9f7627f48d03976eedd848af81cdee37a9bdd54b8a00708e7d934e3e"
+        },
+        {
+          "name": "emblemResolveAsset",
+          "canonical_hash": "sha256:ca5f965574240d1a29c1084f12606980aac47dc8d4f328958052cbc4a21f342a",
+          "description": "Resolve an asset name to its curated collection. CRITICAL: Call this BEFORE emblemCreateVault when vaulting user assets to find the correct collection name.",
+          "is_mutating": false,
+          "property_keys": [
+            "assetName"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "assetName": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "assetName": {
+                "type": "string",
+                "description": "The asset name from user wallet (e.g., \"TESTNETPEPE\", \"PEPECASH\", \"FDCARD\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2e4ac94f752c927e66d9209bfa919a02e88c3753e187bae33fff8da5555df86e"
+        },
+        {
+          "name": "ethGetBalances",
+          "canonical_hash": "sha256:3ac32a6dd16dbcba7f2a3a346cde63a33ede4740e7cfd59e9ba5b1365705834b",
+          "description": "Get wallet balances on Ethereum. CRITICAL: Use 'balance' for trades (exact units), NOT 'humanReadableBalance' (rounded for display).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e05d99c321507a3670be624c5f53886e52704c52e6af3da9cf120b6c0ff9fd24"
+        },
+        {
+          "name": "ethSwapQuote",
+          "canonical_hash": "sha256:89109f483843fcac0a9a263f3ea6c4c8992d24d1d24eade3d14281ffc808e614",
+          "description": "Get current USD price and swap quote for Ethereum tokens. ALWAYS fetch fresh prices - crypto is volatile. Use 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE for native ETH.",
+          "is_mutating": false,
+          "property_keys": [
+            "amount",
+            "fromTokenAddress",
+            "toTokenAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amount": "string",
+            "toTokenAddress": "string",
+            "fromTokenAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "description": "Amount to swap (human readable)"
+              },
+              "toTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap to"
+              },
+              "fromTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap from"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:18703f461a907603a9cab19a3d4353cf84f8fa1b6a0e1cf200f2c5a32a56987e"
+        },
+        {
+          "name": "findPositionById",
+          "canonical_hash": "sha256:245c20cad5b77437eb7583b495b689c686093b8e30f6ad3e043fe8fd9a6c1380",
+          "description": "\nFind a conditional trade position by ID across ALL networks.\nUse this when you have a position ID but don't know which network it's on.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "positionId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "positionId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "positionId": {
+                "type": "string",
+                "description": "The position ID to find"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0a8a307376672c580a25eded37e70f9a8cd036251ef159d204838784fcf12190"
+        },
+        {
+          "name": "findSolanaGems",
+          "canonical_hash": "sha256:aba8963e641873e23f719fe73271874ba8ca26b8ff5d42eb08aa472a5bc54e27",
+          "description": "Discover trending Solana tokens or tokenized stocks. category='tokens': memecoins, DeFi tokens, SPL tokens (trending, popular, top traded, organic, new). category='stocks': tokenized equities on Solana (PreStocks, xStocks, rStocks) with real stock prices. Use for: 'trending tokens', 'find gems', 'top traded memecoins', 'show stocks on solana', 'TSLA stock token'. NOT for: specific token lookup (use findSolanaSwapToken), PumpFun queries (use getPumpFunTokens).",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "limit",
+            "maxHolderCount",
+            "maxLiquidity",
+            "maxMcap",
+            "maxNetVolume",
+            "maxNumNetBuyers",
+            "maxVolume",
+            "minHolderCount",
+            "minLiquidity",
+            "minMcap",
+            "minNetVolume",
+            "minNumNetBuyers",
+            "minVolume",
+            "sortBy",
+            "timeframe"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "sortBy": "string",
+            "maxMcap": "number",
+            "minMcap": "number",
+            "category": "string",
+            "maxVolume": "number",
+            "minVolume": "number",
+            "timeframe": "string",
+            "maxLiquidity": "number",
+            "maxNetVolume": "number",
+            "minLiquidity": "number",
+            "minNetVolume": "number",
+            "maxHolderCount": "number",
+            "minHolderCount": "number",
+            "maxNumNetBuyers": "number",
+            "minNumNetBuyers": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "maximum": 20,
+                "minimum": 1,
+                "description": "Max results to return (default 5)"
+              },
+              "sortBy": {
+                "enum": [
+                  "trending",
+                  "popular",
+                  "topTraded",
+                  "organic",
+                  "new"
+                ],
+                "type": "string",
+                "default": "trending",
+                "description": "Sort/ranking method (only applies to category='tokens', ignored for stocks)"
+              },
+              "maxMcap": {
+                "type": "number",
+                "description": "Max market cap in USD"
+              },
+              "minMcap": {
+                "type": "number",
+                "description": "Min market cap in USD"
+              },
+              "category": {
+                "enum": [
+                  "tokens",
+                  "stocks"
+                ],
+                "type": "string",
+                "description": "'tokens' for crypto tokens/memecoins, 'stocks' for tokenized equities"
+              },
+              "maxVolume": {
+                "type": "number",
+                "description": "Max volume in USD for the given timeframe"
+              },
+              "minVolume": {
+                "type": "number",
+                "description": "Min volume in USD for the given timeframe"
+              },
+              "timeframe": {
+                "enum": [
+                  "5m",
+                  "1h",
+                  "6h",
+                  "24h"
+                ],
+                "type": "string",
+                "default": "24h",
+                "description": "Timeframe for volume and price change stats"
+              },
+              "maxLiquidity": {
+                "type": "number",
+                "description": "Max liquidity in USD"
+              },
+              "maxNetVolume": {
+                "type": "number",
+                "description": "Max net volume (buy - sell) in USD"
+              },
+              "minLiquidity": {
+                "type": "number",
+                "description": "Min liquidity in USD"
+              },
+              "minNetVolume": {
+                "type": "number",
+                "description": "Min net volume (buy - sell) in USD"
+              },
+              "maxHolderCount": {
+                "type": "number",
+                "description": "Max number of holders"
+              },
+              "minHolderCount": {
+                "type": "number",
+                "description": "Min number of holders"
+              },
+              "maxNumNetBuyers": {
+                "type": "number",
+                "description": "Max net buyers (buyers - sellers)"
+              },
+              "minNumNetBuyers": {
+                "type": "number",
+                "description": "Min net buyers (buyers - sellers)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f0db76e2cedbd617363fdb20f362d0be271f19980f44392ca5992ab32936def7"
+        },
+        {
+          "name": "findSolanaSwapToken",
+          "canonical_hash": "sha256:5be8a3fdddba002e06a36e534a144cacea47a3cc924a775c8e7bc0a09149aced",
+          "description": "Find a Solana token by name or symbol. Use when splBuyIntent reports ambiguous token symbol.",
+          "is_mutating": false,
+          "property_keys": [
+            "tokenName"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tokenName": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenName": {
+                "type": "string",
+                "description": "Token name or symbol to search"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c6f3a6d304e75b935949ea66efeeff54a9ce7afb2523fc505cbdb4be4b2c3fe5"
+        },
+        {
+          "name": "firecrawlExtract",
+          "canonical_hash": "sha256:9a5b7b07d2c37d56f7831360088b095efbbcd27157cf28be45f88ae9687779dc",
+          "description": "Investigate or Extract structured data from web pages or urls using Firecrawl",
+          "is_mutating": false,
+          "property_keys": [
+            "enableWebSearch",
+            "options",
+            "prompt",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "prompt": "string",
+            "options": "object",
+            "enableWebSearch": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "options": {
+                "type": "object",
+                "properties": {
+                  "retries": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "enableWebSearch": {
+                "type": "boolean"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dd3c6721cf60c00ffe5e6e83d5fecffe08370bbf5fedd7d4a51d120496777ce5"
+        },
+        {
+          "name": "getAlkaneAddressBalance",
+          "canonical_hash": "sha256:f0c246f8fec2297d8d557e7729fdf4c92dc04930c97fe96040e082f1e6c1fa33",
+          "description": "Get the alkane balance for a Bitcoin address. This includes tokens, NFTs, contracts, and any other type of alkane.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "The Bitcoin address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:05ed3fd3cdf40db1df491529ac80b86b5205b60df7561f6070b53b0e367d129d"
+        },
+        {
+          "name": "getAlkaneAddressUTXOs",
+          "canonical_hash": "sha256:2ceae857ae823ae19e05afc08a18d3ae2c5232ce61fc94ab0537f3992fdf1bb9",
+          "description": "Get the UTXOs for a given Bitcoin address. This includes tokens, NFTs, contracts, and any other type of alkane.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "The Bitcoin address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7d47a8668e3b85cf4f6a1d4841d5c472886b23721177a4157383ef0d08daa839"
+        },
+        {
+          "name": "getAlkaneInfo",
+          "canonical_hash": "sha256:570a30dd8ab193340fb1bfb165e9a599657d020490986b5dcbf5acc288ef469b",
+          "description": "Fetch metadata for a single Alkane by its protocol ID: name, symbol, supply, type, and contract details if applicable.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Alkane protocol ID in 'block:tx' format (e.g. '2:42'). Both components are required."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7e989f47533b3d2bee974731e4035d578fbc8d948d17d0b8d3549b40c6dadc2f"
+        },
+        {
+          "name": "getAllPositions",
+          "canonical_hash": "sha256:c78feac59a87c2ca71076c577f53b0504f45ba90bb5d458f628f8d0f2de57f19",
+          "description": "\nGet ALL conditional trade positions across ALL networks\n(Solana, Ethereum, BSC, Polygon, Hedera) in a single call.\nOptionally filter by position status: OPEN, CLOSED, CANCELLED, FAILED.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "status": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "OPEN",
+                  "CLOSED",
+                  "CANCELLED",
+                  "FAILED"
+                ],
+                "type": "string",
+                "description": "Optional: Filter by position status"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aaeeb0aabf6d44fe20756c3e738a7b0229e24a73205e2eb69a4275ffe79e1fb9"
+        },
+        {
+          "name": "getBRC20Activity",
+          "canonical_hash": "sha256:87aaf19d40c1a723d6dbe345679fa444f8715703d3e0d6f803007da62a7d31c9",
+          "description": "Return the BRC-20 token transfer history for a given Bitcoin address (deploys, mints, transfers, sends, receives) with timestamps and amounts. Paginated.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page number for activity pagination.",
+                "exclusiveMinimum": 0
+              },
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address whose BRC-20 activity to retrieve."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b547e5592947b723635a26cb1a14dcad546473f8b0a178f5a8afce91e5a91a7c"
+        },
+        {
+          "name": "getBRC20TokenInfo",
+          "canonical_hash": "sha256:50aef547c9d0b38063d80b177136391a3aa09bf76db12be7edc634d4e04cfd89",
+          "description": "Fetch protocol + market metadata for a single BRC-20 token by ticker: current USD price, total supply, max supply, mint progress, holder count, and market cap.",
+          "is_mutating": false,
+          "property_keys": [
+            "ticker"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ticker": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ticker": {
+                "type": "string",
+                "description": "BRC-20 token ticker, typically 4 characters (e.g. 'ORDI', 'SATS'). Case-insensitive."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ea7b1233aa23eb94bb54d073b123e633b7190285a9f6f053b9fe4c10b7b16ef0"
+        },
+        {
+          "name": "getBTCBalances",
+          "canonical_hash": "sha256:9ec55d9edc17b54a5505e940dc787e71f67f5461485f13a53aae5ad1984df087",
+          "description": "Return native BTC balances for the user's wallet, broken out by both the taproot (P2TR) and nested segwit (P2WPKH) addresses, in BTC and sats. Does NOT include runes, ordinals/inscriptions, or Counterparty assets — use the dedicated getRuneBalances / getInscriptionsByAddress / getXCPBalances tools for those.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:be93c2e14f2dd23484bc5f90209ed01f201eae9bcc12196377a2d95b453a0548"
+        },
+        {
+          "name": "getBitcoinCollections",
+          "canonical_hash": "sha256:d8b490679fdc0c839023890309d06db04bb75e2dc25c6a32ee5cb3914739205a",
+          "description": "Browse all indexed Bitcoin Ordinals inscription collections (paginated). Returns each collection's slug, name, supply, and identifiers — useful for discovery before drilling into floor price or assets via getCollectionInfo / getCollectionMarketInfo.",
+          "is_mutating": false,
+          "property_keys": [
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page number for paginating the collections list. Omit for the first page.",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0f92951eb8dd450b9571e278374f91ca22cf9d020d7d2009a6236f910fed05d7"
+        },
+        {
+          "name": "getChangeNowSupportedCurrencies",
+          "canonical_hash": "sha256:a6c8aa0a74cd6a57a701e393f00167e46223eeec2d1662923671981c3c680bce",
+          "description": "Get supported currencies for cross-chain swaps",
+          "is_mutating": false,
+          "property_keys": [
+            "networks",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "networks": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query for currency name/ticker"
+              },
+              "networks": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "sol",
+                    "eth",
+                    "bsc",
+                    "matic",
+                    "base",
+                    "hbar",
+                    "btc"
+                  ],
+                  "type": "string"
+                },
+                "description": "Networks to filter currencies by"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:969ea6028aaefa7d208947cae682e3e0c48382c6d934067bdba026aab227c67f"
+        },
+        {
+          "name": "getChangeNowSwapQuote",
+          "canonical_hash": "sha256:12e1de18ccdc692e6e06fb8f8dbcd5ea4dcf1a5e3a96cf97c06d5c299a2f1577",
+          "description": "Get a swap quote for cross-chain exchange. Tickers must be supported by ChangeNow.",
+          "is_mutating": false,
+          "property_keys": [
+            "fromAmount",
+            "fromTicker",
+            "toTicker"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "toTicker": "string",
+            "fromAmount": "number",
+            "fromTicker": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "toTicker": {
+                "type": "string",
+                "description": "Destination currency ticker (e.g., 'sol')"
+              },
+              "fromAmount": {
+                "type": "number",
+                "description": "Amount of source currency (e.g., 1 for 1 ETH)"
+              },
+              "fromTicker": {
+                "type": "string",
+                "description": "Source currency ticker (e.g., 'eth')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:db88185d6f68a158af68cec9cb2ce8c5f62f22ee7aeb50454150bfac61671776"
+        },
+        {
+          "name": "getCoinglassBitcoinETFNetAssetsHistory",
+          "canonical_hash": "sha256:ec9f715f5e4944a298b4dd75be8f54cd35204a00aca62f481b3fc10ef5088b8f",
+          "description": "Historical net assets data for Bitcoin-based Exchange-Traded Funds (ETFs)",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e0a759f6d4f141463acc0e8d4fbc30e1dfd5a52763093a47cdc0fb7056ce097f"
+        },
+        {
+          "name": "getCoinglassBitcoinEtfList",
+          "canonical_hash": "sha256:ee85187f71f0f6038f796e40bc30d2c6c916bc14eb372783493c525a65fea08f",
+          "description": "Provides a list of Bitcoin-based Exchange-Traded Funds (ETFs)",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:31d44e37246fb1f5d73bf049fc45140e30b09f1b87724fd5662e65f96346ba62"
+        },
+        {
+          "name": "getCoinglassBitfinexMarginData",
+          "canonical_hash": "sha256:d11ff85748f10c7f2369e5bd9be36b6351a60c546c198e33b47977844ecac122",
+          "description": "Provides data on margin long and short positions from Bitfinex",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number",
+            "symbol": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "The symbol of the cryptocurrency. example BTC"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bf96243e60d32d48fd2f0f5cfc3ff625545256a7f37ffcdab67b0ec6b99aaf98"
+        },
+        {
+          "name": "getCoinglassBorrowInterestRate",
+          "canonical_hash": "sha256:86c29005bbc790b0c614615119d23f05caf990792a55db880b96160ebde88fdf",
+          "description": "Provides daily borrowing interest rates for cryptocurrencies",
+          "is_mutating": false,
+          "property_keys": [
+            "exchange",
+            "interval",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "symbol": "string",
+            "exchange": "string",
+            "interval": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "description": "The symbol of the cryptocurrency. example BTC"
+              },
+              "exchange": {
+                "type": "string",
+                "description": "The exchange of the cryptocurrency. example binance"
+              },
+              "interval": {
+                "type": "string",
+                "default": "h1",
+                "description": "example: 1m, 3m, 5m, 15m, 30m, 1h, 4h, 6h, 8h, 12h, 1d, 1w."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9d524d65b39c7420defaa1f380f1774373b7a9e693e40e5dd280d75c2103485e"
+        },
+        {
+          "name": "getCoinglassCDRIIndex",
+          "canonical_hash": "sha256:e8d3d5a2ac1b2034c5b365ecc6ce49be928b6283c6fc9191681a5fc411a69ef6",
+          "description": "Provides historical CDRI (CoinGlass Derivatives Risk Index) data",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a2820ef7f855f843f439595620d1872de440fa0b2cba8c397c7e69723dc97b78"
+        },
+        {
+          "name": "getCoinglassCGDIIndex",
+          "canonical_hash": "sha256:69563bc274cb5bb0bbecbd94c6de1b39f2287debd6aff9011d69f49c73e7ddfc",
+          "description": "Provides historical CGDI (CoinGlass Derivatives Index) data",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4c0116cf255c6bc40fa8604d04a7b0e83cb7b9b84ff9c287f7ef8f0b1e006a28"
+        },
+        {
+          "name": "getCoinglassEthereumETFNetAssetsHistory",
+          "canonical_hash": "sha256:6885733ffa14f6ca6abfe87b3e95c2cbd8d1bed932c92bb67f1915fad3a7e70e",
+          "description": "Historical net assets data for Ethereum-based Exchange-Traded Funds (ETFs)",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b6a809f16f7d1684d1191de8951f0417b59a97d820f281f18fef273b0e35fcbb"
+        },
+        {
+          "name": "getCoinglassEthereumEtfList",
+          "canonical_hash": "sha256:a4d0a0ca965e7ff5b49717b4a5dcf529d935b31155c8c23de1fd5958dbbf088f",
+          "description": "Get the list of Ethereum ETFs with pagination",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a4b18599f68a17259e8a6eefbc7a4262976f947cd7341378c3df0a7eae43c583"
+        },
+        {
+          "name": "getCoinglassExchangeAssets",
+          "canonical_hash": "sha256:cb0280cdf78638c0a9ff2091eb78694816fcb55b2d7fbdf1a8d51313937b0e18",
+          "description": "Provides asset holdings data for exchange wallets, including address, balance, USD value, and price info",
+          "is_mutating": false,
+          "property_keys": [
+            "exchange",
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number",
+            "exchange": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              },
+              "exchange": {
+                "type": "string",
+                "description": "The exchange of the cryptocurrency. example binance"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c7465438ec8e5749154d75d40b6dca76ced25202e1344c9c17ea45825ab4974d"
+        },
+        {
+          "name": "getCoinglassExchangeBalanceList",
+          "canonical_hash": "sha256:ca7677a14b20ea573e94cefc0a59997cc820f75e003afc4af4a190e5f20e9513",
+          "description": "Provides a list of exchange balances for a given symbol",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number",
+            "symbol": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "The symbol of the cryptocurrency"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:746dc603b2db9a619d218d573034271b4ce114408a08a6aee923674de47e1b10"
+        },
+        {
+          "name": "getCoinglassFutureBasis",
+          "canonical_hash": "sha256:32452097de3c21fcf3af8b53b00732e5dec335c4f2c3b8a256968ee777259ae8",
+          "description": "Provides historical futures basis data, including open and close basis rates and annualized percentage changes",
+          "is_mutating": false,
+          "property_keys": [
+            "exchange",
+            "interval",
+            "limit",
+            "page",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number",
+            "symbol": "string",
+            "exchange": "string",
+            "interval": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "The symbol of the cryptocurrency"
+              },
+              "exchange": {
+                "type": "string",
+                "description": "The exchange of the cryptocurrency"
+              },
+              "interval": {
+                "type": "string",
+                "description": "The interval of the cryptocurrency"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0ba3ec4746e7cc0e3f4ba1a3e57477644ebd6ad76aa16c94bbad3c8f09851ac4"
+        },
+        {
+          "name": "getCoinglassFuturesWhaleIndex",
+          "canonical_hash": "sha256:0ab0d9075d878a30820523270d80622077351a2cdc5f4c34f585a1a9709d8a5e",
+          "description": "Provides a list of futures whale index data",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aa6356dde345c98affcf3c251aacbd25382a5c141cfda682683656c341de8795"
+        },
+        {
+          "name": "getCoinglassGrayscaleHoldings",
+          "canonical_hash": "sha256:83e174d20ce60a5f8716ab0649a0b5fc94d8f55cc6d2434895e6d6ac6ff09164",
+          "description": "Provides a list of holdings managed by Grayscale Investments",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a3fa06aa44d413e7b2e230457336795e4eb867dbb8649de0d97cb7d265c79b41"
+        },
+        {
+          "name": "getCoinglassHyperliquidWhaleAlert",
+          "canonical_hash": "sha256:db0d8960ecff472613fbed05593d8e85c18e7ecdbac75c71efa73a5b2d8f5bc3",
+          "description": "Provides real-time whale alerts on Hyperliquid, highlighting positions with notional value over $1M",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:32a06a8aad2f3958f1053ae8b98410445921f54faf885d871c4d5956877e25c8"
+        },
+        {
+          "name": "getCoinglassHyperliquidWhalePosition",
+          "canonical_hash": "sha256:430cfebf1d945987a327ed88c33f820a174358accc312caeca1e7b6e8b1098ab",
+          "description": "Provides real-time whale position data on Hyperliquid",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:476dfa5cf56c7c95abc445eb60be6d19f5404f2dfcf500a2b4afe871461ed4d3"
+        },
+        {
+          "name": "getCoinglassOnChainTransfers",
+          "canonical_hash": "sha256:ab650426b566afa7c0c9942ca09267bace9708515eeccb8072dff8b62e9e62dd",
+          "description": "Provides on-chain transfer records (ERC-20) for exchanges",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b816bbcaaf1f287ac894f1ce622d24bd0c3d5a1aaa5ec5d26ab98cd99df41703"
+        },
+        {
+          "name": "getCoinglassOpenInterestHistory",
+          "canonical_hash": "sha256:e23fca8bbcf03cdb6928e3322b95d2e0436f7afa7bd95116d9c20ef7faeb84e3",
+          "description": "Provides historical open interest data for options across different exchanges",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number",
+            "symbol": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "The symbol of the cryptocurrency. example: BTC"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6cdb2ff0e716e408f4af4fefda54dd5ccfea23fc323b8dcb852236ae5bca2d23"
+        },
+        {
+          "name": "getCoinglassOptionsInfo",
+          "canonical_hash": "sha256:6ffb9491db0af398e3cf1a39f26d1e997ff9da96dad46b4fa9c38b8d8c69f2a6",
+          "description": "Provides detailed information about open interest and trading volume for options across exchanges",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number",
+            "symbol": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "The symbol of the cryptocurrency. example: BTC"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f3c5c7436b53a966560f66641d1cd3a24f90e9b67cd87fcdbb57605a6af53cd6"
+        },
+        {
+          "name": "getCoinglassPremiumIndex",
+          "canonical_hash": "sha256:002423cbd7067ecb078e576b22cf4f9f627c6c8b861ff8d80940bed6f3699546",
+          "description": "Provides the Coinbase Bitcoin Premium Index, indicating price difference between Coinbase Pro and Binance",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "Page number (starts from 1)"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5,
+                "description": "Number of items per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:712cac68fcf7e12ff1bc848e5e8800f1d005549ec227125ba5939dfe7c65047d"
+        },
+        {
+          "name": "getCollectionInfo",
+          "canonical_hash": "sha256:336d8c6dd9843120d1e2e37ea99e6f82a62f87cbb8a65aa273d6e5dd515a462b",
+          "description": "Fetch a Bitcoin Ordinals collection's metadata by its slug: name, description, supply, twitter, website, and image. Pair with getCollectionMarketInfo for floor/market data.",
+          "is_mutating": false,
+          "property_keys": [
+            "slug"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "slug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "description": "Collection slug as indexed by Ordiscan (e.g. 'taproot-wizards', 'nodemonkes')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fee6a2bf8543169af31a3128650f5e29168c5acd9291b181fa80dbe70561fa95"
+        },
+        {
+          "name": "getCollectionInscriptions",
+          "canonical_hash": "sha256:5c93d357d294a302b626560422389bc462b8668cdb3780b828449d3968f3885f",
+          "description": "List the inscriptions that belong to a given Bitcoin Ordinals collection (the collection's items). Returns inscription IDs and basic metadata.",
+          "is_mutating": false,
+          "property_keys": [
+            "slug"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "slug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "description": "Collection slug as indexed by Ordiscan (e.g. 'taproot-wizards')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:74feecf47dd19ec6ea4e11891721d5e00322804854d7a5ee484f4194bd69692e"
+        },
+        {
+          "name": "getCollectionMarketInfo",
+          "canonical_hash": "sha256:310ad669b8f4028bf5c241c9e7b2858d3f096d4eee68f0ed1ffbb48a7742bda4",
+          "description": "Get market info for a Bitcoin inscription collection: floor price in sats and USD, market cap in BTC and USD. Use this when user asks about collection prices, valuations, or floor prices.",
+          "is_mutating": false,
+          "property_keys": [
+            "slug"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "slug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "description": "The collection slug (e.g., 'bitcoin-puppets', 'nodemonkes')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:36075ff34a509556fc59bb9e2ce53ec3f43c8c33e9fc265ca62750ade7d385a8"
+        },
+        {
+          "name": "getCollectionVolume",
+          "canonical_hash": "sha256:49f045325acc2b9c15bd34524359a9d5c1d4025265b472acf4d3d55416861b8c",
+          "description": "Get trading volume and market stats for a Bitcoin ordinal collection from Magic Eden. Returns total volume, floor price, supply, owners, and listings. Use this for questions about collection trading activity or volume.",
+          "is_mutating": false,
+          "property_keys": [
+            "collectionSymbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "collectionSymbol": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "collectionSymbol": {
+                "type": "string",
+                "description": "The collection symbol/slug (e.g., 'bitcoin-puppets', 'nodemonkes', 'quantum-cats')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bb9dc4f2aa8c11f851f6f399ca21520ce853207ed281a882cf37d314012489d7"
+        },
+        {
+          "name": "getCryptoPrice",
+          "canonical_hash": "sha256:18b5c677987877959cf898c53d67942211f7c86f94930281602b596391c0f0c9",
+          "description": "Get the current USD price of a major cryptocurrency. Use this when the user asks about the price, value, or worth of BTC, ETH, SOL, BNB, or HBAR. This is the PRIMARY tool for answering questions like 'What's Bitcoin worth?', 'ETH price', 'How much is SOL?', or 'Tell me about Bitcoin'.",
+          "is_mutating": false,
+          "property_keys": [
+            "coinId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "coinId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "coinId": {
+                "type": "string",
+                "description": "Coin symbol or name: 'btc', 'bitcoin', 'eth', 'ethereum', 'sol', 'solana', 'bnb', 'binancecoin', 'hbar', 'hedera'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:721ba2b0c46686947205214ca42968413dcbade9ce5ce79275aecacfc7e5ca43"
+        },
+        {
+          "name": "getInscriptionActivity",
+          "canonical_hash": "sha256:591076263a8f7764e23d692018a352522b76922267037ae4a93c5fd571471532",
+          "description": "Return the inscription transfer history for a given Bitcoin address (incoming and outgoing inscription movements with timestamps and counterparties), paginated.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page number for activity pagination.",
+                "exclusiveMinimum": 0
+              },
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address whose inscription activity to retrieve."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d35be52f055981f81fe38a36d2fd0c460b6d89592ec61220c4e1d5a1043b1df2"
+        },
+        {
+          "name": "getInscriptionInfo",
+          "canonical_hash": "sha256:443925d3b1cad6ab376392e2f58272c3abfb0a528fc0e8bc5fb630f8281ab369",
+          "description": "Fetch metadata for a single Bitcoin Ordinals inscription: content type, content URL, current owner, satpoint, inscription number, genesis transaction, and timestamp.",
+          "is_mutating": false,
+          "property_keys": [
+            "inscriptionId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "inscriptionId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inscriptionId": {
+                "type": "string",
+                "description": "Inscription ID in the form '<txid>i<index>' (e.g. 'b1f...i0')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:574aef52099766ae46155d113db614df39bc992fc70312f27ba26429bebf1142"
+        },
+        {
+          "name": "getInscriptionTraits",
+          "canonical_hash": "sha256:3a7cf8397d243c49e3bcf39b719f93f2b89233ad85b5a25c293233b15de816b6",
+          "description": "Fetch the trait/attribute set for a single Bitcoin inscription (NFT-style traits used for collection rarity ranking). Returns an empty array when no traits are indexed.",
+          "is_mutating": false,
+          "property_keys": [
+            "inscriptionId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "inscriptionId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inscriptionId": {
+                "type": "string",
+                "description": "Inscription ID in the form '<txid>i<index>' (e.g. 'b1f...i0')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:90c65b241c00ce2d3c5d5eb9781ad7d13a4c2d485393343cb89557c92df35aba"
+        },
+        {
+          "name": "getInscriptionsByAddress",
+          "canonical_hash": "sha256:3fc8ec0ac73598b1981694d7c01f9313e5fcaa384583c72adcbc0fa1d3665e2e",
+          "description": "Return paginated, fully-detailed Bitcoin Ordinals inscriptions held by a given Bitcoin address (number, content type, traits, satpoint). Use this to display a wallet's NFT-style holdings.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page number for paginating large inscription sets. Omit for the first page.",
+                "exclusiveMinimum": 0
+              },
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address whose inscriptions to fetch."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:39c857eefaf3bfe430368cb3e0f1ea3cf69badd46ebaf2d17a543f58b761feff"
+        },
+        {
+          "name": "getLatestInscriptions",
+          "canonical_hash": "sha256:f6be96d0ab43b6087f688d38d72ed62819cd7b43a0bd72143745c2de68c640bc",
+          "description": "Browse the most recently created Bitcoin Ordinals inscriptions network-wide (newest first by default). Use this to discover newly-minted inscriptions, NOT to look up inscriptions on a specific address.",
+          "is_mutating": false,
+          "property_keys": [
+            "after",
+            "before",
+            "sort"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sort": "string",
+            "after": "integer",
+            "before": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sort": {
+                "enum": [
+                  "inscription_number_desc",
+                  "inscription_number_asc"
+                ],
+                "type": "string",
+                "description": "Sort order: 'inscription_number_desc' for newest first, 'inscription_number_asc' for oldest first."
+              },
+              "after": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Cursor: return inscriptions with inscription number greater than this value."
+              },
+              "before": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Cursor: return inscriptions with inscription number less than this value."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:608f8b8a5032db107244cda3a6ac07f1f5a8c15ba423f87551afe0ae209f5246"
+        },
+        {
+          "name": "getLatestRunes",
+          "canonical_hash": "sha256:c13bfc998697d136eefe32db12490396e01e3e0a151a23631998729244a5d1f3",
+          "description": "List the latest Rune tokens for market discovery and browsing. Use this when user wants to see new/trending Runes, NOT for checking their personal balance.",
+          "is_mutating": false,
+          "property_keys": [
+            "after",
+            "before",
+            "sort"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sort": "string",
+            "after": "number",
+            "before": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sort": {
+                "enum": [
+                  "newest",
+                  "oldest"
+                ],
+                "type": "string"
+              },
+              "after": {
+                "type": "number"
+              },
+              "before": {
+                "type": "number"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:632d8506178d39278800939f7d4c1d56ff29713ba7a4712ea1f7b312c297e8ab"
+        },
+        {
+          "name": "getLeaderboard",
+          "canonical_hash": "sha256:0fc79f73c2b20b87e12fef4a728a8629613b9dfbe574932ba7417187c34d1b4c",
+          "description": "Emblem ecosystem trading leaderboard",
+          "is_mutating": false,
+          "property_keys": [
+            "orderBy",
+            "page",
+            "pageSize",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "query": "string",
+            "orderBy": "string",
+            "pageSize": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "default": 1,
+                "description": "The page number of the leaderboard"
+              },
+              "query": {
+                "type": "string",
+                "description": "The query of the leaderboard"
+              },
+              "orderBy": {
+                "enum": [
+                  "volume",
+                  "transactions",
+                  "referrals",
+                  "aura",
+                  "pnl"
+                ],
+                "type": "string",
+                "default": "volume",
+                "description": "The order by of the leaderboard"
+              },
+              "pageSize": {
+                "type": "number",
+                "default": 20,
+                "description": "The page size of the leaderboard"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ad73e433b246b777a93faaf77a6061f0123cbcb99b5d7e6eca677d26dfc23f11"
+        },
+        {
+          "name": "getMagicEdenRunePrice",
+          "canonical_hash": "sha256:13a29244657614f16e79b1b855aad50a2259f06d41c522d8abde54952e2599f1",
+          "description": "Get rune market data from Magic Eden as an alternative data source. Use this if Ordiscan returns zero prices for a rune.",
+          "is_mutating": false,
+          "property_keys": [
+            "runeName"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "runeName": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "runeName": {
+                "type": "string",
+                "description": "The rune name without bullet spacers (e.g., 'DOGGOTOTHEMOON')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:64359e58a9dd6cdcf61c85bff3719c37690508e01195135a67d29458b73e631f"
+        },
+        {
+          "name": "getOwnedInscriptionIds",
+          "canonical_hash": "sha256:22e049d1304d3077cf1cee984826fb78d6121f92521c5c9627f2c450f2097b6a",
+          "description": "Return the list of Bitcoin Ordinals inscription IDs owned by a given Bitcoin address. Lightweight ID-only response — use getInscriptionsByAddress for full inscription metadata.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address whose owned inscription IDs to fetch."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f1a4f57ab15d29a9abcd7278bd92c8577f79c2ac2961c2318426ef2f248d861a"
+        },
+        {
+          "name": "getPolyMarketEvent",
+          "canonical_hash": "sha256:40f4e6d70d13ab0fc1114b506b7285652393ffb2d2578faaa9a8714d7d1cf891",
+          "description": "Get detailed info for a specific Polymarket event by slug",
+          "is_mutating": false,
+          "property_keys": [
+            "slug"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "slug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "description": "Event slug (from event.slug)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:36c3b718ea1f1d23400995657f3f5900e534520694ab7bbd0d3ddde2e5d89524"
+        },
+        {
+          "name": "getPolyMarketEvents",
+          "canonical_hash": "sha256:a816687dad63f259a8cb6a8b0e2f5728e3439f5410b96ad34dee56b9f39ac695",
+          "description": "Get Polymarket events list. Returns compacted data.",
+          "is_mutating": false,
+          "property_keys": [
+            "ascending",
+            "featured",
+            "limit",
+            "offset",
+            "order",
+            "tag_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "order": "string",
+            "offset": "number",
+            "tag_id": "number",
+            "featured": "boolean",
+            "ascending": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Max events to return (default: 20, max: 50)"
+              },
+              "order": {
+                "enum": [
+                  "volume",
+                  "liquidity",
+                  "startDate",
+                  "endDate",
+                  "volume24hr"
+                ],
+                "type": "string",
+                "default": "volume"
+              },
+              "offset": {
+                "type": "number",
+                "default": 0,
+                "minimum": 0
+              },
+              "tag_id": {
+                "type": "number",
+                "description": "Tag ID to filter by. Use getPolyMarketTags to get IDs."
+              },
+              "featured": {
+                "type": "boolean"
+              },
+              "ascending": {
+                "type": "boolean"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:29860e067e03fbc7397a0c64849f74298007e179618282a97c1e59eb719614e8"
+        },
+        {
+          "name": "getPolyMarketEvents",
+          "canonical_hash": "sha256:a816687dad63f259a8cb6a8b0e2f5728e3439f5410b96ad34dee56b9f39ac695",
+          "description": "Get Polymarket events list. Returns compacted data optimized for efficiency.",
+          "is_mutating": false,
+          "property_keys": [
+            "ascending",
+            "featured",
+            "limit",
+            "offset",
+            "order",
+            "tag_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "order": "string",
+            "offset": "number",
+            "tag_id": "number",
+            "featured": "boolean",
+            "ascending": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Max events to return (default: 20, max: 50)"
+              },
+              "order": {
+                "enum": [
+                  "volume",
+                  "liquidity",
+                  "startDate",
+                  "endDate",
+                  "volume24hr"
+                ],
+                "type": "string",
+                "default": "volume"
+              },
+              "offset": {
+                "type": "number",
+                "default": 0,
+                "minimum": 0
+              },
+              "tag_id": {
+                "type": "number",
+                "description": "Tag ID to filter by. Use getPolyMarketTags to get IDs."
+              },
+              "featured": {
+                "type": "boolean"
+              },
+              "ascending": {
+                "type": "boolean"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:74aca1aa65d6e4a23003c55c8be7d0eb4fd4a78e56582819b8115c2260ef6ef5"
+        },
+        {
+          "name": "getPolyMarketEventsByTag",
+          "canonical_hash": "sha256:3b67d39a37d214365e013ae8a611642b15c09723cff77d17f2e1d99032123601",
+          "description": "Get Polymarket events by tag/category",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "tagId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "tagId": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1
+              },
+              "tagId": {
+                "type": "number",
+                "description": "Tag ID from getPolyMarketTags"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6c3027c596e7918336df3274c5ab54fc6c5278253ae283211f0e2d1b100e5166"
+        },
+        {
+          "name": "getPolyMarketEventsByTag",
+          "canonical_hash": "sha256:3b67d39a37d214365e013ae8a611642b15c09723cff77d17f2e1d99032123601",
+          "description": "Get Polymarket events filtered by tag/category",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "tagId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "tagId": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1
+              },
+              "tagId": {
+                "type": "number",
+                "description": "Tag ID from getPolyMarketTags"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8ecb1ffe650f370ab7321fd3507de66494f3fe49267ed85e3f4d0beea75a4fac"
+        },
+        {
+          "name": "getPolyMarketTags",
+          "canonical_hash": "sha256:38e889617d5cdb29f82002a40cb384543ad194eaa7ca7d6f954b92aae6295586",
+          "description": "Get Polymarket categories/tags",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:57ed13cdefb21c4910f754d13296e59f26f521e8abb834ea5a8bf54081b382b5"
+        },
+        {
+          "name": "getPolyMarketTags",
+          "canonical_hash": "sha256:38e889617d5cdb29f82002a40cb384543ad194eaa7ca7d6f954b92aae6295586",
+          "description": "Get Polymarket categories/tags for filtering events",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b1c85ff1e2cfc78c38cf71acaabac606bce267cc0d5801a91a66f43002f9f793"
+        },
+        {
+          "name": "getPolyMarketUserPositions",
+          "canonical_hash": "sha256:f2f33dfe04c9d0ac327819e2c1fb50477d6cee1f13b70bdc083ce1bb6c5f44c7",
+          "description": "Get user's Polymarket positions",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "offset",
+            "sortBy",
+            "sortOrder"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "offset": "number",
+            "sortBy": "string",
+            "sortOrder": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 50,
+                "description": "The limit of positions to get"
+              },
+              "offset": {
+                "type": "number",
+                "default": 0,
+                "description": "The offset of the positions to get"
+              },
+              "sortBy": {
+                "enum": [
+                  "CURRENT",
+                  "INITIAL",
+                  "TOKENS",
+                  "CASHPNL",
+                  "PERCENTPNL",
+                  "TITLE",
+                  "RESOLVING",
+                  "PRICE",
+                  "AVGPRICE"
+                ],
+                "type": "string",
+                "default": "CURRENT"
+              },
+              "sortOrder": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string",
+                "default": "desc"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b5d2641916d105d19d1bd0a284ab843d1d827b901f4866eb0440bb6e0f9254cd"
+        },
+        {
+          "name": "getPumpFunTokens",
+          "canonical_hash": "sha256:388fa1061a07f78d16fa3544319cc3f03b6e18af8bcefac16c3b479e5714f5c8",
+          "description": "Query PumpFun tokens (new, graduating, graduated)",
+          "is_mutating": false,
+          "property_keys": [
+            "buyCount_gte",
+            "buyCount_lte",
+            "chain",
+            "context",
+            "devHoldPercent_gte",
+            "devHoldPercent_lte",
+            "holderCount_gte",
+            "holderCount_lte",
+            "insiderHoldPercent_gte",
+            "insiderHoldPercent_lte",
+            "limit",
+            "liquidUsd_gte",
+            "liquidUsd_lte",
+            "marketCap_gte",
+            "marketCap_lte",
+            "orderBy",
+            "sellCount_gte",
+            "sellCount_lte",
+            "sniperWalletCount_gte",
+            "sniperWalletCount_lte",
+            "tradeCount_gte",
+            "tradeCount_lte",
+            "type",
+            "volume_gte",
+            "volume_lte"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "type": "string",
+            "chain": "string",
+            "limit": "number",
+            "context": "string",
+            "orderBy": "string",
+            "volume_gte": "number",
+            "volume_lte": "number",
+            "buyCount_gte": "number",
+            "buyCount_lte": "number",
+            "liquidUsd_gte": "number",
+            "liquidUsd_lte": "number",
+            "marketCap_gte": "number",
+            "marketCap_lte": "number",
+            "sellCount_gte": "number",
+            "sellCount_lte": "number",
+            "tradeCount_gte": "number",
+            "tradeCount_lte": "number",
+            "holderCount_gte": "number",
+            "holderCount_lte": "number",
+            "devHoldPercent_gte": "number",
+            "devHoldPercent_lte": "number",
+            "sniperWalletCount_gte": "number",
+            "sniperWalletCount_lte": "number",
+            "insiderHoldPercent_gte": "number",
+            "insiderHoldPercent_lte": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "newly_created",
+                  "about_to_graduate",
+                  "graduated"
+                ],
+                "type": "string",
+                "description": "Type of tokens to query"
+              },
+              "chain": {
+                "enum": [
+                  "sol"
+                ],
+                "type": "string",
+                "default": "sol"
+              },
+              "limit": {
+                "type": "number",
+                "default": 5
+              },
+              "context": {
+                "enum": [
+                  "meme"
+                ],
+                "type": "string",
+                "default": "meme"
+              },
+              "orderBy": {
+                "enum": [
+                  "curvePercent+desc",
+                  "createdAt+desc"
+                ],
+                "type": "string",
+                "description": "Order by"
+              },
+              "volume_gte": {
+                "type": "number",
+                "default": 5000,
+                "description": "volume greater than value"
+              },
+              "volume_lte": {
+                "type": "number",
+                "description": "volume less than value"
+              },
+              "buyCount_gte": {
+                "type": "number"
+              },
+              "buyCount_lte": {
+                "type": "number"
+              },
+              "liquidUsd_gte": {
+                "type": "number"
+              },
+              "liquidUsd_lte": {
+                "type": "number"
+              },
+              "marketCap_gte": {
+                "type": "number",
+                "default": 30000,
+                "description": "market cap greater than value"
+              },
+              "marketCap_lte": {
+                "type": "number",
+                "description": "market cap less than {value}"
+              },
+              "sellCount_gte": {
+                "type": "number"
+              },
+              "sellCount_lte": {
+                "type": "number"
+              },
+              "tradeCount_gte": {
+                "type": "number"
+              },
+              "tradeCount_lte": {
+                "type": "number"
+              },
+              "holderCount_gte": {
+                "type": "number",
+                "default": 30
+              },
+              "holderCount_lte": {
+                "type": "number"
+              },
+              "devHoldPercent_gte": {
+                "type": "number",
+                "description": "dev hold percent greater than value"
+              },
+              "devHoldPercent_lte": {
+                "type": "number",
+                "description": "dev hold percent less than value"
+              },
+              "sniperWalletCount_gte": {
+                "type": "number"
+              },
+              "sniperWalletCount_lte": {
+                "type": "number"
+              },
+              "insiderHoldPercent_gte": {
+                "type": "number"
+              },
+              "insiderHoldPercent_lte": {
+                "type": "number"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:41995c49363fc85f531585a51612578f6324b849345f861f6c4c5ef27a2bad62"
+        },
+        {
+          "name": "getRareSats",
+          "canonical_hash": "sha256:4542375153342bad75add3f7c103d59eea553d84152e1a0da07067131f0d7c76",
+          "description": "List rare sats (uncommon, rare, epic, legendary, or named single-satoshi units) controlled by a given Bitcoin address. Useful for collectors evaluating sat rarity holdings.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address whose rare-sat inventory to look up."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2a601170a3764d1f88c9d87bf31d5ade321dd6abdc28d98efb5d40c5e5345fe6"
+        },
+        {
+          "name": "getRecentStamps",
+          "canonical_hash": "sha256:adc53bfd451dcca28e6c99504363c065fc4ff5b069ea30e3e19588ddeaf7e010",
+          "description": "Browse the most recently issued Bitcoin Stamps (newest first) for discovery. Returns asset name, image preview, creator, and timestamp. Use this for activity feeds and 'what's new' surfaces.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100,
+                "description": "Number of recent stamps to return (1-100). Defaults to 10.",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:995a32fccd2fa6850abdb9dc39793eda04959ee5bbbdc1525b1962e81d8258e2"
+        },
+        {
+          "name": "getRuneBalances",
+          "canonical_hash": "sha256:945f47d6416d7303da2e8a6f5d130bd32404e5a823dc625ee0c072412d17d490",
+          "description": "Get the user's Rune token balances.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "The Bitcoin taproot address to check rune balances for"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:64a340ff969d0546c020bce07cb67d8f3cdf57530140db90eedf81970ab1acc3"
+        },
+        {
+          "name": "getRuneInfo",
+          "canonical_hash": "sha256:ecf71b268295adbf7757618b295f3536dd66fb1c27f6eaac24eb62a4639f5e2c",
+          "description": "Fetch protocol-level metadata for a Rune token by name: ID, supply, divisibility, symbol, premine, etching transaction, and lock height.",
+          "is_mutating": false,
+          "property_keys": [
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Rune name (spacers like • are stripped automatically; case-insensitive). Example: 'DOG•GO•TO•THE•MOON' or 'DOGGOTOTHEMOON'."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:65c8e9ae46ae3c1dacf81d36618decbe6f19d68668263d5221c5f7ba83698e61"
+        },
+        {
+          "name": "getRuneMarketInfo",
+          "canonical_hash": "sha256:27014752dd0cb014e99aa94a0ee48d80308eb7fb3f0fba2f266a6fcaf28d15bc",
+          "description": "Get the market info for a given rune name: price, market cap",
+          "is_mutating": false,
+          "property_keys": [
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the rune (spacers like • are automatically removed)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:013cf7b1d317305e9d78282c95863f2fb9bf3fa80ba1ad7430b2b48a27d5186c"
+        },
+        {
+          "name": "getRunesActivity",
+          "canonical_hash": "sha256:44d658b642e285c02840001a3681df7cd22c75d95dfa1e7a5d67ba998aad4570",
+          "description": "Return the Rune transfer history for a given Bitcoin address (etching, mints, sends, receives) with timestamps, amounts, and counterparties. Paginated.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page number for activity pagination.",
+                "exclusiveMinimum": 0
+              },
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address whose rune activity to retrieve."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:251e1dfcb973057557ae0acf3fd71f59659c079f93e21d4931dea23a9df1f5b3"
+        },
+        {
+          "name": "getSRC20Token",
+          "canonical_hash": "sha256:fd39deefbb5f7971f61803e999a614eb6d73f38b989e2f96b9abcc50296e4b15",
+          "description": "Fetch metadata for a single SRC-20 token (the Bitcoin Stamps fungible-token standard) by ticker: deploy info, max supply, mint progress, holder count, and creator. SRC-20 is the Stamps protocol equivalent of BRC-20.",
+          "is_mutating": false,
+          "property_keys": [
+            "tick"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tick": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tick": {
+                "type": "string",
+                "description": "SRC-20 token ticker, typically 4 characters (e.g. 'KEVIN', 'STAMP'). Case-insensitive."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e02d391a08f385e6f339125b02f69d38ff350a52c067e419be0a43c6cde64cc7"
+        },
+        {
+          "name": "getSatRangesForUTXO",
+          "canonical_hash": "sha256:50487451b7e5c1e7fc3dfb51abf5f3ec98e9853df6789e770194018bb36ddced",
+          "description": "Return the ordinal-numbered sat ranges contained in a single UTXO (the satoshi-by-satoshi composition). Useful for ordinal theory analysis and rare-sat lookups.",
+          "is_mutating": false,
+          "property_keys": [
+            "utxoId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "utxoId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "utxoId": {
+                "type": "string",
+                "description": "UTXO reference in 'txid:vout' form (e.g. 'a1b2...:0')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bef1f93922e47d1138cdcbe0103211506b0f6c00d3ffde118c328a093925da6e"
+        },
+        {
+          "name": "getStamp",
+          "canonical_hash": "sha256:f52f2fb6ed431caf508bef7dbff53ae746038fd9512d19e4183279085284b75e",
+          "description": "Fetch metadata for a single Bitcoin Stamp (Stampchain.io) by ID: image data, creator address, block height, asset name, and SRC20 association if any. Bitcoin Stamps embed permanent on-chain image data via the Counterparty/STAMP protocol.",
+          "is_mutating": false,
+          "property_keys": [
+            "stampId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "stampId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "stampId": {
+                "type": "string",
+                "description": "Numeric stamp ID assigned at issuance (e.g. '12345'). Stamp IDs are assigned sequentially by Stampchain."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cc11d3ca86c18656be50cfbc9ebf6a0dfcd4ed81e37308c0bc14d26075363ffe"
+        },
+        {
+          "name": "getStampsByAddress",
+          "canonical_hash": "sha256:140f6f660a5713d375ed50ba1502a484c49c39f4ec5b10a37ba3bf9792246262",
+          "description": "List the Bitcoin Stamps and SRC-20 token balances held by a given Bitcoin address. Returns each held stamp's ID + asset name and SRC-20 holdings with amounts.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address (Counterparty-compatible) whose stamp holdings to retrieve."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:70275a17b4ce292390f1b1b3e96b35b7e28ab618be397e4c935e995d5acdfcc3"
+        },
+        {
+          "name": "getTopBRC20ByMarketCap",
+          "canonical_hash": "sha256:d1a26f17da634050a970f4ca34fbaa0f187752c4289cca2cc60f0005298ac9ff",
+          "description": "Get BRC-20 tokens ranked by market cap. Use this to find the most valuable BRC-20 tokens. Returns price, market cap, 24h volume, and price change.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "minMarketCap"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "minMarketCap": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of tokens to return (max 50)"
+              },
+              "minMarketCap": {
+                "type": "number",
+                "description": "Filter for tokens with market cap above this value in USD"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:38d481c2f12a122a97596fac6efcf4a38499e9a5384c014c584b8418efa1bcd8"
+        },
+        {
+          "name": "getTopBRC20ByVolume",
+          "canonical_hash": "sha256:b4c5aa755c7d7efaf77305959c3b0934a33eb1c0374029974ac035e1f31b314b",
+          "description": "Get BRC-20 tokens ranked by 24h trading volume. Use this to find the most actively traded BRC-20 tokens. Returns price, market cap, 24h volume, and price change.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "minVolume"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "minVolume": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of tokens to return (max 50)"
+              },
+              "minVolume": {
+                "type": "number",
+                "description": "Filter for tokens with 24h volume above this value in USD"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ddd3c40bdb228dcf2cc29238d57961c4c47df477f23889d49a447063448b8b88"
+        },
+        {
+          "name": "getTopCollectionsByFloor",
+          "canonical_hash": "sha256:fb79ee440f7aa87feac7512477238642b7483e830a9f22f36c19cc934df6d811",
+          "description": "Get Bitcoin ordinal collections ranked by floor price from Magic Eden. Use this when user asks about 'most expensive collections' or 'highest floor price ordinals'.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of collections to return (max 50)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:03623ebafece4019e31dbb29c90895b964ccce0d70b8b221213b1f6d3864a594"
+        },
+        {
+          "name": "getTopCollectionsByVolume",
+          "canonical_hash": "sha256:0a318a11e61ba58fc08b62f9a2f2e67e199fcfede75793a3f9280997af8dfdbe",
+          "description": "Get Bitcoin ordinal collections ranked by trading volume from Magic Eden. Use this when user asks about 'inscriptions with most volume', 'top trading collections', or 'hottest ordinal collections'.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of collections to return (max 50)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fd5dcd01fbe0fbe759c89af34307b740de444985dc2c4340f6af7a533e4f4017"
+        },
+        {
+          "name": "getTopRunesByMarketCap",
+          "canonical_hash": "sha256:2dcbc53110c6ea4afe1bcc8b1c23acdf3a6670e6128e0860dcf11d005bfe3e21",
+          "description": "Get Bitcoin runes ranked by market cap. Use this to find the most valuable runes by market capitalization. Returns price, market cap, 24h volume, and price change.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "minMarketCap"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "minMarketCap": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of runes to return (max 50)"
+              },
+              "minMarketCap": {
+                "type": "number",
+                "description": "Filter for runes with market cap above this value in USD"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c755c95e841b45f381f7c1734f995e58b8d1b2ed619b4d1462f3cad47626dc87"
+        },
+        {
+          "name": "getTopRunesByVolume",
+          "canonical_hash": "sha256:c6295cde7d811f04833364bb949499edf17dd504158d816b77ce905cb818eb50",
+          "description": "Get Bitcoin runes ranked by 24h trading volume. Use this to find the most actively traded runes. Returns price, market cap, 24h volume, and price change.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "minVolume"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "minVolume": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of runes to return (max 50)"
+              },
+              "minVolume": {
+                "type": "number",
+                "description": "Filter for runes with 24h volume above this value in USD"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f2cd41ae19ef441e1032d74a19902262dda3cbbcef0e811445c92c82c0f14138"
+        },
+        {
+          "name": "getTrendingCoins",
+          "canonical_hash": "sha256:ba4cff1e129fdec8fba23da0c19a00e7a708b23039702ae81be9d3ee3ba4fe63",
+          "description": "Get currently trending cryptocurrencies on CoinGecko. Shows coins with highest search interest in the last 24 hours.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a2c40a9545c18f95960cc5a5a86068e960b9b5874066f929303c3b9dad91b344"
+        },
+        {
+          "name": "getUtxoRunes",
+          "canonical_hash": "sha256:ebd2d42966be082c4283408cb9c5c1a3e7660091ba044f446be554ff35e4da7f",
+          "description": "List the unspent transaction outputs (UTXOs) on a Bitcoin address that hold Rune tokens, including the rune name, amount, and UTXO reference. Useful for inspecting a wallet's individual rune-bearing UTXOs before sending or splitting them.",
+          "is_mutating": false,
+          "property_keys": [
+            "bitcoinAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bitcoinAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bitcoinAddress": {
+                "type": "string",
+                "description": "Bitcoin address to scan for rune-bearing UTXOs (taproot or legacy)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8fa3ef12d66212a094d19a69a1748a317337e355aee491b99caedb9a1a7276b8"
+        },
+        {
+          "name": "getXCPBalances",
+          "canonical_hash": "sha256:874e83904243895efa34a767e5a33ca0e0f2856cfe65cf77c96db0febc40b116",
+          "description": "Return the user's legacy Bitcoin (P2PKH) wallet holdings on the Counterparty layer: XCP balance, named Counterparty assets, Bitcoin Stamps, and rare pepes — each with asset name, supply, and divisibility metadata.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c18bab7fb66614ee4dcd2aae937ca148b728c396cd30e51af4db9b295e791dda"
+        },
+        {
+          "name": "hederaAccountIdToEvmAddress",
+          "canonical_hash": "sha256:2927fa4c25b726d124b21590ec0355e217faa38141b92e9f5504f3448fa58a05",
+          "description": "Resolve a Hedera account ID in '0.0.x' realm-shard-num form to its 0x-prefixed EVM address by querying the Hedera mirror node (returns the account's alias or auto-generated EVM address).",
+          "is_mutating": false,
+          "property_keys": [
+            "address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Hedera account ID in 'shard.realm.num' form (e.g. '0.0.3949424')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:92d6ad595c6c8fbea656d281203271ca679147c20d1f37b5d75882035b950be0"
+        },
+        {
+          "name": "hederaContractIdToEvmAddress",
+          "canonical_hash": "sha256:5fe40993ddccaba4bcbe5eab84f83fd34893a2e416e83294fdf1a0faf859b4ea",
+          "description": "Convert a Hedera contract ID in '0.0.x' realm-shard-num form to its 0x-prefixed EVM address representation. Pure conversion — does not query the network.",
+          "is_mutating": false,
+          "property_keys": [
+            "contractId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "contractId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "contractId": {
+                "type": "string",
+                "description": "Hedera contract ID in 'shard.realm.num' form (e.g. '0.0.731861')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6ac4a927d9ae1e847451bc42a4ac98475b7fd85b2c97ce962c01a6ebe377bf87"
+        },
+        {
+          "name": "hederaFindMemeCoins",
+          "canonical_hash": "sha256:0f8a10c41ece02d69e9b55dfd5b0bbbc98a569d5db91e046e09033aca6418215",
+          "description": "Browse Hedera meme tokens listed on the MemeJob bonding-curve launchpad. Sort by market cap, creation time, last activity, or nearest-promoted; paginated for discovery feeds.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "orderBy",
+            "orderDirection",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "limit": "integer",
+            "orderBy": "string",
+            "orderDirection": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 0,
+                "minimum": 0,
+                "description": "0-indexed page number (defaults to 0 for first page)."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "description": "Results per page (1-50). Defaults to 10.",
+                "exclusiveMinimum": 0
+              },
+              "orderBy": {
+                "enum": [
+                  "market-cap",
+                  "creation-time",
+                  "last-activity",
+                  "nearest-promoted"
+                ],
+                "type": "string",
+                "default": "market-cap",
+                "description": "Sort field: 'market-cap' (size), 'creation-time' (newest), 'last-activity' (active), 'nearest-promoted' (curated next)."
+              },
+              "orderDirection": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string",
+                "default": "desc",
+                "description": "Sort direction: 'desc' for largest/newest first, 'asc' for opposite."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3ab3d82e97ccfe9618b0a4363c65ac6118f734ec39f47ec4034d5bd31b0ce963"
+        },
+        {
+          "name": "hederaFindTokens",
+          "canonical_hash": "sha256:6c2d900ad40332018d0a9d75489539cbb41395be496e4e20d21626b0f60efc89",
+          "description": "Search Hedera-listed tokens by name or symbol (substring, case-insensitive). Returns matching tokens with EVM address, name, symbol, and decimals. Omit the query to list all tokens.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Free-text query against token name and symbol (case-insensitive substring match). Omit to return the full SaucerSwap token list."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7e4f61e1976e9ec8b7fe4bed25fd3f17189f86d7724dccef91a2ffe1a341d6e7"
+        },
+        {
+          "name": "hederaTokensSwapQuote",
+          "canonical_hash": "sha256:4c418b6dbbab78d2c8526e22cff3263467fdf335a83a7b0a85db3881970695ee",
+          "description": "Get current USD price and swap quote for Hedera tokens. ALWAYS fetch fresh - crypto prices change every second. Supports exact input (spend X) and exact output (receive Y) modes.",
+          "is_mutating": false,
+          "property_keys": [
+            "amount",
+            "exactOutputAmount",
+            "fromTokenDecimals",
+            "fromTokenId",
+            "isExactOutput",
+            "toTokenDecimals",
+            "toTokenId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amount": "string",
+            "toTokenId": "string",
+            "fromTokenId": "string",
+            "isExactOutput": "boolean",
+            "toTokenDecimals": "number",
+            "exactOutputAmount": "string",
+            "fromTokenDecimals": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "description": "Amount to swap (for exact input mode)"
+              },
+              "toTokenId": {
+                "type": "string",
+                "description": "Token to swap to"
+              },
+              "fromTokenId": {
+                "type": "string",
+                "description": "Token to swap from (0.0.000000 for HBAR)"
+              },
+              "isExactOutput": {
+                "type": "boolean",
+                "default": false,
+                "description": "True for exact output mode"
+              },
+              "toTokenDecimals": {
+                "type": "number",
+                "description": "Decimals of to token"
+              },
+              "exactOutputAmount": {
+                "type": "string",
+                "description": "Exact output amount (for exact output mode)"
+              },
+              "fromTokenDecimals": {
+                "type": "number",
+                "description": "Decimals of from token"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:88eecdd2942a31d9ebcd4a1a21cec48cf415efcc666b423bc542d069976f8384"
+        },
+        {
+          "name": "inscriptionTransferActivity",
+          "canonical_hash": "sha256:3ce0a9815018d8e03c4eaeeaada4f089b8580ad30f2ed93b172ac94757c2b81d",
+          "description": "Return the full ownership transfer history for a single Bitcoin inscription: every move with timestamp, from-address, to-address, and transaction hash.",
+          "is_mutating": false,
+          "property_keys": [
+            "inscriptionId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "inscriptionId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inscriptionId": {
+                "type": "string",
+                "description": "Inscription ID in the form '<txid>i<index>' (e.g. 'b1f...i0')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bbd220e002d2dd1a264e0a41a72eb7b1fa996706151f9c7f341e5bae439e16ee"
+        },
+        {
+          "name": "isFourMemeToken",
+          "canonical_hash": "sha256:1422f0e57d14198e9341b3574a71f7b4b7d58a965a20395732d5682ac663bcac",
+          "description": "Check whether a BSC token contract is registered on FourMeme and is still on the bonding curve (not yet listed / migrated off the curve). Returns the FourMeme token record if found.",
+          "is_mutating": false,
+          "property_keys": [
+            "tokenAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenAddress": {
+                "description": "BSC token contract address to check against the FourMeme registry (0x-prefixed)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b26bea0af98e9dadebb1ac348d8c0b629b29caa7faa1ecec0b90d4dc8ebc5b12"
+        },
+        {
+          "name": "listAlkanes",
+          "canonical_hash": "sha256:39236040ab480c5f0a126c08c3989e5f3b9a6215f3aca9b705eddf809026cf07",
+          "description": "Browse Alkanes (Bitcoin smart-contract / token / NFT primitives anchored on Bitcoin), filtered by type. Use this for market discovery; pair with getAlkaneInfo for per-asset detail.",
+          "is_mutating": false,
+          "property_keys": [
+            "page",
+            "sort",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "sort": "string",
+            "type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page for paginating the alkane list.",
+                "exclusiveMinimum": 0
+              },
+              "sort": {
+                "enum": [
+                  "newest",
+                  "oldest"
+                ],
+                "type": "string",
+                "description": "Sort order: 'newest' for most recent first, 'oldest' for chronological."
+              },
+              "type": {
+                "enum": [
+                  "TOKEN",
+                  "CONTRACT",
+                  "NFT_COLLECTION",
+                  "NFT_ITEM"
+                ],
+                "type": "string",
+                "description": "Alkane category to filter by: 'TOKEN' (fungible), 'CONTRACT' (deployed contract), 'NFT_COLLECTION' (collection), 'NFT_ITEM' (single NFT)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:26d23374ca4aa74b29db26ca6e81b3dc28a969dfe7847ae39dcd729a3284bbdc"
+        },
+        {
+          "name": "listBRC20Tokens",
+          "canonical_hash": "sha256:8c8cb8d70e5d39c9d2a3726a03bcbc7a4d4ffbbda0392abddcda3989208fe0b1",
+          "description": "List all BRC-20 tokens in the market for discovery and browsing. Use this when user wants to see available tokens, NOT for checking their personal balance.",
+          "is_mutating": false,
+          "property_keys": [
+            "page",
+            "sort"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "sort": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page for paginating the BRC-20 token list.",
+                "exclusiveMinimum": 0
+              },
+              "sort": {
+                "enum": [
+                  "newest",
+                  "oldest"
+                ],
+                "type": "string",
+                "description": "Sort order: 'newest' for most recent deploys first, 'oldest' for chronological."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ba679c837b7f987f6fa6e3bbaec46d416348d9321705394c943f9a5b231b02ea"
+        },
+        {
+          "name": "listPositions",
+          "canonical_hash": "sha256:0f25de5cafed695a20054a4b9687462c87477a0b26a7ff16a7e068f1908d9cce",
+          "description": "List conditional trade positions. If network is provided, lists positions for that specific network. If no network is provided, lists ALL positions across all supported networks (Solana, Ethereum, BSC, Polygon, Hedera, Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "network",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "status": "string",
+            "network": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "OPEN",
+                  "CLOSED",
+                  "CANCELLED",
+                  "FAILED"
+                ],
+                "type": "string",
+                "description": "Optional: Filter by position status"
+              },
+              "network": {
+                "enum": [
+                  "solana",
+                  "ethereum",
+                  "bsc",
+                  "polygon",
+                  "hedera",
+                  "base"
+                ],
+                "type": "string",
+                "description": "Specific network to list positions for. If omitted, lists across all networks."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9c45fe88d1e8cdcdf168571864f402c126cb0576b53ccde4e2f430a4c4e4a926"
+        },
+        {
+          "name": "nansen_defi_portfolio",
+          "canonical_hash": "sha256:47c27d01e7c63f722979e03db89a38c58d9326018d6ab1c453c2adfc67a0b408",
+          "description": "Get a wallet's DeFi portfolio: LP positions, lending, staking, farming across protocols.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "per_page",
+            "wallet_address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "per_page": "number",
+            "wallet_address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "ethereum",
+                  "solana",
+                  "base",
+                  "arbitrum",
+                  "polygon",
+                  "optimism",
+                  "avalanche",
+                  "bnb",
+                  "hyperevm",
+                  "linea",
+                  "mantle",
+                  "monad",
+                  "ronin",
+                  "scroll",
+                  "sei",
+                  "sonic",
+                  "near",
+                  "starknet",
+                  "sui",
+                  "ton",
+                  "tron"
+                ],
+                "type": "string",
+                "description": "Chain the wallet is on"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              },
+              "wallet_address": {
+                "type": "string",
+                "description": "Wallet address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:817ea5b4895b59c3ca6e2c4d4435a57193450dcc98f51df4557877a18341e0c1"
+        },
+        {
+          "name": "nansen_perp_positions",
+          "canonical_hash": "sha256:5c64fd4616a6ab7954239621668506cfabefc23bd3c1887f1d8ca6a0881857f0",
+          "description": "Get current Hyperliquid perpetual positions held by smart money for a specific token.",
+          "is_mutating": false,
+          "property_keys": [
+            "label_type",
+            "per_page",
+            "token_symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "per_page": "number",
+            "label_type": "string",
+            "token_symbol": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              },
+              "label_type": {
+                "type": "string",
+                "default": "smart_money",
+                "description": "Trader label filter (smart_money, all_traders)"
+              },
+              "token_symbol": {
+                "type": "string",
+                "description": "Token symbol (e.g. 'BTC', 'ETH', 'SOL')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d3bad7195481e2ec7f66ff63d33a0e762db6df37cc709a680fdd8eecd4f94630"
+        },
+        {
+          "name": "nansen_pnl_leaderboard",
+          "canonical_hash": "sha256:f44b67373799120631d9ef114179a4cdf11d0d5314fff468062d188825926c2e",
+          "description": "Get Nansen PnL leaderboard for a SPECIFIC TOKEN CONTRACT (not a global wallet leaderboard). Requires a token contract address. Shows which wallets profited most from trading that specific token.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "date_from",
+            "date_to",
+            "per_page",
+            "token_address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "date_to": "string",
+            "per_page": "number",
+            "date_from": "string",
+            "token_address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "ethereum",
+                  "solana",
+                  "base",
+                  "arbitrum",
+                  "polygon",
+                  "optimism",
+                  "avalanche",
+                  "bnb",
+                  "hyperevm",
+                  "linea",
+                  "mantle",
+                  "monad",
+                  "ronin",
+                  "scroll",
+                  "sei",
+                  "sonic",
+                  "near",
+                  "starknet",
+                  "sui",
+                  "ton",
+                  "tron"
+                ],
+                "type": "string",
+                "description": "Chain the token is on"
+              },
+              "date_to": {
+                "type": "string",
+                "description": "End date (YYYY-MM-DD)"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              },
+              "date_from": {
+                "type": "string",
+                "description": "Start date (YYYY-MM-DD)"
+              },
+              "token_address": {
+                "type": "string",
+                "description": "Token contract address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e15efe6e88c5bdbf5ac408114d0291f458e4f559b9026eb5b9f53aa4f9da47f4"
+        },
+        {
+          "name": "nansen_smart_money_flows",
+          "canonical_hash": "sha256:df70b37bd41c4f7134c386970f4e40d60f0867711a138bbc9544e8201d79fc9d",
+          "description": "Get net token flows from smart money addresses. Shows accumulation/distribution by funds and whales.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "per_page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "per_page": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "ethereum",
+                  "solana",
+                  "base",
+                  "arbitrum",
+                  "polygon",
+                  "optimism",
+                  "avalanche",
+                  "bnb",
+                  "hyperevm",
+                  "linea",
+                  "mantle",
+                  "monad",
+                  "ronin",
+                  "scroll",
+                  "sei",
+                  "sonic"
+                ],
+                "type": "string",
+                "description": "Chain to query"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dc95531c0aaa397adc2ab9e7dd9eac0556baeb352e1012424b663862c67f5b4f"
+        },
+        {
+          "name": "nansen_smart_money_holdings",
+          "canonical_hash": "sha256:0487803b79d6f7425dce1d4f9981fed17279ac4150c83736bff338cd6cf0ef3c",
+          "description": "Get current token holdings aggregated across smart money wallets. Shows what funds and whales are holding.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "per_page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "per_page": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "ethereum",
+                  "solana",
+                  "base",
+                  "arbitrum",
+                  "polygon",
+                  "optimism",
+                  "avalanche",
+                  "bnb",
+                  "hyperevm",
+                  "linea",
+                  "mantle",
+                  "monad",
+                  "ronin",
+                  "scroll",
+                  "sei",
+                  "sonic"
+                ],
+                "type": "string",
+                "description": "Chain to query"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page (max 100)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fb28fa521a6e0dc48d0c5bcce6b47e74c74373c44b913a1a3f959fce618b2c90"
+        },
+        {
+          "name": "nansen_smart_money_trades",
+          "canonical_hash": "sha256:c73fd43f67a3fbe0f252a3bfa2be1898ffee73d42e6aa3a4059287057e2a2e34",
+          "description": "Get recent DEX trades by smart money wallets. Spot what top traders are actively buying/selling.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "per_page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "per_page": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "ethereum",
+                  "solana",
+                  "base",
+                  "arbitrum",
+                  "polygon",
+                  "optimism",
+                  "avalanche",
+                  "bnb",
+                  "hyperevm",
+                  "linea",
+                  "mantle",
+                  "monad",
+                  "ronin",
+                  "scroll",
+                  "sei",
+                  "sonic"
+                ],
+                "type": "string",
+                "description": "Chain to query"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:96aa8203386bca6ec18f1e7faa71943bac6f15503617caf78a7e3578bd17703b"
+        },
+        {
+          "name": "nansen_token_screener",
+          "canonical_hash": "sha256:e5ad0d482280238be2608385a9a855018bc784bd9f17fcad308a4880dd63772c",
+          "description": "Screen tokens by volume, smart money activity, and chain. Find trending tokens that smart money is trading.",
+          "is_mutating": false,
+          "property_keys": [
+            "chains",
+            "per_page",
+            "smart_money_only",
+            "timeframe"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chains": "array",
+            "per_page": "number",
+            "timeframe": "string",
+            "smart_money_only": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chains": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "ethereum",
+                    "solana",
+                    "base",
+                    "arbitrum",
+                    "polygon",
+                    "optimism",
+                    "avalanche",
+                    "bnb",
+                    "hyperevm",
+                    "linea",
+                    "mantle",
+                    "monad",
+                    "ronin",
+                    "scroll",
+                    "sei",
+                    "sonic",
+                    "near",
+                    "starknet",
+                    "sui",
+                    "ton",
+                    "tron"
+                  ],
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Chains to screen across"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              },
+              "timeframe": {
+                "type": "string",
+                "default": "24h",
+                "description": "Timeframe (e.g. 24h, 7d)"
+              },
+              "smart_money_only": {
+                "type": "boolean",
+                "default": false,
+                "description": "Filter to show only smart money activity"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f52f67be6591f060ed7657bc1a8f2e3a4d254de1178b24e63eacbc05b9728467"
+        },
+        {
+          "name": "nansen_wallet_profiler",
+          "canonical_hash": "sha256:2fa86b6b3e23678ec5e9c1fe3657976bbc6c442c300e463579c368ace308cdad",
+          "description": "Profile a specific wallet — trading activity, PnL, token trades over a date range.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "date_from",
+            "date_to",
+            "per_page",
+            "wallet_address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "date_to": "string",
+            "per_page": "number",
+            "date_from": "string",
+            "wallet_address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "ethereum",
+                  "solana",
+                  "base",
+                  "arbitrum",
+                  "polygon",
+                  "optimism",
+                  "avalanche",
+                  "bnb",
+                  "hyperevm",
+                  "linea",
+                  "mantle",
+                  "monad",
+                  "ronin",
+                  "scroll",
+                  "sei",
+                  "sonic",
+                  "near",
+                  "starknet",
+                  "sui",
+                  "ton",
+                  "tron"
+                ],
+                "type": "string",
+                "description": "Chain the wallet is on"
+              },
+              "date_to": {
+                "type": "string",
+                "description": "End date (YYYY-MM-DD)"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              },
+              "date_from": {
+                "type": "string",
+                "description": "Start date (YYYY-MM-DD)"
+              },
+              "wallet_address": {
+                "type": "string",
+                "description": "Wallet address to profile"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cf1af52cb03ccf24b5264547ccaada185f11ced14421fa19a80b066f725db304"
+        },
+        {
+          "name": "nansen_who_bought_sold",
+          "canonical_hash": "sha256:112536f0bbb2642c1c58a30ce7614803bb5ef73c1376aa9164aada273f11288e",
+          "description": "See which smart money wallets bought or sold a specific token in a date range.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "date_from",
+            "date_to",
+            "label_type",
+            "per_page",
+            "token_address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "date_to": "string",
+            "per_page": "number",
+            "date_from": "string",
+            "label_type": "string",
+            "token_address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "enum": [
+                  "ethereum",
+                  "solana",
+                  "base",
+                  "arbitrum",
+                  "polygon",
+                  "optimism",
+                  "avalanche",
+                  "bnb",
+                  "hyperevm",
+                  "linea",
+                  "mantle",
+                  "monad",
+                  "ronin",
+                  "scroll",
+                  "sei",
+                  "sonic",
+                  "near",
+                  "starknet",
+                  "sui",
+                  "ton",
+                  "tron"
+                ],
+                "type": "string",
+                "description": "Chain the token is on"
+              },
+              "date_to": {
+                "type": "string",
+                "description": "End date (YYYY-MM-DD)"
+              },
+              "per_page": {
+                "type": "number",
+                "default": 50,
+                "description": "Results per page"
+              },
+              "date_from": {
+                "type": "string",
+                "description": "Start date (YYYY-MM-DD)"
+              },
+              "label_type": {
+                "type": "string",
+                "default": "smart_money",
+                "description": "Trader label filter (smart_money, all_traders)"
+              },
+              "token_address": {
+                "type": "string",
+                "description": "Token contract address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:925f8367808e87e557c8d7d10238be12cda5e7fdefdfefd201ce4a8b17764092"
+        },
+        {
+          "name": "openseaGetBestListings",
+          "canonical_hash": "sha256:5190e177f3e5402aaf9a599db5712446accfc5bdf8868eec1595db7ed924af17",
+          "description": "Get the cheapest (best) listings for an NFT collection. Use this for price discovery and finding deals.",
+          "is_mutating": false,
+          "property_keys": [
+            "collectionSlug",
+            "limit",
+            "next"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "next": "string",
+            "limit": "number",
+            "collectionSlug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "next": {
+                "type": "string",
+                "description": "Pagination cursor for next page"
+              },
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Number of listings to return"
+              },
+              "collectionSlug": {
+                "type": "string",
+                "description": "Collection slug (e.g., 'pudgypenguins')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:53730cbe7995a89275a52d9588be4673e8d97f3458b991f832d56f0f5c1bbd75"
+        },
+        {
+          "name": "openseaGetCollectionActivity",
+          "canonical_hash": "sha256:4bd644e112367ed9f595a47df82a6dfcad0e06e4c6fcbf7b0671b1e379eb12ad",
+          "description": "Monitor recent activity for an NFT collection: sales, transfers, mints, listings, and offers. Use this to track market activity and recent trades.",
+          "is_mutating": false,
+          "property_keys": [
+            "collectionSlug",
+            "eventType",
+            "limit",
+            "next"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "next": "string",
+            "limit": "number",
+            "eventType": "string",
+            "collectionSlug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "next": {
+                "type": "string",
+                "description": "Pagination cursor for next page"
+              },
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of events to return"
+              },
+              "eventType": {
+                "enum": [
+                  "sale",
+                  "transfer",
+                  "mint",
+                  "listing",
+                  "offer"
+                ],
+                "type": "string",
+                "description": "Filter by event type (omit for all events)"
+              },
+              "collectionSlug": {
+                "type": "string",
+                "description": "Collection slug (e.g., 'boredapeyachtclub')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d8a5cdd797a50d2479ce0d5aa328a7a3c2abfce280956371015f1f157cd06f55"
+        },
+        {
+          "name": "openseaGetCollectionStats",
+          "canonical_hash": "sha256:a137e818f193f820b3c0f5768d5f3fca1ae208c17550c386abbd1265ab03c67d",
+          "description": "Get detailed stats for an NFT collection including floor price, volume, sales, owners, and market cap. Use collection slug (e.g., 'boredapeyachtclub'), not the collection name.",
+          "is_mutating": false,
+          "property_keys": [
+            "collectionSlug"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "collectionSlug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "collectionSlug": {
+                "type": "string",
+                "description": "Collection slug (e.g., 'boredapeyachtclub', 'cryptopunks')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:78946ff39081b5e3ab545f08f7febdf175dee184f5d8939cdba660db1d4f34dc"
+        },
+        {
+          "name": "openseaGetMyNFTs",
+          "canonical_hash": "sha256:6574e5103fa3f7bebbaa70c3ffd0cc5bdfea6145d982a573d3fc752a4b8c2597",
+          "description": "Get all NFTs owned by the user on OpenSea. ALWAYS use this tool first when user asks about their NFTs or NFT collection.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "next"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "next": "string",
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "next": {
+                "type": "string",
+                "description": "Pagination cursor for next page"
+              },
+              "limit": {
+                "type": "number",
+                "default": 100,
+                "description": "Maximum number of NFTs to return"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6c950ea7b16b88ca4038b42adc82ed2f46782a6ae8fac37649fc0e07b16e9db3"
+        },
+        {
+          "name": "openseaGetNFTListings",
+          "canonical_hash": "sha256:c79ff1b271f0bb8277904371685573559f98d5f26c8466cc5cbd9249a7c6b373",
+          "description": "Get active sell listings for an NFT on OpenSea",
+          "is_mutating": false,
+          "property_keys": [
+            "chainId",
+            "contractAddress",
+            "tokenId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chainId": "number",
+            "tokenId": "string",
+            "contractAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chainId": {
+                "enum": [
+                  1,
+                  137,
+                  8453
+                ],
+                "type": "number",
+                "description": "The chain ID (1=Ethereum, 137=Polygon, 8453=Base)"
+              },
+              "tokenId": {
+                "type": "string",
+                "description": "The token ID of the NFT"
+              },
+              "contractAddress": {
+                "type": "string",
+                "description": "The NFT contract address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2e29d85ff788432d4f134d26c205f7d4a48f2e76fc14fccb17d16cc36103c1e7"
+        },
+        {
+          "name": "openseaGetNFTOffers",
+          "canonical_hash": "sha256:acb462171b820fb3823be7b9c6711aa8ecdbdd988d927b0afb7b3db310b028e0",
+          "description": "Get buy offers for an NFT on OpenSea",
+          "is_mutating": false,
+          "property_keys": [
+            "chainId",
+            "contractAddress",
+            "tokenId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chainId": "number",
+            "tokenId": "string",
+            "contractAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chainId": {
+                "enum": [
+                  1,
+                  137,
+                  8453
+                ],
+                "type": "number",
+                "description": "The chain ID (1=Ethereum, 137=Polygon, 8453=Base)"
+              },
+              "tokenId": {
+                "type": "string",
+                "description": "The token ID of the NFT"
+              },
+              "contractAddress": {
+                "type": "string",
+                "description": "The NFT contract address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bfbda7f45aeedd40524d4a72a2de0870508c673664331559dd84a9efea92c444"
+        },
+        {
+          "name": "openseaGetTrendingCollections",
+          "canonical_hash": "sha256:0e0e5baa1162eff4a1aa07447220bc5d3579e402c2c4e198db4254fc56c45aed",
+          "description": "Find trending NFT collections by volume, market cap, or price changes. Use this for market research and discovering popular collections.",
+          "is_mutating": false,
+          "property_keys": [
+            "chainId",
+            "limit",
+            "next",
+            "orderBy"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "next": "string",
+            "limit": "number",
+            "chainId": "number",
+            "orderBy": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "next": {
+                "type": "string",
+                "description": "Pagination cursor for next page"
+              },
+              "limit": {
+                "type": "number",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of collections to return"
+              },
+              "chainId": {
+                "enum": [
+                  1,
+                  137,
+                  8453
+                ],
+                "type": "number",
+                "default": 1,
+                "description": "Chain ID (1=Ethereum, 137=Polygon, etc.)"
+              },
+              "orderBy": {
+                "enum": [
+                  "seven_day_volume",
+                  "one_day_change",
+                  "seven_day_change",
+                  "market_cap"
+                ],
+                "type": "string",
+                "default": "seven_day_volume",
+                "description": "Sort collections by this metric"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:baf89f80f4b9aa8209670dc97da8cb9ece98ce8868fb2ea8af6319f6fb15f810"
+        },
+        {
+          "name": "polygonGetBalances",
+          "canonical_hash": "sha256:2a5461cd6f8b639d417670124483f9aa3ee54139a790a053891261d1fc803f74",
+          "description": "Return the user's wallet holdings on Polygon (chain ID 137): native MATIC plus all detected ERC-20 token balances with contract address, symbol, decimals, and USD value where pricing is available.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:183860a3ed0a2678c0bf8d905ba1bab3ef85c52f971aacbca3b154bc310ba639"
+        },
+        {
+          "name": "polygonSwapQuote",
+          "canonical_hash": "sha256:a3b6f804c83941896315e73182860a759fc88ba3cd5946ecd218ac5ff0ebed92",
+          "description": "Get swap quote for Polygon tokens. Uses Uniswap X or 0x. Use 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE for native MATIC.",
+          "is_mutating": false,
+          "property_keys": [
+            "amount",
+            "fromTokenAddress",
+            "toTokenAddress"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amount": "string",
+            "toTokenAddress": "string",
+            "fromTokenAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "description": "Amount to swap (human readable)"
+              },
+              "toTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap to"
+              },
+              "fromTokenAddress": {
+                "type": "string",
+                "description": "Token address to swap from"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a384ff7127b6a71a40665bbd2206f6208a2168321027d8a5c9bbc5d1125d3d83"
+        },
+        {
+          "name": "rareSatsForUTXO",
+          "canonical_hash": "sha256:ef43bfe72bffbae743bf7c343707d8090954a378204a96fc3c113ea4fc22ca96",
+          "description": "Inspect a single UTXO and report any rare sats it contains (uncommon, rare, epic, legendary, or named single-satoshi units). Returns an empty array if none.",
+          "is_mutating": false,
+          "property_keys": [
+            "utxoId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "utxoId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "utxoId": {
+                "type": "string",
+                "description": "UTXO reference in 'txid:vout' form (e.g. 'a1b2...:0')."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:18c01af2f845fc3e35941a3ebf153f22119439e829053d2c114453ecd3170087"
+        },
+        {
+          "name": "rugcheck",
+          "canonical_hash": "sha256:291ec82c3fcf58e848ed71d6967f55f9808c45ae3e6a42244e3e2372211ae885",
+          "description": "Check if token is a rug/scam. score_normalised: 0=safe, 100=risky.",
+          "is_mutating": false,
+          "property_keys": [
+            "tokenMint"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tokenMint": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenMint": {
+                "type": "string",
+                "description": "Token mint address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b13b9a87fec28ec7f51fda2482a869a76eddb36629f9ea6a4a12c19a79ae1b03"
+        },
+        {
+          "name": "searchCryptoByName",
+          "canonical_hash": "sha256:0d7609b4abf5d7af24306d2726af3de8a092602b8beb55f7aca888be34cc31a5",
+          "description": "Search for cryptocurrencies by name or symbol. Use this to find the correct token ID before getting detailed market data.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query (name or symbol)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:02d6f321f077422c0c07eb26dcd3e3d849aca5e46ecaeb69329ef0c39beae053"
+        },
+        {
+          "name": "searchEvmTokensBirdeye",
+          "canonical_hash": "sha256:ddb3b72fd74d0022fafe47b8d48fd2651e7dd433d9c1db427a7c70aa4a8f7837",
+          "description": "Search for evm tokens on Birdeye. Supports multiple chains like eth, polygon, bsc, base, etc.",
+          "is_mutating": false,
+          "property_keys": [
+            "chainId",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "chainId": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query"
+              },
+              "chainId": {
+                "enum": [
+                  1,
+                  56,
+                  137,
+                  8453
+                ],
+                "type": "number",
+                "description": "Chain ID to search tokens on"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8cdcdc0ad9aa090d0d39b82c20c00261ecce0737826159a33b1aeae39c12c1c3"
+        },
+        {
+          "name": "searchPolyMarketEvents",
+          "canonical_hash": "sha256:69885d6fc5b1a011f2793560e801e9791142abfd0d4e55cd7d6761ecf052c28d",
+          "description": "Search Polymarket events by keyword. Returns compacted results.",
+          "is_mutating": false,
+          "property_keys": [
+            "events_status",
+            "page",
+            "q"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "q": "string",
+            "page": "number",
+            "events_status": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string",
+                "description": "Search query string"
+              },
+              "page": {
+                "type": "number",
+                "default": 0
+              },
+              "events_status": {
+                "enum": [
+                  "active",
+                  "inactive",
+                  "all"
+                ],
+                "type": "string",
+                "default": "active"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d0f2ca40f3c9557740d5d0713dbcbfca42d990d60b70731b102dc47991977469"
+        },
+        {
+          "name": "searchSRC20Tokens",
+          "canonical_hash": "sha256:ad6e236d685e4831a8359783ed6fff156f400853296d1d518983f8fb03db0f70",
+          "description": "Search SRC-20 tokens (Bitcoin Stamps fungible standard) with filters: free-text, deployer address, sort by deploy time / holders / mint progress. Use for SRC-20 market discovery.",
+          "is_mutating": false,
+          "property_keys": [
+            "deployer",
+            "page",
+            "page_size",
+            "query",
+            "sort_by",
+            "sort_order"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "query": "string",
+            "sort_by": "string",
+            "deployer": "string",
+            "page_size": "integer",
+            "sort_order": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 10000,
+                "description": "1-indexed page number for paginating results (max 10000). Defaults to 5.",
+                "exclusiveMinimum": 0
+              },
+              "query": {
+                "type": "string",
+                "description": "Free-text query against SRC-20 ticker, creator notes, and metadata."
+              },
+              "sort_by": {
+                "enum": [
+                  "deploy_timestamp",
+                  "holders",
+                  "percent_minted"
+                ],
+                "type": "string",
+                "description": "Sort field: 'deploy_timestamp' (newest deploys), 'holders' (most-held), 'percent_minted' (closest to fully minted)."
+              },
+              "deployer": {
+                "type": "string",
+                "maxLength": 62,
+                "minLength": 26,
+                "description": "Filter to SRC-20 tokens deployed by a specific Bitcoin address (26-62 chars)."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Items per page (1-100). Defaults to API default.",
+                "exclusiveMinimum": 0
+              },
+              "sort_order": {
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
+                "type": "string",
+                "description": "Result ordering: 'ASC' (ascending) or 'DESC' (descending)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:19fdbfab4f8177c323979e2ca33d2684c9c0176362fef8c05e5a914e4d884db3"
+        },
+        {
+          "name": "searchStamps",
+          "canonical_hash": "sha256:ca622ce98b11ddc48e8c56ecc49a2214885bee93554223395e2437cede51c466",
+          "description": "Search the Bitcoin Stamps index (Stampchain.io) with multiple filters: free-text query, creator address, collection, Counterparty asset ID, BTC vs cursed filtering, and pagination. Use this for stamp discovery and curated collections.",
+          "is_mutating": false,
+          "property_keys": [
+            "collection_id",
+            "cpid",
+            "creator",
+            "is_btc_stamp",
+            "is_cursed",
+            "limit",
+            "page",
+            "page_size",
+            "query",
+            "sort_order"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cpid": "string",
+            "page": "integer",
+            "limit": "integer",
+            "query": "string",
+            "creator": "string",
+            "is_cursed": "boolean",
+            "page_size": "integer",
+            "sort_order": "string",
+            "is_btc_stamp": "boolean",
+            "collection_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cpid": {
+                "type": "string",
+                "description": "Counterparty asset ID (CPID), e.g. 'A12345...', identifying a specific stamp asset."
+              },
+              "page": {
+                "type": "integer",
+                "description": "1-indexed page number for paginating results.",
+                "exclusiveMinimum": 0
+              },
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "description": "Hard cap on total results returned. Use as an alternative to page_size for one-shot calls.",
+                "exclusiveMinimum": 0
+              },
+              "query": {
+                "type": "string",
+                "description": "Free-text query against stamp asset names, descriptions, and metadata."
+              },
+              "creator": {
+                "type": "string",
+                "description": "Filter to stamps issued by a specific Bitcoin/Counterparty creator address."
+              },
+              "is_cursed": {
+                "type": "boolean",
+                "description": "If true, only return cursed stamps (out-of-spec issuances); if false, exclude them."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 100,
+                "description": "Items per page (1-100). Defaults to API default.",
+                "exclusiveMinimum": 0
+              },
+              "sort_order": {
+                "enum": [
+                  "ASC",
+                  "DESC"
+                ],
+                "type": "string",
+                "description": "Result ordering by stamp number: 'ASC' (oldest first) or 'DESC' (newest first)."
+              },
+              "is_btc_stamp": {
+                "type": "boolean",
+                "description": "If true, only return canonical BTC Stamps; if false, exclude them."
+              },
+              "collection_id": {
+                "type": "string",
+                "description": "Filter to stamps belonging to a Stampchain collection ID."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6f84c366dca3a319201a9009e24d7844d97c9652121829bdd6903c0705e43c93"
+        },
+        {
+          "name": "solanaBalances",
+          "canonical_hash": "sha256:bcac4443a90aeddf8e2596a5ccb50f485fef72ab948021fcad7ebeffb39431d5",
+          "description": "Return the user's Solana wallet holdings: native SOL plus all SPL tokens with mint address, symbol, balance, decimals, and USD value where pricing is available.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d8950465d48cfb5102b61e35140fc3e7d3d76d22f634ac7b0a103ffca40a32f5"
+        },
+        {
+          "name": "solanaGetTokenPairPrice",
+          "canonical_hash": "sha256:a653643258ed0b14a4a45677113076d6c138bdabd4475bce54d6d1c5730d7d3d",
+          "description": "Quote the spot exchange rate between two SPL tokens, routed across Solana DEX liquidity for best execution. Returns the rate of inputMint denominated in outputMint, plus the route taken.",
+          "is_mutating": false,
+          "property_keys": [
+            "inputMint",
+            "outputMint"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "inputMint": "string",
+            "outputMint": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputMint": {
+                "type": "string",
+                "description": "SPL mint address of the input token (the one being sold/spent). Use 'So11111111111111111111111111111111111111112' for wrapped SOL."
+              },
+              "outputMint": {
+                "type": "string",
+                "description": "SPL mint address of the output token (the one being bought). Use 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' for USDC."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:18a5d9c551f4a95aef04e55f7444618f1bf6834e00041677a697149dac5ef115"
+        },
+        {
+          "name": "solanaGetTokenPrices",
+          "canonical_hash": "sha256:4662974725f2940a9a93bc2b493112cddd81c6ba01b76693011781947d671b6a",
+          "description": "Batch-fetch USD spot prices for one or more SPL tokens. Returns each mint's USD price plus confidence level. More efficient than calling solanaGetTokenPairPrice in a loop.",
+          "is_mutating": false,
+          "property_keys": [
+            "tokenMints"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tokenMints": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenMints": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "List of SPL mint addresses to price (1-100). Each entry is a base58 mint pubkey."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:250be6f1a76e7786f6a636c31508851cbfc7f93b9f30c1fff5d2858e144ca5cd"
+        },
+        {
+          "name": "tokenMetadataInfo",
+          "canonical_hash": "sha256:586da7ef26a83d87dc794de9df9e96beb6b2c4157d469290f487528d96caf963",
+          "description": "Get a token metadata and price info.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "network"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "network": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "The token address"
+              },
+              "network": {
+                "enum": [
+                  "solana",
+                  "ethereum",
+                  "arbitrum",
+                  "avalanche",
+                  "bsc",
+                  "optimism",
+                  "polygon",
+                  "base",
+                  "zksync",
+                  "sui"
+                ],
+                "type": "string",
+                "description": "The network of the token"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:99f110170bd08d9330aed95c7c241ef068d59c53489bb42bb472c24f722b3252"
+        },
+        {
+          "name": "wallet",
+          "canonical_hash": "sha256:b31020be75fcc69a5f301ce9eed15f452a14cd42a115e56677475414ec2fa8a0",
+          "description": "Get the connected wallet and vault info across all networks",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:37d94a24dad6c1fcf17ae9e392a7b2f465bf14a490c2441b10517b116c697886"
+        },
+        {
+          "name": "websearch",
+          "canonical_hash": "sha256:3305435b912c913f914e69670be19dd540b433ad14b2359ecb5af427cb949729",
+          "description": "Search the web for current news, information, and announcements. Use this for real-time market insights and breaking news.Do NOT use it for real-time price data for prices and swaps, use quote tools instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "The search query"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9428ece1a8a4157355f03f92f5ca68078cc0bb34f1427378bd5ce653c440455b"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

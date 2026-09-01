@@ -1,0 +1,448 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "NutriBalance/nutribalance-mcp",
+  "purl": "pkg:npm/NutriBalance%2Fnutribalance-mcp",
+  "ecosystem": "npm",
+  "display_name": "NutriBalance/nutribalance-mcp",
+  "description": "  Free nutrition tools for AI assistants — calculate TDEE &\n  personalised macros, look up food nutrition data, generate meal   \n  plans (standard, vegetarian, vegan, keto, high-protein), fix      \n  nutrient deficiencies with food & supplement guidance, and score a\n   day's eating from 0–100.",
+  "repository_url": "https://nutribalance-mcp--nutribalance.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "NutriBalance/nutribalance-mcp"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:f06104729b2c5b1a22bf637936fec3710ba30ab9c67a25d8df690c0b2c9a950a",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://nutribalance-mcp--nutribalance.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "units": {
+                "type": "string",
+                "x-from": {
+                  "query": "units"
+                },
+                "default": "metric",
+                "x-order": 0,
+                "description": "Preferred unit system for weight and height (metric =\n   kg/cm, imperial = lbs/inches)"
+              },
+              "default_goal": {
+                "type": "string",
+                "x-from": {
+                  "query": "default_goal"
+                },
+                "default": "maintain",
+                "x-order": 1,
+                "description": "Default fitness goal when not specified: lose,\n  maintain, or gain"
+              },
+              "response_detail": {
+                "type": "string",
+                "x-from": {
+                  "query": "response_detail"
+                },
+                "default": "standard",
+                "x-order": 2,
+                "description": "Response verbosity—standard includes tips, concise\n  returns numbers only"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "calculate_tdee",
+          "canonical_hash": "sha256:a523a9ad9b4e51938f7e28342969072d15e7704aeac103b14958ce01192f9bdf",
+          "description": "Calculate TDEE (Total Daily Energy Expenditure), BMR, and personalised daily macro targets (protein, carbs, fat) based on the user's stats and goal. Use this when someone asks how many calories they should eat, what their maintenance calories are, or how to set up their macros.",
+          "is_mutating": false,
+          "property_keys": [
+            "activity_level",
+            "age",
+            "gender",
+            "goal",
+            "height_cm",
+            "weight_kg"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "age": "integer",
+            "goal": "string",
+            "gender": "string",
+            "height_cm": "number",
+            "weight_kg": "number",
+            "activity_level": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 16,
+                "description": "Age in years"
+              },
+              "goal": {
+                "enum": [
+                  "lose",
+                  "maintain",
+                  "gain"
+                ],
+                "type": "string",
+                "description": "Goal: lose weight | maintain weight | gain muscle/weight"
+              },
+              "gender": {
+                "enum": [
+                  "male",
+                  "female"
+                ],
+                "type": "string",
+                "description": "Biological sex for BMR calculation"
+              },
+              "height_cm": {
+                "type": "number",
+                "maximum": 250,
+                "minimum": 100,
+                "description": "Height in centimetres"
+              },
+              "weight_kg": {
+                "type": "number",
+                "maximum": 300,
+                "minimum": 30,
+                "description": "Body weight in kilograms"
+              },
+              "activity_level": {
+                "enum": [
+                  "sedentary",
+                  "light",
+                  "moderate",
+                  "active",
+                  "very_active"
+                ],
+                "type": "string",
+                "description": "Activity level: sedentary | light | moderate | active | very_active"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e15bb2455318795de7ed9a8b6c9afb9819a6fd16fb6fb09f83e4a70c81b5d1be"
+        },
+        {
+          "name": "fix_deficiency",
+          "canonical_hash": "sha256:5f08386df452084a862988287b474fd49f39f3eb936c6422750b04f544aed4e9",
+          "description": "Get a detailed action plan to fix a specific nutritional deficiency — including the best foods to eat (with serving sizes), foods to avoid, supplement advice, and deficiency symptoms. Use this when someone asks how to increase a specific nutrient, what to eat for a deficiency, or what causes low levels of a nutrient.",
+          "is_mutating": false,
+          "property_keys": [
+            "age",
+            "gender",
+            "nutrient"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "age": "integer",
+            "gender": "string",
+            "nutrient": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "age": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 16,
+                "description": "Age in years — used to note lifecycle-specific considerations"
+              },
+              "gender": {
+                "enum": [
+                  "male",
+                  "female"
+                ],
+                "type": "string",
+                "description": "Biological sex — used to personalise RDI targets (default: unspecified)"
+              },
+              "nutrient": {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1,
+                "description": "The nutrient to address. Supported: iron, calcium, vitamin_c, vitamin_d, magnesium, potassium, zinc, sodium, fiber, protein"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f9c5aab13fe112f576df6fffe23460980ed9a31f0e1c7477205a74bd5ababe88"
+        },
+        {
+          "name": "generate_meal_plan",
+          "canonical_hash": "sha256:4ee062e4ee5f4dcd7e1c11132a5804d954669d22acb7fa1db83463eb7312bd5b",
+          "description": "Generate a full day meal plan (breakfast, lunch, snack, dinner) tailored to the user's calorie goal, dietary preference, and fitness goal. Use this when someone asks for a meal plan, what to eat for a goal, or how to structure their diet.",
+          "is_mutating": false,
+          "property_keys": [
+            "dietary_preference",
+            "goal",
+            "target_calories"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "goal": "string",
+            "target_calories": "number",
+            "dietary_preference": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "goal": {
+                "enum": [
+                  "lose",
+                  "maintain",
+                  "gain"
+                ],
+                "type": "string",
+                "description": "Fitness goal: lose | maintain | gain"
+              },
+              "target_calories": {
+                "type": "number",
+                "maximum": 5000,
+                "minimum": 1200,
+                "description": "Target daily calories"
+              },
+              "dietary_preference": {
+                "enum": [
+                  "standard",
+                  "vegetarian",
+                  "vegan",
+                  "keto",
+                  "high_protein"
+                ],
+                "type": "string",
+                "default": "standard",
+                "description": "Dietary style: standard | vegetarian | vegan | keto | high_protein"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5ab49e97e0632a690a90578448aa605f2a7276610c41ebb6ffbbee65374604ed"
+        },
+        {
+          "name": "lookup_nutrition",
+          "canonical_hash": "sha256:49cf83535ceb6d47778283fe9fe8006d857846dc26be16ffa6a6bf241c29fc2b",
+          "description": "Look up the full nutritional profile (calories, protein, carbs, fat, fibre, and key micronutrients) for any food by name and serving size. Use this when someone asks about the nutrition or macros in a specific food.",
+          "is_mutating": false,
+          "property_keys": [
+            "amount_grams",
+            "food_name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "food_name": "string",
+            "amount_grams": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "food_name": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "description": "Name of the food to look up (e.g. \"chicken breast\", \"oats\", \"banana\")"
+              },
+              "amount_grams": {
+                "type": "number",
+                "default": 100,
+                "maximum": 2000,
+                "minimum": 1,
+                "description": "Serving size in grams (default: 100g)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:16292c28739c42a74fc28806e9c2bb91b5f9198c5453e4a26f9233691cae6f96"
+        },
+        {
+          "name": "nutrition_score",
+          "canonical_hash": "sha256:487638d1d5fa9871f62894f91377a4661da2451d78469f8e4e47e51b92cf271b",
+          "description": "Calculate a nutrition quality score (0–100) for a day's eating based on macros and optional micronutrient data. Returns a breakdown by category, a letter grade, and actionable recommendations. Use this when someone wants to rate their diet, check if they're eating well, or get feedback on a day's meals.",
+          "is_mutating": false,
+          "property_keys": [
+            "calorie_target",
+            "calories_eaten",
+            "carbs_g",
+            "fat_g",
+            "fiber_g",
+            "protein_g",
+            "protein_target_g",
+            "vegetable_servings",
+            "water_ml"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "fat_g": "number",
+            "carbs_g": "number",
+            "fiber_g": "number",
+            "water_ml": "number",
+            "protein_g": "number",
+            "calorie_target": "number",
+            "calories_eaten": "number",
+            "protein_target_g": "number",
+            "vegetable_servings": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fat_g": {
+                "type": "number",
+                "maximum": 500,
+                "minimum": 0,
+                "description": "Fat eaten today (grams)"
+              },
+              "carbs_g": {
+                "type": "number",
+                "maximum": 1000,
+                "minimum": 0,
+                "description": "Carbohydrates eaten today (grams)"
+              },
+              "fiber_g": {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0,
+                "description": "Fibre eaten today (grams) — optional"
+              },
+              "water_ml": {
+                "type": "number",
+                "maximum": 10000,
+                "minimum": 0,
+                "description": "Water consumed today (ml) — optional"
+              },
+              "protein_g": {
+                "type": "number",
+                "maximum": 500,
+                "minimum": 0,
+                "description": "Protein eaten today (grams)"
+              },
+              "calorie_target": {
+                "type": "number",
+                "maximum": 6000,
+                "minimum": 800,
+                "description": "Daily calorie target"
+              },
+              "calories_eaten": {
+                "type": "number",
+                "maximum": 10000,
+                "minimum": 0,
+                "description": "Total calories eaten today"
+              },
+              "protein_target_g": {
+                "type": "number",
+                "maximum": 400,
+                "minimum": 0,
+                "description": "Daily protein target (grams)"
+              },
+              "vegetable_servings": {
+                "type": "integer",
+                "maximum": 20,
+                "minimum": 0,
+                "description": "Number of vegetable/fruit servings today — optional (1 serving = ~80g)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aea12cb8fc7be02448656403af33780326750f75ad3c52aad2053d6cc63e3eca"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "setup-nutrition-targets",
+          "description": "",
+          "argument_keys": [
+            "activity_level",
+            "age",
+            "gender",
+            "goal",
+            "height_cm",
+            "weight_kg"
+          ],
+          "required_arguments": [
+            "activity_level",
+            "age",
+            "gender",
+            "goal",
+            "height_cm",
+            "weight_kg"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "daily-nutrition-check",
+          "description": "",
+          "argument_keys": [
+            "calorie_target",
+            "calories",
+            "carbs",
+            "fat",
+            "protein",
+            "protein_target"
+          ],
+          "required_arguments": [
+            "calorie_target",
+            "calories",
+            "carbs",
+            "fat",
+            "protein",
+            "protein_target"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "build-meal-plan",
+          "description": "",
+          "argument_keys": [
+            "diet",
+            "goal",
+            "target_calories"
+          ],
+          "required_arguments": [
+            "diet",
+            "goal",
+            "target_calories"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "fix-nutrient-deficiency",
+          "description": "",
+          "argument_keys": [
+            "gender",
+            "nutrient"
+          ],
+          "required_arguments": [
+            "nutrient"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "nutribalance://reference/nutrients",
+          "name": "nutrient-reference",
+          "description": "",
+          "mime_type": "text/plain"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}

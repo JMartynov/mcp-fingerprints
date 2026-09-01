@@ -1,0 +1,3985 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "nausika/nausika",
+  "purl": "pkg:npm/nausika%2Fnausika",
+  "ecosystem": "npm",
+  "display_name": "nausika/nausika",
+  "description": "Marine, maritime, nautical and sailing data for AI assistants and chatbots. Mediterranean marine forecast: wind, wave, swell, gust. Tide tables and tidal predictions. Sea routing and passage planning on a coastline-aware maritime graph. Curated POIs: marinas, ports, harbors, anchorages, moorings, fuel. Real data, cited sources, never invented.",
+  "repository_url": "https://nausika.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "nausika/nausika"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:d20a49ff86768896368f0b107d96ca907640058b8a960c3350f0b111a7464bf8",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://nausika.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "nausika_calculator",
+          "canonical_hash": "sha256:355d9e696c52f25c5b3ca4af55b7aecce0681b328b0548cc60dfd255cf43fe7d",
+          "description": "Evaluate a math expression and return the numeric result. Useful for fuel consumption, range/autonomy estimates, unit conversions, and any ad-hoc arithmetic the user needs.\n\nSupported (exhaustive): +, -, *, /, ^, %, parentheses, sqrt(), abs(), ceil(), floor(), round(), sin(), cos(), tan(), log(), exp(), min(), max(), PI, E. Anything else (atan2, pow, log10, hypot, if, comparisons, factorial, …) is rejected.\n\nExamples:\n  - \"How much fuel for 120 nm at 8.5 L/h and 6 kn?\" -> expression: \"(120 / 6) * 8.5\"\n  - \"Convert 45 nm to km\" -> expression: \"45 * 1.852\"\n\nTip: combine with nausika_sea_route distance and nausika_get_boat_profile fuel rate for consumption estimates.",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "precision"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "precision": "integer",
+            "expression": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "precision": {
+                "type": "integer",
+                "default": 4,
+                "maximum": 15,
+                "minimum": 0,
+                "description": "Decimal places in the result (default 4)"
+              },
+              "expression": {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1,
+                "description": "Math expression to evaluate (e.g. '(450 / 8.5) * 1.1', 'sqrt(3^2 + 4^2)')"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "number"
+              },
+              "precision": {
+                "type": "integer"
+              },
+              "expression": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "expression",
+              "result",
+              "precision"
+            ]
+          },
+          "description_hash": "sha256:a5b283cce2b33f05cf6c1d02be572df7e3d94694e58a91730a7f199c0ccf1daf"
+        },
+        {
+          "name": "nausika_convert_coordinates",
+          "canonical_hash": "sha256:841d202cbc414b6e7ca4f40c7b2a7aa1b9e20ca84cf7e82592e704ddd149f82e",
+          "description": "Convert coordinates between decimal degrees, degrees-minutes-seconds (DMS), and degrees-decimal minutes (DM).\n\nAccepts any mix of formats as input and returns all three representations.\n\nInput formats:\n  - Decimal: 41.0289 or \"41.0289\"\n  - DMS: \"41°01′44.04″N\" or \"41°01'44.04\\\"N\"\n  - DM: \"41°01.7340′N\" or \"41°01.7340'N\"\n\nExamples:\n  - Decimal to DMS: latitude=41.0289, longitude=9.545 → 41°01′44.04″N, 009°32′42.00″E\n  - DMS to decimal: latitude=\"41°01′44.04″N\", longitude=\"009°32′42.00″E\" → 41.0289, 9.545\n  - DM to decimal: latitude=\"41°01.1'N\", longitude=\"009°32.7'E\" → 41.01833, 9.545\n\nTip: use this to verify coordinates from nautical charts before route planning or place lookup.",
+          "is_mutating": false,
+          "property_keys": [
+            "latitude",
+            "longitude"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "latitude": "['number', 'string']",
+            "longitude": "['number', 'string']"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": [
+                  "number",
+                  "string"
+                ],
+                "description": "Latitude as decimal degrees (e.g. 41.0289) or DMS/DM string (e.g. \"41°01′44.04″N\" or \"41°01.7'N\")"
+              },
+              "longitude": {
+                "type": [
+                  "number",
+                  "string"
+                ],
+                "description": "Longitude as decimal degrees (e.g. 9.545) or DMS/DM string (e.g. \"009°32′42.00″E\" or \"9°32.7'E\")"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "dm": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "string"
+                  },
+                  "longitude": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "dms": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "string"
+                  },
+                  "longitude": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "decimal": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "input_format": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "string"
+                  },
+                  "longitude": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "decimal",
+              "dms",
+              "dm",
+              "input_format"
+            ]
+          },
+          "description_hash": "sha256:ffd7365d65f827574af65ddf0765feaa0ce02113074c241ea7f70f2986dc02a4"
+        },
+        {
+          "name": "nausika_describe_place_schema",
+          "canonical_hash": "sha256:c7a39ba093500e9f2526e248c5241577862a095c6059350e7bd7389eb5c92477",
+          "description": "Returns the expected attributes and their types for a given place type. Useful to understand what fields are available on places of a given type.",
+          "is_mutating": false,
+          "property_keys": [
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "marina",
+                  "port",
+                  "bay",
+                  "fuel_station",
+                  "yacht_club",
+                  "city",
+                  "island",
+                  "cape",
+                  "gulf",
+                  "lighthouse",
+                  "beach",
+                  "town",
+                  "village",
+                  "peninsula",
+                  "strait"
+                ],
+                "type": "string",
+                "description": "Place type to describe (e.g. marina, bay, port). See nausika_describe_place_schema response 'Valid place types' for the full enum."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "agentRules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/properties/universalRules/items"
+                }
+              },
+              "attributes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/properties/promotedColumns/items"
+                }
+              },
+              "imageRules": {
+                "type": "object",
+                "required": [
+                  "maxCount",
+                  "dedupKey",
+                  "acceptedSources",
+                  "forbiddenSources",
+                  "validation"
+                ],
+                "properties": {
+                  "dedupKey": {
+                    "type": "string"
+                  },
+                  "maxCount": {
+                    "type": "number"
+                  },
+                  "validation": {
+                    "type": "string"
+                  },
+                  "acceptedSources": {
+                    "type": "string"
+                  },
+                  "forbiddenSources": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "imageFields": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/properties/promotedColumns/items"
+                }
+              },
+              "requestedType": {
+                "type": "string"
+              },
+              "agentRuleNotes": {
+                "type": "object",
+                "required": [
+                  "appliesTo",
+                  "bypassedBy",
+                  "errorBehavior"
+                ],
+                "properties": {
+                  "appliesTo": {
+                    "type": "string"
+                  },
+                  "bypassedBy": {
+                    "type": "string"
+                  },
+                  "errorBehavior": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "universalRules": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "field",
+                    "requirement"
+                  ],
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "appliesTo": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "rationale": {
+                      "type": "string"
+                    },
+                    "requirement": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "promotedColumns": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "type",
+                    "required"
+                  ],
+                  "properties": {
+                    "enum": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "type",
+              "requestedType",
+              "promotedColumns",
+              "attributes",
+              "imageFields",
+              "imageRules",
+              "universalRules",
+              "agentRules",
+              "agentRuleNotes"
+            ]
+          },
+          "description_hash": "sha256:f27572d57dfb240a858abefc4c666dcb0be6d43a83acd552b8485d9ccba1db3d"
+        },
+        {
+          "name": "nausika_geocode",
+          "canonical_hash": "sha256:6ea7320ddc7ddd7d19d161a203989b1e1c0505e9b7cb1552f4ff8efa95d3d5d3",
+          "description": "Resolve place names to coordinates or find places near coordinates.\n\nTwo modes:\n  - Forward: provide 'query' to search by place name. Searches the curated marine database first; if no confident match, falls back to a global place-name source.\n  - Reverse: provide 'latitude' + 'longitude' to find nearest curated places.\n\nCoverage: the curated database is Mediterranean-focused (marine POIs). The global fallback covers forward queries outside the Mediterranean. Reverse geocoding returns empty results outside the Mediterranean basin.\n\nEach forward result includes a 'source' field: \"local\" (curated marine database) or \"osm\" (OpenStreetMap fallback).\n\nReturns: Matching places with name, type, category, coordinates, plus similarity (forward, local) or distance (reverse).\n\nExamples:\n  - query: \"Portofino\" -> matches with coordinates and similarity\n  - query: \"Lisbon\" -> falls back to the global source\n  - latitude: 44.3, longitude: 9.21 -> nearest places with distance\n\nTip: use coordinates from results with nausika_marine_forecast, nausika_tides, nausika_search_places, or nausika_sea_route.",
+          "is_mutating": false,
+          "property_keys": [
+            "latitude",
+            "limit",
+            "longitude",
+            "query",
+            "radius_m"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "latitude": "number",
+            "radius_m": "integer",
+            "longitude": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 3,
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Max results (default 3, max 10)"
+              },
+              "query": {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "Place name to search (forward geocoding)"
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude for reverse geocoding"
+              },
+              "radius_m": {
+                "type": "integer",
+                "default": 50000,
+                "maximum": 200000,
+                "minimum": 1000,
+                "description": "Search radius for reverse geocoding in meters (default 50km)"
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude for reverse geocoding"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "forward",
+                  "reverse"
+                ],
+                "type": "string"
+              },
+              "count": {
+                "type": "number"
+              },
+              "query": {
+                "type": "string"
+              },
+              "source": {
+                "enum": [
+                  "local",
+                  "osm"
+                ],
+                "type": "string"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "category",
+                    "type",
+                    "latitude",
+                    "longitude",
+                    "description",
+                    "source"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "source": {
+                      "enum": [
+                        "local",
+                        "osm"
+                      ],
+                      "type": "string"
+                    },
+                    "country": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "category": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "latitude": {
+                      "type": "number"
+                    },
+                    "longitude": {
+                      "type": "number"
+                    },
+                    "distance_m": {
+                      "type": "number"
+                    },
+                    "similarity": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "mode",
+              "count",
+              "results",
+              "_attribution"
+            ]
+          },
+          "description_hash": "sha256:1ae2a402bca6c572dfc2b7fc627f57ecf8fe1b8d73981d40ab9ae7088c11db37"
+        },
+        {
+          "name": "nausika_get_boat_profile",
+          "canonical_hash": "sha256:e6caae2b0bed0e49ada5ddc93bc146ab4a7d807d967955b25ef3f65b67741ad7",
+          "description": "Get your saved boat profile(s). Omit name for the default boat, or use name=\"*\" to list all boats.\n\nTip: use boat speed/consumption with nausika_sea_route and nausika_calculator for trip planning.",
+          "is_mutating": false,
+          "property_keys": [
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "description": "Boat name. Omit to get the default boat, or use '*' to list all."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "boats": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "loa_m": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "beam_m": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "draft_m": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "engine_hp": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "is_default": {
+                      "type": "boolean"
+                    },
+                    "engine_type": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "max_speed_kts": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "certifications": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "displacement_kg": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "fuel_capacity_l": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "safety_equipment": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "water_capacity_l": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "cruising_speed_kts": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "motor_consumption_l_per_h": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "found": {
+                "type": "boolean"
+              },
+              "is_default": {
+                "type": "boolean"
+              }
+            }
+          },
+          "description_hash": "sha256:1f0fb7b82e04c89649f40cc50954e9f9f902eca823e58808c366e869b4851e4d"
+        },
+        {
+          "name": "nausika_get_favorites",
+          "canonical_hash": "sha256:cc1d47cbee82e68eea1bf1bc9557a6f508e7ed3b8fcb2fb8a29b7d4343847d0a",
+          "description": "List your favorite places with details and personal notes. Ordered by most recently added.\n\nTip: use place coordinates with nausika_sea_route or nausika_marine_forecast for trip planning.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "offset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "offset": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Max results (default 20)"
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "minimum": 0,
+                "description": "Offset for pagination"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "favorites": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "place_id",
+                    "note",
+                    "created_at",
+                    "name",
+                    "type",
+                    "latitude",
+                    "longitude",
+                    "description"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "latitude": {
+                      "type": "number"
+                    },
+                    "place_id": {
+                      "type": "string"
+                    },
+                    "longitude": {
+                      "type": "number"
+                    },
+                    "created_at": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            },
+            "required": [
+              "favorites",
+              "limit",
+              "offset"
+            ]
+          },
+          "description_hash": "sha256:cbbe8ee988baa0fb4be606d9e4194642666c0a63eb31e69d29ae9fea46a7b403"
+        },
+        {
+          "name": "nausika_get_place",
+          "canonical_hash": "sha256:640b3a777a9e4f9763e1e2a19645448de27194b9a2ab384e5159ef06b4025ac5",
+          "description": "Fetch full detail for a single place by ID. Returns canonical attributes (name/coords/category/type), localized i18n names+descriptions, wiki image URLs, ratings aggregates, plus extras only this tool provides: the raw OpenStreetMap tags of the primary OSM feature, and direct links to OSM, Wikidata, and Wikipedia.\n\nUse this after nausika_search_places returns a result you want to drill into. For proximity / text search, use nausika_search_places.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "UUID of the place to fetch"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "i18n": {
+                "type": "object",
+                "properties": {
+                  "names": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "descriptions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "marina",
+                  "port",
+                  "bay",
+                  "fuel_station",
+                  "yacht_club",
+                  "city",
+                  "island",
+                  "cape",
+                  "gulf",
+                  "lighthouse",
+                  "beach",
+                  "town",
+                  "village",
+                  "peninsula",
+                  "strait"
+                ],
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "links": {
+                "type": "object",
+                "properties": {
+                  "osm_url": {
+                    "type": "string"
+                  },
+                  "wikidata_url": {
+                    "type": "string"
+                  },
+                  "wikipedia_url": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "phone": {
+                "type": "string"
+              },
+              "images": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status",
+                    "sort_order",
+                    "thumb_url",
+                    "large_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "width": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "credit": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "height": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "ready",
+                        "failed"
+                      ],
+                      "type": "string"
+                    },
+                    "caption": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "alt_text": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "large_url": {
+                      "type": "string"
+                    },
+                    "thumb_url": {
+                      "type": "string"
+                    },
+                    "sort_order": {
+                      "type": "integer"
+                    },
+                    "attribution_url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "website": {
+                "type": "string"
+              },
+              "category": {
+                "enum": [
+                  "poi",
+                  "location"
+                ],
+                "type": "string"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "max_loa_m": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "wikipedia": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "avg_rating": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "own_rating": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "bottom_type": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "sand",
+                    "mud",
+                    "rock",
+                    "gravel",
+                    "clay",
+                    "coral",
+                    "weed",
+                    "shells"
+                  ],
+                  "type": "string"
+                }
+              },
+              "description": {
+                "type": "string"
+              },
+              "distance_km": {
+                "type": "number"
+              },
+              "elevation_m": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "vhf_channel": {
+                "type": "string"
+              },
+              "wiki_images": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "wikidata_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "is_favorited": {
+                "type": "boolean"
+              },
+              "rating_count": {
+                "type": "number"
+              },
+              "raw_osm_tags": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "shelter_from": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "N",
+                    "NE",
+                    "E",
+                    "SE",
+                    "S",
+                    "SW",
+                    "W",
+                    "NW"
+                  ],
+                  "type": "string"
+                }
+              },
+              "opening_hours": {
+                "type": "string"
+              },
+              "port_of_entry": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "coverage_score": {
+                "type": "number"
+              },
+              "name_canonical": {
+                "type": "string"
+              },
+              "osm_primary_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "osm_primary_type": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "node",
+                      "way",
+                      "relation"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "data_origin_unverified": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "category",
+              "type",
+              "latitude",
+              "longitude",
+              "coverage_score",
+              "sources",
+              "avg_rating",
+              "rating_count",
+              "images",
+              "wiki_images",
+              "links",
+              "raw_osm_tags",
+              "_attribution"
+            ]
+          },
+          "description_hash": "sha256:2e181e8c084f3cf589a60bdb23251e169ab51aec2767953bc970fff882558ec0"
+        },
+        {
+          "name": "nausika_get_ratings",
+          "canonical_hash": "sha256:0aaac9440c7c9c2f08ad5ac785eb961cb70ce0f8f826e1d34fcba679a854b25c",
+          "description": "View ratings for a place (aggregate + your own) or list all your ratings.\n\nExamples:\n  - Place ratings: place_id=\"<uuid>\"\n  - My ratings: my_only=true\n\nTip: ratings are visible in nausika_search_places results to help other sailors.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "my_only",
+            "offset",
+            "place_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "offset": "integer",
+            "my_only": "boolean",
+            "place_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Max results"
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "minimum": 0,
+                "description": "Offset for pagination"
+              },
+              "my_only": {
+                "type": "boolean",
+                "default": false,
+                "description": "List only your own ratings"
+              },
+              "place_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Get ratings for a specific place"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "ratings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "$ref": "#/properties/my_rating/anyOf/0/properties/id"
+                    },
+                    "score": {
+                      "$ref": "#/properties/my_rating/anyOf/0/properties/score"
+                    },
+                    "comment": {
+                      "$ref": "#/properties/my_rating/anyOf/0/properties/comment"
+                    },
+                    "user_id": {
+                      "$ref": "#/properties/my_rating/anyOf/0/properties/user_id"
+                    },
+                    "place_id": {
+                      "$ref": "#/properties/my_rating/anyOf/0/properties/place_id"
+                    },
+                    "created_at": {
+                      "$ref": "#/properties/my_rating/anyOf/0/properties/created_at"
+                    },
+                    "updated_at": {
+                      "$ref": "#/properties/my_rating/anyOf/0/properties/updated_at"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "aggregate": {
+                "type": "object",
+                "required": [
+                  "avg_rating",
+                  "rating_count"
+                ],
+                "properties": {
+                  "dist_1": {
+                    "type": "string"
+                  },
+                  "dist_2": {
+                    "type": "string"
+                  },
+                  "dist_3": {
+                    "type": "string"
+                  },
+                  "dist_4": {
+                    "type": "string"
+                  },
+                  "dist_5": {
+                    "type": "string"
+                  },
+                  "avg_rating": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "rating_count": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              },
+              "my_rating": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "score": {
+                        "type": "number"
+                      },
+                      "comment": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "user_id": {
+                        "type": "string"
+                      },
+                      "place_id": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        ]
+                      },
+                      "updated_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "description_hash": "sha256:d145bd06c03eff22415be2612af6f1f1cf778f0b9c4b30317e3a74ec9ef64f41"
+        },
+        {
+          "name": "nausika_get_routes",
+          "canonical_hash": "sha256:18c0bac620939763dd61310e34c9fe1b9f4bc1887c386ea6fb6ff06f1c185e8b",
+          "description": "List and search your saved routes and itineraries.\n\nExamples:\n  - List all: (no params)\n  - Single route detail: id=\"<route-uuid>\"\n  - Only itineraries: route_type=\"itinerary\"\n\nTip: use leg coordinates with nausika_marine_forecast or nausika_tides to check conditions along the route.",
+          "is_mutating": false,
+          "property_keys": [
+            "id",
+            "limit",
+            "offset",
+            "query",
+            "route_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "limit": "integer",
+            "query": "string",
+            "offset": "integer",
+            "route_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Fetch single route with all legs and POI"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Max results"
+              },
+              "query": {
+                "type": "string",
+                "description": "Search by name"
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "minimum": 0,
+                "description": "Offset for pagination"
+              },
+              "route_type": {
+                "enum": [
+                  "single",
+                  "itinerary"
+                ],
+                "type": "string",
+                "description": "Filter by type"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "legs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              },
+              "name": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "routes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "legs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "user_id": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "route_type": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "route_type": {
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:dc93130669e3667e92c9c66cb6c324ea595a6c3a750aa27f3618bdaae4d785fe"
+        },
+        {
+          "name": "nausika_is_water",
+          "canonical_hash": "sha256:cb2ae7847a45c05d0a4eef5f9699fe01b9f2c59461c2a5b9c39274b754c9ea80",
+          "description": "Check whether a coordinate (latitude, longitude in decimal degrees) is on water or land, and how far it is from the coast. Returns:\n- is_water: boolean (true if over sea, false if over land)\n- distance_to_coast_m: meters to the nearest coastline boundary; meaningful on either side (sea → distance to shore, inland → distance to sea, e.g. Rome ≈ 25 km).\n- source: detection source\n\nUseful to verify waypoints in route planning, or to gauge how coastal/inland a point is.",
+          "is_mutating": false,
+          "property_keys": [
+            "latitude",
+            "longitude"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "latitude": "number",
+            "longitude": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees (-90 to 90)"
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees (-180 to 180)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "is_water": {
+                "type": "boolean"
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "distance_to_coast_m": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "latitude",
+              "longitude",
+              "is_water",
+              "distance_to_coast_m",
+              "source",
+              "_attribution"
+            ]
+          },
+          "description_hash": "sha256:dad3a2b6974b1765ee95de29cfd15eb75e1ae5eef98f08f322d5392ab42defb4"
+        },
+        {
+          "name": "nausika_manage_boat_profile",
+          "canonical_hash": "sha256:9add3bce5c89b09c6e22f206d908275925440f1ee058a51d787b09cad19ab9d8",
+          "description": "Create, update, delete, or set default boat profile. Multiple boats per account, identified by name.\n\nExamples:\n  - Create: action=\"upsert\", name=\"Freya\", type=\"sail\", loa_m=12.5, draft_m=1.8\n  - Update draft: action=\"upsert\", name=\"Freya\", draft_m=2.0\n  - Delete: action=\"delete\", name=\"Freya\"\n  - Set default: action=\"set_default\", name=\"Freya\"\n\nTip: saved boat parameters (speed, consumption) enrich nausika_sea_route duration estimates.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "beam_m",
+            "certifications",
+            "cruising_speed_kts",
+            "displacement_kg",
+            "draft_m",
+            "engine_hp",
+            "engine_type",
+            "fuel_capacity_l",
+            "loa_m",
+            "max_speed_kts",
+            "motor_consumption_l_per_h",
+            "name",
+            "safety_equipment",
+            "type",
+            "water_capacity_l"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "type": "string",
+            "loa_m": "number",
+            "action": "string",
+            "beam_m": "number",
+            "draft_m": "number",
+            "engine_hp": "integer",
+            "engine_type": "string",
+            "max_speed_kts": "number",
+            "certifications": "string",
+            "displacement_kg": "integer",
+            "fuel_capacity_l": "integer",
+            "safety_equipment": "string",
+            "water_capacity_l": "integer",
+            "cruising_speed_kts": "number",
+            "motor_consumption_l_per_h": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "description": "Boat name (required for create, identifies boat for update/delete)"
+              },
+              "type": {
+                "enum": [
+                  "sail",
+                  "motor",
+                  "multihull"
+                ],
+                "type": "string",
+                "description": "Boat type"
+              },
+              "loa_m": {
+                "type": "number",
+                "maximum": 200,
+                "minimum": 1,
+                "description": "Length overall in meters"
+              },
+              "action": {
+                "enum": [
+                  "upsert",
+                  "delete",
+                  "set_default"
+                ],
+                "type": "string",
+                "description": "Create/update, delete, or set a boat as default"
+              },
+              "beam_m": {
+                "type": "number",
+                "maximum": 50,
+                "minimum": 0.5,
+                "description": "Maximum beam in meters"
+              },
+              "draft_m": {
+                "type": "number",
+                "maximum": 20,
+                "minimum": 0.1,
+                "description": "Draft in meters"
+              },
+              "engine_hp": {
+                "type": "integer",
+                "maximum": 5000,
+                "minimum": 1,
+                "description": "Engine power in HP"
+              },
+              "engine_type": {
+                "enum": [
+                  "inboard",
+                  "outboard",
+                  "none"
+                ],
+                "type": "string",
+                "description": "Engine type"
+              },
+              "max_speed_kts": {
+                "type": "number",
+                "maximum": 80,
+                "minimum": 0.5,
+                "description": "Maximum speed in knots"
+              },
+              "certifications": {
+                "type": "string",
+                "description": "Certifications"
+              },
+              "displacement_kg": {
+                "type": "integer",
+                "maximum": 500000,
+                "minimum": 100,
+                "description": "Displacement in kg"
+              },
+              "fuel_capacity_l": {
+                "type": "integer",
+                "maximum": 50000,
+                "minimum": 1,
+                "description": "Fuel tank capacity in liters"
+              },
+              "safety_equipment": {
+                "type": "string",
+                "description": "Safety equipment description"
+              },
+              "water_capacity_l": {
+                "type": "integer",
+                "maximum": 10000,
+                "minimum": 1,
+                "description": "Water tank capacity in liters"
+              },
+              "cruising_speed_kts": {
+                "type": "number",
+                "maximum": 50,
+                "minimum": 0.5,
+                "description": "Cruising speed in knots"
+              },
+              "motor_consumption_l_per_h": {
+                "type": "number",
+                "maximum": 1000,
+                "minimum": 0,
+                "description": "Average motor fuel consumption at cruising RPM, in litres per hour"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "action": {
+                "enum": [
+                  "upsert",
+                  "delete",
+                  "set_default"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:8d486a56e6125e2be9e5beb3bb46d4dcaab90cd7521816246340d15d559b614f"
+        },
+        {
+          "name": "nausika_manage_favorite",
+          "canonical_hash": "sha256:b58ee9c4214d1dce051fa2f99b0295a7df702064397eb2ccf938c555b6fda2b8",
+          "description": "Add or remove a place from your favorites list.\n\nExamples:\n  - Add: action=\"add\", place_id=\"<uuid>\", note=\"Great anchorage for overnight\"\n  - Remove: action=\"remove\", place_id=\"<uuid>\"\n\nTip: find places first with nausika_search_places, then bookmark by place_id.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "note",
+            "place_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "note": "string",
+            "action": "string",
+            "place_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "note": {
+                "type": "string",
+                "description": "Personal note (only for add)"
+              },
+              "action": {
+                "enum": [
+                  "add",
+                  "remove"
+                ],
+                "type": "string",
+                "description": "Add or remove a favorite"
+              },
+              "place_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Place ID to favorite"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "place": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "action": {
+                "enum": [
+                  "add",
+                  "remove"
+                ],
+                "type": "string"
+              },
+              "user_id": {
+                "type": "string"
+              },
+              "place_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              "created_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "place_id"
+            ]
+          },
+          "description_hash": "sha256:b2e082efcdfeb9f6741436a59445c2ce29bfddf9447d4fdd66268c70427c9ea6"
+        },
+        {
+          "name": "nausika_manage_rating",
+          "canonical_hash": "sha256:91d809c83b7c9e584694802bb9119c9c2664e25230a142418cc134e08f4cb01e",
+          "description": "Rate a place (1-5 stars) with an optional private comment. One rating per user per place.\n\nExamples:\n  - Rate: action=\"upsert\", place_id=\"<uuid>\", score=4, comment=\"Clean facilities\"\n  - Delete: action=\"delete\", place_id=\"<uuid>\"\n\nTip: find places first with nausika_search_places, then rate by place_id.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "comment",
+            "place_id",
+            "score"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "score": "integer",
+            "action": "string",
+            "comment": "string",
+            "place_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "score": {
+                "type": "integer",
+                "maximum": 5,
+                "minimum": 1,
+                "description": "Rating 1-5 (required for upsert)"
+              },
+              "action": {
+                "enum": [
+                  "upsert",
+                  "delete"
+                ],
+                "type": "string",
+                "description": "Create/update or delete your rating"
+              },
+              "comment": {
+                "type": "string",
+                "description": "Private comment (only visible to you)"
+              },
+              "place_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Place to rate"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "enum": [
+                  "upsert",
+                  "delete"
+                ],
+                "type": "string"
+              },
+              "rating": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "score": {
+                    "type": "number"
+                  },
+                  "comment": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "user_id": {
+                    "type": "string"
+                  },
+                  "place_id": {
+                    "type": "string"
+                  },
+                  "created_at": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "updated_at": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": true
+              },
+              "place_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+              },
+              "aggregate": {
+                "type": "object",
+                "required": [
+                  "avg_rating",
+                  "rating_count"
+                ],
+                "properties": {
+                  "dist_1": {
+                    "type": "string"
+                  },
+                  "dist_2": {
+                    "type": "string"
+                  },
+                  "dist_3": {
+                    "type": "string"
+                  },
+                  "dist_4": {
+                    "type": "string"
+                  },
+                  "dist_5": {
+                    "type": "string"
+                  },
+                  "avg_rating": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "rating_count": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "action",
+              "place_id"
+            ]
+          },
+          "description_hash": "sha256:79e1a3f56a5b06cb097c6ced33d64d9a8303083ac9a91fcd004303e32ba34a62"
+        },
+        {
+          "name": "nausika_manage_route",
+          "canonical_hash": "sha256:5427321426444e74a59b6c8d64cd6f52d55bf5b58e024c368bf4f9f62bdc7104",
+          "description": "Save a route or compose a multi-day itinerary. A route has one or more legs, each optionally linked to places.\n\nTypical flow: calculate legs with nausika_sea_route, then save results here.\n\nExamples:\n  - Save single route: action=\"upsert\", name=\"Genova to Bastia\", route_type=\"single\", legs=[{...}]\n  - Create itinerary: action=\"upsert\", name=\"Corsica Trip\", route_type=\"itinerary\", legs=[{leg_order:1,...}, {leg_order:2,...}]\n  - Delete: action=\"delete\", id=\"<route-uuid>\"\n\nTip: calculate legs with nausika_sea_route first, then save the route here.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "description",
+            "id",
+            "legs",
+            "name",
+            "route_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "legs": "array",
+            "name": "string",
+            "action": "string",
+            "route_type": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Route ID (for update/delete)"
+              },
+              "legs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "leg_order",
+                    "origin_name",
+                    "origin_lat",
+                    "origin_lon",
+                    "dest_name",
+                    "dest_lat",
+                    "dest_lon"
+                  ],
+                  "properties": {
+                    "pois": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "place_id",
+                          "role"
+                        ],
+                        "properties": {
+                          "note": {
+                            "type": "string",
+                            "description": "Note about this stop"
+                          },
+                          "role": {
+                            "enum": [
+                              "overnight",
+                              "fuel",
+                              "dining",
+                              "waypoint"
+                            ],
+                            "type": "string",
+                            "description": "Role of this place in the leg"
+                          },
+                          "place_id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Place ID"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "description": "Places associated with this leg"
+                    },
+                    "notes": {
+                      "type": "string",
+                      "description": "Leg notes"
+                    },
+                    "geojson": {
+                      "type": "object",
+                      "description": "GeoJSON route geometry",
+                      "additionalProperties": {}
+                    },
+                    "dest_lat": {
+                      "type": "number",
+                      "maximum": 90,
+                      "minimum": -90,
+                      "description": "Destination latitude"
+                    },
+                    "dest_lon": {
+                      "type": "number",
+                      "maximum": 180,
+                      "minimum": -180,
+                      "description": "Destination longitude"
+                    },
+                    "dest_name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Destination name"
+                    },
+                    "leg_order": {
+                      "type": "integer",
+                      "maximum": 100,
+                      "minimum": 1,
+                      "description": "Order in the itinerary"
+                    },
+                    "origin_lat": {
+                      "type": "number",
+                      "maximum": 90,
+                      "minimum": -90,
+                      "description": "Origin latitude"
+                    },
+                    "origin_lon": {
+                      "type": "number",
+                      "maximum": 180,
+                      "minimum": -180,
+                      "description": "Origin longitude"
+                    },
+                    "distance_nm": {
+                      "type": "number",
+                      "description": "Distance in nautical miles"
+                    },
+                    "origin_name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Origin name"
+                    },
+                    "departure_date": {
+                      "type": "string",
+                      "description": "Planned departure (ISO 8601)"
+                    },
+                    "duration_hours": {
+                      "type": "number",
+                      "description": "Estimated duration in hours"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Route legs (replaces all existing legs on update)"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1,
+                "description": "Route name"
+              },
+              "action": {
+                "enum": [
+                  "upsert",
+                  "delete"
+                ],
+                "type": "string",
+                "description": "Create/update or delete"
+              },
+              "route_type": {
+                "enum": [
+                  "single",
+                  "itinerary"
+                ],
+                "type": "string",
+                "description": "single leg or multi-leg itinerary"
+              },
+              "description": {
+                "type": "string",
+                "description": "Route description"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "action": {
+                "enum": [
+                  "upsert",
+                  "delete"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:dc56cfff6a6bf8532f937282c33bf35330de2ccf96592ea58fe9eac4004ddd67"
+        },
+        {
+          "name": "nausika_marine_forecast",
+          "canonical_hash": "sha256:23e42d73b5b8874c45767dfe14e8d7381c888d1b2f2ef21b4596dad0761801c9",
+          "description": "Marine + atmospheric weather forecast for a coordinate (latitude, longitude in decimal degrees) at sea or on a coast.\n\nProvides marine variables (waves, swell, currents, SST, sea level) together with atmospheric variables (wind, gusts, pressure, weather code, visibility, precipitation, temperature, UV, sunrise/sunset). All directions are reported FROM in degrees and 16-sector compass labels in the text content.\n\nPRESETS (default = tactical):\n- now: current snapshot only.\n- today: 24h hourly_1 + daily.\n- tactical: 3-day hourly_3 + daily.\n- planning: 8-day daily.\n- extended: 14-day daily. Marine variables truncate to 8 days; days beyond are returned as null on marine fields with a \"marine coverage ends\" marker in the text.\n- none: same shape as tactical (3 days, hourly_3 + daily) but with NO core variables seeded — caller MUST supply a non-empty variables[] list (the call fails otherwise). Use when you want exactly N variables and nothing else.\n\nWindow overrides (most-specific wins): start_hour/end_hour > start_date/end_date > forecast_hours > forecast_days. Sub-day windows (forecast_hours, start_hour/end_hour) automatically drop the daily summary — a 24-hour aggregate doesn't represent a sub-day slice. start_hour/end_hour additionally defaults temporal_resolution to hourly_1 so bucket labels (e.g. \"08:00\") match the requested timestamps exactly; pass temporal_resolution explicitly to override.\n\nVariables (additive to preset core): see schema for the full list — covers waves/swell/wind-wave components, ocean currents (FROM-corrected), SST, sea level / inverse-barometer height, wind/gusts/pressure, weather_code, visibility, cape, precipitation (sum + rain/showers), cloud layers, temperature, apparent temperature, dew_point, RH, UV index, daylight + sunshine duration. Every variable that is selected renders in the text output (singletons included), and structured arrays carry the raw data.\n\nCoverage and graceful degradation: Nausika is centered on the Mediterranean basin; the underlying global atmospheric and marine endpoints still answer worldwide. Best marine-variable coverage is in well-modeled seas (Mediterranean, North Sea, Atlantic shelves). If marine forecast has no coverage (lake, inland) or the nearest sea cell is too far from the requested point, the response carries marine_unavailable_reason and the atmospheric block. The same applies in reverse for atmospheric outages.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "end_hour",
+            "forecast_days",
+            "forecast_hours",
+            "latitude",
+            "longitude",
+            "preset",
+            "start_date",
+            "start_hour",
+            "temporal_resolution",
+            "variables"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "preset": "string",
+            "end_date": "string",
+            "end_hour": "string",
+            "latitude": "number",
+            "longitude": "number",
+            "variables": "array",
+            "start_date": "string",
+            "start_hour": "string",
+            "forecast_days": "integer",
+            "forecast_hours": "integer",
+            "temporal_resolution": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "preset": {
+                "enum": [
+                  "now",
+                  "today",
+                  "tactical",
+                  "planning",
+                  "extended",
+                  "none"
+                ],
+                "type": "string",
+                "default": "tactical",
+                "description": "High-level mode. now=current snapshot, today=24h hourly+daily, tactical=3d hourly_3+daily (default), planning=8d daily, extended=14d daily, none=3d hourly_3+daily but with NO core variables (caller supplies full variables list)."
+              },
+              "end_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Window end date YYYY-MM-DD. Used with start_date."
+              },
+              "end_hour": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$",
+                "description": "Window end ISO YYYY-MM-DDThh:mm. Used with start_hour."
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees"
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees"
+              },
+              "variables": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "wave_height",
+                    "wave_direction",
+                    "wave_period",
+                    "wind_wave_height",
+                    "wind_wave_direction",
+                    "wind_wave_period",
+                    "wind_wave_peak_period",
+                    "swell_wave_height",
+                    "swell_wave_direction",
+                    "swell_wave_period",
+                    "swell_wave_peak_period",
+                    "secondary_swell_wave_height",
+                    "secondary_swell_wave_direction",
+                    "secondary_swell_wave_period",
+                    "tertiary_swell_wave_height",
+                    "tertiary_swell_wave_direction",
+                    "tertiary_swell_wave_period",
+                    "ocean_current_velocity",
+                    "ocean_current_direction",
+                    "sea_surface_temperature",
+                    "sea_level_height_msl",
+                    "invert_barometer_height",
+                    "wind_speed_10m",
+                    "wind_direction_10m",
+                    "wind_gusts_10m",
+                    "pressure_msl",
+                    "surface_pressure",
+                    "weather_code",
+                    "visibility",
+                    "cloud_cover",
+                    "cloud_cover_low",
+                    "cloud_cover_mid",
+                    "cloud_cover_high",
+                    "precipitation",
+                    "precipitation_probability",
+                    "rain",
+                    "showers",
+                    "temperature_2m",
+                    "apparent_temperature",
+                    "relative_humidity_2m",
+                    "dew_point_2m",
+                    "cape",
+                    "is_day",
+                    "shortwave_radiation",
+                    "sunrise",
+                    "sunset",
+                    "daylight_duration",
+                    "sunshine_duration",
+                    "uv_index_max",
+                    "uv_index_clear_sky_max"
+                  ],
+                  "type": "string"
+                },
+                "description": "Extra variables added to the preset core (additive). Each is routed to its endpoint automatically. Required (non-empty) when preset='none'. Examples: swell_wave_height/swell_wave_direction/swell_wave_period for swell breakdown, ocean_current_velocity/ocean_current_direction (FROM-corrected) for currents, cape for thunderstorm risk, uv_index_max for UV."
+              },
+              "start_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Window start date YYYY-MM-DD. Used with end_date. Wins over forecast_hours/forecast_days."
+              },
+              "start_hour": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$",
+                "description": "Window start ISO YYYY-MM-DDThh:mm. Used with end_hour. Most specific override (wins over date and hour-count windows)."
+              },
+              "forecast_days": {
+                "type": "integer",
+                "maximum": 16,
+                "minimum": 1,
+                "description": "Override preset days (1-16). Forecast endpoint caps at 16, Marine at 8."
+              },
+              "forecast_hours": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Override with an hourly window. Wins over forecast_days."
+              },
+              "temporal_resolution": {
+                "enum": [
+                  "hourly_1",
+                  "hourly_3",
+                  "hourly_6"
+                ],
+                "type": "string",
+                "description": "Override hourly granularity. hourly_1=every hour, hourly_3=every 3h, hourly_6=every 6h. Defaults to the preset's resolution."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "$ref": "#/properties/hourly"
+              },
+              "units": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "hourly": {
+                "type": "object",
+                "required": [
+                  "time"
+                ],
+                "properties": {
+                  "time": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "number",
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "preset": {
+                "type": "string"
+              },
+              "current": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "_disclaimer": {
+                "type": "string"
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "marine_resolved": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "latitude",
+                      "longitude",
+                      "distance_km"
+                    ],
+                    "properties": {
+                      "latitude": {
+                        "type": "number"
+                      },
+                      "longitude": {
+                        "type": "number"
+                      },
+                      "distance_km": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "forecast_resolved": {
+                "anyOf": [
+                  {
+                    "$ref": "#/properties/marine_resolved/anyOf/0"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "coordinates_requested": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "marine_unavailable_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "forecast_unavailable_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "preset",
+              "timezone",
+              "coordinates_requested",
+              "marine_resolved",
+              "forecast_resolved",
+              "marine_unavailable_reason",
+              "forecast_unavailable_reason",
+              "units"
+            ]
+          },
+          "description_hash": "sha256:9d6c14b7524da5462b313e2c78e85ac46950e8c494c17e0830ba446558167ec9"
+        },
+        {
+          "name": "nausika_sea_route",
+          "canonical_hash": "sha256:8ae2695ea6c70b769e412546539be5fe2dfbc3b3ad531472d68a408325c05c62",
+          "description": "Calculate the maritime route between two points, avoiding land.\n\nRoutes have enhanced precision near Nausika places (marinas, anchorages, etc.).\n\nCoverage: routing graph is centered on the Mediterranean basin and adjacent waters. Outside that area the tool returns an explicit error rather than a misleading partial result.\n\nReturns: Distance, estimated duration, and waypoint count. Full GeoJSON route available in structured output. Use include_waypoints: false for quick distance/duration without route details.\n\nExamples:\n  - \"Route from Genova to Bastia\" -> origin_lat=44.4, origin_lon=8.93, dest_lat=42.7, dest_lon=9.45\n  - \"Distance Naples to Palermo\" -> origin_lat=40.84, origin_lon=14.27, dest_lat=38.12, dest_lon=13.36, include_waypoints=false\n\nTip: use nausika_geocode to resolve place names. Use nausika_calculator for fuel/time estimates from the returned distance.",
+          "is_mutating": false,
+          "property_keys": [
+            "dest_lat",
+            "dest_lon",
+            "include_waypoints",
+            "optimization",
+            "origin_lat",
+            "origin_lon",
+            "snap_to_water",
+            "speed_knots",
+            "units"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "units": "string",
+            "dest_lat": "number",
+            "dest_lon": "number",
+            "origin_lat": "number",
+            "origin_lon": "number",
+            "speed_knots": "number",
+            "optimization": "string",
+            "snap_to_water": "boolean",
+            "include_waypoints": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "units": {
+                "enum": [
+                  "nauticalmiles",
+                  "kilometers",
+                  "miles"
+                ],
+                "type": "string",
+                "default": "nauticalmiles",
+                "description": "Distance units (default: nauticalmiles)"
+              },
+              "dest_lat": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Destination latitude"
+              },
+              "dest_lon": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Destination longitude"
+              },
+              "origin_lat": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Origin latitude"
+              },
+              "origin_lon": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Origin longitude"
+              },
+              "speed_knots": {
+                "type": "number",
+                "default": 6,
+                "maximum": 50,
+                "minimum": 0.5,
+                "description": "Vessel speed in knots for ETA calculation (default 6 kn, typical sailing yacht)"
+              },
+              "optimization": {
+                "enum": [
+                  "off",
+                  "fast",
+                  "precise"
+                ],
+                "type": "string",
+                "default": "fast",
+                "description": "Waypoint smoothing level. 'fast' (default): light smoothing, milliseconds. 'precise': highest-quality smoothing, slower (up to a few seconds). 'off': raw waypoints, unsmoothed."
+              },
+              "snap_to_water": {
+                "type": "boolean",
+                "default": true,
+                "description": "If origin or destination falls on land (e.g. a city centroid from nausika_geocode like Lisbon → 38.71, -9.14), automatically snap to the nearest known marine place (marina, anchorage, port) within a nearby distance. Set to false to disable and force a hard error on land coordinates. Default true."
+              },
+              "include_waypoints": {
+                "type": "boolean",
+                "default": true,
+                "description": "Set to false for distance-only mode (no waypoints or GeoJSON)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "units": {
+                "type": "string"
+              },
+              "origin": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "distance": {
+                "type": "number"
+              },
+              "_disclaimer": {
+                "type": "string"
+              },
+              "destination": {
+                "$ref": "#/properties/origin"
+              },
+              "speed_knots": {
+                "type": "number"
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "dest_snap_nm": {
+                "type": "number"
+              },
+              "optimization": {
+                "type": "string"
+              },
+              "snap_warning": {
+                "type": "boolean"
+              },
+              "route_geojson": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "properties",
+                  "geometry"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "Feature"
+                  },
+                  "geometry": {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "coordinates"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "LineString"
+                      },
+                      "coordinates": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "properties": {
+                    "type": "object",
+                    "required": [
+                      "length",
+                      "units"
+                    ],
+                    "properties": {
+                      "units": {
+                        "type": "string"
+                      },
+                      "length": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "origin_snap_nm": {
+                "type": "number"
+              },
+              "dest_snapped_to": {
+                "$ref": "#/properties/origin_snapped_to"
+              },
+              "waypoints_count": {
+                "type": "number"
+              },
+              "dest_snapped_from": {
+                "type": "object",
+                "required": [
+                  "lat",
+                  "lon"
+                ],
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lon": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "origin_snapped_to": {
+                "type": "object",
+                "required": [
+                  "lat",
+                  "lon"
+                ],
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lon": {
+                    "type": "number"
+                  },
+                  "place_name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "origin_snapped_from": {
+                "type": "object",
+                "required": [
+                  "lat",
+                  "lon"
+                ],
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lon": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "dest_snap_distance_nm": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "origin_snap_distance_nm": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "estimated_duration_hours": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "origin",
+              "destination",
+              "distance",
+              "units",
+              "speed_knots",
+              "estimated_duration_hours",
+              "_attribution"
+            ]
+          },
+          "description_hash": "sha256:030ab723f0fbb5e1e7e01f0ff817c356d79a798ca63edef19c7b0390fcca0c92"
+        },
+        {
+          "name": "nausika_search_places",
+          "canonical_hash": "sha256:8ad928edb21be0af52e52c4aacd21bf240d86ed95cb8a8e7ca2196a563c49c13",
+          "description": "Search for nautical places and points of interest by proximity. Supports text search, type/category filters, and promoted attribute filters (shelter, bottom type, coverage score).\n\nCoverage: the curated Nausika dataset focuses on the Mediterranean basin. Searches outside the Mediterranean typically return zero or sparse results until coverage is expanded upstream.\n\nReturns places with name, type, category, coordinates, distance, ratings, and relevant attributes including i18n names/descriptions, wiki image URLs, and OSM/Wikidata links. Authenticated users also get personalization (favorites, own rating).\n\nPlace types: marina, port, bay, fuel_station, yacht_club, city, island, cape, gulf, lighthouse.\n\nExamples:\n  - Nearby marinas: latitude=44.3, longitude=9.21, types=[\"marina\"]\n  - Text search near location: latitude=40.84, longitude=14.27, query=\"marina napoli\"\n  - Sheltered bays: latitude=44.3, longitude=9.21, type=\"bay\", shelter_from=\"NW\"\n  - Italian display names: latitude=44.4, longitude=8.93, names_lang=\"it\"\n\nFor single-place lookup by id (with raw OSM tags), use nausika_get_place(id).\n\nTip: use nausika_sea_route to calculate distance to results.",
+          "is_mutating": false,
+          "property_keys": [
+            "bottom_type",
+            "category",
+            "latitude",
+            "limit",
+            "longitude",
+            "max_coverage_score",
+            "min_coverage_score",
+            "names_lang",
+            "offset",
+            "query",
+            "radius_km",
+            "shelter_from",
+            "type",
+            "types"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "type": "string",
+            "limit": "integer",
+            "query": "string",
+            "types": "array",
+            "offset": "integer",
+            "category": "string",
+            "latitude": "number",
+            "longitude": "number",
+            "radius_km": "number",
+            "names_lang": "string",
+            "bottom_type": "string",
+            "shelter_from": "string",
+            "max_coverage_score": "integer",
+            "min_coverage_score": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "marina",
+                  "port",
+                  "bay",
+                  "fuel_station",
+                  "yacht_club",
+                  "city",
+                  "island",
+                  "cape",
+                  "gulf",
+                  "lighthouse",
+                  "beach",
+                  "town",
+                  "village",
+                  "peninsula",
+                  "strait"
+                ],
+                "type": "string",
+                "description": "Filter by place type (ignored if 'types' is provided)"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 30,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Max results (default 30, max 100)"
+              },
+              "query": {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "Fuzzy text search on place name"
+              },
+              "types": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "marina",
+                    "port",
+                    "bay",
+                    "fuel_station",
+                    "yacht_club",
+                    "city",
+                    "island",
+                    "cape",
+                    "gulf",
+                    "lighthouse",
+                    "beach",
+                    "town",
+                    "village",
+                    "peninsula",
+                    "strait"
+                  ],
+                  "type": "string"
+                },
+                "description": "Filter by multiple place types (takes precedence over 'type')"
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "minimum": 0,
+                "description": "Offset for pagination"
+              },
+              "category": {
+                "enum": [
+                  "poi",
+                  "location"
+                ],
+                "type": "string",
+                "description": "Filter by category: 'poi' or 'location'"
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Center latitude for proximity search"
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Center longitude for proximity search"
+              },
+              "radius_km": {
+                "type": "number",
+                "default": 50,
+                "maximum": 200,
+                "minimum": 0.5,
+                "description": "Search radius in km (default 50, max 200)"
+              },
+              "names_lang": {
+                "type": "string",
+                "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$",
+                "description": "ISO 639-1 lang code (e.g. 'it'). When set, response `name` is replaced with attributes.i18n.names[lang] if present; canonical OSM name kept as `name_canonical`."
+              },
+              "bottom_type": {
+                "enum": [
+                  "sand",
+                  "mud",
+                  "rock",
+                  "gravel",
+                  "clay",
+                  "coral",
+                  "weed",
+                  "shells"
+                ],
+                "type": "string",
+                "description": "Bottom type filter (e.g. 'sand')"
+              },
+              "shelter_from": {
+                "enum": [
+                  "N",
+                  "NE",
+                  "E",
+                  "SE",
+                  "S",
+                  "SW",
+                  "W",
+                  "NW"
+                ],
+                "type": "string",
+                "description": "Compass direction to filter shelter (e.g. 'NW')"
+              },
+              "max_coverage_score": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 0,
+                "description": "Maximum coverage score (0-100) — filter to low-coverage places that need enrichment"
+              },
+              "min_coverage_score": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 0,
+                "description": "Minimum coverage score (0-100) — filter places by data completeness"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number"
+              },
+              "center": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "places": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "category",
+                    "type",
+                    "latitude",
+                    "longitude",
+                    "coverage_score",
+                    "sources",
+                    "avg_rating",
+                    "rating_count",
+                    "images",
+                    "wiki_images",
+                    "links"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "i18n": {
+                      "type": "object",
+                      "properties": {
+                        "names": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "descriptions": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "enum": [
+                        "marina",
+                        "port",
+                        "bay",
+                        "fuel_station",
+                        "yacht_club",
+                        "city",
+                        "island",
+                        "cape",
+                        "gulf",
+                        "lighthouse",
+                        "beach",
+                        "town",
+                        "village",
+                        "peninsula",
+                        "strait"
+                      ],
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "osm_url": {
+                          "type": "string"
+                        },
+                        "wikidata_url": {
+                          "type": "string"
+                        },
+                        "wikipedia_url": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "images": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "status",
+                          "sort_order",
+                          "thumb_url",
+                          "large_url"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "width": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "credit": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "height": {
+                            "anyOf": [
+                              {
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "enum": [
+                              "pending",
+                              "processing",
+                              "ready",
+                              "failed"
+                            ],
+                            "type": "string"
+                          },
+                          "caption": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "alt_text": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "large_url": {
+                            "type": "string"
+                          },
+                          "thumb_url": {
+                            "type": "string"
+                          },
+                          "sort_order": {
+                            "type": "integer"
+                          },
+                          "attribution_url": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "website": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "enum": [
+                        "poi",
+                        "location"
+                      ],
+                      "type": "string"
+                    },
+                    "latitude": {
+                      "type": "number"
+                    },
+                    "longitude": {
+                      "type": "number"
+                    },
+                    "max_loa_m": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "wikipedia": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "avg_rating": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "own_rating": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "bottom_type": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "sand",
+                          "mud",
+                          "rock",
+                          "gravel",
+                          "clay",
+                          "coral",
+                          "weed",
+                          "shells"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "distance_km": {
+                      "type": "number"
+                    },
+                    "elevation_m": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "vhf_channel": {
+                      "type": "string"
+                    },
+                    "wiki_images": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "wikidata_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "is_favorited": {
+                      "type": "boolean"
+                    },
+                    "rating_count": {
+                      "type": "number"
+                    },
+                    "shelter_from": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "N",
+                          "NE",
+                          "E",
+                          "SE",
+                          "S",
+                          "SW",
+                          "W",
+                          "NW"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "opening_hours": {
+                      "type": "string"
+                    },
+                    "port_of_entry": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "coverage_score": {
+                      "type": "number"
+                    },
+                    "name_canonical": {
+                      "type": "string"
+                    },
+                    "osm_primary_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "osm_primary_type": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "node",
+                            "way",
+                            "relation"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "data_origin_unverified": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "radius_km": {
+                "type": "number"
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "center",
+              "radius_km",
+              "count",
+              "places",
+              "_attribution"
+            ]
+          },
+          "description_hash": "sha256:80cd04deb973d2fa5ab727aa4c5bdac34e7402b9b549e0c44e62063ad7a96ec3"
+        },
+        {
+          "name": "nausika_seasonal_forecast",
+          "canonical_hash": "sha256:71baa6a54bca954bd66d68c7f25bba60fa24b65f35689fab242d1f2193bc841a",
+          "description": "Seasonal weather outlook for a coordinate (latitude, longitude in decimal degrees), sourced from ECMWF SEAS5 (1–7 month horizon) via Open-Meteo.\n\nUSE CASE: planning a sailing trip 1–7 months ahead — \"what does August in Sardegna typically look like?\" Returns ENSEMBLE-MEAN absolute values (NOT anomalies). For deterministic short-term (≤16 days) use nausika_marine_forecast instead.\n\nGRANULARITY: response carries both DAILY arrays (one entry per day in the requested range) and MONTHLY arrays (one entry per calendar month touched by the range). Daily values are noisier at long horizons; monthly aggregates are statistically more reliable.\n\nCORE VARIABLES (always seeded): wind_speed_10m, wind_direction_10m (daily-only — SEAS5 has NO monthly direction), sea_surface_temperature, temperature_2m, precipitation, cloud_cover. Add more via variables[]: pressure_msl, surface_pressure, sunshine_duration, shortwave_radiation, apparent_temperature, dew_point_2m, relative_humidity_2m, weather_code (daily-only), sunrise_sunset (daily-only), snowfall, snow_depth.\n\nCONSTRAINTS: start_date must be today or future (UTC); end_date ≤ today + 210 days; range ≤ 215 days. SEAS5 has NO wave data — for waves at any horizon use nausika_marine_forecast (≤8 days marine).\n\nLIMITS: 36 km grid resolution, NOT bias-corrected, area forecast only. coordinates_resolved.distance_km exposes the snap distance (commonly 10–25 km for coastal points). Surface the disclaimer in client-facing text.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "latitude",
+            "longitude",
+            "start_date",
+            "variables"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "end_date": "string",
+            "latitude": "number",
+            "longitude": "number",
+            "variables": "array",
+            "start_date": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "end_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Window end date (UTC, ISO YYYY-MM-DD). Must be ≥ start_date and ≤ today + 210 days (SEAS5 horizon)."
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees"
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees"
+              },
+              "variables": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "wind_speed_10m",
+                    "wind_direction_10m",
+                    "sea_surface_temperature",
+                    "temperature_2m",
+                    "precipitation",
+                    "cloud_cover",
+                    "pressure_msl",
+                    "surface_pressure",
+                    "sunshine_duration",
+                    "shortwave_radiation",
+                    "apparent_temperature",
+                    "dew_point_2m",
+                    "relative_humidity_2m",
+                    "weather_code",
+                    "sunrise_sunset",
+                    "snowfall",
+                    "snow_depth"
+                  ],
+                  "type": "string"
+                },
+                "description": "Additional variables, additive to the core set (wind_speed_10m, wind_direction_10m, sea_surface_temperature, temperature_2m, precipitation, cloud_cover). Each is expanded server-side into the appropriate daily and monthly aggregates."
+              },
+              "start_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Window start date (UTC, ISO YYYY-MM-DD). Must be today or future."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "daily": {
+                "type": "object",
+                "required": [
+                  "time"
+                ],
+                "properties": {
+                  "time": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "number",
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "model": {
+                "type": "string",
+                "const": "seas5"
+              },
+              "range": {
+                "type": "object",
+                "required": [
+                  "start_date",
+                  "end_date"
+                ],
+                "properties": {
+                  "end_date": {
+                    "type": "string"
+                  },
+                  "start_date": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "units": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "monthly": {
+                "$ref": "#/properties/daily"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "_disclaimer": {
+                "type": "string"
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "coordinates_resolved": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude",
+                  "distance_km"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  },
+                  "distance_km": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "coordinates_requested": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "coordinates_requested",
+              "coordinates_resolved",
+              "range",
+              "model",
+              "timezone",
+              "daily",
+              "monthly",
+              "units"
+            ]
+          },
+          "description_hash": "sha256:f699add105bcb00640c5bf950413718658602c6032e3ec347099016a3f840fa5"
+        },
+        {
+          "name": "nausika_tides",
+          "canonical_hash": "sha256:46878a902fb326ce316ce6994fd10070c29ce979ba5ca3a46610efbd38e46cd9",
+          "description": "Get tide predictions or discover tide stations near any location. By default, finds the nearest station and returns tide predictions. Use stations_only: true to discover nearby stations without fetching predictions.\n\nCoverage: official tide stations cover US coasts and territories. Outside that area the tool falls back to a global modeled-tide source.\n\nExamples:\n  - \"Tides near San Francisco\" -> latitude=37.77, longitude=-122.42 -> finds nearest station, returns predictions\n  - \"What tide stations are near Miami?\" -> latitude=25.76, longitude=-80.19, stations_only=true\n\nTip: use nausika_geocode to convert place names to coordinates. Check nausika_marine_forecast for full sea conditions.",
+          "is_mutating": false,
+          "property_keys": [
+            "begin_date",
+            "datum",
+            "interval",
+            "latitude",
+            "limit",
+            "longitude",
+            "range_hours",
+            "stations_only",
+            "units"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "datum": "string",
+            "limit": "integer",
+            "units": "string",
+            "interval": "string",
+            "latitude": "number",
+            "longitude": "number",
+            "begin_date": "string",
+            "range_hours": "integer",
+            "stations_only": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "datum": {
+                "enum": [
+                  "MLLW",
+                  "MLW",
+                  "MSL",
+                  "MHW",
+                  "MHHW",
+                  "NAVD",
+                  "STND"
+                ],
+                "type": "string",
+                "default": "MLLW",
+                "description": "Tidal datum reference (default MLLW)"
+              },
+              "limit": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Max stations to return in stations_only mode (default 5, max 10)"
+              },
+              "units": {
+                "enum": [
+                  "metric",
+                  "english"
+                ],
+                "type": "string",
+                "default": "metric",
+                "description": "Units: metric (meters) or english (feet)"
+              },
+              "interval": {
+                "enum": [
+                  "h",
+                  "hilo"
+                ],
+                "type": "string",
+                "default": "hilo",
+                "description": "Interval: 'hilo' for high/low only (default), 'h' for hourly predictions"
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in decimal degrees"
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in decimal degrees"
+              },
+              "begin_date": {
+                "type": "string",
+                "pattern": "^\\d{8}$",
+                "description": "Start date in YYYYMMDD format (defaults to today)"
+              },
+              "range_hours": {
+                "type": "integer",
+                "default": 48,
+                "maximum": 744,
+                "minimum": 1,
+                "description": "Duration in hours (default 48, max 744 = ~31 days)"
+              },
+              "stations_only": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, return nearby stations without fetching predictions (station discovery mode)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "stations",
+                  "predictions"
+                ],
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "count": {
+                "type": "number"
+              },
+              "datum": {
+                "type": "string"
+              },
+              "model": {
+                "type": "object",
+                "required": [
+                  "resolution_km",
+                  "disclaimer"
+                ],
+                "properties": {
+                  "disclaimer": {
+                    "type": "string"
+                  },
+                  "resolution_km": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "units": {
+                "type": "string"
+              },
+              "center": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "station": {
+                "$ref": "#/properties/stations/items"
+              },
+              "interval": {
+                "type": "string"
+              },
+              "location": {
+                "type": "object",
+                "required": [
+                  "latitude",
+                  "longitude"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "stations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "state",
+                    "latitude",
+                    "longitude",
+                    "distance_nm"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "latitude": {
+                      "type": "number"
+                    },
+                    "longitude": {
+                      "type": "number"
+                    },
+                    "distance_nm": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "_disclaimer": {
+                "type": "string"
+              },
+              "data_source": {
+                "enum": [
+                  "stations",
+                  "model"
+                ],
+                "type": "string"
+              },
+              "predictions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "time",
+                    "level_m"
+                  ],
+                  "properties": {
+                    "time": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "enum": [
+                        "high",
+                        "low"
+                      ],
+                      "type": "string"
+                    },
+                    "level_m": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "_attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "text",
+                    "license",
+                    "source_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "source_url": {
+                      "type": "string"
+                    },
+                    "license_url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "mode",
+              "count",
+              "_attribution"
+            ]
+          },
+          "description_hash": "sha256:0524c43cadb401e82fda0a8d5b6014405815d9739168b2ccd6cd07d671ae47b2"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "plan_sailing_trip",
+          "description": "",
+          "argument_keys": [
+            "boat_name",
+            "departure",
+            "destination"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "check_conditions",
+          "description": "",
+          "argument_keys": [
+            "location"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

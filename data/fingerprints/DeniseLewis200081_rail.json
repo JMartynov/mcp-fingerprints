@@ -1,0 +1,359 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "DeniseLewis200081/rail",
+  "purl": "pkg:npm/DeniseLewis200081%2Frail",
+  "ecosystem": "npm",
+  "display_name": "DeniseLewis200081/rail",
+  "description": "Provide a simple API interface to search and filter 12306 train tickets, including direct, transfer, and stopover queries. Enable large language models to access real-time 12306 ticket information efficiently. Enhance user experience by integrating comprehensive train ticket search capabilities.",
+  "repository_url": "https://rail--deniselewis200081.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "DeniseLewis200081/rail"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:8cf4bf12aa028399a1fa9458ad3e08eeea732d2148c5ac578c536de913f40434",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://rail--deniselewis200081.run.tools",
+          "configSchema": {
+            "type": "object",
+            "title": "MCP Session Configuration",
+            "required": [],
+            "properties": {},
+            "description": "Schema for the /mcp endpoint configuration",
+            "x-mcp-version": "1.0",
+            "x-query-style": "dot+bracket"
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "get-current-date",
+          "canonical_hash": "sha256:f6fd28624cd45810334db9095ab30c48542eca67b36fea041a07cb9cdf9ad9cd",
+          "description": "获取当前日期，以上海时区（Asia/Shanghai, UTC+8）为准，返回格式为 \"yyyy-MM-dd\"。主要用于解析用户提到的相对日期（如“明天”、“下周三”），为其他需要日期的接口提供准确的日期输入。",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:601c166e8040442e9e20ef20413ed6c44d60477f45d3ec39496a4113d0096eb5"
+        },
+        {
+          "name": "get-interline-tickets",
+          "canonical_hash": "sha256:f3f7903d9634177c2152e9f08144cb78706633a1662ba344b8c39f7c44cc859c",
+          "description": "查询12306中转余票信息。尚且只支持查询前十条。",
+          "is_mutating": false,
+          "property_keys": [
+            "date",
+            "fromStation",
+            "limitedNum",
+            "middleStation",
+            "showWZ",
+            "sortFlag",
+            "sortReverse",
+            "toStation",
+            "trainFilterFlags"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "date": "string",
+            "showWZ": "boolean",
+            "sortFlag": "string",
+            "toStation": "string",
+            "limitedNum": "number",
+            "fromStation": "string",
+            "sortReverse": "boolean",
+            "middleStation": "string",
+            "trainFilterFlags": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 10,
+                "description": "查询日期，格式为 \"yyyy-MM-dd\"。如果用户提供的是相对日期（如“明天”），请务必先调用 `get-current-date` 接口获取当前日期，并计算出目标日期。"
+              },
+              "showWZ": {
+                "type": "boolean",
+                "default": false,
+                "description": "是否显示无座车，默认不显示无座车。"
+              },
+              "sortFlag": {
+                "type": "string",
+                "default": "",
+                "description": "排序方式，默认为空，即不排序。仅支持单一标识。可选标志：[startTime(出发时间从早到晚), arriveTime(抵达时间从早到晚), duration(历时从短到长)]"
+              },
+              "toStation": {
+                "type": "string",
+                "description": "出发地的 `station_code` 。必须是通过 `get-station-code-by-names` 或 `get-station-code-of-citys` 接口查询得到的编码，严禁直接使用中文地名。"
+              },
+              "limitedNum": {
+                "type": "number",
+                "default": 10,
+                "minimum": 1,
+                "description": "返回的中转余票数量限制，默认为10。"
+              },
+              "fromStation": {
+                "type": "string",
+                "description": "出发地的 `station_code` 。必须是通过 `get-station-code-by-names` 或 `get-station-code-of-citys` 接口查询得到的编码，严禁直接使用中文地名。"
+              },
+              "sortReverse": {
+                "type": "boolean",
+                "default": false,
+                "description": "是否逆向排序结果，默认为false。仅在设置了sortFlag时生效。"
+              },
+              "middleStation": {
+                "type": "string",
+                "default": "",
+                "description": "中转地的 `station_code` ，可选。必须是通过 `get-station-code-by-names` 或 `get-station-code-of-citys` 接口查询得到的编码，严禁直接使用中文地名。"
+              },
+              "trainFilterFlags": {
+                "type": "string",
+                "default": "",
+                "pattern": "^[GDZTKOFS]*$",
+                "maxLength": 8,
+                "description": "车次筛选条件，默认为空。从以下标志中选取多个条件组合[G(高铁/城际),D(动车),Z(直达特快),T(特快),K(快速),O(其他),F(复兴号),S(智能动车组)]"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b02c57d8f6098342039792a94e1eaf1b4f1f0a539a56242510eef646b0ac989c"
+        },
+        {
+          "name": "get-station-by-telecode",
+          "canonical_hash": "sha256:338f9a86b37920178115e7c70bf99ea398fdc1be26ac2c950d55329216f54851",
+          "description": "通过车站的 `station_telecode` 查询车站的详细信息，包括名称、拼音、所属城市等。此接口主要用于在已知 `telecode` 的情况下获取更完整的车站数据，或用于特殊查询及调试目的。一般用户对话流程中较少直接触发。",
+          "is_mutating": false,
+          "property_keys": [
+            "stationTelecode"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "stationTelecode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "stationTelecode": {
+                "type": "string",
+                "description": "车站的 `station_telecode` (3位字母编码)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:014be7f22590e0ec2fe5b98dbcd3ce01a825269fd7e4f9fd1dcd4c2b52f130a7"
+        },
+        {
+          "name": "get-station-code-by-names",
+          "canonical_hash": "sha256:599a45701c87a0d42540cbf84f13ab8881ae7d20c3c57de709bd14ce89f96d4f",
+          "description": "通过具体的中文车站名查询其 `station_code` 和车站名。此接口主要用于在用户提供**具体车站名**作为出发地或到达地时，为接口准备 `station_code` 参数。",
+          "is_mutating": false,
+          "property_keys": [
+            "stationNames"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "stationNames": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "stationNames": {
+                "type": "string",
+                "description": "具体的中文车站名称，例如：\"北京南\", \"上海虹桥\"。若要查询多个站点，请用|分割，比如\"北京南|上海虹桥\"。"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5bd1345df35ac4f944efc17a3947c37851aa4387040f9e9856b0e0425b0ef57f"
+        },
+        {
+          "name": "get-station-code-of-citys",
+          "canonical_hash": "sha256:38ae340c69da6af7c7de0765908522ff5e13dea71b2b3b0dcfe2b1629a728d28",
+          "description": "通过中文城市名查询代表该城市的 `station_code`。此接口主要用于在用户提供**城市名**作为出发地或到达地时，为接口准备 `station_code` 参数。",
+          "is_mutating": false,
+          "property_keys": [
+            "citys"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "citys": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "citys": {
+                "type": "string",
+                "description": "要查询的城市，比如\"北京\"。若要查询多个城市，请用|分割，比如\"北京|上海\"。"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:382cae55d5eee22ff2f4e13041fbca29d2c08a33951e340192deaaf82704e318"
+        },
+        {
+          "name": "get-stations-code-in-city",
+          "canonical_hash": "sha256:61bfb0ec725ae4f1e51fb08e2c8f492ebae516584f1d51557dc9023ef59e43a0",
+          "description": "通过中文城市名查询该城市 **所有** 火车站的名称及其对应的 `station_code`，结果是一个包含多个车站信息的列表。",
+          "is_mutating": false,
+          "property_keys": [
+            "city"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "中文城市名称，例如：\"北京\", \"上海\""
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ef4eecff7f925873a41f020f21e8229783452b63d8ce72cac9cb8bb0d71be0c2"
+        },
+        {
+          "name": "get-tickets",
+          "canonical_hash": "sha256:afe67a2c79ce97e04f98d84379a36880a508d2da14ec0c9df56b458a11b9a40b",
+          "description": "查询12306余票信息。",
+          "is_mutating": false,
+          "property_keys": [
+            "date",
+            "fromStation",
+            "limitedNum",
+            "sortFlag",
+            "sortReverse",
+            "toStation",
+            "trainFilterFlags"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "date": "string",
+            "sortFlag": "string",
+            "toStation": "string",
+            "limitedNum": "number",
+            "fromStation": "string",
+            "sortReverse": "boolean",
+            "trainFilterFlags": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 10,
+                "description": "查询日期，格式为 \"yyyy-MM-dd\"。如果用户提供的是相对日期（如“明天”），请务必先调用 `get-current-date` 接口获取当前日期，并计算出目标日期。"
+              },
+              "sortFlag": {
+                "type": "string",
+                "default": "",
+                "description": "排序方式，默认为空，即不排序。仅支持单一标识。可选标志：[startTime(出发时间从早到晚), arriveTime(抵达时间从早到晚), duration(历时从短到长)]"
+              },
+              "toStation": {
+                "type": "string",
+                "description": "到达地的 `station_code` 。必须是通过 `get-station-code-by-names` 或 `get-station-code-of-citys` 接口查询得到的编码，严禁直接使用中文地名。"
+              },
+              "limitedNum": {
+                "type": "number",
+                "default": 0,
+                "minimum": 0,
+                "description": "返回的余票数量限制，默认为0，即不限制。"
+              },
+              "fromStation": {
+                "type": "string",
+                "description": "出发地的 `station_code` 。必须是通过 `get-station-code-by-names` 或 `get-station-code-of-citys` 接口查询得到的编码，严禁直接使用中文地名。"
+              },
+              "sortReverse": {
+                "type": "boolean",
+                "default": false,
+                "description": "是否逆向排序结果，默认为false。仅在设置了sortFlag时生效。"
+              },
+              "trainFilterFlags": {
+                "type": "string",
+                "default": "",
+                "pattern": "^[GDZTKOFS]*$",
+                "maxLength": 8,
+                "description": "车次筛选条件，默认为空，即不筛选。支持多个标志同时筛选。例如用户说“高铁票”，则应使用 \"G\"。可选标志：[G(高铁/城际),D(动车),Z(直达特快),T(特快),K(快速),O(其他),F(复兴号),S(智能动车组)]"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4d967da5b2d4320e077ab206260c2bf6e79c60b5ca53e509b775ed2bdded2fad"
+        },
+        {
+          "name": "get-train-route-stations",
+          "canonical_hash": "sha256:361f39957a2f91bd412b1263a244c37989c6c4dd4a8cb9828dcac5924cd13aa1",
+          "description": "查询特定列车车次在指定区间内的途径车站、到站时间、出发时间及停留时间等详细经停信息。当用户询问某趟具体列车的经停站时使用此接口。",
+          "is_mutating": false,
+          "property_keys": [
+            "departDate",
+            "fromStationTelecode",
+            "toStationTelecode",
+            "trainNo"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "trainNo": "string",
+            "departDate": "string",
+            "toStationTelecode": "string",
+            "fromStationTelecode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "trainNo": {
+                "type": "string",
+                "description": "要查询的实际车次编号 `train_no`，例如 \"240000G10336\"，而非\"G1033\"。此编号通常可以从 `get-tickets` 的查询结果中获取，或者由用户直接提供。"
+              },
+              "departDate": {
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 10,
+                "description": "列车从 `fromStationTelecode` 指定的车站出发的日期 (格式: yyyy-MM-dd)。如果用户提供的是相对日期，请务必先调用 `get-current-date` 解析。"
+              },
+              "toStationTelecode": {
+                "type": "string",
+                "description": "该列车行程的**到达站**的 `station_telecode` (3位字母编码)。通常来自 `get-tickets` 结果中的 `telecode` 字段，或者通过 `get-station-code-by-names` 得到。"
+              },
+              "fromStationTelecode": {
+                "type": "string",
+                "description": "该列车行程的**出发站**的 `station_telecode` (3位字母编码`)。通常来自 `get-tickets` 结果中的 `telecode` 字段，或者通过 `get-station-code-by-names` 得到。"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ea99496274bb04f8574e2a0955c13e5da6a9d05e9c896ad86e78ef5044869737"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

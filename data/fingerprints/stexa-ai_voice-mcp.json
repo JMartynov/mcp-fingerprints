@@ -1,0 +1,210 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "stexa-ai/voice-mcp",
+  "purl": "pkg:npm/stexa-ai%2Fvoice-mcp",
+  "ecosystem": "npm",
+  "display_name": "stexa-ai/voice-mcp",
+  "description": "Connect voice telephony to your AI agent. Make outbound calls, get transcripts, check call status — all via MCP tools. Built on Asterisk + Yandex SpeechKit. OAuth 2.1, FZ-152 compliant.\n",
+  "repository_url": "https://voice-mcp--stexa-ai.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "stexa-ai/voice-mcp"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:ec442b2649478e87acef84a972b4c5eeb6b757e26b9d26e4607ba4421664c2ac",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://voice-mcp--stexa-ai.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "stexa_call_outbound",
+          "canonical_hash": "sha256:d7f73bfff794c74802e9c34f4c271850679bc2c9889ee50193fe0b25c6e7de84",
+          "description": "Сделать исходящий голосовой звонок клиенту. AI-бот Алина дозванивается по указанному номеру и ведёт диалог. Возвращает call_id для последующего получения статуса и transcript через get_call_status / get_transcript.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_duration_s",
+            "phone",
+            "scenario_id",
+            "vars",
+            "wait_for_completion"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "vars": "object",
+            "phone": "string",
+            "scenario_id": "string",
+            "max_duration_s": "integer",
+            "wait_for_completion": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "vars": {
+                "type": "object",
+                "description": "Переменные для подстановки в скрипт ({{name}}, {{date}}). Все значения — строки.",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "phone": {
+                "type": "string",
+                "pattern": "^\\+?[0-9]{10,15}$",
+                "description": "Номер абонента в E.164 формате (+7XXXXXXXXXX для РФ)."
+              },
+              "scenario_id": {
+                "type": "string",
+                "description": "ID сценария бота. Если не указан — используется default-сценарий тенанта."
+              },
+              "max_duration_s": {
+                "type": "integer",
+                "default": 300,
+                "maximum": 600,
+                "minimum": 30,
+                "description": "Максимальная длительность звонка в секундах. M0: пишется в БД, не enforce'ится (это M1.1)."
+              },
+              "wait_for_completion": {
+                "type": "boolean",
+                "default": false,
+                "description": "M1.1.4: если true — блокирует до 90с и возвращает transcript. M0: игнорируется."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d30076d1c10eba459566a58dccf0129dca70bcc3ab8b36a5e4c44dc5e5c34bea"
+        },
+        {
+          "name": "stexa_get_call_status",
+          "canonical_hash": "sha256:69c31c9631f7977b53c80c9626e3f59a563885ff5fd8562e48cde3abbeb4fd3e",
+          "description": "Получить текущий статус MCP-инициированного звонка. Используется для polling после stexa_call_outbound: status переходит queued → ringing → talking → completed/failed. Возвращает duration_s и ended_reason для финальных статусов.",
+          "is_mutating": false,
+          "property_keys": [
+            "call_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "call_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "call_id": {
+                "type": "string",
+                "pattern": "^oc:[0-9]+$",
+                "description": "Идентификатор звонка из stexa_call_outbound (формат oc:N)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a440e2ee592037c491ab83bb54b576e49907a41642976526fb3bdbf80d659dfc"
+        },
+        {
+          "name": "stexa_get_transcript",
+          "canonical_hash": "sha256:cb7b1da188224fe8161968dc236ad1daa78db8ee6a0917d89d9afe1b64fc3465",
+          "description": "Получить transcript MCP-инициированного звонка. Если звонок завершён — полный transcript + summary. Если ещё идёт — partial_transcript + status='in_progress' (агент может попробовать ещё раз через несколько секунд или дождаться completed через get_call_status).",
+          "is_mutating": false,
+          "property_keys": [
+            "call_id",
+            "include_summary"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "call_id": "string",
+            "include_summary": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "call_id": {
+                "type": "string",
+                "pattern": "^oc:[0-9]+$",
+                "description": "Идентификатор звонка из stexa_call_outbound (формат oc:N)."
+              },
+              "include_summary": {
+                "type": "boolean",
+                "default": true,
+                "description": "Включить ли AI-сгенерированное summary в response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8f68e48fa1b3a18b92fce9f8d1018f5f47c0267361cc311005f6caa030012e32"
+        },
+        {
+          "name": "stexa_list_recent_calls",
+          "canonical_hash": "sha256:b8de50931fe58137fcc5bbc4d6d8debf2de3cf8340335dbe4190b68a126c4194",
+          "description": "Список последних звонков тенанта с фильтрами по phone/origin/since. Используется агентом для контекста перед новым звонком ('что было с этим клиентом') или аналитики. Phone маскируется в response.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "origin",
+            "phone",
+            "since"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "phone": "string",
+            "since": "string",
+            "origin": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Сколько записей вернуть (cap 100)."
+              },
+              "phone": {
+                "type": "string",
+                "description": "Фильтр по номеру (E.164). Если не указан — все звонки."
+              },
+              "since": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO-8601 timestamp. Default — NOW() - 7 days."
+              },
+              "origin": {
+                "enum": [
+                  "all",
+                  "mcp",
+                  "manual",
+                  "scheduled"
+                ],
+                "type": "string",
+                "default": "all",
+                "description": "Фильтр по типу источника звонка."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4263eb9a7731f5016b5ab864edea1f452352a15a42c8ea30980a8fed51158e48"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

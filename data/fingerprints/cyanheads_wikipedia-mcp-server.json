@@ -1,0 +1,597 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/wikipedia-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fwikipedia-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/wikipedia-mcp-server",
+  "description": "Search Wikipedia, read summaries and full text, target sections, find nearby pages, list languages.",
+  "repository_url": "https://wikipedia-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/wikipedia-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:2c8985750af86f82fe16a4d032d4042b2682976df60d9105c2370df9a58df8ab",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://wikipedia-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "wikipedia_get_article",
+          "canonical_hash": "sha256:51ef71946e7c27f255158dbc2426822925f5730f187364e1dd7e4da12aa03841",
+          "description": "Fetch article content as clean plain text. Without section_index: returns the full article with == Section == markers preserved for structure. With section_index (from wikipedia_get_sections): returns just that section as plain text. Section-targeted reads are faster and smaller when only part of the article is needed.",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "section_index",
+            "title"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "title": "string",
+            "language": "string",
+            "section_index": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Article title (e.g. \"Python (programming language)\")."
+              },
+              "language": {
+                "type": "string",
+                "default": "en",
+                "description": "Wikipedia language edition code (default \"en\"). Examples: \"fr\", \"de\", \"ja\"."
+              },
+              "section_index": {
+                "type": "number",
+                "description": "Section index from wikipedia_get_sections. Omit for the full article. Providing this returns only the targeted section as plain text."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Resolved article title."
+              },
+              "pageid": {
+                "type": "number",
+                "description": "Wikipedia page ID. Absent on API parse responses that omit it."
+              },
+              "content": {
+                "type": "string",
+                "description": "Plain-text article content. Full articles include == Section == markers."
+              },
+              "language": {
+                "type": "string",
+                "description": "Language edition queried."
+              },
+              "content_type": {
+                "type": "string",
+                "description": "Content type: \"full_article\" or \"section\"."
+              },
+              "section_title": {
+                "type": "string",
+                "description": "Section title when section_index was provided. Absent for full-article reads."
+              }
+            },
+            "required": [
+              "title",
+              "content",
+              "content_type",
+              "language"
+            ]
+          },
+          "description_hash": "sha256:2b75ba8bd674a5cac705f1178dd4ffb0bcee1a30b30ab41a70024cae0146c0b6"
+        },
+        {
+          "name": "wikipedia_get_languages",
+          "canonical_hash": "sha256:a790cb145cf9bb76bb87043c6d6e635b3a85355f7d3245b9c0ad74bb1bdf421b",
+          "description": "List the language editions available for a Wikipedia article. Returns language codes, article titles in each language, and full URLs. Useful for cross-language research and for discovering the correct article title in a target language before fetching it. The language parameter specifies which edition to query from.",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "title"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "title": "string",
+            "language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Article title in the source language edition."
+              },
+              "language": {
+                "type": "string",
+                "default": "en",
+                "description": "Wikipedia language edition to query from (default \"en\"). Examples: \"fr\", \"de\", \"ja\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "languages": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "language_code",
+                    "title",
+                    "url"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "Full URL to the article in this language edition."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Article title in this language edition."
+                    },
+                    "language_code": {
+                      "type": "string",
+                      "description": "BCP 47 language code (e.g. \"fr\", \"de\")."
+                    }
+                  },
+                  "description": "A single language edition entry.",
+                  "additionalProperties": false
+                },
+                "description": "Available language editions excluding the source language."
+              },
+              "source_title": {
+                "type": "string",
+                "description": "Article title in the source language edition."
+              },
+              "source_language": {
+                "type": "string",
+                "description": "The language edition that was queried."
+              },
+              "total_languages": {
+                "type": "number",
+                "description": "Total number of other language editions available."
+              }
+            },
+            "required": [
+              "source_title",
+              "source_language",
+              "languages",
+              "total_languages"
+            ]
+          },
+          "description_hash": "sha256:6b9ea97be174d86cfb538b4f2c919d502299d662b9b84bf1e801854b2a1ced12"
+        },
+        {
+          "name": "wikipedia_get_sections",
+          "canonical_hash": "sha256:23f7f58bed95319ede82919c9330ac2a02f1335c6f72148a9af1359b69f99872",
+          "description": "Fetch the table of contents for a Wikipedia article. Returns section titles, heading levels, section numbering (e.g. \"2.1\"), and section_index values. Pass a section_index to wikipedia_get_article to retrieve just that section. Useful for enumerating article structure before doing a targeted section read.",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "title"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "title": "string",
+            "language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Article title (e.g. \"Python (programming language)\")."
+              },
+              "language": {
+                "type": "string",
+                "default": "en",
+                "description": "Wikipedia language edition code (default \"en\"). Examples: \"fr\", \"de\", \"ja\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Article title as resolved by Wikipedia."
+              },
+              "pageid": {
+                "type": "number",
+                "description": "Wikipedia page ID. Absent for stub articles."
+              },
+              "language": {
+                "type": "string",
+                "description": "Language edition queried."
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "index",
+                    "number",
+                    "title",
+                    "level"
+                  ],
+                  "properties": {
+                    "index": {
+                      "type": "number",
+                      "description": "Section index — pass to wikipedia_get_article as section_index."
+                    },
+                    "level": {
+                      "type": "number",
+                      "description": "Heading depth: 2 = ==, 3 = ===, etc."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Section heading text."
+                    },
+                    "number": {
+                      "type": "string",
+                      "description": "Section number (e.g. \"2.1\") for hierarchical navigation."
+                    }
+                  },
+                  "description": "A single table-of-contents entry.",
+                  "additionalProperties": false
+                },
+                "description": "Ordered list of article sections with index values for targeted reads."
+              },
+              "total_sections": {
+                "type": "number",
+                "description": "Total number of sections in the article."
+              }
+            },
+            "required": [
+              "title",
+              "sections",
+              "total_sections",
+              "language"
+            ]
+          },
+          "description_hash": "sha256:d0da141a2aa7dd60a1ad7ac428d086d7bf06af72029e956127942fe4fcb172ee"
+        },
+        {
+          "name": "wikipedia_get_summary",
+          "canonical_hash": "sha256:a6fd48d6650a1597a516d5e40817d17a4381e319ec0f1f1ae852c130daaaada4",
+          "description": "Fetch the lead-section summary for a Wikipedia article — the 2–4 paragraph intro that answers \"what is X?\". Returns plain-text extract, Wikidata QID (wikibase_item) for cross-referencing with wikidata-mcp-server, short description, and thumbnail URL. Redirect pages are followed automatically. When page_type is \"disambiguation\", the title matched a disambiguation page — call wikipedia_search with a more specific query to find the intended article. Prefer this over wikipedia_get_article unless full article depth is needed.",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "title"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "title": "string",
+            "language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Article title (URL-decoded), e.g. \"Python (programming language)\"."
+              },
+              "language": {
+                "type": "string",
+                "default": "en",
+                "description": "Wikipedia language edition code (default \"en\"). Examples: \"fr\", \"de\", \"ja\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Resolved article title (may differ from input for redirects)."
+              },
+              "pageid": {
+                "type": "number",
+                "description": "Wikipedia page ID. Absent when the API omits it."
+              },
+              "extract": {
+                "type": "string",
+                "description": "Plain-text lead-section extract."
+              },
+              "language": {
+                "type": "string",
+                "description": "Language edition queried."
+              },
+              "page_type": {
+                "type": "string",
+                "description": "Page type from the Wikipedia REST API. Common values: \"standard\" (regular article), \"disambiguation\" (disambiguation page), \"no-extract\" (article with no extract). When \"disambiguation\", call wikipedia_search with a more specific query."
+              },
+              "description": {
+                "type": "string",
+                "description": "Short description of the article subject."
+              },
+              "thumbnail_url": {
+                "type": "string",
+                "description": "URL of the article thumbnail image, if available."
+              },
+              "wikibase_item": {
+                "type": "string",
+                "description": "Wikidata QID (e.g. \"Q28865\"). Use to chain into wikidata-mcp-server without a separate lookup."
+              }
+            },
+            "required": [
+              "title",
+              "page_type",
+              "extract",
+              "language"
+            ]
+          },
+          "description_hash": "sha256:c33571805bb6bc1c562b58cfeff1375a1b04c0df1eb2cf133d4331aadc179b71"
+        },
+        {
+          "name": "wikipedia_search",
+          "canonical_hash": "sha256:b4df0b9f141cb102a749d78af75b9b263b9cfc98696f323d3a742c9f00756e95",
+          "description": "Search Wikipedia articles by full-text query. Returns ranked results with plain-text titles, snippets (HTML stripped), page IDs, and word counts. Best when the exact article title is unknown or when multiple articles on a topic are needed. Returned pageid values can be passed to other tools. Supports all Wikipedia language editions.",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "Maximum number of results to return (default 10, max 50). Must be a positive integer."
+              },
+              "query": {
+                "type": "string",
+                "description": "Search query (e.g. \"Python programming language\")."
+              },
+              "language": {
+                "type": "string",
+                "default": "en",
+                "description": "Wikipedia language edition code (default \"en\"). Examples: \"fr\", \"de\", \"ja\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no results matched — e.g. try different keywords. Absent on successful result pages."
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "pageid",
+                    "snippet",
+                    "wordcount"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "description": "Article title (e.g. \"Python (programming language)\")."
+                    },
+                    "pageid": {
+                      "type": "number",
+                      "description": "Wikipedia page ID — use as input to other tools."
+                    },
+                    "snippet": {
+                      "type": "string",
+                      "description": "Plain-text search snippet with matched terms."
+                    },
+                    "wordcount": {
+                      "type": "number",
+                      "description": "Article word count."
+                    }
+                  },
+                  "description": "A single search result entry.",
+                  "additionalProperties": false
+                },
+                "description": "Ranked search results."
+              },
+              "language": {
+                "type": "string",
+                "description": "Language edition queried."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching results in Wikipedia."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "The query sent to Wikipedia."
+              }
+            },
+            "required": [
+              "results",
+              "language",
+              "effectiveQuery",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:7a907b4f6c764ddf6d7e08f4c27d9d0799e9bc1d09773ee3778e31e087b64519"
+        },
+        {
+          "name": "wikipedia_search_nearby",
+          "canonical_hash": "sha256:dd0a1341e0844695f0bec18ba9d07992a89a71a3a16504b328e2f3f64d5bfbf4",
+          "description": "Find Wikipedia articles about places near a geographic coordinate. Returns articles sorted by distance from the query point, with titles, page IDs, coordinates, and distance in meters. Useful for \"what is notable near X?\" research workflows. Only articles with geographic coordinates in their Wikidata record are returned — not all articles about locations are geotagged.",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "latitude",
+            "limit",
+            "longitude",
+            "radius_meters"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "language": "string",
+            "latitude": "number",
+            "longitude": "number",
+            "radius_meters": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "Maximum number of results to return (default 10, max 50). Must be a positive integer."
+              },
+              "language": {
+                "type": "string",
+                "default": "en",
+                "description": "Wikipedia language edition code (default \"en\"). Examples: \"fr\", \"de\", \"ja\"."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "WGS 84 latitude in decimal degrees (range: −90 to 90)."
+              },
+              "longitude": {
+                "type": "number",
+                "description": "WGS 84 longitude in decimal degrees (range: −180 to 180)."
+              },
+              "radius_meters": {
+                "type": "integer",
+                "default": 1000,
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "Search radius in meters (default 1000, max 10000). Must be a positive integer."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cap": {
+                "type": "number",
+                "description": "The limit that was applied."
+              },
+              "shown": {
+                "type": "number",
+                "description": "Number of results returned."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no geotagged articles were found — e.g. increase radius. Absent when results are returned."
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "pageid",
+                    "latitude",
+                    "longitude",
+                    "distance_meters"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "description": "Article title (e.g. \"Eiffel Tower\")."
+                    },
+                    "pageid": {
+                      "type": "number",
+                      "description": "Wikipedia page ID — use as input to other tools."
+                    },
+                    "latitude": {
+                      "type": "number",
+                      "description": "Article subject latitude in decimal degrees."
+                    },
+                    "longitude": {
+                      "type": "number",
+                      "description": "Article subject longitude in decimal degrees."
+                    },
+                    "distance_meters": {
+                      "type": "number",
+                      "description": "Distance from the query coordinate in meters."
+                    }
+                  },
+                  "description": "A single geotagged article result.",
+                  "additionalProperties": false
+                },
+                "description": "Geotagged articles sorted ascending by distance_meters."
+              },
+              "language": {
+                "type": "string",
+                "description": "Language edition queried."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when results were capped at the limit."
+              },
+              "queryLatitude": {
+                "type": "number",
+                "description": "Latitude used for the search."
+              },
+              "queryLongitude": {
+                "type": "number",
+                "description": "Longitude used for the search."
+              },
+              "radiusMetersUsed": {
+                "type": "number",
+                "description": "Radius in meters used for the search."
+              }
+            },
+            "required": [
+              "results",
+              "language",
+              "queryLatitude",
+              "queryLongitude",
+              "radiusMetersUsed",
+              "truncated",
+              "shown",
+              "cap"
+            ]
+          },
+          "description_hash": "sha256:b9d5215338a0513a0d979b375eebe4762d4d7634cdc10189411635168976e43e"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

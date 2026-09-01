@@ -1,0 +1,787 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/census-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fcensus-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/census-mcp-server",
+  "description": "Query U.S. Census Bureau data, variables, and geography via MCP.",
+  "repository_url": "https://census-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/census-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:b4fb77ada535e3b523df815e133b7e62e35138baed2996b1be887adadd0992d7",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://census-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "census_compare_geographies",
+          "canonical_hash": "sha256:b22deb8cadbb7bfa83ce319c67b5d7a4012e8b35d91f9f87d996e577cc8fb935",
+          "description": "Compare one or more variables across multiple geographies at the same level — all counties in a state, all states nationally, or a named set of specific geographies. Results are sorted and ranked. Covers queries like \"rank states by poverty rate\", \"compare median income across WA counties\", or \"which census tracts in King County have the highest renter rate.\" Omit within to compare all geographies nationally at the level. Suppressed values are decoded to human-readable labels rather than passed through as raw negative sentinels.",
+          "is_mutating": false,
+          "property_keys": [
+            "dataset",
+            "geographies",
+            "geography_level",
+            "limit",
+            "sort_by",
+            "sort_dir",
+            "variables",
+            "within",
+            "within_county",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "year": "number",
+            "limit": "number",
+            "within": "string",
+            "dataset": "string",
+            "sort_by": "string",
+            "sort_dir": "string",
+            "variables": "array",
+            "geographies": "array",
+            "within_county": "string",
+            "geography_level": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "number",
+                "description": "Vintage year (default: latest available for the dataset)."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Maximum geographies to return (default: 50, max: 500). When results are truncated, total_count indicates how many matched."
+              },
+              "within": {
+                "type": "string",
+                "description": "State FIPS to constrain results (e.g., \"53\" to compare counties or tracts within WA only). Omit to compare all geographies at the level nationally. Use census_resolve_geography to get state_fips."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset to query (default: \"acs/acs5\"). Use census_list_datasets for valid values."
+              },
+              "sort_by": {
+                "type": "string",
+                "description": "Variable code to sort by (default: first variable in the list). Must be one of the requested variable codes."
+              },
+              "sort_dir": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string",
+                "description": "Sort direction (default: \"desc\" — highest value first)."
+              },
+              "variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Variable codes to compare (e.g., [\"B17001_002E\", \"B17001_001E\"]). Include MOE counterparts (M suffix) for reliability context."
+              },
+              "geographies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional list of specific geography FIPS codes to include. When provided, only these geographies are returned. Omit to return all geographies within the level. Use census_resolve_geography for each place name to get its FIPS."
+              },
+              "within_county": {
+                "type": "string",
+                "description": "County FIPS (3 digits) to constrain tract or block-group comparisons to a single county within the state specified by within (e.g., \"033\" for King County). Required when geography_level is \"tract\" or \"block group\" and you want county-scoped results. census_resolve_geography returns this as county_fips."
+              },
+              "geography_level": {
+                "type": "string",
+                "description": "The level to compare across (e.g., \"state\", \"county\", \"tract\"). Use census_list_geographies to see valid values for the dataset."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "geography_name",
+                    "geography_fips",
+                    "variables",
+                    "rank"
+                  ],
+                  "properties": {
+                    "rank": {
+                      "type": "number",
+                      "description": "Rank of this geography by the sort variable (1 = highest when sort_dir is desc)."
+                    },
+                    "variables": {
+                      "type": "object",
+                      "properties": {},
+                      "description": "Map of variable code to value entry. Each key is a variable code from the variables input; each value has: estimate (number|null), moe (number|null, optional), label (string), suppressed (boolean).",
+                      "additionalProperties": {}
+                    },
+                    "geography_fips": {
+                      "type": "string",
+                      "description": "FIPS code for this geography. Matches the geography_fips parameter in census_query_data for follow-up variable queries."
+                    },
+                    "geography_name": {
+                      "type": "string",
+                      "description": "Human-readable geography name."
+                    }
+                  },
+                  "description": "One ranked geography row with variable values.",
+                  "additionalProperties": false
+                },
+                "description": "Geographies sorted by the requested variable. Suppressed values are labeled."
+              },
+              "year": {
+                "type": "number",
+                "description": "Vintage year queried."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when results were truncated — how to narrow scope or increase limit."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset queried."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when totalCount exceeds the limit and results were cut off."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total number of geographies matched before the limit was applied."
+              },
+              "sortVariable": {
+                "type": "string",
+                "description": "Variable code used for sorting."
+              }
+            },
+            "required": [
+              "rows",
+              "totalCount",
+              "truncated",
+              "sortVariable",
+              "dataset",
+              "year"
+            ]
+          },
+          "description_hash": "sha256:928d46d9224ecaf61e0be0908315c9a417fdc9e8b8dd71aec2aedd8ecbd45d03"
+        },
+        {
+          "name": "census_get_variable",
+          "canonical_hash": "sha256:99817ee5f8aa9830e09c84b55f14c6e62dbd527660e7b569808c3ee3cccf68df",
+          "description": "Fetch full metadata for one or more Census variable codes — label, concept group, predicate type, universe, and margin-of-error sibling references. Use to confirm a variable code before building a query, or to look up what a known code means. Returns estimate_code and moe_code sibling references where applicable so you can request both without a separate search.",
+          "is_mutating": false,
+          "property_keys": [
+            "dataset",
+            "variables",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "year": "number",
+            "dataset": "string",
+            "variables": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "number",
+                "description": "Vintage year (default: latest available for the dataset)."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset the variables belong to (default: \"acs/acs5\"). Use census_list_datasets to discover valid values."
+              },
+              "variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "One or more variable codes to look up (e.g., [\"B19013_001E\", \"B19013_001M\"]). Variable codes are case-sensitive."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "number",
+                "description": "Vintage year queried."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset queried."
+              },
+              "variables": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "variable_code",
+                    "label",
+                    "concept",
+                    "predicate_type"
+                  ],
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "description": "Human-readable label from the Census data dictionary."
+                    },
+                    "concept": {
+                      "type": "string",
+                      "description": "Concept group the variable belongs to."
+                    },
+                    "moe_code": {
+                      "type": "string",
+                      "description": "Margin-of-error sibling code when this is an estimate variable. Include both in census_query_data for complete data."
+                    },
+                    "universe": {
+                      "type": "string",
+                      "description": "Universe the variable applies to (e.g., \"Households\", \"People 25 years and over\")."
+                    },
+                    "estimate_code": {
+                      "type": "string",
+                      "description": "Estimate sibling variable code when this is a margin-of-error variable."
+                    },
+                    "variable_code": {
+                      "type": "string",
+                      "description": "Census variable code (e.g., \"B19013_001E\")."
+                    },
+                    "predicate_type": {
+                      "type": "string",
+                      "description": "Data type (e.g., \"int\", \"string\", \"float\")."
+                    }
+                  },
+                  "description": "Full metadata for a single Census variable.",
+                  "additionalProperties": false
+                },
+                "description": "Variable metadata in the same order as the input array."
+              }
+            },
+            "required": [
+              "variables",
+              "dataset",
+              "year"
+            ]
+          },
+          "description_hash": "sha256:64146b263d189698576c69bbeb35a781ff01f78b3eccbecd74a201b020e3af18"
+        },
+        {
+          "name": "census_list_datasets",
+          "canonical_hash": "sha256:f177ada76ecb529b440b7e51035ad55442b4f278e202a59b3576c85a6d94319d",
+          "description": "Browse available Census Bureau datasets with their supported vintage years. Use as the starting point when the right dataset is unknown — ACS5, ACS1, population estimates, and decennial census serve different use cases. Pass the dataset_id value to the dataset parameter in other census tools.",
+          "is_mutating": false,
+          "property_keys": [
+            "filter"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "filter": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "type": "string",
+                "description": "Keyword to filter datasets by name or description. Omit to list all datasets."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no datasets matched the filter keyword."
+              },
+              "datasets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "dataset_id",
+                    "name",
+                    "description",
+                    "available_years"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Human-readable dataset name."
+                    },
+                    "dataset_id": {
+                      "type": "string",
+                      "description": "Dataset code to pass to the dataset parameter in other tools (e.g., \"acs/acs5\", \"acs/acs5/profile\")."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Description of the dataset including coverage and use case guidance."
+                    },
+                    "available_years": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "description": "Vintage years available for this dataset."
+                    }
+                  },
+                  "description": "A single Census dataset entry.",
+                  "additionalProperties": false
+                },
+                "description": "Matching Census datasets."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total number of matching datasets."
+              },
+              "filterApplied": {
+                "type": "string",
+                "description": "Filter keyword applied to the dataset list, when provided."
+              }
+            },
+            "required": [
+              "datasets",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:d822a7a733925fa14a8d7b56c90c79520657a290ae77d669e73093deae67cf6a"
+        },
+        {
+          "name": "census_list_geographies",
+          "canonical_hash": "sha256:21d36a608f0bc2afa2b7d98a2a2b3ccd90a8868e0e5cc9c8d8d38d1cae3ef1c6",
+          "description": "List the geography levels available for a given Census dataset and year, along with the parent geographies each level requires. Use before querying to confirm that the target geography level exists — ACS1 omits many sub-state levels, and not all datasets support tracts or block groups. The geography_level values returned here are the valid inputs to the geography_level parameter in census_query_data and census_compare_geographies.",
+          "is_mutating": false,
+          "property_keys": [
+            "dataset",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "year": "number",
+            "dataset": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "number",
+                "description": "Vintage year. Defaults to the latest available year for the dataset."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset code (e.g., \"acs/acs5\", \"acs/acs1\"). Use census_list_datasets to discover valid values."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "number",
+                "description": "Vintage year queried."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset queried."
+              },
+              "totalLevels": {
+                "type": "number",
+                "description": "Total number of geography levels available for this dataset and year."
+              },
+              "geography_levels": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "geography_level",
+                    "requires_parent",
+                    "required_parent_levels",
+                    "example"
+                  ],
+                  "properties": {
+                    "example": {
+                      "type": "string",
+                      "description": "Example FIPS value for this geography level."
+                    },
+                    "geography_level": {
+                      "type": "string",
+                      "description": "Geography level name — the value to pass as geography_level in census_query_data (e.g., \"county\", \"tract\", \"zip code tabulation area\")."
+                    },
+                    "requires_parent": {
+                      "type": "boolean",
+                      "description": "Whether this level requires a parent FIPS code (parent_fips in census_query_data)."
+                    },
+                    "required_parent_levels": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Names of the parent geography levels required when requires_parent is true."
+                    }
+                  },
+                  "description": "A single geography level available for this dataset.",
+                  "additionalProperties": false
+                },
+                "description": "Geography levels supported by this dataset and year."
+              }
+            },
+            "required": [
+              "geography_levels",
+              "dataset",
+              "year",
+              "totalLevels"
+            ]
+          },
+          "description_hash": "sha256:2b1a0c5d17bf021f6b8ede39d0a6c5e48652ecd7fe85561c0ca04d9cf3fe8093"
+        },
+        {
+          "name": "census_query_data",
+          "canonical_hash": "sha256:bee67974d6465ba1c7878906c6d70d59b841805ff747186af2946ca31509ebac",
+          "description": "Query a Census dataset for one or more variables at a specific geography. Accepts FIPS codes for the target geography — use census_resolve_geography to convert place names to FIPS when needed. Labeled estimates and margin-of-error values are returned together. Suppression codes (geography too small, data not collected) are decoded into human-readable reasons rather than passed through as raw negative numbers. Pass geography_fips as \"*\" to return all geographies at the level within the parent.",
+          "is_mutating": false,
+          "property_keys": [
+            "county_fips",
+            "dataset",
+            "geography_fips",
+            "geography_level",
+            "parent_fips",
+            "variables",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "year": "number",
+            "dataset": "string",
+            "variables": "array",
+            "county_fips": "string",
+            "parent_fips": "string",
+            "geography_fips": "string",
+            "geography_level": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "number",
+                "description": "Vintage year (default: latest available for the dataset)."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset to query (default: \"acs/acs5\"). Use census_list_datasets to discover valid values."
+              },
+              "variables": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Variable codes to retrieve (e.g., [\"B19013_001E\", \"B19013_001M\"]). Max 50 per request. Use census_search_variables to find codes. Include the MOE counterpart (swap E → M suffix) to get margin-of-error alongside each estimate."
+              },
+              "county_fips": {
+                "type": "string",
+                "description": "County FIPS code (3 digits) when querying tracts or block groups within a specific county (e.g., \"033\" for King County within WA). Required for tract and block-group queries scoped to a county — use alongside parent_fips (state). census_resolve_geography returns this as county_fips."
+              },
+              "parent_fips": {
+                "type": "string",
+                "description": "State FIPS code when querying sub-state levels (e.g., \"53\" for Washington). Required for county, tract, and block-group queries. census_resolve_geography returns this as state_fips."
+              },
+              "geography_fips": {
+                "type": "string",
+                "description": "FIPS code for the target geography (e.g., \"033\" for a county, \"*\" for all geographies at the level within the parent). Use census_resolve_geography to obtain this value — it is returned as fips_summary."
+              },
+              "geography_level": {
+                "type": "string",
+                "description": "Level of the target geography (e.g., \"county\", \"tract\", \"state\", \"zip code tabulation area\"). Use census_list_geographies to see valid values for the dataset."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "geography_name",
+                    "geography_fips",
+                    "variables"
+                  ],
+                  "properties": {
+                    "variables": {
+                      "type": "object",
+                      "properties": {},
+                      "description": "Map of variable code to value entry. Each key is a variable code from the variables input; each value has: estimate (number|null), moe (number|null, optional), label (string), suppressed (boolean), suppression_reason (string, optional).",
+                      "additionalProperties": {}
+                    },
+                    "geography_fips": {
+                      "type": "string",
+                      "description": "FIPS code for this geography at the queried level. Matches the geography_fips parameter in census_query_data for follow-up queries."
+                    },
+                    "geography_name": {
+                      "type": "string",
+                      "description": "Human-readable geography name (e.g., \"King County, Washington\")."
+                    }
+                  },
+                  "description": "Data for one geography — name, FIPS, and variable values.",
+                  "additionalProperties": false
+                },
+                "description": "One row per geography. When geography_fips is \"*\", includes all geographies at the level within the parent."
+              },
+              "year": {
+                "type": "number",
+                "description": "Vintage year queried."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset queried."
+              },
+              "totalRows": {
+                "type": "number",
+                "description": "Number of geography rows returned."
+              }
+            },
+            "required": [
+              "rows",
+              "totalRows",
+              "dataset",
+              "year"
+            ]
+          },
+          "description_hash": "sha256:466ad352883cf6a5cf144fe05ed9d681f4f1298d774d1f356b5519e88c7a360b"
+        },
+        {
+          "name": "census_resolve_geography",
+          "canonical_hash": "sha256:861911cb7a81c9fff5bc1827dcd263ed7988952d5be12cb29c8f5a61e4824bab",
+          "description": "Resolve a place name or street address to Census FIPS identifiers (state, county, tract codes). Converts names like \"King County, WA\" or \"Seattle, WA\" to the FIPS codes required by census_query_data and census_compare_geographies. Use before querying when you have a place name rather than raw FIPS codes — state_fips maps to parent_fips and fips_summary maps to geography_fips in downstream tools.",
+          "is_mutating": false,
+          "property_keys": [
+            "geography_type",
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "geography_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Place name (e.g., \"King County, WA\", \"Seattle, WA\", \"California\") or street address (e.g., \"1600 Pennsylvania Ave NW, Washington, DC 20500\"). Include the state abbreviation to disambiguate places with common names."
+              },
+              "geography_type": {
+                "enum": [
+                  "state",
+                  "county",
+                  "place",
+                  "tract"
+                ],
+                "type": "string",
+                "description": "Expected geography type to resolve to. Optional — auto-detected from the name when omitted (county if \"County\"/\"Borough\"/\"Parish\" appears, state for two-letter abbreviations)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Canonical name of the resolved geography."
+              },
+              "place_fips": {
+                "type": "string",
+                "description": "Place FIPS code when the resolved geography is an incorporated place."
+              },
+              "state_fips": {
+                "type": "string",
+                "description": "2-digit state FIPS code. Use as parent_fips in census_query_data for sub-state queries."
+              },
+              "tract_fips": {
+                "type": "string",
+                "description": "6-digit census tract FIPS code when resolved from a street address."
+              },
+              "county_fips": {
+                "type": "string",
+                "description": "3-digit county FIPS code when the resolved geography is a county or sub-county level."
+              },
+              "fips_summary": {
+                "type": "string",
+                "description": "Pre-formatted FIPS value ready to use as geography_fips in census_query_data (e.g., \"033\" for King County with state_fips \"53\" as parent_fips)."
+              },
+              "geography_type": {
+                "type": "string",
+                "description": "Resolved geography type (state, county, place, or tract)."
+              }
+            },
+            "required": [
+              "name",
+              "geography_type",
+              "state_fips",
+              "fips_summary"
+            ]
+          },
+          "description_hash": "sha256:910d53bd2b9a435860daf72e1e04550bba760bf44b07f76f7c866aab2c322d12"
+        },
+        {
+          "name": "census_search_variables",
+          "canonical_hash": "sha256:687d38f2563354ee31b3f0871859c1e02b7aed5eab11ec9344c0a81674d1eb77",
+          "description": "Search Census variables by keyword across variable labels and concept groups. Returns variable codes with human-readable labels — use this to go from a concept like \"median household income\" to the variable code B19013_001E needed for data queries. Returns both estimate (E suffix) and margin-of-error (M suffix) codes so you can request both. When total_matches exceeds the limit, narrow the query to see more specific results.",
+          "is_mutating": false,
+          "property_keys": [
+            "dataset",
+            "limit",
+            "query",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "year": "number",
+            "limit": "number",
+            "query": "string",
+            "dataset": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "number",
+                "description": "Vintage year to search (default: latest available for the dataset)."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Maximum results to return (default: 20, max: 100). Increase if total_matches greatly exceeds the limit."
+              },
+              "query": {
+                "type": "string",
+                "description": "Keyword to search (e.g., \"median household income\", \"poverty\", \"bachelor's degree\"). Multi-word queries search for all terms."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset to search within (default: \"acs/acs5\"). Use census_list_datasets to discover options."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cap": {
+                "type": "number",
+                "description": "The limit that was applied."
+              },
+              "year": {
+                "type": "number",
+                "description": "Vintage year that was searched."
+              },
+              "shown": {
+                "type": "number",
+                "description": "Number of variables returned after the limit."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no variables matched, or when results were truncated — suggests broader keywords, a narrower query, or a higher limit."
+              },
+              "dataset": {
+                "type": "string",
+                "description": "Dataset that was searched."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when total_matches exceeded the limit and results were cut off."
+              },
+              "variables": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "variable_code",
+                    "label",
+                    "concept",
+                    "predicate_type"
+                  ],
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "description": "Human-readable variable label from the Census data dictionary."
+                    },
+                    "concept": {
+                      "type": "string",
+                      "description": "Concept group the variable belongs to (e.g., \"MEDIAN HOUSEHOLD INCOME\")."
+                    },
+                    "moe_code": {
+                      "type": "string",
+                      "description": "Corresponding margin-of-error variable code when this is an estimate variable. Request both estimate and MOE in census_query_data for complete data."
+                    },
+                    "estimate_code": {
+                      "type": "string",
+                      "description": "Corresponding estimate variable code when this is a margin-of-error variable."
+                    },
+                    "variable_code": {
+                      "type": "string",
+                      "description": "Variable code to pass to census_query_data (e.g., \"B19013_001E\")."
+                    },
+                    "predicate_type": {
+                      "type": "string",
+                      "description": "Data type of the variable (e.g., \"int\", \"string\", \"float\")."
+                    }
+                  },
+                  "description": "A single matching Census variable entry.",
+                  "additionalProperties": false
+                },
+                "description": "Matching variables sorted by relevance. Variable codes ending in E are estimates; M are margins of error."
+              },
+              "totalMatches": {
+                "type": "number",
+                "description": "Total variables matching the query before the limit was applied."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "Query as the server parsed it."
+              }
+            },
+            "required": [
+              "variables",
+              "effectiveQuery",
+              "dataset",
+              "year",
+              "totalMatches"
+            ]
+          },
+          "description_hash": "sha256:80ef878d044ae46006ec89d22164ff3342d454976e4ba1d7f9ca0162ee641ca6"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

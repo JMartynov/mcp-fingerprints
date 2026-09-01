@@ -1,0 +1,715 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "agonzalez/prueba-mcp-seeker",
+  "purl": "pkg:npm/agonzalez%2Fprueba-mcp-seeker",
+  "ecosystem": "npm",
+  "display_name": "agonzalez/prueba-mcp-seeker",
+  "description": "Search hotels by city, state, country, or geolocation and explore detailed property info. Check live availability, compare rates and room types, and review boards and promotions. Create ready-to-book links with preselected rooms, rates, supplements, and optional guest details.",
+  "repository_url": "https://prueba-mcp-seeker--agonzalez.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "agonzalez/prueba-mcp-seeker"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:64da3277953fd3e17271a106e0804cbf281a476522f5e2c841976f8ae69e9f08",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://prueba-mcp-seeker--agonzalez.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "get_all_hotels",
+          "canonical_hash": "sha256:281075bf31d6593e4440e67da735d506d0d74c880413931cdf7cef22a0907a12",
+          "description": "Get paginated list of all hotels by the System",
+          "is_mutating": false,
+          "property_keys": [
+            "page",
+            "page_size"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "page_size": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1,
+                "description": "Page number"
+              },
+              "page_size": {
+                "type": "integer",
+                "default": 30,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Items per page"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hotels": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/HotelInfo"
+                }
+              },
+              "pagination": {
+                "$ref": "#/$defs/Pagination"
+              }
+            },
+            "required": [
+              "hotels",
+              "pagination"
+            ]
+          },
+          "description_hash": "sha256:d74f2aaa9f8295c6572b9f74be0b5ec2f610b97003a4c028c010f521e1c0677c"
+        },
+        {
+          "name": "get_availability",
+          "canonical_hash": "sha256:3589d4d9be197e2520f708028f4b5e7779b89b3ca113e05ae650fe04cb76abd1",
+          "description": "Search hotel room availability and pricing for specific dates and occupancy.",
+          "is_mutating": false,
+          "property_keys": [
+            "country_code",
+            "currency",
+            "end_date",
+            "hotel_code",
+            "language",
+            "occupancy",
+            "promo_code",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "currency": "string",
+            "end_date": "string",
+            "language": "string",
+            "occupancy": "array",
+            "hotel_code": "string",
+            "promo_code": "string",
+            "start_date": "string",
+            "country_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "default": "EUR",
+                "description": "ISO 4217 currency code for prices"
+              },
+              "end_date": {
+                "type": "string",
+                "format": "date",
+                "description": "Check-out date"
+              },
+              "language": {
+                "type": "string",
+                "default": "ES",
+                "description": "ISO 639-1 language code"
+              },
+              "occupancy": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Occupancy"
+                },
+                "maxItems": 3,
+                "minItems": 1,
+                "description": "Occupancy per room"
+              },
+              "hotel_code": {
+                "type": "string",
+                "examples": [
+                  "tarik",
+                  "landmar-arena"
+                ],
+                "description": "Hotel identifier"
+              },
+              "promo_code": {
+                "type": "string",
+                "default": null,
+                "description": "Promotional code"
+              },
+              "start_date": {
+                "type": "string",
+                "format": "date",
+                "description": "Check-in date"
+              },
+              "country_code": {
+                "type": "string",
+                "default": "ES",
+                "description": "ISO 3166-1 alpha-2 country code"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "options": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/BookingOption"
+                },
+                "description": "Available booking options with all keys needed for booking tools"
+              },
+              "room_images": {
+                "$ref": "#/$defs/AvailabilityRoomImages",
+                "description": "Room images information"
+              }
+            },
+            "required": [
+              "options"
+            ]
+          },
+          "description_hash": "sha256:41cab08ddbacc8b775cf755deef25e8fa24c3f720fb5c0177851a6d11eb04418"
+        },
+        {
+          "name": "get_booking_additional_services",
+          "canonical_hash": "sha256:2f2d0d694a492673865256502324677be6eb9c852b06457d643f2298ca81ad89",
+          "description": "Get additional services available for a booking selection.\n\n    **When to use**: After user selects a booking option from availability search, to get additional services available for that option.",
+          "is_mutating": false,
+          "property_keys": [
+            "country_code",
+            "currency",
+            "end_date",
+            "hotel_code",
+            "language",
+            "occupancy",
+            "selected_booking_options",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "currency": "string",
+            "end_date": "string",
+            "language": "string",
+            "occupancy": "array",
+            "hotel_code": "string",
+            "start_date": "string",
+            "country_code": "string",
+            "selected_booking_options": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "default": "EUR",
+                "description": "ISO 4217 currency code for prices"
+              },
+              "end_date": {
+                "type": "string",
+                "format": "date",
+                "description": "Check-out date"
+              },
+              "language": {
+                "type": "string"
+              },
+              "occupancy": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Occupancy"
+                },
+                "maxItems": 3,
+                "minItems": 1,
+                "description": "Occupancy per room"
+              },
+              "hotel_code": {
+                "type": "string",
+                "examples": [
+                  "tarik",
+                  "landmar-arena"
+                ],
+                "description": "Hotel identifier"
+              },
+              "start_date": {
+                "type": "string",
+                "format": "date",
+                "description": "Check-in date"
+              },
+              "country_code": {
+                "type": "string",
+                "default": "ES",
+                "description": "ISO 3166-1 alpha-2 country code"
+              },
+              "selected_booking_options": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/BookingOption"
+                },
+                "description": "Selected Booking options from availability search"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "services": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/AdditionalService"
+                },
+                "description": "Available additional services (transfers, activities, extras) for the booking"
+              }
+            },
+            "required": [
+              "services"
+            ]
+          },
+          "description_hash": "sha256:e4827a4224136b32af6c350e286895fe6a94e064ed4c20b5bd796604b2b19a52"
+        },
+        {
+          "name": "get_booking_url",
+          "canonical_hash": "sha256:d2280eb1dd448382eac04b3186c5eab8f8a260e367ccebc82560d32dbe89fdf3",
+          "description": "\n    Generate booking url with preselected room, rate, meal plan, supplements. If no room_preselection is provided, it will generate a booking url showing available options.\n    ",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "hotel_code",
+            "language",
+            "room_preselection",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "end_date": "string",
+            "language": "string",
+            "hotel_code": "string",
+            "start_date": "string",
+            "room_preselection": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "end_date": {
+                "type": "string",
+                "format": "date",
+                "default": null,
+                "description": "Check-out date"
+              },
+              "language": {
+                "type": "string",
+                "default": "ES",
+                "description": "ISO 639-1 language code"
+              },
+              "hotel_code": {
+                "type": "string",
+                "examples": [
+                  "tarik",
+                  "landmar-arena"
+                ],
+                "description": "Hotel identifier"
+              },
+              "start_date": {
+                "type": "string",
+                "format": "date",
+                "default": null,
+                "description": "Check-in date"
+              },
+              "room_preselection": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/RoomPreselection"
+                },
+                "default": [],
+                "examples": [
+                  [
+                    {
+                      "adults": 2,
+                      "babies": 0,
+                      "children": 0,
+                      "rate_key": "ag5zfmFtYXJlLWhvdGVsc3IRCxIEUmF0ZRiAgIDAqPzKCwyiAQ5hbWFyZS1tYXJiZWxsYQ",
+                      "room_key": "ag5zfmFtYXJlLWhvdGVsc3IVCxIIUm9vbVR5cGUYgICAgLqbmAkMogEOYW1hcmUtbWFyYmVsbGE",
+                      "board_key": "ag5zfmFtYXJlLWhvdGVsc3IUCxIHUmVnaW1lbhiAgICA3s_NCAyiAQ5hbWFyZS1tYXJiZWxsYQ",
+                      "supplement_key": "ahJzfmhvdGVsLXB1ZW50ZXJlYWxyFgsSCVByb21vdGlvbhiAgNCIvfm6CQw",
+                      "supplement_days": 1,
+                      "supplement_amount": 1
+                    }
+                  ]
+                ],
+                "description": "Needed if you want a prebuilt booking with preselected room, rate, meal plan, supplements, and prefilled guest details"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:0cf6b2160501bd63737bf504a9e89cdac85461d0a1b8676389a86c765043a6a2"
+        },
+        {
+          "name": "get_calendar",
+          "canonical_hash": "sha256:c81caec09c2898cb7ad89c83864470ef42de41ba07470facb20b70e3b3d573a9",
+          "description": "Search hotel calendar availability and pricing.\n\n    **When to use**: When specific dates are not available, use this to suggest closest available dates or alternatives",
+          "is_mutating": false,
+          "property_keys": [
+            "country_code",
+            "currency",
+            "hotel_code",
+            "language",
+            "month",
+            "occupancy",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "year": "integer",
+            "month": "integer",
+            "currency": "string",
+            "language": "string",
+            "occupancy": "array",
+            "hotel_code": "string",
+            "country_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "integer",
+                "minimum": 2025
+              },
+              "month": {
+                "type": "integer",
+                "maximum": 12,
+                "minimum": 12
+              },
+              "currency": {
+                "type": "string",
+                "default": null,
+                "description": "ISO 4217 currency code for prices"
+              },
+              "language": {
+                "type": "string",
+                "default": "ES",
+                "description": "ISO 639-1 language code"
+              },
+              "occupancy": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Occupancy"
+                },
+                "maxItems": 3,
+                "minItems": 1,
+                "description": "Occupancy per room"
+              },
+              "hotel_code": {
+                "type": "string",
+                "examples": [
+                  "tarik",
+                  "landmar-arena"
+                ],
+                "description": "Hotel identifier"
+              },
+              "country_code": {
+                "type": "string",
+                "default": "ES",
+                "description": "ISO 3166-1 alpha-2 country code"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/CalendarDay"
+                },
+                "description": "List of days info"
+              },
+              "year": {
+                "type": "integer"
+              },
+              "month": {
+                "type": "integer"
+              },
+              "hotel_code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "year",
+              "month",
+              "hotel_code",
+              "days"
+            ]
+          },
+          "description_hash": "sha256:c8e17b560b790d66bd15bcbcbae5eccf49d99bef900590b362ffde9761ffe69b"
+        },
+        {
+          "name": "get_datetime",
+          "canonical_hash": "sha256:5e5540b869400fe799e563cdea670e1057886b7e254813ef654153dc9ae9023a",
+          "description": "Get current date and time",
+          "is_mutating": false,
+          "property_keys": [
+            "timezone"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "timezone": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "timezone": {
+                "type": "string",
+                "examples": [
+                  "Europe/Madrid",
+                  "America/New_York"
+                ],
+                "description": "IANA timezone name"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "datetime_iso": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timezone_name": {
+                "type": "string",
+                "examples": [
+                  "Europe/Madrid",
+                  "America/New_York"
+                ],
+                "description": "IANA timezone name"
+              }
+            },
+            "required": [
+              "timezone_name",
+              "datetime_iso"
+            ]
+          },
+          "description_hash": "sha256:eafa1ff9f629de22fd59c5af42cc891b918e27048f865d4241cf4a2312a9822b"
+        },
+        {
+          "name": "get_hotel_by_name",
+          "canonical_hash": "sha256:d2d3142047cdd3f5245c943a0a5856df36a83873d5c70bba2f2fe573a3a4a288",
+          "description": "Retrieve hotels based on distance-search algorithms",
+          "is_mutating": false,
+          "property_keys": [
+            "hotel_name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "hotel_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "hotel_name": {
+                "type": "string",
+                "examples": [
+                  "Puente Real",
+                  "Estivalll",
+                  "Oasis",
+                  "Parque royal"
+                ],
+                "description": "Hotel name hint"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "$ref": "#/$defs/HotelInfo"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:8480acc0b7da98f6c23740076e828ef7c3b574211dac93222d6b7c13fb778845"
+        },
+        {
+          "name": "search_hotels_by_area",
+          "canonical_hash": "sha256:6e084fccd1f4222bc4e571d90308d67e8d0f713f70b1746be90f724af0dfb9f6",
+          "description": "Search for hotels in a specific area",
+          "is_mutating": false,
+          "property_keys": [
+            "area",
+            "page",
+            "page_size"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "area": "string",
+            "page": "integer",
+            "page_size": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "area": {
+                "type": "string",
+                "examples": [
+                  "Malaga",
+                  "Torremolinos",
+                  "Spain",
+                  "Madrid"
+                ],
+                "description": "Area name, can be a city, state or province"
+              },
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1,
+                "description": "Page number"
+              },
+              "page_size": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Items per page"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hotels": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/HotelInfo"
+                }
+              },
+              "pagination": {
+                "$ref": "#/$defs/Pagination"
+              }
+            },
+            "required": [
+              "hotels",
+              "pagination"
+            ]
+          },
+          "description_hash": "sha256:b68bd493eda636cc100b5969f42e7d48b9f0cbd04cbb0bf27024d8e24d93f52c"
+        },
+        {
+          "name": "search_hotels_by_geo_location",
+          "canonical_hash": "sha256:c09b746d6aaecf0defe1cd5382b673d66f37fe50645fedf5bfeb655c348daacd",
+          "description": "Search for hotels near GPS coordinates within a specified radius, sorted by distance.",
+          "is_mutating": false,
+          "property_keys": [
+            "latitude",
+            "longitude",
+            "page",
+            "page_size",
+            "radius_km"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "latitude": "number",
+            "longitude": "number",
+            "page_size": "integer",
+            "radius_km": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1,
+                "description": "Page number"
+              },
+              "latitude": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180
+              },
+              "page_size": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Items per page"
+              },
+              "radius_km": {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 0.1
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hotels": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/NearHotel"
+                },
+                "description": "List of paginated hotels"
+              },
+              "pagination": {
+                "$ref": "#/$defs/Pagination",
+                "description": "Pagination details of the response"
+              }
+            },
+            "required": [
+              "hotels",
+              "pagination"
+            ]
+          },
+          "description_hash": "sha256:7f3b55facba3c2cb52f6a223a013c6c618cc9142102d7f3b81dbd326a8754b7d"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

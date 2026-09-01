@@ -1,0 +1,604 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "gordgus/ignav-flights",
+  "purl": "pkg:npm/gordgus%2Fignav-flights",
+  "ecosystem": "npm",
+  "display_name": "gordgus/ignav-flights",
+  "description": "Hosted MCP server providing live flight prices, booking links, and airport lookup for AI agents and travel apps.",
+  "repository_url": "https://ignav-flights--gordgus.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "gordgus/ignav-flights"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:7e25a1c63341e1763b850b43c65c1db42c50c33933e089c0a264796e9c70b3ff",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://ignav-flights--gordgus.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "search_airports",
+          "canonical_hash": "sha256:9e5a17705b5219f2f27c4b97d903a32dd3f57052a004b69b062ed0506d9c9574",
+          "description": "Find airport IATA codes by city, airport name, metro area, or code.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "title": "Limit",
+                "default": 5,
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Maximum number of airport results to return."
+              },
+              "query": {
+                "type": "string",
+                "title": "Query",
+                "description": "Search query for airport names, city names, or airport codes."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "name",
+                    "city",
+                    "country"
+                  ],
+                  "properties": {
+                    "city": {
+                      "type": "string",
+                      "description": "City served by the airport."
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Three-letter airport IATA code."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Full airport name."
+                    },
+                    "country": {
+                      "type": "string",
+                      "description": "Country where the airport is located."
+                    }
+                  },
+                  "description": "Single airport result matching the query.",
+                  "additionalProperties": false
+                },
+                "description": "List of airports matching the query."
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:1fe695be2240ce7ff9076f263d565a0393d3a298adce4bba200b60372aee05c9"
+        },
+        {
+          "name": "search_flights",
+          "canonical_hash": "sha256:9404b40dcd7f687d189cdc75ad88328f932653fb39e0748d81783d94bd6a2160",
+          "description": "Search one-way or round-trip flight prices between two IATA airport codes. Returns only itineraries with a preferred booking link and includes a top-level booking_url for each itinerary.",
+          "is_mutating": false,
+          "property_keys": [
+            "adults",
+            "airlines_exclude",
+            "airlines_include",
+            "allow_self_transfer",
+            "cabin_class",
+            "children",
+            "departure_date",
+            "destination",
+            "infants_in_seat",
+            "infants_on_lap",
+            "market",
+            "max_price",
+            "max_results",
+            "max_stops",
+            "origin",
+            "return_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "adults": "integer",
+            "market": "string",
+            "origin": "string",
+            "children": "integer",
+            "cabin_class": "string",
+            "destination": "string",
+            "max_results": "integer",
+            "departure_date": "string",
+            "infants_on_lap": "integer",
+            "infants_in_seat": "integer",
+            "allow_self_transfer": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "adults": {
+                "type": "integer",
+                "title": "Adults",
+                "default": 1,
+                "minimum": 1,
+                "description": "Number of adult passengers traveling."
+              },
+              "market": {
+                "type": "string",
+                "title": "Market",
+                "default": "US",
+                "description": "2-letter market or country code affecting pricing and results."
+              },
+              "origin": {
+                "type": "string",
+                "title": "Origin",
+                "description": "Origin airport code for flight search."
+              },
+              "children": {
+                "type": "integer",
+                "title": "Children",
+                "default": 0,
+                "minimum": 0,
+                "description": "Number of child passengers traveling."
+              },
+              "max_price": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Max Price",
+                "default": null,
+                "description": "Maximum price in the selected market currency for flight results."
+              },
+              "max_stops": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "maximum": 2,
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Max Stops",
+                "default": null,
+                "description": "Maximum number of stops allowed in the flight itinerary."
+              },
+              "cabin_class": {
+                "enum": [
+                  "economy",
+                  "premium_economy",
+                  "business",
+                  "first"
+                ],
+                "type": "string",
+                "title": "Cabin Class",
+                "default": "economy",
+                "description": "Preferred cabin class: economy, premium_economy, business, or first."
+              },
+              "destination": {
+                "type": "string",
+                "title": "Destination",
+                "description": "Destination airport code for flight search."
+              },
+              "max_results": {
+                "type": "integer",
+                "title": "Max Results",
+                "default": 8,
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Maximum number of flight results to return."
+              },
+              "return_date": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Return Date",
+                "default": null,
+                "description": "Optional return date in YYYY-MM-DD format for round-trip flights."
+              },
+              "departure_date": {
+                "type": "string",
+                "title": "Departure Date",
+                "format": "date",
+                "description": "Departure date in YYYY-MM-DD format."
+              },
+              "infants_on_lap": {
+                "type": "integer",
+                "title": "Infants On Lap",
+                "default": 0,
+                "minimum": 0,
+                "description": "Number of infants traveling on an adult's lap."
+              },
+              "infants_in_seat": {
+                "type": "integer",
+                "title": "Infants In Seat",
+                "default": 0,
+                "minimum": 0,
+                "description": "Number of infants traveling with their own seat."
+              },
+              "airlines_exclude": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Airlines Exclude",
+                "default": null,
+                "description": "Airline codes to specifically exclude from search results."
+              },
+              "airlines_include": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Airlines Include",
+                "default": null,
+                "description": "Airline codes to specifically include in search results."
+              },
+              "allow_self_transfer": {
+                "type": "boolean",
+                "title": "Allow Self Transfer",
+                "default": true,
+                "description": "Whether to include self-transfer flight options (true or false)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "origin": {
+                "type": "string",
+                "description": "Origin airport details for flight search."
+              },
+              "destination": {
+                "type": "string",
+                "description": "Destination airport details for flight search."
+              },
+              "itineraries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "price",
+                    "outbound",
+                    "booking_url",
+                    "booking_link"
+                  ],
+                  "properties": {
+                    "bags": {
+                      "type": "object",
+                      "properties": {
+                        "checked": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of allowed checked bags."
+                        },
+                        "carry_on": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of allowed carry-on bags."
+                        }
+                      },
+                      "description": "Details on baggage allowance."
+                    },
+                    "price": {
+                      "type": "object",
+                      "required": [
+                        "amount",
+                        "currency"
+                      ],
+                      "properties": {
+                        "amount": {
+                          "type": "number",
+                          "description": "Numerical price amount in given currency."
+                        },
+                        "currency": {
+                          "type": "string",
+                          "description": "Currency code of the price amount."
+                        }
+                      },
+                      "description": "Total flight price details."
+                    },
+                    "inbound": {
+                      "type": "object",
+                      "required": [
+                        "segments"
+                      ],
+                      "properties": {
+                        "carrier": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Airline operating the flight segment."
+                        },
+                        "segments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "flight_number": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "description": "Flight number assigned by airline."
+                              },
+                              "arrival_airport": {
+                                "type": "string",
+                                "description": "Airport code for arrival location."
+                              },
+                              "duration_minutes": {
+                                "type": "integer",
+                                "description": "Flight duration in minutes."
+                              },
+                              "departure_airport": {
+                                "type": "string",
+                                "description": "Airport code for departure location."
+                              },
+                              "arrival_time_local": {
+                                "type": "string",
+                                "description": "Local arrival date and time."
+                              },
+                              "departure_time_local": {
+                                "type": "string",
+                                "description": "Local departure date and time."
+                              },
+                              "marketing_carrier_code": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "description": "Airline code marketing the flight segment."
+                              },
+                              "operating_carrier_name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "description": "Name of the airline operating the flight segment."
+                              }
+                            }
+                          },
+                          "description": "List of individual flight segments."
+                        },
+                        "duration_minutes": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Flight duration in minutes."
+                        }
+                      },
+                      "description": "Inbound flight itinerary details for round-trip flights."
+                    },
+                    "ignav_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Unique Ignav identifier for the itinerary."
+                    },
+                    "outbound": {
+                      "type": "object",
+                      "required": [
+                        "segments"
+                      ],
+                      "properties": {
+                        "carrier": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Airline operating the flight segment."
+                        },
+                        "segments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "flight_number": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "description": "Flight number assigned by airline."
+                              },
+                              "arrival_airport": {
+                                "type": "string",
+                                "description": "Airport code for arrival location."
+                              },
+                              "duration_minutes": {
+                                "type": "integer",
+                                "description": "Flight duration in minutes."
+                              },
+                              "departure_airport": {
+                                "type": "string",
+                                "description": "Airport code for departure location."
+                              },
+                              "arrival_time_local": {
+                                "type": "string",
+                                "description": "Local arrival date and time."
+                              },
+                              "departure_time_local": {
+                                "type": "string",
+                                "description": "Local departure date and time."
+                              },
+                              "marketing_carrier_code": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "description": "Airline code marketing the flight segment."
+                              },
+                              "operating_carrier_name": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "description": "Name of the airline operating the flight segment."
+                              }
+                            }
+                          },
+                          "description": "List of individual flight segments."
+                        },
+                        "duration_minutes": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Flight duration in minutes."
+                        }
+                      },
+                      "description": "Outbound flight itinerary details."
+                    },
+                    "booking_url": {
+                      "type": "string",
+                      "description": "Direct URL to book the itinerary."
+                    },
+                    "cabin_class": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Class of cabin booked."
+                    },
+                    "booking_link": {
+                      "type": "object",
+                      "required": [
+                        "provider_name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "description": "Direct URL to book the itinerary."
+                        },
+                        "provider_name": {
+                          "type": "string",
+                          "description": "Name of booking provider."
+                        },
+                        "provider_type": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Type of booking provider."
+                        }
+                      },
+                      "description": "Clickable booking link for the itinerary."
+                    },
+                    "booking_provider_name": {
+                      "type": "string",
+                      "description": "Name of booking provider."
+                    },
+                    "booking_provider_type": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Type of booking provider."
+                    },
+                    "requires_self_transfer": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "description": "Indicates if itinerary includes self-transfer."
+                    }
+                  }
+                },
+                "description": "List of flight itineraries."
+              },
+              "return_date": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Scheduled return date for round-trip flights (YYYY-MM-DD)."
+              },
+              "departure_date": {
+                "type": "string",
+                "description": "Scheduled departure date (YYYY-MM-DD)."
+              }
+            },
+            "required": [
+              "origin",
+              "destination",
+              "departure_date",
+              "itineraries"
+            ]
+          },
+          "description_hash": "sha256:742d0842bbe84a938b5d8c4570a8d885f2fb14ba2767848b6d5c1d33f280a5d0"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

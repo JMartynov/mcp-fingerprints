@@ -1,0 +1,1123 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "bissell-skyler/cityparity",
+  "purl": "pkg:npm/bissell-skyler%2Fcityparity",
+  "ecosystem": "npm",
+  "display_name": "bissell-skyler/cityparity",
+  "description": "cityparity compares two cities on the numbers that actually decide a move. Give it a salary and a family situation and it returns take-home pay, a full cost breakdown (housing, healthcare, childcare, food, transit, travel home, property tax), the equivalent salary you'd need in the target city, and the non-cash deltas people move for: statutory vacation, parental leave, and universal healthcare. It can also rank cities by a composite quality score and look up inbound-worker tax regimes (Italy impatriati, Portugal IFICI, and others). About 165 cities across 69 countries. Free, no API key, hosted Streamable HTTP.",
+  "repository_url": "https://cityparity--bissell-skyler.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "bissell-skyler/cityparity"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:0178ba271fb3c0647fe2f13928fe187de37b00b2feb1b41dd469cefdf6005a58",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://cityparity--bissell-skyler.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "compare_cities",
+          "canonical_hash": "sha256:1cddc2c6ecb4013a88145315197c0d391b3238e97b9bd37dda75693ce0067fcd",
+          "description": "Compare two cities for one household: take-home pay, full cost breakdown, the equivalent target salary needed to match source net cash, non-cash lifestyle deltas (vacation, parental leave, healthcare), and a 0-100 quality score on five weighted dimensions. Use this for a head-to-head between two named cities; for a single city call get_city_summary, and to rank many cities call rank_cities. Read-only, no side effects; returns a text summary plus structured JSON. RSU income is NOT a parameter; RSU is treated as source-only because grants typically do not follow you across employers.",
+          "is_mutating": false,
+          "property_keys": [
+            "advanced",
+            "gross_salary",
+            "household",
+            "living",
+            "score_weights",
+            "source_city",
+            "target_city"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "living": "object",
+            "advanced": "object",
+            "household": "object",
+            "source_city": "string",
+            "target_city": "string",
+            "gross_salary": "number",
+            "score_weights": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "living": {
+                "type": "object",
+                "properties": {
+                  "bedrooms": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 0,
+                    "description": "Bedroom count for the household. Default 2."
+                  },
+                  "lifestyle": {
+                    "enum": [
+                      "frugal",
+                      "typical",
+                      "generous"
+                    ],
+                    "type": "string",
+                    "description": "Spending multiplier on food and discretionary categories. Default typical (1.0×)."
+                  },
+                  "housing_mode": {
+                    "enum": [
+                      "rent",
+                      "own"
+                    ],
+                    "type": "string",
+                    "description": "Whether the household rents or owns. Default rent."
+                  }
+                },
+                "description": "Housing and spending assumptions. Omit to use defaults: rent, 2 bedrooms, typical spending.",
+                "additionalProperties": false
+              },
+              "advanced": {
+                "type": "object",
+                "properties": {
+                  "age_bracket": {
+                    "enum": [
+                      "18-24",
+                      "25-34",
+                      "35-44",
+                      "45-54",
+                      "55-64"
+                    ],
+                    "type": "string",
+                    "description": "Affects US healthcare premium multipliers. Default 25-34."
+                  },
+                  "trips_home_per_year": {
+                    "type": "integer",
+                    "maximum": 12,
+                    "minimum": 0,
+                    "description": "Round trips back to source country per year (target-only cost). Default 1."
+                  },
+                  "apply_inbound_regime": {
+                    "type": "boolean",
+                    "description": "Apply the destination country's special inbound-worker tax regime if available (Italy impatriati, Portugal IFICI, Belgium expat, Poland B2B ryczałt, Greece inbound). Default false. Applies only on the target side."
+                  },
+                  "source_transit_choice": {
+                    "enum": [
+                      "car",
+                      "transit"
+                    ],
+                    "type": "string",
+                    "description": "Default depends on city; e.g. Seattle defaults to 'car', Oslo defaults to 'transit'."
+                  },
+                  "target_transit_choice": {
+                    "enum": [
+                      "car",
+                      "transit"
+                    ],
+                    "type": "string",
+                    "description": "Same as above for the target city."
+                  },
+                  "retirement_contrib_pct": {
+                    "type": "number",
+                    "maximum": 50,
+                    "minimum": 0,
+                    "description": "Percentage of gross diverted to retirement (pre-tax for US 401k). Default 6."
+                  }
+                },
+                "description": "Optional fine-tuning: retirement contribution, age bracket, trips home, transit mode, and inbound tax regime. Omit to use defaults.",
+                "additionalProperties": false
+              },
+              "household": {
+                "type": "object",
+                "properties": {
+                  "kids_ages": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "maximum": 25,
+                      "minimum": 0
+                    },
+                    "maxItems": 10,
+                    "description": "Ages of dependent children, e.g. [3, 7]. Empty array or omitted if no kids."
+                  },
+                  "has_partner": {
+                    "type": "boolean",
+                    "description": "Whether the user has a working-age partner. Defaults to false."
+                  },
+                  "partner_gross_salary": {
+                    "type": "number",
+                    "maximum": 50000000,
+                    "minimum": 0,
+                    "description": "Partner's annual gross salary in the SOURCE city's currency. REQUIRED when has_partner=true."
+                  },
+                  "partner_works_in_source": {
+                    "type": "boolean",
+                    "description": "Whether the partner currently earns in the source city. REQUIRED when has_partner=true; cityparity does not default this because spouse-per-city working status materially changes the math (e.g. US childcare may exceed a second income, while Nordic subsidies make the second income viable)."
+                  },
+                  "partner_works_in_target": {
+                    "type": "boolean",
+                    "description": "Whether the partner would earn in the target city after relocation. REQUIRED when has_partner=true."
+                  }
+                },
+                "description": "Family structure: working-age partner and dependent children. Omit for a single person with no kids.",
+                "additionalProperties": false
+              },
+              "source_city": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "description": "City slug for the user's current city. Use list_cities to discover valid slugs (e.g. 'nyc', 'seattle', 'tokyo')."
+              },
+              "target_city": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "description": "City slug for the destination city."
+              },
+              "gross_salary": {
+                "type": "number",
+                "maximum": 50000000,
+                "description": "User's annual gross salary in the SOURCE city's local currency (e.g. USD for Seattle, NOK for Oslo).",
+                "exclusiveMinimum": 0
+              },
+              "score_weights": {
+                "type": "object",
+                "properties": {
+                  "vacation": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "childcare": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "financial": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "healthcare": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "safety_net": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  }
+                },
+                "description": "Override the composite-score weights. Defaults: financial 30, healthcare 20, vacation 15, childcare 15, safety_net 20.",
+                "additionalProperties": false
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "meta": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "source": {
+                "type": "object",
+                "required": [
+                  "city",
+                  "slug",
+                  "currency",
+                  "gross_income",
+                  "effective_tax_rate",
+                  "after_tax_income",
+                  "taxes",
+                  "costs",
+                  "govt_benefits",
+                  "net_cash_annual"
+                ],
+                "properties": {
+                  "city": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "costs": {
+                    "type": "object",
+                    "required": [
+                      "housing",
+                      "healthcare",
+                      "childcare",
+                      "food",
+                      "transit",
+                      "discretionary",
+                      "travel_home",
+                      "property_tax"
+                    ],
+                    "properties": {
+                      "food": {
+                        "type": "number"
+                      },
+                      "housing": {
+                        "type": "number"
+                      },
+                      "transit": {
+                        "type": "number"
+                      },
+                      "childcare": {
+                        "type": "number"
+                      },
+                      "healthcare": {
+                        "type": "number"
+                      },
+                      "travel_home": {
+                        "type": "number"
+                      },
+                      "property_tax": {
+                        "type": "number"
+                      },
+                      "discretionary": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "taxes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": true
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "gross_income": {
+                    "type": "number"
+                  },
+                  "govt_benefits": {
+                    "type": "number"
+                  },
+                  "net_cash_annual": {
+                    "type": "number"
+                  },
+                  "after_tax_income": {
+                    "type": "number"
+                  },
+                  "effective_tax_rate": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "target": {
+                "$ref": "#/properties/source"
+              },
+              "equivalence": {
+                "type": "object",
+                "required": [
+                  "target_salary_needed",
+                  "household_gross",
+                  "explanation"
+                ],
+                "properties": {
+                  "explanation": {
+                    "type": "string"
+                  },
+                  "household_gross": {
+                    "type": "number"
+                  },
+                  "target_salary_needed": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "quality_score": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "non_cash_deltas": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "direction",
+                    "metric",
+                    "delta",
+                    "text"
+                  ],
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    },
+                    "delta": {
+                      "type": "number"
+                    },
+                    "metric": {
+                      "type": "string"
+                    },
+                    "direction": {
+                      "enum": [
+                        "up",
+                        "down"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "source",
+              "target",
+              "equivalence",
+              "non_cash_deltas",
+              "quality_score",
+              "meta"
+            ]
+          },
+          "description_hash": "sha256:50a1bd2e13d5416399601e13b3d1a5c8d12bc80c2c184bd05e924c4c04323248"
+        },
+        {
+          "name": "get_city_summary",
+          "canonical_hash": "sha256:5a0fee08faf3bd132e90c4f3b3c174dc74dc77dc74d6f8497ea059bd021447f4",
+          "description": "Concise profile of one city: currency, tax shape (bracket count + top rate + payroll/national insurance), headline costs (rent / groceries / transit / childcare), safety-net values (parental leave, vacation, universal healthcare), and data freshness. Lighter than compare_cities; use when the user is asking about one place rather than a comparison. Read-only, no side effects; returns a text summary plus structured JSON.",
+          "is_mutating": false,
+          "property_keys": [
+            "city"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "description": "City slug. Use list_cities to discover valid slugs."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "tax": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "safety_net": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "cost_snapshot": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "govt_benefits": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "data_year_range": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "methodology_url": {
+                "type": "string"
+              },
+              "compensation_index": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "inbound_tax_regime": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "data_last_updated_field": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "slug",
+              "name",
+              "country",
+              "currency",
+              "compensation_index",
+              "tax",
+              "cost_snapshot",
+              "safety_net",
+              "govt_benefits",
+              "inbound_tax_regime",
+              "data_last_updated_field",
+              "data_year_range",
+              "methodology_url"
+            ]
+          },
+          "description_hash": "sha256:0bafd77cf348277e36cdd70b513de82b3e9ae99efc25cb862f6c654cc24bc2e2"
+        },
+        {
+          "name": "get_inbound_tax_regime",
+          "canonical_hash": "sha256:b0b4abd41b3533ebddddadbdb5d292e539d8250c04e0ba36e29e97878b9c65ff",
+          "description": "Look up a city's inbound-worker tax regime, the special reduced-tax schemes for relocating workers that general cost-of-living tools do not surface. Returns null when the country has no modeled regime (most cities). Modeled regimes: Italy impatriati (Milan, Rome), Portugal IFICI (Lisbon, Porto), Belgium expat (Brussels), Poland B2B ryczałt (Warsaw, Kraków), Greece inbound (Athens). Each entry includes the mechanic (reduction percentage or flat rate), duration, income cap if any, and a conservative eligibility hint. Read-only, no side effects; returns a text summary plus structured JSON.",
+          "is_mutating": false,
+          "property_keys": [
+            "city"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1,
+                "description": "City slug. Use list_cities to discover valid slugs. Most cities return regime=null because their country has no special inbound-worker tax regime."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "regime": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "duration_years",
+                      "reduction_pct",
+                      "flat_rate",
+                      "max_income",
+                      "note",
+                      "eligibility_summary"
+                    ],
+                    "properties": {
+                      "note": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "flat_rate": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "max_income": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "reduction_pct": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "duration_years": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "eligibility_summary": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "country": {
+                "type": "string"
+              },
+              "disclaimer": {
+                "type": "string"
+              },
+              "methodology_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "city",
+              "country",
+              "regime",
+              "methodology_url"
+            ]
+          },
+          "description_hash": "sha256:7641a882d66035e48605d0e76517224a84f571cf04c9a53b8b9a061309173aa8"
+        },
+        {
+          "name": "get_safety_net",
+          "canonical_hash": "sha256:fa0ff49929e2e72256cb4b914862a5a47d995de455d7582aec36922cfb44ef45",
+          "description": "Look up safety-net values (parental leave weeks + paid percentage, universal healthcare flag, vacation days, public holidays) for 1-20 cities, plus the safety_net dimension score (0-100) for relative strength. Use when the user is asking specifically about family / leave / healthcare benefits rather than a full cost-of-living comparison. Read-only, no side effects; returns a text summary plus structured JSON.",
+          "is_mutating": false,
+          "property_keys": [
+            "cities"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cities": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "minLength": 1
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "description": "Array of city slugs (1-20). Use list_cities to discover valid slugs."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "slug",
+                    "city",
+                    "country",
+                    "parental_leave_weeks",
+                    "parental_leave_paid_pct",
+                    "universal_healthcare",
+                    "vacation_days_avg",
+                    "public_holidays",
+                    "sick_leave_policy",
+                    "safety_net_score"
+                  ],
+                  "properties": {
+                    "city": {
+                      "type": "string"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "country": {
+                      "type": "string"
+                    },
+                    "public_holidays": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "safety_net_score": {
+                      "type": "number"
+                    },
+                    "sick_leave_policy": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "vacation_days_avg": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "parental_leave_weeks": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "universal_healthcare": {
+                      "type": "boolean"
+                    },
+                    "parental_leave_paid_pct": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "not_found": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "methodology_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "cities",
+              "methodology_url"
+            ]
+          },
+          "description_hash": "sha256:6f04f2a766a31639b3ffae4728f23db4a193149ba6b7c8a0557f526816d9e9f0"
+        },
+        {
+          "name": "list_cities",
+          "canonical_hash": "sha256:63aaac43d0d68025fd3a4026ab60e985ff5c7458ce3ba8195199f98d347394b3",
+          "description": "List all city slugs supported by cityparity, grouped by country. Call this first to discover valid slugs before any other tool; the optional country filter narrows to one country. Read-only, no side effects; returns a text summary plus structured JSON.",
+          "is_mutating": false,
+          "property_keys": [
+            "country"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "country": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "country": {
+                "type": "string",
+                "maxLength": 64,
+                "description": "Optional case-insensitive country filter. Use the canonical name as stored in city_data.country (e.g. \"Norway\", \"USA\", \"United Kingdom\"). If omitted, returns all countries."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "groups": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "country",
+                    "cities"
+                  ],
+                  "properties": {
+                    "cities": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "slug",
+                          "name"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "country": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "country_count": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "count",
+              "country_count",
+              "groups"
+            ]
+          },
+          "description_hash": "sha256:708c276a593d9552e09b31953e8b1c5be65a72cd6140624eb0e1b47563717867"
+        },
+        {
+          "name": "rank_cities",
+          "canonical_hash": "sha256:b1030a5e1cebe5ed534af3cbb98353ed2f2d1bac20058d97e220ad843af2ffee",
+          "description": "Rank supported cities by composite quality-of-life score across five weighted dimensions (financial, healthcare, vacation, childcare, safety_net). Returns top N (default 10), with filters for country, countries, region (europe/asia/north_america/south_america/oceania), has_universal_healthcare, include_cities, and exclude_cities. Use this to shortlist across many cities; for a head-to-head between two named cities use compare_cities. The same scenario is applied to every city so scores are directly comparable (default: single person, 2BR rent, $100k USD-equivalent gross). Read-only, no side effects; returns a text summary plus structured JSON.",
+          "is_mutating": false,
+          "property_keys": [
+            "filter",
+            "limit",
+            "scenario",
+            "weights"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "filter": "object",
+            "weights": "object",
+            "scenario": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Max results to return. Default 10."
+              },
+              "filter": {
+                "type": "object",
+                "properties": {
+                  "region": {
+                    "enum": [
+                      "europe",
+                      "asia",
+                      "north_america",
+                      "south_america",
+                      "oceania"
+                    ],
+                    "type": "string",
+                    "description": "Restrict to one region."
+                  },
+                  "country": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "description": "Restrict to one country (case-insensitive match against city_data.country, e.g. \"Germany\", \"USA\", \"United Kingdom\")."
+                  },
+                  "countries": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "maxItems": 50,
+                    "description": "Restrict to multiple countries."
+                  },
+                  "exclude_cities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "maxItems": 100,
+                    "description": "Skip these specific city slugs from the result."
+                  },
+                  "include_cities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 64
+                    },
+                    "maxItems": 100,
+                    "description": "Restrict to a specific set of city slugs. Combined with other filters via intersection."
+                  },
+                  "has_universal_healthcare": {
+                    "type": "boolean",
+                    "description": "If true, only return cities with universal healthcare; if false, only without."
+                  }
+                },
+                "description": "Restrict which cities are ranked, by country, region, universal-healthcare flag, or explicit include/exclude slug lists. Omit to rank all supported cities.",
+                "additionalProperties": false
+              },
+              "weights": {
+                "type": "object",
+                "properties": {
+                  "vacation": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "childcare": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "financial": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "healthcare": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  },
+                  "safety_net": {
+                    "type": "number",
+                    "maximum": 100,
+                    "minimum": 0
+                  }
+                },
+                "description": "Override the composite-score weights. Defaults: financial 30, healthcare 20, vacation 15, childcare 15, safety_net 20.",
+                "additionalProperties": false
+              },
+              "scenario": {
+                "type": "object",
+                "properties": {
+                  "bedrooms": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 0,
+                    "description": "Default 2."
+                  },
+                  "kids_ages": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "maximum": 25,
+                      "minimum": 0
+                    },
+                    "maxItems": 10,
+                    "description": "Default []."
+                  },
+                  "lifestyle": {
+                    "enum": [
+                      "frugal",
+                      "typical",
+                      "generous"
+                    ],
+                    "type": "string",
+                    "description": "Default typical."
+                  },
+                  "has_partner": {
+                    "type": "boolean",
+                    "description": "Default false."
+                  },
+                  "housing_mode": {
+                    "enum": [
+                      "rent",
+                      "own"
+                    ],
+                    "type": "string",
+                    "description": "Default rent."
+                  },
+                  "gross_salary_usd": {
+                    "type": "number",
+                    "maximum": 5000000,
+                    "description": "USD-equivalent salary to model in each city (converts to local currency). Default 100000.",
+                    "exclusiveMinimum": 0
+                  },
+                  "partner_gross_salary_usd": {
+                    "type": "number",
+                    "maximum": 5000000,
+                    "minimum": 0,
+                    "description": "Required when has_partner=true."
+                  }
+                },
+                "description": "Override the default ranking scenario. The same scenario is applied to every city so scores are comparable.",
+                "additionalProperties": false
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ranked": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "rank",
+                    "slug",
+                    "city",
+                    "country",
+                    "currency",
+                    "total_score",
+                    "dimensions",
+                    "net_cash_annual_local",
+                    "net_cash_annual_usd",
+                    "effective_tax_rate",
+                    "universal_healthcare"
+                  ],
+                  "properties": {
+                    "city": {
+                      "type": "string"
+                    },
+                    "rank": {
+                      "type": "integer"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "country": {
+                      "type": "string"
+                    },
+                    "currency": {
+                      "type": "string"
+                    },
+                    "dimensions": {
+                      "type": "object",
+                      "required": [
+                        "financial",
+                        "healthcare",
+                        "vacation",
+                        "childcare",
+                        "safety_net"
+                      ],
+                      "properties": {
+                        "vacation": {
+                          "type": "number"
+                        },
+                        "childcare": {
+                          "type": "number"
+                        },
+                        "financial": {
+                          "type": "number"
+                        },
+                        "healthcare": {
+                          "type": "number"
+                        },
+                        "safety_net": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "total_score": {
+                      "type": "number"
+                    },
+                    "effective_tax_rate": {
+                      "type": "number"
+                    },
+                    "net_cash_annual_usd": {
+                      "type": "number"
+                    },
+                    "parental_leave_weeks": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "universal_healthcare": {
+                      "type": "boolean"
+                    },
+                    "net_cash_annual_local": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "skipped": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "slug",
+                    "reason"
+                  ],
+                  "properties": {
+                    "slug": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "weights": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "considered": {
+                "type": "integer"
+              },
+              "scenario_used": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "methodology_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ranked",
+              "considered",
+              "skipped",
+              "weights",
+              "scenario_used",
+              "methodology_url"
+            ]
+          },
+          "description_hash": "sha256:3d0942fcda0cc27f53ea3f917a7cb4400b6f17c9d575ef3c77406488a4a84aaa"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

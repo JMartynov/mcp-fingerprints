@@ -1,0 +1,4059 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "googlesheets",
+  "purl": "pkg:npm/googlesheets",
+  "ecosystem": "npm",
+  "display_name": "googlesheets",
+  "description": "Search and inspect Google Sheets, create and edit spreadsheets, scan for data issues, review edit history, and manage comments.",
+  "repository_url": "https://googlesheets.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "googlesheets"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:c202d265c953132c8b0e61d4b63409eada0372c39f6179e56d34de8f340cbc53",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://googlesheets.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "Arcade_ListApps",
+          "canonical_hash": "sha256:5d9529918e29f975962fcf9a9317560af491c99ef337d19bb5b60e09c6a2e4f4",
+          "description": "See the apps the current caller can act on and whether they are connected. Returns each app's id, name, connected state, and (when connected) the account it is connected as. Call this to answer \"what apps do I have?\" or when the caller's connection state may have changed since the session started.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5d8f68eee228822f375a4984aee46a813ef80bd835cb1c78fe1eb4a804952c70"
+        },
+        {
+          "name": "GoogleSheets_CheckSpreadsheetAccess",
+          "canonical_hash": "sha256:4bc6c6ec74eb7184305dc7ab1d95bc0abc9356a8657e6133a3c19519e0c68856",
+          "description": "Check whether this app can already read each of several spreadsheets, in one\nbatched pre-flight call, before attempting to read them.\n\nUse this when the user references multiple spreadsheets so any that are not yet\naccessible can be granted together in a single picker step, instead of hitting a\nseparate access error and grant prompt for each one. Each input may be a bare file id\nor a full Google Sheets/Drive URL.\n\nReturns ``spreadsheets`` (a per-id list with ``accessible``, the ``title`` and\n``mime_type`` when the file was read, and a ``reason`` when not usable),\n``all_accessible`` (true only when every id is an already-accessible spreadsheet),\n``connected_account_email`` (the connected Google account, empty when unknown), and a\n``grant`` block. ``grant`` is empty when nothing needs granting; otherwise it lists the\nungranted ids (``ungranted_ids``) plus, when the inline picker is enabled, a single\npicker URL covering them all.\n\nA ``reason`` of ``not_accessible_or_not_found`` is either a file not granted to this app\nyet or one that does not exist (indistinguishable here) — the picker resolves the\nformer. ``not_a_spreadsheet`` is an accessible file of another type (a Doc, PDF, image,\nor Excel/CSV file); granting cannot change a type, so for an Excel/CSV file ask the user\nto open it in Google Sheets and use File, Save as Google Sheets, then share the\nconverted file. ``invalid_reference`` is an input that is not a Drive id or link at all;\nask the user to re-check it.",
+          "is_mutating": false,
+          "property_keys": [
+            "spreadsheets"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "spreadsheets": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "spreadsheets": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The spreadsheets to check access for, each given as a bare spreadsheet id or a full Google Sheets/Drive URL (the id is extracted from the URL). Provide at most 50 per call; split larger lists across multiple calls."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "grant": {
+                "type": "object",
+                "required": [
+                  "access_hint",
+                  "picker_instructions",
+                  "picker_url",
+                  "ungranted_ids"
+                ],
+                "properties": {
+                  "picker_url": {
+                    "type": "string"
+                  },
+                  "access_hint": {
+                    "type": "string"
+                  },
+                  "ungranted_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "picker_instructions": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "spreadsheets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "accessible",
+                    "id",
+                    "mime_type",
+                    "reason",
+                    "title"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "mime_type": {
+                      "type": "string"
+                    },
+                    "accessible": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "all_accessible": {
+                "type": "boolean"
+              },
+              "connected_account_email": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "all_accessible",
+              "connected_account_email",
+              "grant",
+              "spreadsheets"
+            ]
+          },
+          "description_hash": "sha256:a30aac28dc554c3d115da7e0654a554ccb080988dc400850b2690c1f45b2f33e"
+        },
+        {
+          "name": "GoogleSheets_CommentOnSpreadsheet",
+          "canonical_hash": "sha256:616fd3a058219e939b65cfaf96c32e06bc33b89858ad084315994a8e3cec7a42",
+          "description": "Create a comment on a spreadsheet, edit a comment's body, or resolve/reopen it.\n\nComments are created at the file level: the Drive API cannot anchor a NEW Sheets comment to a\nspecific cell or range. Cell/range-anchored comments made in the Sheets UI are still readable\nvia list_spreadsheet_comments (which returns their anchor). Editing a comment's body is\nallowed only for the comment's author.",
+          "is_mutating": false,
+          "property_keys": [
+            "comment_id",
+            "content",
+            "spreadsheet_id",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "status": "string",
+            "content": "string",
+            "comment_id": "string",
+            "spreadsheet_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "resolve",
+                  "reopen"
+                ],
+                "type": "string",
+                "description": "Resolve or reopen an existing comment (requires comment_id). Implemented as a reply with an action. Omit to create or edit instead."
+              },
+              "content": {
+                "type": "string",
+                "description": "The comment text. Required when creating. When editing an existing comment (comment_id set, no status) this replaces the body (author-only). When a status is set, this is the optional text of the resolving/reopening reply."
+              },
+              "comment_id": {
+                "type": "string",
+                "description": "Omit to CREATE a new comment. Provide an existing comment id to edit it (pass content) or to resolve/reopen it (pass status)."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The id of the spreadsheet to comment on."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean"
+              },
+              "reply_id": {
+                "type": "string"
+              },
+              "resolved": {
+                "type": "boolean"
+              },
+              "comment_id": {
+                "type": "string"
+              },
+              "spreadsheet_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "comment_id",
+              "deleted",
+              "reply_id",
+              "resolved",
+              "spreadsheet_url"
+            ]
+          },
+          "description_hash": "sha256:d98d94cd6084626afffee155a64d1c04aa3c17cdd09f07b1966518397be37d42"
+        },
+        {
+          "name": "GoogleSheets_CreateOrEditSpreadsheet",
+          "canonical_hash": "sha256:a54f1d7ff58613dcee135e79e74da8e67d947f94396d22e7a832811e2658e451",
+          "description": "Create a new spreadsheet or batch-edit an existing one.\n\nOmit `spreadsheet_id` to create; provide it to edit. All writes flow through\n`requests[]` — typed operations like updateCells, addSheet, sortRange,\naddConditionalFormatRule, autoResizeDimensions, and more.\n\nFor updateCells use ExtendedValue with an explicit type field (stringValue,\nnumberValue, boolValue, formulaValue).\n\nBy default, build clean, professional-looking tables with restrained, consistent\nformatting and plain-text tab names/headers (no emojis); only use emojis or\ndecorative styling when the user explicitly asks for it.",
+          "is_mutating": false,
+          "property_keys": [
+            "requests",
+            "spreadsheet_id",
+            "title"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "title": "string",
+            "requests": "array",
+            "spreadsheet_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Title for a newly created spreadsheet. Ignored when spreadsheet_id is provided. Defaults to 'Untitled spreadsheet'."
+              },
+              "requests": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "addChart": {
+                      "type": "object",
+                      "properties": {
+                        "chart": {
+                          "type": "object",
+                          "properties": {
+                            "spec": {
+                              "type": "object"
+                            },
+                            "chartId": {
+                              "type": "integer"
+                            },
+                            "position": {
+                              "type": "object"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "addSheet": {
+                      "type": "object",
+                      "properties": {
+                        "properties": {
+                          "type": "object",
+                          "properties": {
+                            "index": {
+                              "type": "integer"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "hidden": {
+                              "type": "boolean"
+                            },
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "sheetType": {
+                              "enum": [
+                                "GRID",
+                                "OBJECT",
+                                "DATA_SOURCE"
+                              ],
+                              "type": "string"
+                            },
+                            "rightToLeft": {
+                              "type": "boolean"
+                            },
+                            "tabColorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "gridProperties": {
+                              "type": "object",
+                              "properties": {
+                                "rowCount": {
+                                  "type": "integer"
+                                },
+                                "columnCount": {
+                                  "type": "integer"
+                                },
+                                "hideGridlines": {
+                                  "type": "boolean"
+                                },
+                                "frozenRowCount": {
+                                  "type": "integer"
+                                },
+                                "frozenColumnCount": {
+                                  "type": "integer"
+                                },
+                                "rowGroupControlAfter": {
+                                  "type": "boolean"
+                                },
+                                "columnGroupControlAfter": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "sortRange": {
+                      "type": "object",
+                      "properties": {
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "sortSpecs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "sortOrder": {
+                                "enum": [
+                                  "ASCENDING",
+                                  "DESCENDING"
+                                ],
+                                "type": "string"
+                              },
+                              "dimensionIndex": {
+                                "type": "integer"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "mergeCells": {
+                      "type": "object",
+                      "properties": {
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "mergeType": {
+                          "enum": [
+                            "MERGE_ALL",
+                            "MERGE_COLUMNS",
+                            "MERGE_ROWS"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "repeatCell": {
+                      "type": "object",
+                      "properties": {
+                        "cell": {
+                          "type": "object",
+                          "properties": {
+                            "note": {
+                              "type": "string"
+                            },
+                            "pivotTable": {
+                              "type": "object"
+                            },
+                            "textFormatRuns": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "format": {
+                                    "type": "object",
+                                    "properties": {
+                                      "bold": {
+                                        "type": "boolean"
+                                      },
+                                      "link": {
+                                        "type": "object"
+                                      },
+                                      "italic": {
+                                        "type": "boolean"
+                                      },
+                                      "fontSize": {
+                                        "type": "integer"
+                                      },
+                                      "underline": {
+                                        "type": "boolean"
+                                      },
+                                      "fontFamily": {
+                                        "type": "string"
+                                      },
+                                      "strikethrough": {
+                                        "type": "boolean"
+                                      },
+                                      "foregroundColorStyle": {
+                                        "type": "object",
+                                        "properties": {
+                                          "rgbColor": {
+                                            "type": "object",
+                                            "properties": {
+                                              "red": {
+                                                "type": "number"
+                                              },
+                                              "blue": {
+                                                "type": "number"
+                                              },
+                                              "alpha": {
+                                                "type": "number"
+                                              },
+                                              "green": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "additionalProperties": false
+                                          },
+                                          "themeColor": {
+                                            "enum": [
+                                              "TEXT",
+                                              "BACKGROUND",
+                                              "ACCENT1",
+                                              "ACCENT2",
+                                              "ACCENT3",
+                                              "ACCENT4",
+                                              "ACCENT5",
+                                              "ACCENT6",
+                                              "LINK"
+                                            ],
+                                            "type": "string"
+                                          }
+                                        },
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "additionalProperties": false
+                                  },
+                                  "startIndex": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "dataSourceTable": {
+                              "type": "object"
+                            },
+                            "userEnteredValue": {
+                              "type": "object",
+                              "properties": {
+                                "boolValue": {
+                                  "type": "boolean"
+                                },
+                                "numberValue": {
+                                  "type": "number"
+                                },
+                                "stringValue": {
+                                  "type": "string"
+                                },
+                                "formulaValue": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "userEnteredFormat": {
+                              "type": "object",
+                              "properties": {
+                                "borders": {
+                                  "type": "object"
+                                },
+                                "padding": {
+                                  "type": "object",
+                                  "properties": {
+                                    "top": {
+                                      "type": "integer"
+                                    },
+                                    "left": {
+                                      "type": "integer"
+                                    },
+                                    "right": {
+                                      "type": "integer"
+                                    },
+                                    "bottom": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "textFormat": {
+                                  "type": "object",
+                                  "properties": {
+                                    "bold": {
+                                      "type": "boolean"
+                                    },
+                                    "link": {
+                                      "type": "object"
+                                    },
+                                    "italic": {
+                                      "type": "boolean"
+                                    },
+                                    "fontSize": {
+                                      "type": "integer"
+                                    },
+                                    "underline": {
+                                      "type": "boolean"
+                                    },
+                                    "fontFamily": {
+                                      "type": "string"
+                                    },
+                                    "strikethrough": {
+                                      "type": "boolean"
+                                    },
+                                    "foregroundColorStyle": {
+                                      "type": "object",
+                                      "properties": {
+                                        "rgbColor": {
+                                          "type": "object",
+                                          "properties": {
+                                            "red": {
+                                              "type": "number"
+                                            },
+                                            "blue": {
+                                              "type": "number"
+                                            },
+                                            "alpha": {
+                                              "type": "number"
+                                            },
+                                            "green": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        "themeColor": {
+                                          "enum": [
+                                            "TEXT",
+                                            "BACKGROUND",
+                                            "ACCENT1",
+                                            "ACCENT2",
+                                            "ACCENT3",
+                                            "ACCENT4",
+                                            "ACCENT5",
+                                            "ACCENT6",
+                                            "LINK"
+                                          ],
+                                          "type": "string"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "numberFormat": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "enum": [
+                                        "TEXT",
+                                        "NUMBER",
+                                        "PERCENT",
+                                        "CURRENCY",
+                                        "DATE",
+                                        "TIME",
+                                        "DATE_TIME",
+                                        "SCIENTIFIC"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "pattern": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "textRotation": {
+                                  "type": "object"
+                                },
+                                "wrapStrategy": {
+                                  "enum": [
+                                    "OVERFLOW_CELL",
+                                    "LEGACY_WRAP",
+                                    "CLIP",
+                                    "WRAP"
+                                  ],
+                                  "type": "string"
+                                },
+                                "textDirection": {
+                                  "enum": [
+                                    "LEFT_TO_RIGHT",
+                                    "RIGHT_TO_LEFT"
+                                  ],
+                                  "type": "string"
+                                },
+                                "verticalAlignment": {
+                                  "enum": [
+                                    "TOP",
+                                    "MIDDLE",
+                                    "BOTTOM"
+                                  ],
+                                  "type": "string"
+                                },
+                                "horizontalAlignment": {
+                                  "enum": [
+                                    "LEFT",
+                                    "CENTER",
+                                    "RIGHT"
+                                  ],
+                                  "type": "string"
+                                },
+                                "backgroundColorStyle": {
+                                  "type": "object",
+                                  "properties": {
+                                    "rgbColor": {
+                                      "type": "object",
+                                      "properties": {
+                                        "red": {
+                                          "type": "number"
+                                        },
+                                        "blue": {
+                                          "type": "number"
+                                        },
+                                        "alpha": {
+                                          "type": "number"
+                                        },
+                                        "green": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    "themeColor": {
+                                      "enum": [
+                                        "TEXT",
+                                        "BACKGROUND",
+                                        "ACCENT1",
+                                        "ACCENT2",
+                                        "ACCENT3",
+                                        "ACCENT4",
+                                        "ACCENT5",
+                                        "ACCENT6",
+                                        "LINK"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "hyperlinkDisplayType": {
+                                  "enum": [
+                                    "LINKED",
+                                    "PLAIN_TEXT"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "fields": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "deleteSheet": {
+                      "type": "object",
+                      "required": [
+                        "sheetId"
+                      ],
+                      "properties": {
+                        "sheetId": {
+                          "type": "integer"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "findReplace": {
+                      "type": "object",
+                      "properties": {
+                        "find": {
+                          "type": "string"
+                        },
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "sheetId": {
+                          "type": "integer"
+                        },
+                        "allSheets": {
+                          "type": "boolean"
+                        },
+                        "matchCase": {
+                          "type": "boolean"
+                        },
+                        "replacement": {
+                          "type": "string"
+                        },
+                        "searchByRegex": {
+                          "type": "boolean"
+                        },
+                        "includeFormulas": {
+                          "type": "boolean"
+                        },
+                        "matchEntireCell": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "updateCells": {
+                      "type": "object",
+                      "properties": {
+                        "rows": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "values": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "note": {
+                                      "type": "string"
+                                    },
+                                    "pivotTable": {
+                                      "type": "object"
+                                    },
+                                    "textFormatRuns": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "format": {
+                                            "type": "object",
+                                            "properties": {
+                                              "bold": {
+                                                "type": "boolean"
+                                              },
+                                              "link": {
+                                                "type": "object"
+                                              },
+                                              "italic": {
+                                                "type": "boolean"
+                                              },
+                                              "fontSize": {
+                                                "type": "integer"
+                                              },
+                                              "underline": {
+                                                "type": "boolean"
+                                              },
+                                              "fontFamily": {
+                                                "type": "string"
+                                              },
+                                              "strikethrough": {
+                                                "type": "boolean"
+                                              },
+                                              "foregroundColorStyle": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "rgbColor": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "red": {
+                                                        "type": "number"
+                                                      },
+                                                      "blue": {
+                                                        "type": "number"
+                                                      },
+                                                      "alpha": {
+                                                        "type": "number"
+                                                      },
+                                                      "green": {
+                                                        "type": "number"
+                                                      }
+                                                    },
+                                                    "additionalProperties": false
+                                                  },
+                                                  "themeColor": {
+                                                    "enum": [
+                                                      "TEXT",
+                                                      "BACKGROUND",
+                                                      "ACCENT1",
+                                                      "ACCENT2",
+                                                      "ACCENT3",
+                                                      "ACCENT4",
+                                                      "ACCENT5",
+                                                      "ACCENT6",
+                                                      "LINK"
+                                                    ],
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            },
+                                            "additionalProperties": false
+                                          },
+                                          "startIndex": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "dataSourceTable": {
+                                      "type": "object"
+                                    },
+                                    "userEnteredValue": {
+                                      "type": "object",
+                                      "properties": {
+                                        "boolValue": {
+                                          "type": "boolean"
+                                        },
+                                        "numberValue": {
+                                          "type": "number"
+                                        },
+                                        "stringValue": {
+                                          "type": "string"
+                                        },
+                                        "formulaValue": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    "userEnteredFormat": {
+                                      "type": "object",
+                                      "properties": {
+                                        "borders": {
+                                          "type": "object"
+                                        },
+                                        "padding": {
+                                          "type": "object",
+                                          "properties": {
+                                            "top": {
+                                              "type": "integer"
+                                            },
+                                            "left": {
+                                              "type": "integer"
+                                            },
+                                            "right": {
+                                              "type": "integer"
+                                            },
+                                            "bottom": {
+                                              "type": "integer"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        "textFormat": {
+                                          "type": "object",
+                                          "properties": {
+                                            "bold": {
+                                              "type": "boolean"
+                                            },
+                                            "link": {
+                                              "type": "object"
+                                            },
+                                            "italic": {
+                                              "type": "boolean"
+                                            },
+                                            "fontSize": {
+                                              "type": "integer"
+                                            },
+                                            "underline": {
+                                              "type": "boolean"
+                                            },
+                                            "fontFamily": {
+                                              "type": "string"
+                                            },
+                                            "strikethrough": {
+                                              "type": "boolean"
+                                            },
+                                            "foregroundColorStyle": {
+                                              "type": "object",
+                                              "properties": {
+                                                "rgbColor": {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "red": {
+                                                      "type": "number"
+                                                    },
+                                                    "blue": {
+                                                      "type": "number"
+                                                    },
+                                                    "alpha": {
+                                                      "type": "number"
+                                                    },
+                                                    "green": {
+                                                      "type": "number"
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                "themeColor": {
+                                                  "enum": [
+                                                    "TEXT",
+                                                    "BACKGROUND",
+                                                    "ACCENT1",
+                                                    "ACCENT2",
+                                                    "ACCENT3",
+                                                    "ACCENT4",
+                                                    "ACCENT5",
+                                                    "ACCENT6",
+                                                    "LINK"
+                                                  ],
+                                                  "type": "string"
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        "numberFormat": {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "enum": [
+                                                "TEXT",
+                                                "NUMBER",
+                                                "PERCENT",
+                                                "CURRENCY",
+                                                "DATE",
+                                                "TIME",
+                                                "DATE_TIME",
+                                                "SCIENTIFIC"
+                                              ],
+                                              "type": "string"
+                                            },
+                                            "pattern": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        "textRotation": {
+                                          "type": "object"
+                                        },
+                                        "wrapStrategy": {
+                                          "enum": [
+                                            "OVERFLOW_CELL",
+                                            "LEGACY_WRAP",
+                                            "CLIP",
+                                            "WRAP"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "textDirection": {
+                                          "enum": [
+                                            "LEFT_TO_RIGHT",
+                                            "RIGHT_TO_LEFT"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "verticalAlignment": {
+                                          "enum": [
+                                            "TOP",
+                                            "MIDDLE",
+                                            "BOTTOM"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "horizontalAlignment": {
+                                          "enum": [
+                                            "LEFT",
+                                            "CENTER",
+                                            "RIGHT"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "backgroundColorStyle": {
+                                          "type": "object",
+                                          "properties": {
+                                            "rgbColor": {
+                                              "type": "object",
+                                              "properties": {
+                                                "red": {
+                                                  "type": "number"
+                                                },
+                                                "blue": {
+                                                  "type": "number"
+                                                },
+                                                "alpha": {
+                                                  "type": "number"
+                                                },
+                                                "green": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            },
+                                            "themeColor": {
+                                              "enum": [
+                                                "TEXT",
+                                                "BACKGROUND",
+                                                "ACCENT1",
+                                                "ACCENT2",
+                                                "ACCENT3",
+                                                "ACCENT4",
+                                                "ACCENT5",
+                                                "ACCENT6",
+                                                "LINK"
+                                              ],
+                                              "type": "string"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        "hyperlinkDisplayType": {
+                                          "enum": [
+                                            "LINKED",
+                                            "PLAIN_TEXT"
+                                          ],
+                                          "type": "string"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "start": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "rowIndex": {
+                              "type": "integer"
+                            },
+                            "columnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "fields": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "unmergeCells": {
+                      "type": "object",
+                      "properties": {
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "addNamedRange": {
+                      "type": "object",
+                      "properties": {
+                        "namedRange": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "range": {
+                              "type": "object",
+                              "properties": {
+                                "sheetId": {
+                                  "type": "integer"
+                                },
+                                "endRowIndex": {
+                                  "type": "integer"
+                                },
+                                "startRowIndex": {
+                                  "type": "integer"
+                                },
+                                "endColumnIndex": {
+                                  "type": "integer"
+                                },
+                                "startColumnIndex": {
+                                  "type": "integer"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "namedRangeId": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "updateBorders": {
+                      "type": "object",
+                      "properties": {
+                        "top": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "enum": [
+                                "DOTTED",
+                                "DASHED",
+                                "SOLID",
+                                "SOLID_MEDIUM",
+                                "SOLID_THICK",
+                                "DOUBLE",
+                                "NONE"
+                              ],
+                              "type": "string"
+                            },
+                            "colorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "left": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "enum": [
+                                "DOTTED",
+                                "DASHED",
+                                "SOLID",
+                                "SOLID_MEDIUM",
+                                "SOLID_THICK",
+                                "DOUBLE",
+                                "NONE"
+                              ],
+                              "type": "string"
+                            },
+                            "colorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "right": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "enum": [
+                                "DOTTED",
+                                "DASHED",
+                                "SOLID",
+                                "SOLID_MEDIUM",
+                                "SOLID_THICK",
+                                "DOUBLE",
+                                "NONE"
+                              ],
+                              "type": "string"
+                            },
+                            "colorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "bottom": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "enum": [
+                                "DOTTED",
+                                "DASHED",
+                                "SOLID",
+                                "SOLID_MEDIUM",
+                                "SOLID_THICK",
+                                "DOUBLE",
+                                "NONE"
+                              ],
+                              "type": "string"
+                            },
+                            "colorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "innerVertical": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "enum": [
+                                "DOTTED",
+                                "DASHED",
+                                "SOLID",
+                                "SOLID_MEDIUM",
+                                "SOLID_THICK",
+                                "DOUBLE",
+                                "NONE"
+                              ],
+                              "type": "string"
+                            },
+                            "colorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "innerHorizontal": {
+                          "type": "object",
+                          "properties": {
+                            "style": {
+                              "enum": [
+                                "DOTTED",
+                                "DASHED",
+                                "SOLID",
+                                "SOLID_MEDIUM",
+                                "SOLID_THICK",
+                                "DOUBLE",
+                                "NONE"
+                              ],
+                              "type": "string"
+                            },
+                            "colorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "duplicateSheet": {
+                      "type": "object",
+                      "properties": {
+                        "newSheetId": {
+                          "type": "integer"
+                        },
+                        "newSheetName": {
+                          "type": "string"
+                        },
+                        "sourceSheetId": {
+                          "type": "integer"
+                        },
+                        "insertSheetIndex": {
+                          "type": "integer"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "deleteDimension": {
+                      "type": "object",
+                      "properties": {
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endIndex": {
+                              "type": "integer"
+                            },
+                            "dimension": {
+                              "enum": [
+                                "ROWS",
+                                "COLUMNS"
+                              ],
+                              "type": "string"
+                            },
+                            "startIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "insertDimension": {
+                      "type": "object",
+                      "properties": {
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endIndex": {
+                              "type": "integer"
+                            },
+                            "dimension": {
+                              "enum": [
+                                "ROWS",
+                                "COLUMNS"
+                              ],
+                              "type": "string"
+                            },
+                            "startIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "inheritFromBefore": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "addProtectedRange": {
+                      "type": "object",
+                      "properties": {
+                        "protectedRange": {
+                          "type": "object",
+                          "properties": {
+                            "range": {
+                              "type": "object",
+                              "properties": {
+                                "sheetId": {
+                                  "type": "integer"
+                                },
+                                "endRowIndex": {
+                                  "type": "integer"
+                                },
+                                "startRowIndex": {
+                                  "type": "integer"
+                                },
+                                "endColumnIndex": {
+                                  "type": "integer"
+                                },
+                                "startColumnIndex": {
+                                  "type": "integer"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "editors": {
+                              "type": "object",
+                              "properties": {
+                                "users": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "groups": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "domainUsersCanEdit": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "warningOnly": {
+                              "type": "boolean"
+                            },
+                            "namedRangeId": {
+                              "type": "string"
+                            },
+                            "protectedRangeId": {
+                              "type": "integer"
+                            },
+                            "unprotectedRanges": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sheetId": {
+                                    "type": "integer"
+                                  },
+                                  "endRowIndex": {
+                                    "type": "integer"
+                                  },
+                                  "startRowIndex": {
+                                    "type": "integer"
+                                  },
+                                  "endColumnIndex": {
+                                    "type": "integer"
+                                  },
+                                  "startColumnIndex": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "requestingUserCanEdit": {
+                              "type": "boolean"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "setDataValidation": {
+                      "type": "object",
+                      "properties": {
+                        "rule": {
+                          "type": "object",
+                          "properties": {
+                            "strict": {
+                              "type": "boolean"
+                            },
+                            "condition": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "enum": [
+                                    "NUMBER_GREATER",
+                                    "NUMBER_GREATER_THAN_EQ",
+                                    "NUMBER_LESS",
+                                    "NUMBER_LESS_THAN_EQ",
+                                    "NUMBER_EQ",
+                                    "NUMBER_NOT_EQ",
+                                    "NUMBER_BETWEEN",
+                                    "NUMBER_NOT_BETWEEN",
+                                    "TEXT_CONTAINS",
+                                    "TEXT_NOT_CONTAINS",
+                                    "TEXT_STARTS_WITH",
+                                    "TEXT_ENDS_WITH",
+                                    "TEXT_EQ",
+                                    "TEXT_IS_EMAIL",
+                                    "TEXT_IS_URL",
+                                    "DATE_EQ",
+                                    "DATE_BEFORE",
+                                    "DATE_AFTER",
+                                    "DATE_ON_OR_BEFORE",
+                                    "DATE_ON_OR_AFTER",
+                                    "DATE_BETWEEN",
+                                    "DATE_NOT_BETWEEN",
+                                    "DATE_IS_VALID",
+                                    "ONE_OF_RANGE",
+                                    "ONE_OF_LIST",
+                                    "BLANK",
+                                    "NOT_BLANK",
+                                    "CUSTOM_FORMULA",
+                                    "BOOLEAN"
+                                  ],
+                                  "type": "string"
+                                },
+                                "values": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "relativeDate": {
+                                        "type": "string"
+                                      },
+                                      "userEnteredValue": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "inputMessage": {
+                              "type": "string"
+                            },
+                            "showCustomUi": {
+                              "type": "boolean"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endRowIndex": {
+                              "type": "integer"
+                            },
+                            "startRowIndex": {
+                              "type": "integer"
+                            },
+                            "endColumnIndex": {
+                              "type": "integer"
+                            },
+                            "startColumnIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "filteredRowsIncluded": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "autoResizeDimensions": {
+                      "type": "object",
+                      "properties": {
+                        "dimensions": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endIndex": {
+                              "type": "integer"
+                            },
+                            "dimension": {
+                              "enum": [
+                                "ROWS",
+                                "COLUMNS"
+                              ],
+                              "type": "string"
+                            },
+                            "startIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "updateSheetProperties": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "string"
+                        },
+                        "properties": {
+                          "type": "object",
+                          "properties": {
+                            "index": {
+                              "type": "integer"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "hidden": {
+                              "type": "boolean"
+                            },
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "sheetType": {
+                              "enum": [
+                                "GRID",
+                                "OBJECT",
+                                "DATA_SOURCE"
+                              ],
+                              "type": "string"
+                            },
+                            "rightToLeft": {
+                              "type": "boolean"
+                            },
+                            "tabColorStyle": {
+                              "type": "object",
+                              "properties": {
+                                "rgbColor": {
+                                  "type": "object",
+                                  "properties": {
+                                    "red": {
+                                      "type": "number"
+                                    },
+                                    "blue": {
+                                      "type": "number"
+                                    },
+                                    "alpha": {
+                                      "type": "number"
+                                    },
+                                    "green": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "themeColor": {
+                                  "enum": [
+                                    "TEXT",
+                                    "BACKGROUND",
+                                    "ACCENT1",
+                                    "ACCENT2",
+                                    "ACCENT3",
+                                    "ACCENT4",
+                                    "ACCENT5",
+                                    "ACCENT6",
+                                    "LINK"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "gridProperties": {
+                              "type": "object",
+                              "properties": {
+                                "rowCount": {
+                                  "type": "integer"
+                                },
+                                "columnCount": {
+                                  "type": "integer"
+                                },
+                                "hideGridlines": {
+                                  "type": "boolean"
+                                },
+                                "frozenRowCount": {
+                                  "type": "integer"
+                                },
+                                "frozenColumnCount": {
+                                  "type": "integer"
+                                },
+                                "rowGroupControlAfter": {
+                                  "type": "boolean"
+                                },
+                                "columnGroupControlAfter": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "addConditionalFormatRule": {
+                      "type": "object",
+                      "properties": {
+                        "rule": {
+                          "type": "object",
+                          "properties": {
+                            "ranges": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "sheetId": {
+                                    "type": "integer"
+                                  },
+                                  "endRowIndex": {
+                                    "type": "integer"
+                                  },
+                                  "startRowIndex": {
+                                    "type": "integer"
+                                  },
+                                  "endColumnIndex": {
+                                    "type": "integer"
+                                  },
+                                  "startColumnIndex": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "booleanRule": {
+                              "type": "object",
+                              "properties": {
+                                "format": {
+                                  "type": "object",
+                                  "properties": {
+                                    "borders": {
+                                      "type": "object"
+                                    },
+                                    "padding": {
+                                      "type": "object",
+                                      "properties": {
+                                        "top": {
+                                          "type": "integer"
+                                        },
+                                        "left": {
+                                          "type": "integer"
+                                        },
+                                        "right": {
+                                          "type": "integer"
+                                        },
+                                        "bottom": {
+                                          "type": "integer"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    "textFormat": {
+                                      "type": "object",
+                                      "properties": {
+                                        "bold": {
+                                          "type": "boolean"
+                                        },
+                                        "link": {
+                                          "type": "object"
+                                        },
+                                        "italic": {
+                                          "type": "boolean"
+                                        },
+                                        "fontSize": {
+                                          "type": "integer"
+                                        },
+                                        "underline": {
+                                          "type": "boolean"
+                                        },
+                                        "fontFamily": {
+                                          "type": "string"
+                                        },
+                                        "strikethrough": {
+                                          "type": "boolean"
+                                        },
+                                        "foregroundColorStyle": {
+                                          "type": "object",
+                                          "properties": {
+                                            "rgbColor": {
+                                              "type": "object",
+                                              "properties": {
+                                                "red": {
+                                                  "type": "number"
+                                                },
+                                                "blue": {
+                                                  "type": "number"
+                                                },
+                                                "alpha": {
+                                                  "type": "number"
+                                                },
+                                                "green": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              "additionalProperties": false
+                                            },
+                                            "themeColor": {
+                                              "enum": [
+                                                "TEXT",
+                                                "BACKGROUND",
+                                                "ACCENT1",
+                                                "ACCENT2",
+                                                "ACCENT3",
+                                                "ACCENT4",
+                                                "ACCENT5",
+                                                "ACCENT6",
+                                                "LINK"
+                                              ],
+                                              "type": "string"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    "numberFormat": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "enum": [
+                                            "TEXT",
+                                            "NUMBER",
+                                            "PERCENT",
+                                            "CURRENCY",
+                                            "DATE",
+                                            "TIME",
+                                            "DATE_TIME",
+                                            "SCIENTIFIC"
+                                          ],
+                                          "type": "string"
+                                        },
+                                        "pattern": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    "textRotation": {
+                                      "type": "object"
+                                    },
+                                    "wrapStrategy": {
+                                      "enum": [
+                                        "OVERFLOW_CELL",
+                                        "LEGACY_WRAP",
+                                        "CLIP",
+                                        "WRAP"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "textDirection": {
+                                      "enum": [
+                                        "LEFT_TO_RIGHT",
+                                        "RIGHT_TO_LEFT"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "verticalAlignment": {
+                                      "enum": [
+                                        "TOP",
+                                        "MIDDLE",
+                                        "BOTTOM"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "horizontalAlignment": {
+                                      "enum": [
+                                        "LEFT",
+                                        "CENTER",
+                                        "RIGHT"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "backgroundColorStyle": {
+                                      "type": "object",
+                                      "properties": {
+                                        "rgbColor": {
+                                          "type": "object",
+                                          "properties": {
+                                            "red": {
+                                              "type": "number"
+                                            },
+                                            "blue": {
+                                              "type": "number"
+                                            },
+                                            "alpha": {
+                                              "type": "number"
+                                            },
+                                            "green": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "additionalProperties": false
+                                        },
+                                        "themeColor": {
+                                          "enum": [
+                                            "TEXT",
+                                            "BACKGROUND",
+                                            "ACCENT1",
+                                            "ACCENT2",
+                                            "ACCENT3",
+                                            "ACCENT4",
+                                            "ACCENT5",
+                                            "ACCENT6",
+                                            "LINK"
+                                          ],
+                                          "type": "string"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    },
+                                    "hyperlinkDisplayType": {
+                                      "enum": [
+                                        "LINKED",
+                                        "PLAIN_TEXT"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                },
+                                "condition": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "enum": [
+                                        "NUMBER_GREATER",
+                                        "NUMBER_GREATER_THAN_EQ",
+                                        "NUMBER_LESS",
+                                        "NUMBER_LESS_THAN_EQ",
+                                        "NUMBER_EQ",
+                                        "NUMBER_NOT_EQ",
+                                        "NUMBER_BETWEEN",
+                                        "NUMBER_NOT_BETWEEN",
+                                        "TEXT_CONTAINS",
+                                        "TEXT_NOT_CONTAINS",
+                                        "TEXT_STARTS_WITH",
+                                        "TEXT_ENDS_WITH",
+                                        "TEXT_EQ",
+                                        "TEXT_IS_EMAIL",
+                                        "TEXT_IS_URL",
+                                        "DATE_EQ",
+                                        "DATE_BEFORE",
+                                        "DATE_AFTER",
+                                        "DATE_ON_OR_BEFORE",
+                                        "DATE_ON_OR_AFTER",
+                                        "DATE_BETWEEN",
+                                        "DATE_NOT_BETWEEN",
+                                        "DATE_IS_VALID",
+                                        "ONE_OF_RANGE",
+                                        "ONE_OF_LIST",
+                                        "BLANK",
+                                        "NOT_BLANK",
+                                        "CUSTOM_FORMULA",
+                                        "BOOLEAN"
+                                      ],
+                                      "type": "string"
+                                    },
+                                    "values": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "relativeDate": {
+                                            "type": "string"
+                                          },
+                                          "userEnteredValue": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            "gradientRule": {
+                              "type": "object"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "index": {
+                          "type": "integer"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "updateDimensionProperties": {
+                      "type": "object",
+                      "properties": {
+                        "range": {
+                          "type": "object",
+                          "properties": {
+                            "sheetId": {
+                              "type": "integer"
+                            },
+                            "endIndex": {
+                              "type": "integer"
+                            },
+                            "dimension": {
+                              "enum": [
+                                "ROWS",
+                                "COLUMNS"
+                              ],
+                              "type": "string"
+                            },
+                            "startIndex": {
+                              "type": "integer"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "fields": {
+                          "type": "string"
+                        },
+                        "properties": {
+                          "type": "object",
+                          "properties": {
+                            "pixelSize": {
+                              "type": "integer"
+                            },
+                            "hiddenByUser": {
+                              "type": "boolean"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "updateSpreadsheetProperties": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "string"
+                        },
+                        "properties": {
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "type": "string"
+                            },
+                            "locale": {
+                              "type": "string"
+                            },
+                            "timeZone": {
+                              "type": "string"
+                            },
+                            "autoRecalc": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "A list of Google Sheets `spreadsheets.batchUpdate` request objects. Each object must have exactly one key naming the operation.\n\nFIELDS MASK: updateCells, repeatCell, updateSheetProperties, and updateDimensionProperties take a `fields` mask listing which sub-fields to write — anything you set but don't name is silently ignored. You can OMIT `fields` and the tool auto-derives it from the data you provide (recommended). Pass an explicit `fields` only for surgical edits, or `fields: \"*\"` to overwrite every sub-field (clearing ones you didn't provide).\n\nupdateCells — write typed values and formatting to a range. Use `range` OR `start` to anchor the write. Values must be wrapped in `userEnteredValue` with an explicit type field (stringValue, numberValue, boolValue, formulaValue). `fields` is auto-derived when omitted.\n\nrepeatCell — apply one CellData to every cell in a range. Good for painting formatting, notes, or validation without enumerating rows.\n\nupdateBorders — set per-edge borders. Each side takes a Border with a style (SOLID, DASHED, DOTTED, NONE, SOLID_MEDIUM, SOLID_THICK, DOUBLE).\n\naddSheet — create a new tab. Omit sheetId to let Google assign one; read the new ID from created_resources in the reply.\n\ndeleteSheet — remove a tab permanently by sheetId.\n\nduplicateSheet — clone a tab. newSheetId is auto-assigned when omitted.\n\nupdateSheetProperties — rename, reorder, freeze rows/columns, or recolor a tab. fields is rooted at properties.\n\nupdateSpreadsheetProperties — rename the whole spreadsheet (file) or change workbook-level properties. Use this (not updateSheetProperties) to change the spreadsheet title.\n\ninsertDimension — add rows or columns. Both startIndex and endIndex are REQUIRED.\n\ndeleteDimension — remove rows or columns. Apply largest-index first within a batch to avoid index shift.\n\nmergeCells — mergeType is MERGE_ALL, MERGE_COLUMNS, or MERGE_ROWS.\n\nunmergeCells — range must not partially span an existing merge.\n\nfindReplace — scope with ONE of range, sheetId, or allSheets.\n\naddNamedRange — create a workbook-scoped named range. Server assigns namedRangeId.\n\naddProtectedRange — lock a range. warningOnly=true gives soft protection.\n\nsetDataValidation — attach a validation rule to a range. Omit rule to clear.\n\naddConditionalFormatRule — insert a conditional-format rule at given index. Use booleanRule for categorical formatting.\n\naddChart — embed a chart. Server assigns chartId in the reply.\n\nsortRange — sort rows in a range by one or more columns. sortSpecs is ordered by priority (first = primary sort key). sortOrder is ASCENDING or DESCENDING.\n\nautoResizeDimensions — resize columns or rows to fit their content. dimension is COLUMNS or ROWS.\nNOTE: the tool automatically runs all autoResizeDimensions requests in a second batchUpdate call after all other requests have been applied. This ensures the resize measures post-write cell contents, including spilling formulas (ARRAYFORMULA, SEQUENCE, MAKEARRAY, QUERY) whose spill values only exist after the first call returns. If the resize call fails (e.g. transient error), writes are unaffected and a warning is returned instead of an error. updateDimensionProperties (pixelSize) sets an explicit pixel width and does not need this treatment — it can stay in the same batch as writes.\n\nupdateDimensionProperties — set explicit pixel size or hide a row/column. fields is a mask rooted at DimensionProperties.\n"
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "ID of an existing spreadsheet to edit. Omit to create a new spreadsheet."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "enum": [
+                  "created",
+                  "updated"
+                ],
+                "type": "string"
+              },
+              "sheets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "sheet_id",
+                    "title"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "sheet_id": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "spreadsheet_id": {
+                "type": "string"
+              },
+              "spreadsheet_url": {
+                "type": "string"
+              },
+              "requests_applied": {
+                "type": "integer"
+              },
+              "created_resources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "request_index",
+                    "resource_id",
+                    "resource_type"
+                  ],
+                  "properties": {
+                    "resource_id": {
+                      "type": "string"
+                    },
+                    "request_index": {
+                      "type": "integer"
+                    },
+                    "resource_type": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "action",
+              "created_resources",
+              "requests_applied",
+              "sheets",
+              "spreadsheet_id",
+              "spreadsheet_url",
+              "warnings"
+            ]
+          },
+          "description_hash": "sha256:c896a9c337c0c7b3b4179db3aa3aea50d29e5218391d990d77bb54053eba154a"
+        },
+        {
+          "name": "GoogleSheets_DeleteComment",
+          "canonical_hash": "sha256:6c52926a0e4b404897804f62e52e6395dc83a7e27a1c7186f6a19e7f1ffc1798",
+          "description": "Delete a comment from a spreadsheet.\n\nOnly the comment's author can delete it (enforced by Google Drive); deleting marks the\nwhole thread (the comment and its replies) as deleted.",
+          "is_mutating": false,
+          "property_keys": [
+            "comment_id",
+            "spreadsheet_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "comment_id": "string",
+            "spreadsheet_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "comment_id": {
+                "type": "string",
+                "description": "The id of the comment to delete."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The id of the spreadsheet the comment belongs to."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean"
+              },
+              "reply_id": {
+                "type": "string"
+              },
+              "resolved": {
+                "type": "boolean"
+              },
+              "comment_id": {
+                "type": "string"
+              },
+              "spreadsheet_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "comment_id",
+              "deleted",
+              "reply_id",
+              "resolved",
+              "spreadsheet_url"
+            ]
+          },
+          "description_hash": "sha256:9e8bb1300854000b0e2b61772544c0e5b8da5f313c4abb86d9addb46308189fa"
+        },
+        {
+          "name": "GoogleSheets_GenerateGoogleFilePickerUrl",
+          "canonical_hash": "sha256:4f63b5635b8eb1c64c3d1b7609cb7f92499a8b9fcf56f272c53961eb9aeacf21",
+          "description": "Generate a URL where the user can grant this app access to spreadsheets.\n\nOpens Google's first-party Drive picker, filtered to Google Sheets, where the user\nbrowses and selects which spreadsheets to share with this application — it is not a\nsign-in or credential prompt.\n\nUse this when a prior tool reported that a file was not found or access was denied, and\nthe user expects the file to exist. After the user completes the picker flow, retry the\nprior operation.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:b02d91b34cb98142ec2eb0f7c585161a5588144c1e48bd6f7412b95122b66df0"
+        },
+        {
+          "name": "GoogleSheets_GetSpreadsheetEditHistory",
+          "canonical_hash": "sha256:acf1f0b6848b01aadfeb0ae571e509e69e9d4c2dd6320d867407a37c40da6002",
+          "description": "Report who edited a spreadsheet and when, from Google Drive revisions.\n\nReports the \"who\" and \"when\" only — not which cells changed, and it can't revert.\n\n'summary' (default) answers \"who last edited this and when\" (read from the file's head,\nso always accurate), plus per-window aggregates (revisions read, contributors, first\nedit) and a preview of recent edits — computed over a bounded window of history per call.\nThese aggregates describe the whole history only when `is_incomplete` is false; it is\ntrue when the scan was resumed from a token and/or more history remains. To answer\n\"when was this first edited?\" or \"who contributed?\" reliably, call from the beginning\n(no `pagination_token`) and check `is_incomplete` is false. `pagination_token` is\nreturned when more pages remain so you can resume.\n\n'list' returns one page of individual revisions, oldest first. Drive can't sort\nnewest-first, so the most recent individual revisions are on the final page.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "mode",
+            "pagination_token",
+            "spreadsheet_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mode": "string",
+            "limit": "integer",
+            "spreadsheet_id": "string",
+            "pagination_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "summary",
+                  "list"
+                ],
+                "type": "string",
+                "description": "'summary' (default): the latest edit, plus per-window aggregates (revisions read, contributors, first edit) that cover the whole history only when is_incomplete is false, and a preview of recent edits. 'list': one page of individual revisions."
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max revisions per page in 'list' mode. Between 1 and 50. Defaults to 20. Ignored in 'summary' mode."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The id of the spreadsheet to get the edit history for."
+              },
+              "pagination_token": {
+                "type": "string",
+                "description": "Token from a previous response's pagination_token, to continue reading more history. Works in both modes."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "summary",
+                  "list"
+                ],
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer",
+                "description": "list: the page size used for this response."
+              },
+              "ordering": {
+                "type": "string",
+                "description": "order of the revisions/recent_edits; chronological, oldest first."
+              },
+              "revisions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "modified_by_email",
+                    "modified_by_name",
+                    "modified_time"
+                  ],
+                  "properties": {
+                    "modified_time": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "ISO 8601 timestamp of the edit, or null if Drive did not report one."
+                    },
+                    "modified_by_name": {
+                      "type": "string",
+                      "description": "Editor display name, or Unknown user when Drive has no signed-in editor."
+                    },
+                    "modified_by_email": {
+                      "type": "string",
+                      "description": "Editor email, or email hidden when the editor has not shared it."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "list: this page of individual revisions, oldest first."
+              },
+              "contributors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "summary: distinct editors seen in this window; partial unless is_incomplete=false."
+              },
+              "recent_edits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "modified_by_email",
+                    "modified_by_name",
+                    "modified_time"
+                  ],
+                  "properties": {
+                    "modified_time": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "ISO 8601 timestamp of the edit, or null if Drive did not report one."
+                    },
+                    "modified_by_name": {
+                      "type": "string",
+                      "description": "Editor display name, or Unknown user when Drive has no signed-in editor."
+                    },
+                    "modified_by_email": {
+                      "type": "string",
+                      "description": "Editor email, or email hidden when the editor has not shared it."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "summary: most recent edits (up to 10), oldest first; empty until the scan reaches the end."
+              },
+              "has_next_page": {
+                "type": "boolean",
+                "description": "true when another page/window is available (pagination_token is set)."
+              },
+              "is_incomplete": {
+                "type": "boolean",
+                "description": "summary: true when these window aggregates aren't whole-history (resumed or more remains)."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The spreadsheet this history is for."
+              },
+              "revisions_count": {
+                "type": "integer",
+                "description": "list: number of revisions on this page."
+              },
+              "last_modified_by": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "summary: most recent editor as Name (email), from the file head."
+              },
+              "pagination_token": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "token to read the next window (summary) or page (list); null when none remain."
+              },
+              "last_modified_time": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "summary: timestamp of the most recent edit, read from the file head (always accurate)."
+              },
+              "first_modified_time": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "summary: the sheet's first edit; null on a resumed scan (only valid from the start)."
+              },
+              "window_revision_count": {
+                "type": "integer",
+                "description": "summary: number of revisions read in this response window, not a whole-history total."
+              }
+            },
+            "required": [
+              "contributors",
+              "first_modified_time",
+              "has_next_page",
+              "is_incomplete",
+              "last_modified_by",
+              "last_modified_time",
+              "limit",
+              "mode",
+              "ordering",
+              "pagination_token",
+              "recent_edits",
+              "revisions",
+              "revisions_count",
+              "spreadsheet_id",
+              "window_revision_count"
+            ]
+          },
+          "description_hash": "sha256:eef97d61d6172aaeb063fcb6b48b64518b511d2121f9065a6c76aebcbb0d21b7"
+        },
+        {
+          "name": "GoogleSheets_InspectSpreadsheet",
+          "canonical_hash": "sha256:831c6187027060d1deaf3fca6d49780c66002bc31aff574df66ce4108096d865",
+          "description": "Inspect a Google Sheets spreadsheet's structure or read a range of cells.\n\nUse the default 'structure' mode to understand a workbook cheaply before reading.\nSwitch to 'read' mode to pull a range as a grid of rows, optionally with\nper-cell annotations and a rendered markdown/csv/tsv export.\n\nIn 'read' mode the response's per-tab 'sheets' block reports only tab identity and\nthe allocated grid; its scan-derived fields (used_range, populated_cell_count,\nformula_cell_count, first_row, table_regions) are placeholders (0/empty) because read\nmode does not scan the tab — they do NOT mean the tab is empty or that it has no\ntables. The data you read is in the top-level 'range' and 'rows'. Call 'structure'\nmode for those aggregates and for the workbook's charts, merges, protected ranges, and\nconditional formats.\n\nWorkflow for a tab that holds multiple tables, or a table that does not start at A1:\ncall 'structure' first and use that tab's estimated 'table_regions' to choose the\na1_range to read or filter, so you target one table instead of a glued multi-table\nrange.\n\nAlways check the response's top-level 'warnings' list: read mode reports there when a\nresult was capped or trimmed (cell budget, the per-cell annotation cap, or an empty\nfilter scan) and tells you how to recover (page 'next_range', narrow 'a1_range',\n'select_columns', or request fewer annotation kinds).",
+          "is_mutating": false,
+          "property_keys": [
+            "a1_range",
+            "annotations",
+            "export_as",
+            "filter_combine",
+            "filter_conditions",
+            "include_headers",
+            "max_length",
+            "max_rows",
+            "mode",
+            "select_columns",
+            "sheet_id",
+            "sheet_title",
+            "spreadsheet_id",
+            "value_render"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mode": "string",
+            "a1_range": "string",
+            "max_rows": "integer",
+            "sheet_id": "integer",
+            "export_as": "string",
+            "max_length": "integer",
+            "annotations": "array",
+            "sheet_title": "string",
+            "value_render": "string",
+            "filter_combine": "string",
+            "select_columns": "array",
+            "spreadsheet_id": "string",
+            "include_headers": "boolean",
+            "filter_conditions": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "structure",
+                  "read"
+                ],
+                "type": "string",
+                "description": "What to return. 'structure' (default) gives a cheap workbook overview: every tab's ids, allocated grid, frozen panes, merges, charts, protected ranges, conditional-format counts, real used range, first row, and ESTIMATED table_regions (A1 ranges of distinct data blocks per tab — a heuristic for spotting multiple tables in one tab; scope a1_range to one of these to read or filter a single table; empty for tabs too large to peek). 'read' pulls cell data from one tab."
+              },
+              "a1_range": {
+                "type": "string",
+                "description": "Read mode only: the range of cells to pull, in A1 notation (e.g. 'A1:F100'), WITHIN the selected tab — the tab is chosen by sheet_id/sheet_title, and any sheet prefix here (e.g. 'Other!A1:B2') is ignored. Defaults to the tab's used range. This is also the paging knob — request the next range to page."
+              },
+              "max_rows": {
+                "type": "integer",
+                "description": "Read mode only: maximum rows to return. Sets truncated=True when the range has more rows; pass the returned next_range as a1_range to page. When filtering, this bounds the rows SCANNED per page (matches may be fewer, even 0 — page until next_range is empty). Also capped so rows x columns stays within 4000 cells: a wide range returns fewer rows than requested (with a warning) and pages the rest. Defaults to 200."
+              },
+              "sheet_id": {
+                "type": "integer",
+                "description": "Read mode only: select the tab by its numeric sheetId. Mutually exclusive with sheet_title. Defaults to the first tab when both are omitted."
+              },
+              "export_as": {
+                "enum": [
+                  "markdown",
+                  "csv",
+                  "tsv"
+                ],
+                "type": "string",
+                "description": "Read mode only: also render the returned values as text. Omit to return structured values only. csv/tsv are lossless; markdown is display-oriented (in-cell newlines become <br>, pipes are escaped)."
+              },
+              "max_length": {
+                "type": "integer",
+                "description": "Read mode only: cap each returned cell string at this many characters. A longer cell becomes '<first chars>…(+N chars)' (the suffix is not counted; N = hidden chars). Pass 0 for full, untruncated strings; a positive value below the floor (or negative) clamps up to the floor. Filtering still matches the full cell value. Defaults to a small cap (50)."
+              },
+              "annotations": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "formulas",
+                    "notes",
+                    "number_formats",
+                    "data_validation",
+                    "conditional_formats",
+                    "merges",
+                    "types",
+                    "hyperlinks",
+                    "protected",
+                    "spill"
+                  ],
+                  "type": "string"
+                },
+                "description": "Read mode only: per-cell extras to include — pass only the kinds you need (e.g. ['formulas','notes']); each extra kind adds payload. Omit or leave empty to return values only (cheaper). Returned sparsely — one entry only per cell that carries a requested extra — and capped at the first 500 entries (row-major). Over that cap a warning is returned; rows may extend past the annotated slice, so a missing annotation beyond the cap is NOT authoritative — re-read a narrower a1_range, use select_columns, or request fewer kinds to confirm."
+              },
+              "sheet_title": {
+                "type": "string",
+                "description": "Read mode only: select the tab by name. Mutually exclusive with sheet_id. Defaults to the first tab when both are omitted."
+              },
+              "value_render": {
+                "enum": [
+                  "formatted",
+                  "unformatted"
+                ],
+                "type": "string",
+                "description": "Read mode only: 'formatted' (default) returns display strings like '$1,234.50'; 'unformatted' returns raw values suitable for math."
+              },
+              "filter_combine": {
+                "enum": [
+                  "and",
+                  "or"
+                ],
+                "type": "string",
+                "description": "Read mode only: how to combine multiple filter_conditions — a single top-level 'and'/'or' applied to all conditions (no nested grouping or mixed and/or). Defaults to 'and'."
+              },
+              "select_columns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Read mode only: return only these columns, by spreadsheet column LETTER (not header name), in this order. Defaults to all columns in a1_range."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The id of the spreadsheet to inspect."
+              },
+              "include_headers": {
+                "type": "boolean",
+                "description": "Structure mode only: include each tab's first row in the overview. Defaults to True."
+              },
+              "filter_conditions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "column",
+                    "op",
+                    "value"
+                  ],
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "eq",
+                        "ne",
+                        "contains",
+                        "not_contains",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "blank",
+                        "not_blank"
+                      ],
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "column": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Read mode only: keep only rows matching these conditions. Each is {column, op, value} where column is the spreadsheet column LETTER (e.g. 'C'), NOT the header name, and must be inside a1_range. Ops: eq/ne (exact string), contains/not_contains (case-insensitive substring), gt/gte/lt/lte (NUMERIC only — text columns match nothing), blank/not_blank (value is ignored — pass ''). Numeric ops parse currency like $1,234.50, but NOT percents (21%) or other formatted text — set value_render='unformatted' and compare against the underlying number (percents are stored as fractions, e.g. 0.21 for 21%). A warning is returned when a numeric filter matches nothing it scanned. Scans within a1_range only — page next_range for completeness, and scope a1_range to a single homogeneous table (use structure mode's table_regions to find each table's range; exclude header/title rows, which would otherwise be filtered as data)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string"
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "cells",
+                    "row_number"
+                  ],
+                  "properties": {
+                    "cells": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "row_number": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "range": {
+                "type": "string"
+              },
+              "sheets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "banded_range_count",
+                    "charts",
+                    "conditional_formats",
+                    "first_row",
+                    "formula_cell_count",
+                    "grid",
+                    "has_basic_filter",
+                    "index",
+                    "merges",
+                    "populated_cell_count",
+                    "protected_ranges",
+                    "sheet_id",
+                    "table_regions",
+                    "title",
+                    "used_range",
+                    "used_range_exact"
+                  ],
+                  "properties": {
+                    "grid": {
+                      "type": "object",
+                      "required": [
+                        "column_count",
+                        "frozen_column_count",
+                        "frozen_row_count",
+                        "row_count"
+                      ],
+                      "properties": {
+                        "row_count": {
+                          "type": "integer"
+                        },
+                        "column_count": {
+                          "type": "integer"
+                        },
+                        "frozen_row_count": {
+                          "type": "integer"
+                        },
+                        "frozen_column_count": {
+                          "type": "integer"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "index": {
+                      "type": "integer"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "charts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "chart_id",
+                          "chart_type",
+                          "title"
+                        ],
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "chart_id": {
+                            "type": "integer"
+                          },
+                          "chart_type": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "merges": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "sheet_id": {
+                      "type": "integer"
+                    },
+                    "first_row": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "used_range": {
+                      "type": "string"
+                    },
+                    "table_regions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "has_basic_filter": {
+                      "type": "boolean"
+                    },
+                    "protected_ranges": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "description",
+                          "editors",
+                          "range",
+                          "warning_only"
+                        ],
+                        "properties": {
+                          "range": {
+                            "type": "string"
+                          },
+                          "editors": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "warning_only": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "used_range_exact": {
+                      "type": "boolean"
+                    },
+                    "banded_range_count": {
+                      "type": "integer"
+                    },
+                    "formula_cell_count": {
+                      "type": "integer"
+                    },
+                    "conditional_formats": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "condition_type",
+                          "effect",
+                          "ranges",
+                          "values"
+                        ],
+                        "properties": {
+                          "effect": {
+                            "type": "string"
+                          },
+                          "ranges": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "values": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "condition_type": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "populated_cell_count": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "rendered": {
+                "type": "string"
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "next_range": {
+                "type": "string"
+              },
+              "annotations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "a1",
+                    "conditional_formats",
+                    "data_validation",
+                    "formula",
+                    "hyperlink",
+                    "merged_into",
+                    "note",
+                    "number_format",
+                    "protected_range",
+                    "spill",
+                    "value_type"
+                  ],
+                  "properties": {
+                    "a1": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    },
+                    "spill": {
+                      "type": "string"
+                    },
+                    "formula": {
+                      "type": "string"
+                    },
+                    "hyperlink": {
+                      "type": "string"
+                    },
+                    "value_type": {
+                      "type": "string"
+                    },
+                    "merged_into": {
+                      "type": "string"
+                    },
+                    "number_format": {
+                      "type": "string"
+                    },
+                    "data_validation": {
+                      "type": "string"
+                    },
+                    "protected_range": {
+                      "type": "string"
+                    },
+                    "conditional_formats": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "spreadsheet_id": {
+                "type": "string"
+              },
+              "spreadsheet_url": {
+                "type": "string"
+              },
+              "spreadsheet_title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "annotations",
+              "mode",
+              "next_range",
+              "range",
+              "rendered",
+              "rows",
+              "sheets",
+              "spreadsheet_id",
+              "spreadsheet_title",
+              "spreadsheet_url",
+              "truncated",
+              "warnings"
+            ]
+          },
+          "description_hash": "sha256:9502d3c2199abacd1f6236eade7d9b599e92c88f3c07da6b6bef8606dcb5c6bd"
+        },
+        {
+          "name": "GoogleSheets_ListSpreadsheetComments",
+          "canonical_hash": "sha256:e55fb2cdbb5d8d0c3b0449919320d6ee0f318be2e74c5c03c8f67cde3b98a9c0",
+          "description": "List a spreadsheet's comment threads, or the full replies of a single comment.\n\nIn 'comments' mode each comment includes up to a few trimmed reply previews plus the total reply_count; use 'thread' mode for a comment's complete reply list. Without filters/ordering, pagination walks every comment. Client-side filters (has_replies, resolved) and order_by are applied only within a bounded scan of the first 500 comments, so on larger sheets drop them and page through everything with the native (unbounded) pagination. Each comment's Drive anchor is returned when it was cell/range-anchored in the Sheets UI; comments created via the API are file-level. Filtering, ordering, and offset pagination are best-effort: results can drift if comments are added or removed between paginated calls.",
+          "is_mutating": false,
+          "property_keys": [
+            "comment_id",
+            "comment_ids",
+            "has_replies",
+            "include_deleted",
+            "limit",
+            "max_length",
+            "mode",
+            "modified_after",
+            "order_by",
+            "page_token",
+            "resolved",
+            "spreadsheet_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mode": "string",
+            "limit": "integer",
+            "order_by": "string",
+            "resolved": "boolean",
+            "comment_id": "string",
+            "max_length": "integer",
+            "page_token": "string",
+            "comment_ids": "array",
+            "has_replies": "boolean",
+            "modified_after": "string",
+            "spreadsheet_id": "string",
+            "include_deleted": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "comments",
+                  "thread"
+                ],
+                "type": "string",
+                "description": "'comments' (default) lists top-level comments, each with a capped reply preview and a reply_count. 'thread' lists the FULL replies of one comment (set comment_id)."
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max comments (or replies, in thread mode) to return. Clamped to [1, 50]."
+              },
+              "order_by": {
+                "enum": [
+                  "created_time_asc",
+                  "created_time_desc",
+                  "modified_time_asc",
+                  "modified_time_desc"
+                ],
+                "type": "string",
+                "description": "Client-side ordering (comments mode) by created/modified time, ascending or descending. Defaults to Drive's native order."
+              },
+              "resolved": {
+                "type": "boolean",
+                "description": "Client-side filter (comments mode): keep only resolved (True) or unresolved (False) comments."
+              },
+              "comment_id": {
+                "type": "string",
+                "description": "Required when mode='thread': the comment whose replies to list."
+              },
+              "max_length": {
+                "type": "integer",
+                "description": "Cap each returned comment/reply body (and quoted text) at this many characters. A longer body becomes '<prefix>…(+N chars)' (suffix not counted; N = hidden chars). Pass 0 for full, untruncated text; a positive value below the floor (or negative) clamps up to the floor. Filtering still matches the FULL text. Defaults to 280."
+              },
+              "page_token": {
+                "type": "string",
+                "description": "Opaque token from a previous call's page_token to fetch the next page."
+              },
+              "comment_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Fetch exactly these comments by id (comments mode), instead of paging. Replaces a dedicated get tool. At most 50 ids per call, and not combined with page_token."
+              },
+              "has_replies": {
+                "type": "boolean",
+                "description": "Client-side filter (comments mode): keep only comments that have (True) or lack (False) replies."
+              },
+              "modified_after": {
+                "type": "string",
+                "description": "Server-side filter: only comments modified at/after this RFC3339 time (e.g. '2025-01-01T00:00:00Z'). Comments mode only."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The id of the spreadsheet whose comments to list."
+              },
+              "include_deleted": {
+                "type": "boolean",
+                "description": "Include deleted comments/replies (their bodies are blank). Defaults to False."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string"
+              },
+              "replies": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "action",
+                    "author",
+                    "content",
+                    "created_time",
+                    "deleted",
+                    "id",
+                    "modified_time"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "action": {
+                      "type": "string"
+                    },
+                    "author": {
+                      "type": "object",
+                      "required": [
+                        "display_name"
+                      ],
+                      "properties": {
+                        "display_name": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "deleted": {
+                      "type": "boolean"
+                    },
+                    "created_time": {
+                      "type": "string"
+                    },
+                    "modified_time": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "comments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "anchor",
+                    "author",
+                    "content",
+                    "created_time",
+                    "deleted",
+                    "id",
+                    "modified_time",
+                    "quoted_file_content",
+                    "replies_preview",
+                    "reply_count",
+                    "resolved"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "anchor": {
+                      "type": "string"
+                    },
+                    "author": {
+                      "type": "object",
+                      "required": [
+                        "display_name"
+                      ],
+                      "properties": {
+                        "display_name": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "deleted": {
+                      "type": "boolean"
+                    },
+                    "resolved": {
+                      "type": "boolean"
+                    },
+                    "reply_count": {
+                      "type": "integer"
+                    },
+                    "created_time": {
+                      "type": "string"
+                    },
+                    "modified_time": {
+                      "type": "string"
+                    },
+                    "replies_preview": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "action",
+                          "author",
+                          "content",
+                          "created_time",
+                          "deleted",
+                          "id",
+                          "modified_time"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "action": {
+                            "type": "string"
+                          },
+                          "author": {
+                            "type": "object",
+                            "required": [
+                              "display_name"
+                            ],
+                            "properties": {
+                              "display_name": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "content": {
+                            "type": "string"
+                          },
+                          "deleted": {
+                            "type": "boolean"
+                          },
+                          "created_time": {
+                            "type": "string"
+                          },
+                          "modified_time": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "quoted_file_content": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "scan_hint": {
+                "type": "string"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "page_token": {
+                "type": "string"
+              },
+              "returned_count": {
+                "type": "integer"
+              },
+              "spreadsheet_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "comments",
+              "has_more",
+              "mode",
+              "page_token",
+              "replies",
+              "returned_count",
+              "scan_hint",
+              "spreadsheet_url",
+              "truncated"
+            ]
+          },
+          "description_hash": "sha256:c954e97a682159f434b641cbaadb8661da114bea0d216e3cfe12362a2692aef6"
+        },
+        {
+          "name": "GoogleSheets_ReplyToComment",
+          "canonical_hash": "sha256:e259af312585a684651fec8a6b6e65bb047ebf6c4434ba40a2f8bc9daa8bae10",
+          "description": "Add a reply to an existing comment on a spreadsheet.\n\nTo resolve or reopen the comment instead, use comment_on_spreadsheet with a status.",
+          "is_mutating": false,
+          "property_keys": [
+            "comment_id",
+            "reply_text",
+            "spreadsheet_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "comment_id": "string",
+            "reply_text": "string",
+            "spreadsheet_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "comment_id": {
+                "type": "string",
+                "description": "The id of the comment to reply to."
+              },
+              "reply_text": {
+                "type": "string",
+                "description": "The text of the reply."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The id of the spreadsheet the comment belongs to."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string"
+              },
+              "deleted": {
+                "type": "boolean"
+              },
+              "reply_id": {
+                "type": "string"
+              },
+              "resolved": {
+                "type": "boolean"
+              },
+              "comment_id": {
+                "type": "string"
+              },
+              "spreadsheet_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "comment_id",
+              "deleted",
+              "reply_id",
+              "resolved",
+              "spreadsheet_url"
+            ]
+          },
+          "description_hash": "sha256:20b9bb6901f1f9593fa5e668629cb63960bc1dc18b401dc9c5b29696c133ee2d"
+        },
+        {
+          "name": "GoogleSheets_ScanForDataIssues",
+          "canonical_hash": "sha256:5b838f22d9a1bc896e0c2a5eb5dd336986d26a7cb37d2beb42b73c1f3038dad7",
+          "description": "Deterministically flag 'weird'/bad cells in spreadsheet data.\n\nNo LLM judgement: the same input always returns the same flags. Each cell-level finding\ncarries a coord, a 0-based row_index/column_index (ready for a Sheets GridRange), the rule,\na severity (high -> red, medium/low -> yellow), and a note-ready reason — so the output\ndrops straight into an annotate/format recipe. In the default `mode='grouped'` these are\naggregated per rule+column within each table into `groups` (with A1 `coords`); use\n`mode='list'` to get every flagged cell in `flags` with its 0-based indices.\n\nProvide `spreadsheet_id` to scan a live sheet (scan one tab via sheet_id/sheet_title, or\nevery tab when both are omitted). Set `orientation='rows'` for transposed tables whose\nfields run down a column instead of across a row. Findings come back as flags (cell-level,\nhigh certainty) and alerts (table-level, lower certainty), grouped sheet -> table -> rule.\n\nIn all-sheets mode an unreadable tab never aborts the scan: its title is collected in\n`failed_sheets` (and echoed as a `warnings` entry) while every other tab still returns.\n`failed_sheets` is empty for a single-tab scan and whenever every tab reads cleanly.",
+          "is_mutating": false,
+          "property_keys": [
+            "a1_range",
+            "has_header",
+            "max_items_per_group",
+            "max_rows",
+            "mode",
+            "orientation",
+            "rules",
+            "sheet_id",
+            "sheet_title",
+            "spreadsheet_id",
+            "treat_range_as_single_table"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mode": "string",
+            "rules": "array",
+            "a1_range": "string",
+            "max_rows": "integer",
+            "sheet_id": "integer",
+            "has_header": "boolean",
+            "orientation": "string",
+            "sheet_title": "string",
+            "spreadsheet_id": "string",
+            "max_items_per_group": "integer",
+            "treat_range_as_single_table": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "list",
+                  "grouped"
+                ],
+                "type": "string",
+                "description": "'grouped' (default) aggregates findings per rule+column within each table with counts; 'list' enumerates every flagged cell."
+              },
+              "rules": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "error_value",
+                    "text_sentinel",
+                    "parenthesized_number",
+                    "number_stored_as_text",
+                    "whitespace",
+                    "type_outlier",
+                    "formula_outlier",
+                    "date_serial",
+                    "gap",
+                    "repeated_header",
+                    "inconsistent_column"
+                  ],
+                  "type": "string"
+                },
+                "description": "Which deterministic checks to run. Omit to run every check. Each is fully reproducible (no LLM judgement)."
+              },
+              "a1_range": {
+                "type": "string",
+                "description": "Single-sheet only: limit the analysis window (e.g. 'A1:F100'). Table detection still runs inside it; scope it to a single table's range for a precise scan. Defaults to the tab's used range."
+              },
+              "max_rows": {
+                "type": "integer",
+                "description": "Max rows scanned per tab (applies to every scanned tab). Defaults to 200, floored to 1."
+              },
+              "sheet_id": {
+                "type": "integer",
+                "description": "Scan only this tab (by numeric sheetId). Mutually exclusive with sheet_title. Omit both to scan every tab, grouped by sheet."
+              },
+              "has_header": {
+                "type": "boolean",
+                "description": "Treat each detected table's first row as labels (never flagged as a type outlier). Defaults to True."
+              },
+              "orientation": {
+                "enum": [
+                  "columns",
+                  "rows"
+                ],
+                "type": "string",
+                "description": "'columns' (default): records are rows, fields are columns. 'rows': the table is transposed — records are columns and fields are rows (row labels down column A). Applies to the whole scan, not per-table (one setting for every table on the tab). Coords are always reported in the sheet's real coordinates."
+              },
+              "sheet_title": {
+                "type": "string",
+                "description": "Scan only this tab (by name). Mutually exclusive with sheet_id. Omit both to scan every tab."
+              },
+              "spreadsheet_id": {
+                "type": "string",
+                "description": "The id of the spreadsheet to scan. Scan one tab via sheet_id/sheet_title, or every tab when both are omitted."
+              },
+              "max_items_per_group": {
+                "type": "integer",
+                "description": "Grouped mode: max cell coords listed per rule+column (within a table) before an 'omitted' count. Defaults to 10, hard-capped at 50."
+              },
+              "treat_range_as_single_table": {
+                "type": "boolean",
+                "description": "Single-sheet only: treat the whole a1_range as ONE table, skipping auto-detection. Use when detection would over-split a table that has an interior blank row. Defaults to False."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string"
+              },
+              "sheets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "flag_count",
+                    "omitted_tables",
+                    "range",
+                    "sheet_id",
+                    "sheet_title",
+                    "tables",
+                    "truncated"
+                  ],
+                  "properties": {
+                    "range": {
+                      "type": "string"
+                    },
+                    "tables": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "alerts",
+                          "flag_count",
+                          "flags",
+                          "groups",
+                          "table_range"
+                        ],
+                        "properties": {
+                          "flags": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "column_index",
+                                "coord",
+                                "reason",
+                                "row_index",
+                                "rule",
+                                "severity",
+                                "value"
+                              ],
+                              "properties": {
+                                "rule": {
+                                  "type": "string"
+                                },
+                                "coord": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "severity": {
+                                  "type": "string"
+                                },
+                                "row_index": {
+                                  "type": "integer"
+                                },
+                                "column_index": {
+                                  "type": "integer"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "alerts": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "range",
+                                "reason",
+                                "rule",
+                                "severity"
+                              ],
+                              "properties": {
+                                "rule": {
+                                  "type": "string"
+                                },
+                                "range": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "severity": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "groups": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "column",
+                                "coords",
+                                "count",
+                                "omitted",
+                                "reason",
+                                "rule",
+                                "severity"
+                              ],
+                              "properties": {
+                                "rule": {
+                                  "type": "string"
+                                },
+                                "count": {
+                                  "type": "integer"
+                                },
+                                "column": {
+                                  "type": "string"
+                                },
+                                "coords": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "omitted": {
+                                  "type": "integer"
+                                },
+                                "severity": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "flag_count": {
+                            "type": "integer"
+                          },
+                          "table_range": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "sheet_id": {
+                      "type": "integer"
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    },
+                    "flag_count": {
+                      "type": "integer"
+                    },
+                    "sheet_title": {
+                      "type": "string"
+                    },
+                    "omitted_tables": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "failed_sheets": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "rules_applied": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "omitted_sheets": {
+                "type": "integer"
+              },
+              "total_flag_count": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "failed_sheets",
+              "mode",
+              "omitted_sheets",
+              "rules_applied",
+              "sheets",
+              "total_flag_count",
+              "warnings"
+            ]
+          },
+          "description_hash": "sha256:3a84cc5e000ab7bbafb62a6d4e2bbcce9ce6f0b8615527232360ecce881080ee"
+        },
+        {
+          "name": "GoogleSheets_SearchSpreadsheets",
+          "canonical_hash": "sha256:5198531cf8363486ca75a001f45043c7af40213eade008046ff18ffc449ad453",
+          "description": "Searches for spreadsheets in the user's Google Drive based on the titles and content and\nreturns the title, ID, and URL for each matching spreadsheet.\n\nDoes not return the content/data of the sheets in the spreadsheets - only the metadata.\nExcludes spreadsheets that are in the trash.",
+          "is_mutating": false,
+          "property_keys": [
+            "include_organization_domain_spreadsheets",
+            "include_shared_drives",
+            "limit",
+            "order_by",
+            "pagination_token",
+            "search_only_in_shared_drive_id",
+            "spreadsheet_contains",
+            "spreadsheet_not_contains"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "order_by": "array",
+            "pagination_token": "string",
+            "spreadsheet_contains": "array",
+            "include_shared_drives": "boolean",
+            "spreadsheet_not_contains": "array",
+            "search_only_in_shared_drive_id": "string",
+            "include_organization_domain_spreadsheets": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "The maximum number of spreadsheets to list. Defaults to 10. Max is 50"
+              },
+              "order_by": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "createdTime",
+                    "createdTime desc",
+                    "folder",
+                    "folder desc",
+                    "modifiedByMeTime",
+                    "modifiedByMeTime desc",
+                    "modifiedTime",
+                    "modifiedTime desc",
+                    "name",
+                    "name desc",
+                    "name_natural",
+                    "name_natural desc",
+                    "quotaBytesUsed",
+                    "quotaBytesUsed desc",
+                    "recency",
+                    "recency desc",
+                    "sharedWithMeTime",
+                    "sharedWithMeTime desc",
+                    "starred",
+                    "starred desc",
+                    "viewedByMeTime",
+                    "viewedByMeTime desc"
+                  ],
+                  "type": "string"
+                },
+                "description": "Sort order. Defaults to listing the most recently modified spreadsheets first. If spreadsheet_contains or spreadsheet_not_contains is provided, then the order_by will be ignored."
+              },
+              "pagination_token": {
+                "type": "string",
+                "description": "The pagination token to continue a previous request"
+              },
+              "spreadsheet_contains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Keywords or phrases that must be in the spreadsheet title. Provide a list of keywords or phrases if needed."
+              },
+              "include_shared_drives": {
+                "type": "boolean",
+                "description": "Whether to include spreadsheets from shared drives. Defaults to False (searches only in the user's 'My Drive')."
+              },
+              "spreadsheet_not_contains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Keywords or phrases that must NOT be in the spreadsheet title. Provide a list of keywords or phrases if needed."
+              },
+              "search_only_in_shared_drive_id": {
+                "type": "string",
+                "description": "The ID of the shared drive to restrict the search to. If provided, the search will only return spreadsheets from this drive. Defaults to None, which searches across all drives."
+              },
+              "include_organization_domain_spreadsheets": {
+                "type": "boolean",
+                "description": "Whether to include spreadsheets from the organization's domain. This is applicable to admin users who have permissions to view organization-wide spreadsheets in a Google Workspace account. Defaults to False."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:a5bba63bbf05a5461f1a2b19e2b62f75d8d2ccdddd8b4edff28301a3dbf974ae"
+        },
+        {
+          "name": "GoogleSheets_WhoAmI",
+          "canonical_hash": "sha256:5cd0ab4de69cc0f1f0968b82ec22c9d574668e4d529f02a6c76d1b89e1667856",
+          "description": "Get comprehensive user profile and Google Sheets environment information.\n\nThis tool provides detailed information about the authenticated user including\ntheir name, email, profile picture, Google Sheets access permissions, and other\nimportant profile details from Google services.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:3f80cabe5cefd2ecb4d20a75f7f64f5c89647d64cab9e86e5d53037ec1eedbbe"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

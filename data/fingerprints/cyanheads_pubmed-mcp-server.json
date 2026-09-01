@@ -1,0 +1,2115 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/pubmed-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fpubmed-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/pubmed-mcp-server",
+  "description": "Search PubMed/Europe PMC, fetch articles and full text (PMC/EPMC/Unpaywall), citations, MeSH terms.",
+  "repository_url": "https://pubmed-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/pubmed-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:96f5e458cff06fce9b2d562249c63598bd35b62e45ebb2dbc18c45c5d5258dcc",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://pubmed-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "pubmed_convert_ids",
+          "canonical_hash": "sha256:8d8578d26170326d375bdfc0ecc7b30dc73ad9e58187a6acf122e83558bf6026",
+          "description": "Convert between article identifiers (DOI, PMID, PMCID). Accepts up to 50 IDs of a single type per request. Only resolves articles indexed in PubMed Central — for articles not in PMC, use pubmed_search_articles instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "idType",
+            "ids"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ids": "array",
+            "idType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "minItems": 1,
+                "description": "Article identifiers to convert. All IDs must be the same type. DOIs: \"10.1093/nar/gks1195\", PMIDs: \"23193287\", PMCIDs: \"PMC3531190\" (the \"PMC\" prefix is optional — bare digits like \"3531190\" are also accepted)."
+              },
+              "idType": {
+                "enum": [
+                  "pmcid",
+                  "pmid",
+                  "doi"
+                ],
+                "type": "string",
+                "description": "The type of IDs being submitted. Required so the API can unambiguously resolve them."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "records": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "requestedId"
+                  ],
+                  "properties": {
+                    "doi": {
+                      "type": "string",
+                      "description": "Digital Object Identifier; absent if no DOI is on record"
+                    },
+                    "pmid": {
+                      "type": "string",
+                      "description": "PubMed ID; absent if no mapping was found"
+                    },
+                    "pmcid": {
+                      "type": "string",
+                      "description": "PubMed Central ID; absent if the article has no PMC copy"
+                    },
+                    "errmsg": {
+                      "type": "string",
+                      "description": "Error message if conversion failed. Presence of `errmsg` is the failure signal; absence means the conversion succeeded."
+                    },
+                    "requestedId": {
+                      "type": "string",
+                      "description": "The ID that was submitted"
+                    }
+                  },
+                  "description": "Per-ID conversion record",
+                  "additionalProperties": false
+                },
+                "description": "Conversion results, one per input ID"
+              },
+              "totalConverted": {
+                "type": "number",
+                "description": "Number of IDs successfully converted"
+              },
+              "totalSubmitted": {
+                "type": "number",
+                "description": "Number of IDs submitted"
+              }
+            },
+            "required": [
+              "records",
+              "totalConverted",
+              "totalSubmitted"
+            ]
+          },
+          "description_hash": "sha256:0518abfb37a507d0efb06a50cefbaaf4d2b5ae61efe920e4f36b40aa0720e3f5"
+        },
+        {
+          "name": "pubmed_europepmc_search",
+          "canonical_hash": "sha256:c49d51354c188d599a0afe658428420915ff09dfb06e7fe061c4ecce5d3d5b48",
+          "description": "Search Europe PMC, a broad open-access biomedical corpus. Surfaces preprints (`source: PPR`), patents (`source: PAT`), Agricola (`source: AGR`), plus everything in PubMed (`MED`) and PMC. Use when additional coverage is needed — preprints and EPMC-only OA records are the typical recovery. Paginate via `cursorMark`. Defaults to `MED`, `PMC`, and `PPR`; pass `sources` to include `PAT` / `AGR`.",
+          "is_mutating": false,
+          "property_keys": [
+            "cursorMark",
+            "pageSize",
+            "query",
+            "resultType",
+            "sort",
+            "sources"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sort": "string",
+            "query": "string",
+            "sources": "array",
+            "pageSize": "integer",
+            "cursorMark": "string",
+            "resultType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sort": {
+                "type": "string",
+                "description": "Optional EPMC sort: `<field> asc|desc`. Documented sortable fields: `P_PDATE_D` (publication date), `CITED` (citation count), `AUTH_FIRST` (first author surname), `PUB_YEAR` (publication year). Examples: `P_PDATE_D desc` (newest first), `CITED desc` (most cited). Omit for relevance ranking. Fields outside the documented set are rejected by EPMC. Note: `P_PDATE_D` is ignored for preprint-only (`sources: [\"PPR\"]`) result sets — preprints have no populated publication date, so use `PUB_YEAR` to order preprints by date."
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Europe PMC search query. Supports field tokens like `AUTH:\"<name>\"`, `JOURNAL:\"<title>\"`, `TITLE:\"<words>\"`, `PUB_YEAR:[2020 TO 2024]`, `DOI:\"...\"`, `EXT_ID:<pmid> AND SRC:MED`, `PMCID:PMC<digits>`. Identifier tokens combined with `AND SRC:` must be unquoted — the quoted form matches nothing. Free text is matched broadly across abstract/title/keywords."
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "MED",
+                    "PMC",
+                    "PPR",
+                    "PAT",
+                    "AGR"
+                  ],
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Filter to specific EPMC sources. Defaults to MED, PMC, PPR when omitted. Pass an explicit array including PAT or AGR to broaden coverage. Allowed values: MED, PMC, PPR, PAT, AGR."
+              },
+              "pageSize": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Results per page. Max 100 per EPMC API."
+              },
+              "cursorMark": {
+                "type": "string",
+                "default": "*",
+                "description": "Pagination cursor. Use `*` (default) for the first page; pass the previous response's `nextCursorMark` for subsequent pages."
+              },
+              "resultType": {
+                "enum": [
+                  "core",
+                  "lite"
+                ],
+                "type": "string",
+                "default": "core",
+                "description": "`core` returns abstract, IDs, dates, license; `lite` is a smaller payload with IDs and titles only."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "epmcId",
+                    "epmcUrl"
+                  ],
+                  "properties": {
+                    "doi": {
+                      "type": "string",
+                      "description": "DOI when present"
+                    },
+                    "pmid": {
+                      "type": "string",
+                      "description": "PMID when present in PubMed"
+                    },
+                    "pmcId": {
+                      "type": "string",
+                      "description": "PMC ID when present in PMC"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Article title"
+                    },
+                    "epmcId": {
+                      "type": "string",
+                      "description": "Europe PMC's internal record id; key for `fullTextXML` lookup"
+                    },
+                    "source": {
+                      "enum": [
+                        "MED",
+                        "PMC",
+                        "PPR",
+                        "PAT",
+                        "AGR"
+                      ],
+                      "type": "string",
+                      "description": "Europe PMC source — `MED` (PubMed), `PMC` (PubMed Central), `PPR` (preprint), `PAT` (patent), `AGR` (Agricola)"
+                    },
+                    "authors": {
+                      "type": "string",
+                      "description": "Formatted author string"
+                    },
+                    "epmcUrl": {
+                      "type": "string",
+                      "description": "Europe PMC article URL"
+                    },
+                    "journal": {
+                      "type": "string",
+                      "description": "Journal title"
+                    },
+                    "pubYear": {
+                      "type": "string",
+                      "description": "Publication year"
+                    },
+                    "citedByCount": {
+                      "type": "number",
+                      "description": "Citation count reported by Europe PMC"
+                    },
+                    "isOpenAccess": {
+                      "type": "boolean",
+                      "description": "Whether EPMC reports the record as open access"
+                    },
+                    "hasFullTextXml": {
+                      "type": "boolean",
+                      "description": "Whether Europe PMC publishes a fullTextXML for this record. Derived from `inPMC` — only records with a PMC counterpart have JATS via EPMC; preprints (`PPR`) and MED-only records return false."
+                    },
+                    "abstractSnippet": {
+                      "type": "string",
+                      "description": "First few hundred characters of the abstract as display-ready plain text — JATS/HTML markup stripped and HTML entities decoded — when `resultType: \"core\"` is requested"
+                    },
+                    "firstPublicationDate": {
+                      "type": "string",
+                      "description": "First publication date (ISO YYYY-MM-DD)"
+                    }
+                  },
+                  "description": "Single Europe PMC record returned by the search",
+                  "additionalProperties": false
+                },
+                "description": "Matching Europe PMC records, in the order EPMC returned them"
+              },
+              "query": {
+                "type": "string",
+                "description": "Effective query string echoed by Europe PMC"
+              },
+              "notice": {
+                "type": "string",
+                "description": "Optional guidance when results are empty or paging overshot"
+              },
+              "searchUrl": {
+                "type": "string",
+                "description": "Europe PMC's website search URL for this query"
+              },
+              "cursorMark": {
+                "type": "string",
+                "description": "Cursor used for this response (echoed from the request)"
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching records across all pages"
+              },
+              "appliedSources": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "MED",
+                    "PMC",
+                    "PPR",
+                    "PAT",
+                    "AGR"
+                  ],
+                  "type": "string"
+                },
+                "description": "Sources the query was filtered against (defaults applied)"
+              },
+              "nextCursorMark": {
+                "type": "string",
+                "description": "Cursor to pass back as `cursorMark` for the next page. Absent on the final page."
+              }
+            },
+            "required": [
+              "hits",
+              "cursorMark",
+              "searchUrl",
+              "query",
+              "totalCount",
+              "appliedSources"
+            ]
+          },
+          "description_hash": "sha256:ee6af308dadba539258354cc5a8e87d24cfab6ab663d640c552bc0d92ac5f0c1"
+        },
+        {
+          "name": "pubmed_fetch_articles",
+          "canonical_hash": "sha256:d66f308be6eaf6b4d4b1d56e7227e16c6032327c416c7107f00953e56160fa7c",
+          "description": "Fetch full article metadata by PubMed IDs. Returns detailed article information including abstract, authors, journal, MeSH terms.",
+          "is_mutating": false,
+          "property_keys": [
+            "includeGrants",
+            "includeMesh",
+            "pmids"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pmids": "array",
+            "includeMesh": "boolean",
+            "includeGrants": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pmids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d+$"
+                },
+                "maxItems": 200,
+                "minItems": 1,
+                "description": "PubMed IDs to fetch"
+              },
+              "includeMesh": {
+                "type": "boolean",
+                "default": true,
+                "description": "Include MeSH terms"
+              },
+              "includeGrants": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include grant information"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Optional guidance when no articles were returned — points to discovery tools. Absent on successful fetches."
+              },
+              "articles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "doi": {
+                      "type": "string",
+                      "description": "DOI"
+                    },
+                    "pmid": {
+                      "type": "string",
+                      "description": "PubMed ID"
+                    },
+                    "pmcId": {
+                      "type": "string",
+                      "description": "PMC ID"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Article title"
+                    },
+                    "pmcUrl": {
+                      "type": "string",
+                      "description": "PMC full text URL"
+                    },
+                    "authors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "orcid": {
+                            "type": "string",
+                            "description": "ORCID identifier"
+                          },
+                          "initials": {
+                            "type": "string",
+                            "description": "Author initials"
+                          },
+                          "lastName": {
+                            "type": "string",
+                            "description": "Last name"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "description": "First/given name"
+                          },
+                          "collectiveName": {
+                            "type": "string",
+                            "description": "Group/collective author name"
+                          },
+                          "affiliationIndices": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            },
+                            "description": "Indices into the top-level affiliations array"
+                          }
+                        },
+                        "description": "Author record",
+                        "additionalProperties": false
+                      },
+                      "description": "Author list"
+                    },
+                    "keywords": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Keywords"
+                    },
+                    "grantList": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "agency": {
+                            "type": "string",
+                            "description": "Funding agency"
+                          },
+                          "acronym": {
+                            "type": "string",
+                            "description": "Grant acronym"
+                          },
+                          "country": {
+                            "type": "string",
+                            "description": "Agency country"
+                          },
+                          "grantId": {
+                            "type": "string",
+                            "description": "Grant identifier"
+                          }
+                        },
+                        "description": "Grant record",
+                        "additionalProperties": false
+                      },
+                      "description": "Grant information"
+                    },
+                    "meshTerms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "isMajorTopic"
+                        ],
+                        "properties": {
+                          "qualifiers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "qualifierName",
+                                "isMajorTopic"
+                              ],
+                              "properties": {
+                                "qualifierUi": {
+                                  "type": "string",
+                                  "description": "Qualifier unique ID"
+                                },
+                                "isMajorTopic": {
+                                  "type": "boolean",
+                                  "description": "Whether this qualifier is a major topic"
+                                },
+                                "qualifierName": {
+                                  "type": "string",
+                                  "description": "Qualifier/subheading name"
+                                }
+                              },
+                              "description": "MeSH qualifier/subheading",
+                              "additionalProperties": false
+                            },
+                            "description": "MeSH qualifiers/subheadings"
+                          },
+                          "descriptorUi": {
+                            "type": "string",
+                            "description": "MeSH descriptor unique ID"
+                          },
+                          "isMajorTopic": {
+                            "type": "boolean",
+                            "description": "Whether this is a major topic of the article"
+                          },
+                          "descriptorName": {
+                            "type": "string",
+                            "description": "MeSH descriptor name"
+                          }
+                        },
+                        "description": "MeSH descriptor term",
+                        "additionalProperties": false
+                      },
+                      "description": "MeSH terms"
+                    },
+                    "pubmedUrl": {
+                      "type": "string",
+                      "description": "PubMed article URL"
+                    },
+                    "journalInfo": {
+                      "type": "object",
+                      "properties": {
+                        "issn": {
+                          "type": "string",
+                          "description": "Print ISSN"
+                        },
+                        "eIssn": {
+                          "type": "string",
+                          "description": "Electronic ISSN"
+                        },
+                        "issue": {
+                          "type": "string",
+                          "description": "Issue number"
+                        },
+                        "pages": {
+                          "type": "string",
+                          "description": "Page range (e.g. \"48-55\")"
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "Full journal title"
+                        },
+                        "volume": {
+                          "type": "string",
+                          "description": "Volume number"
+                        },
+                        "isoAbbreviation": {
+                          "type": "string",
+                          "description": "ISO journal abbreviation"
+                        },
+                        "publicationDate": {
+                          "type": "object",
+                          "properties": {
+                            "day": {
+                              "type": "string",
+                              "description": "Publication day"
+                            },
+                            "year": {
+                              "type": "string",
+                              "description": "Publication year"
+                            },
+                            "month": {
+                              "type": "string",
+                              "description": "Publication month"
+                            },
+                            "medlineDate": {
+                              "type": "string",
+                              "description": "Non-standard date string (e.g. \"2000 Spring\")"
+                            }
+                          },
+                          "description": "Journal publication date",
+                          "additionalProperties": false
+                        }
+                      },
+                      "description": "Journal information",
+                      "additionalProperties": false
+                    },
+                    "abstractText": {
+                      "type": "string",
+                      "description": "Abstract text"
+                    },
+                    "affiliations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Deduplicated author affiliations"
+                    },
+                    "articleDates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {
+                            "type": "string",
+                            "description": "Day"
+                          },
+                          "year": {
+                            "type": "string",
+                            "description": "Year"
+                          },
+                          "month": {
+                            "type": "string",
+                            "description": "Month"
+                          },
+                          "dateType": {
+                            "type": "string",
+                            "description": "Date type"
+                          }
+                        },
+                        "description": "Dated article event",
+                        "additionalProperties": false
+                      },
+                      "description": "Article dates"
+                    },
+                    "publicationTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Publication types"
+                    }
+                  },
+                  "description": "Parsed PubMed article",
+                  "additionalProperties": false
+                },
+                "description": "Parsed articles"
+              },
+              "totalReturned": {
+                "type": "number",
+                "description": "Number of articles returned"
+              },
+              "unavailablePmids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "PMIDs that returned no article data"
+              }
+            },
+            "required": [
+              "articles",
+              "totalReturned"
+            ]
+          },
+          "description_hash": "sha256:fd7bd881a3915786ad9b54e7ffa92a3d6cb3933adebe8c2cab23e21d30775ac8"
+        },
+        {
+          "name": "pubmed_fetch_fulltext",
+          "canonical_hash": "sha256:f62feee9b31ea99373062cd2444da368596f88c837675fd4137e19634cb8dd29",
+          "description": "Fetch full-text articles from PubMed Central with structured sections and references. When PMC misses, transparently falls back to Europe PMC `fullTextXML` (structured JATS for records with a PMC counterpart), then to Unpaywall — publisher-hosted or institutional open-access copies as HTML-as-Markdown or PDF-as-text. Provide exactly one of `pmcids` (PMC IDs directly), `pmids` (PubMed IDs, auto-resolved), or `dois` (DOIs, auto-resolved to PMC via the ID Converter; preprints and EPMC-only OA fall through to the Europe PMC and Unpaywall layers).",
+          "is_mutating": false,
+          "property_keys": [
+            "dois",
+            "includeReferences",
+            "maxSections",
+            "pmcids",
+            "pmids",
+            "sections"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dois": "array",
+            "pmids": "array",
+            "pmcids": "array",
+            "sections": "array",
+            "maxSections": "integer",
+            "includeReferences": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dois": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "description": "DOIs to resolve (e.g. [\"10.21203/rs.3.rs-9010375/v1\"]). Provide exactly one of `pmcids`, `pmids`, or `dois`. Resolved to a PMCID via the PMC ID Converter and returned as structured JATS when the article is in PMC; DOIs with no PMC counterpart (preprints, EPMC-only OA) fall through to Europe PMC, then Unpaywall, when those layers are enabled."
+              },
+              "pmids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d+$"
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "description": "PubMed IDs. Provide exactly one of `pmcids`, `pmids`, or `dois`. Articles in PMC are returned as structured JATS; articles not in PMC fall through to Europe PMC (when EPMC has a `fullTextXML`), then to Unpaywall when `UNPAYWALL_EMAIL` is set and a DOI is available."
+              },
+              "pmcids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^(?:PMC)?\\d+$"
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "description": "PMC IDs to fetch (e.g. [\"PMC9575052\"]). Provide exactly one of `pmcids`, `pmids`, or `dois`. PMC IDs with no retrievable full text fall through to Europe PMC, then to Unpaywall on the DOI the chain resolves for them."
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Filter to specific sections by title, case-insensitive (e.g. [\"Introduction\", \"Methods\", \"Results\", \"Discussion\"]). Applies to `source=pmc` results only."
+              },
+              "maxSections": {
+                "type": "integer",
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Maximum top-level body sections. Applies to `source=pmc` results only."
+              },
+              "includeReferences": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include reference list. Applies to `source=pmc` results only."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Optional guidance for empty bodies. A `sections`-filter miss names the requested terms and affected article id(s) and suggests retrying without `sections` or using broader headings. A metadata-only record names the id(s) the chain could retrieve as front matter only and points at `pubmed_fetch_articles` for the abstract. Absent when neither case applies."
+              },
+              "articles": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "source",
+                        "viaSource",
+                        "sections"
+                      ],
+                      "properties": {
+                        "doi": {
+                          "type": "string",
+                          "description": "DOI"
+                        },
+                        "pmid": {
+                          "type": "string",
+                          "description": "PubMed ID"
+                        },
+                        "pmcId": {
+                          "type": "string",
+                          "description": "PMC ID — present for NCBI PMC records and Europe PMC entries that have a PMC counterpart. Absent for EPMC-only records like preprints; use `epmcId` in that case."
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "Article title"
+                        },
+                        "epmcId": {
+                          "type": "string",
+                          "description": "Europe PMC record id — present when `viaSource` is `europepmc`"
+                        },
+                        "pmcUrl": {
+                          "type": "string",
+                          "description": "PMC URL — derived from `pmcId` when present"
+                        },
+                        "source": {
+                          "type": "string",
+                          "const": "pmc",
+                          "description": "Structured JATS — same DTD whether sourced from NCBI PMC or Europe PMC"
+                        },
+                        "authors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "lastName": {
+                                "type": "string",
+                                "description": "Last name"
+                              },
+                              "givenNames": {
+                                "type": "string",
+                                "description": "Given names"
+                              },
+                              "collectiveName": {
+                                "type": "string",
+                                "description": "Group name"
+                              }
+                            },
+                            "description": "Author entry",
+                            "additionalProperties": false
+                          },
+                          "description": "Authors"
+                        },
+                        "journal": {
+                          "type": "object",
+                          "properties": {
+                            "issn": {
+                              "type": "string",
+                              "description": "ISSN"
+                            },
+                            "issue": {
+                              "type": "string",
+                              "description": "Issue number"
+                            },
+                            "pages": {
+                              "type": "string",
+                              "description": "Page range"
+                            },
+                            "title": {
+                              "type": "string",
+                              "description": "Journal title"
+                            },
+                            "volume": {
+                              "type": "string",
+                              "description": "Volume number"
+                            }
+                          },
+                          "description": "Journal information",
+                          "additionalProperties": false
+                        },
+                        "abstract": {
+                          "type": "string",
+                          "description": "Abstract"
+                        },
+                        "keywords": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Keywords"
+                        },
+                        "sections": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "text"
+                            ],
+                            "properties": {
+                              "text": {
+                                "type": "string",
+                                "description": "Section body text"
+                              },
+                              "label": {
+                                "type": "string",
+                                "description": "Section label"
+                              },
+                              "title": {
+                                "type": "string",
+                                "description": "Section heading"
+                              },
+                              "subsections": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "required": [
+                                    "text"
+                                  ],
+                                  "properties": {
+                                    "text": {
+                                      "type": "string",
+                                      "description": "Subsection body text"
+                                    },
+                                    "label": {
+                                      "type": "string",
+                                      "description": "Subsection label"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "description": "Subsection heading"
+                                    }
+                                  },
+                                  "description": "Article subsection",
+                                  "additionalProperties": false
+                                },
+                                "description": "Nested subsections"
+                              }
+                            },
+                            "description": "Article body section",
+                            "additionalProperties": false
+                          },
+                          "description": "Article body sections"
+                        },
+                        "pubmedUrl": {
+                          "type": "string",
+                          "description": "PubMed URL"
+                        },
+                        "viaSource": {
+                          "enum": [
+                            "pmc",
+                            "europepmc"
+                          ],
+                          "type": "string",
+                          "description": "Which layer produced the JATS: `pmc` for NCBI PMC EFetch (db=pmc), `europepmc` for Europe PMC `fullTextXML`. Both paths return the same JATS shape; the discriminator records origin for observability and license attribution."
+                        },
+                        "epmcSource": {
+                          "type": "string",
+                          "description": "Europe PMC source code when `viaSource` is `europepmc`. Common values: `MED` (PubMed-derived), `PMC` (PMC counterpart), `PPR` (preprint), `PAT` (patent), `AGR` (Agricola), plus less common codes (`CTX`, `CBA`, `ETH`, `HIR`). Treat as opaque — EPMC may introduce new codes."
+                        },
+                        "references": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "citation"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Reference ID"
+                              },
+                              "label": {
+                                "type": "string",
+                                "description": "Reference label"
+                              },
+                              "citation": {
+                                "type": "string",
+                                "description": "Citation text"
+                              }
+                            },
+                            "description": "Reference entry",
+                            "additionalProperties": false
+                          },
+                          "description": "Reference list"
+                        },
+                        "articleType": {
+                          "type": "string",
+                          "description": "Article type"
+                        },
+                        "affiliations": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Author affiliations"
+                        },
+                        "publicationDate": {
+                          "type": "object",
+                          "properties": {
+                            "day": {
+                              "type": "string",
+                              "description": "Publication day"
+                            },
+                            "year": {
+                              "type": "string",
+                              "description": "Publication year"
+                            },
+                            "month": {
+                              "type": "string",
+                              "description": "Publication month"
+                            }
+                          },
+                          "description": "Publication date",
+                          "additionalProperties": false
+                        }
+                      },
+                      "description": "Structured JATS full-text article. `viaSource` records whether the JATS came from NCBI PMC or Europe PMC.",
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "source",
+                        "viaSource",
+                        "contentFormat",
+                        "doi",
+                        "sourceUrl",
+                        "content"
+                      ],
+                      "properties": {
+                        "doi": {
+                          "type": "string",
+                          "description": "DOI used to locate the open-access copy"
+                        },
+                        "pmid": {
+                          "type": "string",
+                          "description": "PubMed ID when input was `pmids`; absent for `pmcids` and `dois` input"
+                        },
+                        "pmcId": {
+                          "type": "string",
+                          "description": "PMC ID this article was requested under, in `PMC<digits>` form — present for `pmcids` input, absent for `pmids` and `dois` input. Ties the article back to the requested identifier, which `unavailable[]` keys on for the ids that found nothing."
+                        },
+                        "title": {
+                          "type": "string",
+                          "description": "Detected article title when present"
+                        },
+                        "source": {
+                          "type": "string",
+                          "const": "unpaywall",
+                          "description": "Content fetched from an open-access copy indexed by Unpaywall. Best-effort — structural fidelity depends on `contentFormat`."
+                        },
+                        "content": {
+                          "type": "string",
+                          "description": "Full article text — Markdown or plain text per `contentFormat`"
+                        },
+                        "license": {
+                          "type": "string",
+                          "description": "License identifier from Unpaywall (e.g. cc-by, cc0)"
+                        },
+                        "version": {
+                          "type": "string",
+                          "description": "OA version: submittedVersion | acceptedVersion | publishedVersion"
+                        },
+                        "hostType": {
+                          "type": "string",
+                          "description": "`publisher` or `repository` — where the OA copy is hosted"
+                        },
+                        "pubmedUrl": {
+                          "type": "string",
+                          "description": "PubMed URL — present when `pmid` is set"
+                        },
+                        "sourceUrl": {
+                          "type": "string",
+                          "description": "URL the content was fetched from"
+                        },
+                        "viaSource": {
+                          "type": "string",
+                          "const": "unpaywall",
+                          "description": "Layer that produced this article. Constant `unpaywall` for this branch."
+                        },
+                        "wordCount": {
+                          "type": "number",
+                          "description": "Approximate word count reported by the HTML extractor; absent for PDFs"
+                        },
+                        "totalPages": {
+                          "type": "number",
+                          "description": "Page count reported by the PDF extractor; absent for HTML"
+                        },
+                        "contentFormat": {
+                          "enum": [
+                            "html-markdown",
+                            "pdf-text"
+                          ],
+                          "type": "string",
+                          "description": "How `content` was extracted. html-markdown: Defuddle extracted Markdown from an HTML landing page; light section structure may survive but is not guaranteed. pdf-text: unpdf extracted plain text from a PDF; no section, reference, or heading structure."
+                        }
+                      },
+                      "description": "Best-effort full text from an open-access copy",
+                      "additionalProperties": false
+                    }
+                  ],
+                  "description": "Full-text article; shape depends on `source` (pmc = structured JATS, unpaywall = best-effort)"
+                },
+                "description": "Full-text articles"
+              },
+              "unavailable": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "idType",
+                    "reason",
+                    "triedTiers"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Identifier the chain could not resolve — PMID, PMCID, or DOI per `idType`"
+                    },
+                    "idType": {
+                      "enum": [
+                        "pmid",
+                        "pmcid",
+                        "doi"
+                      ],
+                      "type": "string",
+                      "description": "Which input branch the id came from"
+                    },
+                    "reason": {
+                      "enum": [
+                        "not-found",
+                        "no-pmc-fallback-disabled",
+                        "no-epmc-fulltext",
+                        "no-body",
+                        "no-doi",
+                        "no-oa",
+                        "fetch-failed",
+                        "parse-failed",
+                        "service-error"
+                      ],
+                      "type": "string",
+                      "description": "Why no full text was returned. not-found: upstream returned no record for this ID. no-pmc-fallback-disabled: every tier was skipped (`triedTiers` is all `not-attempted`) — typically because EPMC (`EUROPEPMC_ENABLED`) and Unpaywall (`UNPAYWALL_EMAIL`) are not configured. no-epmc-fulltext: EPMC indexed the record but publishes no fullTextXML. no-body: the record was retrieved but carries front matter and abstract only, with no body sections — use `pubmed_fetch_articles` for the metadata. no-doi: no DOI to query Unpaywall. no-oa: Unpaywall has no OA copy. fetch-failed: download failed. parse-failed: extraction empty. service-error: upstream server failure (threw, timed out, or returned malformed data)."
+                    },
+                    "triedTiers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "tier",
+                          "outcome"
+                        ],
+                        "properties": {
+                          "tier": {
+                            "enum": [
+                              "pmc",
+                              "europepmc",
+                              "unpaywall"
+                            ],
+                            "type": "string",
+                            "description": "Which tier in the resolution chain"
+                          },
+                          "detail": {
+                            "type": "string",
+                            "description": "Tier-specific context when available"
+                          },
+                          "outcome": {
+                            "enum": [
+                              "not-attempted",
+                              "miss",
+                              "no-fulltext",
+                              "no-body",
+                              "no-doi",
+                              "no-oa",
+                              "fetch-failed",
+                              "parse-failed",
+                              "service-error"
+                            ],
+                            "type": "string",
+                            "description": "Per-tier outcome. not-attempted: tier was skipped. miss: tier returned no record. no-fulltext: EPMC indexed the record but publishes no fullTextXML. no-body: the tier returned a record with front matter and abstract but no body sections, so the chain continued. no-doi: no DOI to query Unpaywall. no-oa: Unpaywall reports no open-access copy. fetch-failed: OA copy download failed. parse-failed: extraction produced empty content. service-error: tier service threw."
+                          }
+                        },
+                        "description": "One tier the resolution chain attempted, with its outcome",
+                        "additionalProperties": false
+                      },
+                      "description": "Per-tier outcomes the chain produced for this id, in execution order. Covers `pmc`, `europepmc`, and `unpaywall` — the same tiers the tool description references. Tiers that the chain skipped appear as `outcome: not-attempted` with a `detail` explaining why."
+                    }
+                  },
+                  "description": "One identifier that could not be returned, with the full chain it traversed",
+                  "additionalProperties": false
+                },
+                "description": "Per-identifier explanations for any requested PMIDs, PMCIDs, or DOIs with no returnable full text. `idType` discriminates which branch the id came from."
+              },
+              "totalReturned": {
+                "type": "number",
+                "description": "Number of articles returned"
+              }
+            },
+            "required": [
+              "articles",
+              "totalReturned"
+            ]
+          },
+          "description_hash": "sha256:9735b917e033499523ad49d039891ae72c42c3dbaab40d8a9651905cf22d69c4"
+        },
+        {
+          "name": "pubmed_find_related",
+          "canonical_hash": "sha256:edbd9c6ab40ce08556b7d697cec7a5426f2e67906ade1201f1f45904776e3c56",
+          "description": "Find articles related to a source article — similar content (similar), articles citing this one (cited_by), or articles this one cites (references). Uses NCBI ELink as the primary source; falls back to Europe PMC then OpenAlex when NCBI is unavailable.",
+          "is_mutating": false,
+          "property_keys": [
+            "maxResults",
+            "offset",
+            "pmid",
+            "relationship"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pmid": "string",
+            "offset": "integer",
+            "maxResults": "integer",
+            "relationship": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pmid": {
+                "type": "string",
+                "pattern": "^\\d+$",
+                "description": "Source PubMed ID"
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Result offset for pagination (0-based); page through results by incrementing by maxResults"
+              },
+              "maxResults": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Maximum related articles"
+              },
+              "relationship": {
+                "enum": [
+                  "similar",
+                  "cited_by",
+                  "references"
+                ],
+                "type": "string",
+                "default": "similar",
+                "description": "Relationship type: similar (content-based), cited_by (articles citing this one), references (articles this one cites)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when results are empty, a fallback provider answered, or offset overshot. Absent on a clean NCBI result page."
+              },
+              "offset": {
+                "type": "number",
+                "description": "Result offset used"
+              },
+              "source": {
+                "enum": [
+                  "ncbi",
+                  "europepmc",
+                  "openalex"
+                ],
+                "type": "string",
+                "description": "Provider that answered this request"
+              },
+              "articles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "pmid"
+                  ],
+                  "properties": {
+                    "pmid": {
+                      "type": "string",
+                      "description": "PubMed ID"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Article title"
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Journal source"
+                    },
+                    "authors": {
+                      "type": "string",
+                      "description": "Author string"
+                    },
+                    "pubDate": {
+                      "type": "string",
+                      "description": "Publication date"
+                    }
+                  },
+                  "description": "Related article with enriched summary",
+                  "additionalProperties": false
+                },
+                "description": "Related articles"
+              },
+              "sourcePmid": {
+                "type": "string",
+                "description": "Source PubMed ID"
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total related articles found before windowing"
+              },
+              "relationship": {
+                "enum": [
+                  "similar",
+                  "cited_by",
+                  "references"
+                ],
+                "type": "string",
+                "description": "Relationship type used"
+              }
+            },
+            "required": [
+              "sourcePmid",
+              "relationship",
+              "offset",
+              "articles",
+              "totalCount",
+              "source"
+            ]
+          },
+          "description_hash": "sha256:74d329a4a6c5e22c37160949cd7a7576172c08b058193a3f794cc4855dc0222e"
+        },
+        {
+          "name": "pubmed_format_citations",
+          "canonical_hash": "sha256:e8ba88b35ed03abe57057cd2206071d97348b950dc60ba7d46cb286fa78112b7",
+          "description": "Get formatted citations for PubMed articles in one or more formats (apa, mla, bibtex, ris, vancouver). Pass a single format as a string or multiple as an array.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "pmids"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pmids": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pmids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d+$"
+                },
+                "maxItems": 50,
+                "minItems": 1,
+                "description": "PubMed IDs to cite"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "apa",
+                      "mla",
+                      "bibtex",
+                      "ris",
+                      "vancouver"
+                    ],
+                    "type": "string",
+                    "description": "Single citation style. One of: apa, mla, bibtex, ris, vancouver."
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "apa",
+                        "mla",
+                        "bibtex",
+                        "ris",
+                        "vancouver"
+                      ],
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "description": "Multiple citation styles to generate. Each entry: apa, mla, bibtex, ris, or vancouver."
+                  }
+                ],
+                "default": "apa",
+                "description": "Citation format(s) to generate — single style as a string or multiple as an array. Allowed values: apa, mla, bibtex, ris, vancouver."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Optional guidance when no citations were produced — points to discovery tools. Absent when at least one citation was produced."
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "pmid",
+                    "citations"
+                  ],
+                  "properties": {
+                    "pmid": {
+                      "type": "string",
+                      "description": "PubMed ID"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Article title"
+                    },
+                    "citations": {
+                      "type": "object",
+                      "description": "Citations keyed by style",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "description": "Citations for a single article",
+                  "additionalProperties": false
+                },
+                "description": "Citations per article"
+              },
+              "totalFormatted": {
+                "type": "number",
+                "description": "Number of PMIDs successfully formatted"
+              },
+              "totalSubmitted": {
+                "type": "number",
+                "description": "Number of PMIDs submitted for citation formatting"
+              },
+              "unavailablePmids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Requested PMIDs that did not return article metadata"
+              }
+            },
+            "required": [
+              "citations",
+              "totalSubmitted",
+              "totalFormatted"
+            ]
+          },
+          "description_hash": "sha256:4ac6c09cbd6e7f8922c7499e7ba98af8672459019e7e9521d32633a41f17adb5"
+        },
+        {
+          "name": "pubmed_lookup_citation",
+          "canonical_hash": "sha256:8650caa367334a6a8773b155d38714a60a72d7eda48a51e3b397b8963317036e",
+          "description": "Look up PubMed IDs from partial bibliographic citations. Useful when you have a reference (journal, year, volume, page, author) and need the PMID — deterministic citation matching, more reliable than free-text search for structured references. Each citation must include at least journal or year (ECitMatch primary-keys on journal+volume+page; author-only or volume-only inputs guarantee no match); more fields = better match accuracy.",
+          "is_mutating": false,
+          "property_keys": [
+            "citations"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "citations": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "citations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "description": "Arbitrary label to track this citation in results. Auto-assigned if omitted."
+                    },
+                    "year": {
+                      "type": "string",
+                      "description": "Publication year (e.g., \"1991\")"
+                    },
+                    "volume": {
+                      "type": "string",
+                      "description": "Volume number"
+                    },
+                    "journal": {
+                      "type": "string",
+                      "description": "Journal title or ISO abbreviation (e.g., \"proc natl acad sci u s a\")"
+                    },
+                    "firstPage": {
+                      "type": "string",
+                      "description": "First page number"
+                    },
+                    "authorName": {
+                      "type": "string",
+                      "description": "Author name, typically \"lastname initials\" (e.g., \"mann bj\")"
+                    }
+                  },
+                  "description": "Citation to match against PubMed. Must include at least journal or year — ECitMatch primary-keys on journal+volume+page, so author-only or volume-only inputs guarantee no match."
+                },
+                "maxItems": 25,
+                "minItems": 1,
+                "description": "Citations to look up. More fields = better match accuracy."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "matched",
+                    "status"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "description": "Citation tracking key"
+                    },
+                    "pmid": {
+                      "type": "string",
+                      "description": "Matched PubMed ID"
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "Additional detail returned by ECitMatch for non-exact matches"
+                    },
+                    "status": {
+                      "enum": [
+                        "matched",
+                        "not_found",
+                        "ambiguous"
+                      ],
+                      "type": "string",
+                      "description": "Lookup outcome classification for this citation"
+                    },
+                    "matched": {
+                      "type": "boolean",
+                      "description": "Whether a PMID was found"
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "code",
+                          "message"
+                        ],
+                        "properties": {
+                          "code": {
+                            "enum": [
+                              "author_mismatch",
+                              "year_mismatch"
+                            ],
+                            "type": "string",
+                            "description": "Machine-readable warning code"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human-readable description of the warning"
+                          }
+                        },
+                        "description": "Non-fatal warning about the match",
+                        "additionalProperties": false
+                      },
+                      "description": "Non-fatal warnings about this match. A PMID may be returned even when the queried author or year disagrees with the matched article — verify before treating the PMID as authoritative."
+                    },
+                    "candidatePmids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "PMID"
+                      },
+                      "description": "Candidate PMIDs returned when the citation matched ambiguously. Add more bibliographic fields and retry to disambiguate, or fetch each candidate via pubmed_fetch_articles to pick the intended one."
+                    },
+                    "matchedFirstAuthor": {
+                      "type": "string",
+                      "description": "First author of the matched article (e.g., \"Husain M\"). Useful eyeball signal for verifying a match."
+                    }
+                  },
+                  "description": "Per-citation match result",
+                  "additionalProperties": false
+                },
+                "description": "Match results, one per input citation"
+              },
+              "totalMatched": {
+                "type": "number",
+                "description": "Number of citations with PMID matches"
+              },
+              "totalWarnings": {
+                "type": "number",
+                "description": "Number of matched citations that carry at least one warning"
+              },
+              "totalSubmitted": {
+                "type": "number",
+                "description": "Number of citations submitted"
+              }
+            },
+            "required": [
+              "results",
+              "totalMatched",
+              "totalSubmitted",
+              "totalWarnings"
+            ]
+          },
+          "description_hash": "sha256:f153690751b0dd394a0b2889c6e635b466a15dde831467ffb96bd8cd1d0f90be"
+        },
+        {
+          "name": "pubmed_lookup_mesh",
+          "canonical_hash": "sha256:9dc571429f1794c5a3cff2ce8953ce4d863d557e3b05c4c6bc56a1f3d3b3f45f",
+          "description": "Search and explore the MeSH (Medical Subject Headings) controlled vocabulary. Returns descriptor records with tree numbers, scope notes, and entry terms, plus pagination via offset for paging past the maxResults cap.",
+          "is_mutating": false,
+          "property_keys": [
+            "includeDetails",
+            "maxResults",
+            "offset",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "offset": "integer",
+            "maxResults": "integer",
+            "includeDetails": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "MeSH descriptor name or free-text term to look up"
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Result offset for pagination (0-based). Pass the `nextOffset` from the previous response to get the following page; the exact-descriptor match is pinned to the first page only."
+              },
+              "maxResults": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Maximum results"
+              },
+              "includeDetails": {
+                "type": "boolean",
+                "default": true,
+                "description": "Fetch full MeSH records (scope notes, tree numbers, entry terms)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Original search query"
+              },
+              "notice": {
+                "type": "string",
+                "description": "Optional guidance when no descriptors matched or the offset overshot the result set — suggests spell-check, free-text search, or resetting the offset. Absent on successful result pages."
+              },
+              "offset": {
+                "type": "number",
+                "description": "Result offset this page was read from"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "meshId",
+                    "entrezUid",
+                    "name"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Descriptor name"
+                    },
+                    "meshId": {
+                      "type": "string",
+                      "description": "Canonical MeSH DescriptorUI (e.g. \"D003924\") — resolves at the MeSH Browser and NLM linked data. Falls back to the raw Entrez UID when a record is not decodable."
+                    },
+                    "entrezUid": {
+                      "type": "string",
+                      "description": "NCBI Entrez UID for this record — the join key for E-utilities (eSummary/eFetch db=mesh)."
+                    },
+                    "scopeNote": {
+                      "type": "string",
+                      "description": "Scope note"
+                    },
+                    "entryTerms": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Synonyms / entry terms"
+                    },
+                    "treeNumbers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Navigable MeSH tree numbers (e.g. \"D02.078.370.141.450\"). Omitted for supplementary concept records (SCRs), which map to a heading rather than occupying a tree position."
+                    }
+                  },
+                  "description": "Matching MeSH descriptor record",
+                  "additionalProperties": false
+                },
+                "description": "Matching MeSH records"
+              },
+              "nextOffset": {
+                "type": "number",
+                "description": "Offset to request for the next page. Omitted when this is the last page, so its absence is the end-of-results signal."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total MeSH descriptors matching the query upstream, before the maxResults cap"
+              }
+            },
+            "required": [
+              "query",
+              "offset",
+              "results",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:b26cda04222d13c9cf9cbeeb43306a176e8aaf5133718213f3142f423780ea7a"
+        },
+        {
+          "name": "pubmed_search_articles",
+          "canonical_hash": "sha256:fc742a8f7a97197ccf4f4431314f1b9c21946ee4bf5285ef805f781812b7c16b",
+          "description": "Search PubMed with full query syntax, filters, and date ranges. Returns PMIDs and optional brief summaries. Supports field-specific filters (author, journal, MeSH terms), common filters (language, species, free full text), and pagination via offset for paging through large result sets.",
+          "is_mutating": false,
+          "property_keys": [
+            "author",
+            "dateRange",
+            "freeFullText",
+            "hasAbstract",
+            "journal",
+            "language",
+            "maxResults",
+            "meshTerms",
+            "offset",
+            "publicationTypes",
+            "query",
+            "sort",
+            "species",
+            "summaryCount"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sort": "string",
+            "query": "string",
+            "author": "string",
+            "offset": "integer",
+            "journal": "string",
+            "species": "string",
+            "language": "string",
+            "dateRange": "object",
+            "meshTerms": "array",
+            "maxResults": "integer",
+            "hasAbstract": "boolean",
+            "freeFullText": "boolean",
+            "summaryCount": "integer",
+            "publicationTypes": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sort": {
+                "enum": [
+                  "relevance",
+                  "pub_date",
+                  "author",
+                  "journal"
+                ],
+                "type": "string",
+                "default": "relevance",
+                "description": "Sort order: relevance (default), pub_date (newest first), author, or journal"
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "PubMed search query (supports full NCBI syntax)"
+              },
+              "author": {
+                "type": "string",
+                "description": "Filter by author name (e.g. \"Smith J\")"
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Result offset for pagination (0-based)"
+              },
+              "journal": {
+                "type": "string",
+                "description": "Filter by journal name"
+              },
+              "species": {
+                "enum": [
+                  "humans",
+                  "animals"
+                ],
+                "type": "string",
+                "description": "Filter by species"
+              },
+              "language": {
+                "type": "string",
+                "description": "Filter by language (e.g. \"english\")"
+              },
+              "dateRange": {
+                "type": "object",
+                "required": [
+                  "minDate",
+                  "maxDate"
+                ],
+                "properties": {
+                  "maxDate": {
+                    "type": "string",
+                    "pattern": "^$|^\\d{4}([/\\-.]\\d{1,2}([/\\-.]\\d{1,2})?)?$",
+                    "description": "End date (YYYY/MM/DD, YYYY/MM, or YYYY); empty string disables this bound"
+                  },
+                  "minDate": {
+                    "type": "string",
+                    "pattern": "^$|^\\d{4}([/\\-.]\\d{1,2}([/\\-.]\\d{1,2})?)?$",
+                    "description": "Start date (YYYY/MM/DD, YYYY/MM, or YYYY); empty string disables this bound"
+                  },
+                  "dateType": {
+                    "enum": [
+                      "pdat",
+                      "mdat",
+                      "edat"
+                    ],
+                    "type": "string",
+                    "default": "pdat",
+                    "description": "Date type: pdat (publication), mdat (modification), edat (entrez)"
+                  }
+                },
+                "description": "Filter by date range. The filter is applied only when both `minDate` and `maxDate` are non-empty; either one empty disables the entire date range."
+              },
+              "meshTerms": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Filter by MeSH terms. Multiple terms are AND'd — all must match."
+              },
+              "maxResults": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Maximum results to return"
+              },
+              "hasAbstract": {
+                "type": "boolean",
+                "description": "Only include articles with abstracts"
+              },
+              "freeFullText": {
+                "type": "boolean",
+                "description": "Only include free full text articles"
+              },
+              "summaryCount": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 50,
+                "minimum": 0,
+                "description": "Fetch brief summaries for top N results (0 = PMIDs only)"
+              },
+              "publicationTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Filter by publication type (e.g. \"Review\", \"Clinical Trial\", \"Meta-Analysis\"). Multiple values are OR'd — any match qualifies."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "pmids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "PubMed IDs"
+              },
+              "query": {
+                "type": "string",
+                "description": "Original query"
+              },
+              "notice": {
+                "type": "string",
+                "description": "Optional guidance when results are empty or paging overshot — e.g. how to broaden filters or reset offset. Absent on successful result pages."
+              },
+              "offset": {
+                "type": "number",
+                "description": "Result offset used"
+              },
+              "searchUrl": {
+                "type": "string",
+                "description": "PubMed search URL"
+              },
+              "summaries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "pmid"
+                  ],
+                  "properties": {
+                    "doi": {
+                      "type": "string",
+                      "description": "DOI"
+                    },
+                    "pmid": {
+                      "type": "string",
+                      "description": "PubMed ID"
+                    },
+                    "pmcId": {
+                      "type": "string",
+                      "description": "PMC ID"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Article title"
+                    },
+                    "pmcUrl": {
+                      "type": "string",
+                      "description": "PMC URL"
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Journal source"
+                    },
+                    "authors": {
+                      "type": "string",
+                      "description": "Formatted author string"
+                    },
+                    "pubDate": {
+                      "type": "string",
+                      "description": "Publication date"
+                    },
+                    "pubmedUrl": {
+                      "type": "string",
+                      "description": "PubMed URL"
+                    }
+                  },
+                  "description": "Brief article summary",
+                  "additionalProperties": false
+                },
+                "description": "Brief summaries (empty array when summaryCount is 0)"
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching articles"
+              },
+              "appliedFilters": {
+                "type": "object",
+                "properties": {
+                  "author": {
+                    "type": "string",
+                    "description": "Author filter applied to the search"
+                  },
+                  "journal": {
+                    "type": "string",
+                    "description": "Journal filter applied to the search"
+                  },
+                  "species": {
+                    "enum": [
+                      "humans",
+                      "animals"
+                    ],
+                    "type": "string",
+                    "description": "Species filter applied to the search"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "Language filter applied to the search"
+                  },
+                  "dateRange": {
+                    "type": "object",
+                    "required": [
+                      "minDate",
+                      "maxDate",
+                      "dateType"
+                    ],
+                    "properties": {
+                      "maxDate": {
+                        "type": "string",
+                        "description": "Applied maximum date"
+                      },
+                      "minDate": {
+                        "type": "string",
+                        "description": "Applied minimum date"
+                      },
+                      "dateType": {
+                        "enum": [
+                          "pdat",
+                          "mdat",
+                          "edat"
+                        ],
+                        "type": "string",
+                        "description": "Applied date field used for the range filter"
+                      }
+                    },
+                    "description": "Date range filter applied to the search",
+                    "additionalProperties": false
+                  },
+                  "meshTerms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "MeSH term filters applied to the search"
+                  },
+                  "hasAbstract": {
+                    "type": "boolean",
+                    "description": "Whether results were restricted to articles with abstracts"
+                  },
+                  "freeFullText": {
+                    "type": "boolean",
+                    "description": "Whether results were restricted to free full-text articles"
+                  },
+                  "publicationTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Publication type filters applied to the search"
+                  }
+                },
+                "description": "Normalized filter values that were applied to the PubMed query",
+                "additionalProperties": false
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "Sanitized query sent to PubMed after applying all active filters"
+              }
+            },
+            "required": [
+              "query",
+              "offset",
+              "pmids",
+              "summaries",
+              "searchUrl",
+              "effectiveQuery",
+              "totalCount",
+              "appliedFilters"
+            ]
+          },
+          "description_hash": "sha256:1f4d65eec79648dadfd4227851c6e25752d8e5e4fae645bf37abb8c0b7ad5a03"
+        },
+        {
+          "name": "pubmed_spell_check",
+          "canonical_hash": "sha256:0fb37540c221ea6db5a2a85aeb3064bb7faab9a142f4e91ebcd5dd1443803b8d",
+          "description": "Spell-check a query and get NCBI's suggested correction. Useful for refining search queries.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "minLength": 2,
+                "description": "PubMed search query to spell-check"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "original": {
+                "type": "string",
+                "description": "Original query"
+              },
+              "corrected": {
+                "type": "string",
+                "description": "Corrected query (same as original if no suggestion)"
+              },
+              "hasSuggestion": {
+                "type": "boolean",
+                "description": "Whether NCBI suggested a correction"
+              }
+            },
+            "required": [
+              "original",
+              "corrected",
+              "hasSuggestion"
+            ]
+          },
+          "description_hash": "sha256:27f90cdb7ab31b20cb624a9cb2c5108f069735115e9efaf3a52a278b5ee84c72"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "research_plan",
+          "description": "",
+          "argument_keys": [
+            "goal",
+            "includeAgentPrompts",
+            "keywords",
+            "organism",
+            "title"
+          ],
+          "required_arguments": [
+            "goal",
+            "includeAgentPrompts",
+            "keywords",
+            "title"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "pubmed://database/info",
+          "name": "database-info",
+          "description": "",
+          "mime_type": "application/json"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}

@@ -1,0 +1,354 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "aiwyn",
+  "purl": "pkg:npm/aiwyn",
+  "ecosystem": "npm",
+  "display_name": "aiwyn",
+  "description": "Automate tax workflow tasks and manage client engagements. Track deadlines, organize documents, and handle billing for accounting firms.",
+  "repository_url": "https://aiwyn.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "aiwyn"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:952a60979603cd81e304d6c0e2ff0b8f93600ddb370cf7c77ede1363a8a20b8f",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://aiwyn.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "calculate_tax",
+          "canonical_hash": "sha256:b609c29cd4bb39544bc95b2c9ff531ffe55298b56bb4616398734850bd1aa222",
+          "description": "Calculate a tax return for a given jurisdiction. The 'input' argument must conform to the JSON schema returned by the tax_namespace_schema tool. Returns computed tax return document on success, or validation errors if the input is invalid. If some inputs trigger a PARTIAL DISQUALIFICATION, the document is still returned for the supported fields; review the disqualification details and estimate the impact of the unsupported fields on the taxpayer's tax owed or refund due. Use the check_tax tool first to validate the input before calculating the tax return with this tool.IMPORTANT RULES: (1) All field values must be wrapped as {\"value\": <val>} — never pass bare values. (2) Currency amounts are whole-dollar integers (e.g. $19,312.42 = 19312). (3) Every item in an array namespace (NamespaceList) must have a \"uuid\" field with a valid UUIDv4 string. UUIDv4 format: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx — the 3rd group MUST start with '4' (version) and the 4th group MUST start with '8', '9', 'a', or 'b' (variant). NEVER construct UUIDs manually (e.g. 'B1111111-1111-1111-1111-111111111111' is invalid). Use a UUID generator; example valid value: 'a3b4c5d6-e7f8-4a9b-8c0d-1e2f3a4b5c6d'. (4) Nested arrays (e.g. w2_state_local_tax_grp inside a w2) also require a UUIDv4 on each item. (5) Use \"who_applies_to\" to cross-reference entries: {\"value\": \"taxpayer\"} for singletons, {\"value\": \"<namespace>#<uuid>\"} for array items (e.g. \"dependent_detail#<uuid>\"). Other named reference fields (e.g. \"person\" in qualifying_person_grp, \"student\" in student_educational_instn_grp) use the same \"<namespace>#<uuid>\" format. (6) For state returns with Extended Links (state namespace extending a federal NamespaceList), each extended link item must use a UUIDv5 generated from the source item's UUID (as the namespace) and the extended namespace name (as the name). Matching is UUID-based, not positional. The number of expected instances depends on the source formula — it is NOT always a 1:1 match with the federal list (e.g. CA Form 3853 ca_household_grp expects taxpayer + spouse + all dependents). Incorrect or random UUIDs cause SILENT DATA LOSS — the server drops unrecognized UUIDs and replaces them with empty instances. Use the generate_uuid_v5 tool with the source item's UUID as the source_uuid and the extended namespace name (e.g. \"ca_provider\", \"ca_irsw2_g\") as the namespace input.Example: generate_uuid_v5(source_uuid: w2_uuid, namespace: \"ca_irsw2_g\") for a CA W-2 extension.(7) return_header is top-level, NOT nested inside return_data. Use tax_simple_return first to see the full input structure and examples.",
+          "is_mutating": false,
+          "property_keys": [
+            "input",
+            "jurisdiction",
+            "tax_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "input": "object",
+            "tax_year": "string",
+            "jurisdiction": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "description": "Tax input data conforming to the schema from the tax_namespace_schema tool."
+              },
+              "tax_year": {
+                "type": "string",
+                "description": "Tax year to calculate for (e.g., \"TY25\"). Defaults to the current tax year."
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "State jurisdiction to calculate (e.g., \"pa\"), in addition to federal.Use the tax_jurisdictions tool to list available jurisdictions."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4cc8a664e5b83dbc51bec6a16da8ba6d78f1f13750441afb0024aa870eb56aca"
+        },
+        {
+          "name": "check_tax",
+          "canonical_hash": "sha256:8bdcd3f680445b48ba94d0e58fbf0ca2ce820562ce5410ab629e2f8bac758957",
+          "description": "Check inputs to calculate a tax return for a given jurisdiction. The 'input' argument must conform to the JSON schema returned by the tax_namespace_schema tool. Returns 'Success' on success, or validation errors if the input is invalid. If some inputs trigger a PARTIAL DISQUALIFICATION, the check still succeeds but includes disqualification details — proceed to calculate_tax to get the document and estimate the impact. Use this tool to validate inputs before calculating the tax return.",
+          "is_mutating": false,
+          "property_keys": [
+            "input",
+            "jurisdiction",
+            "tax_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "input": "object",
+            "tax_year": "string",
+            "jurisdiction": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "description": "Tax input data conforming to the schema from the tax_namespace_schema tool."
+              },
+              "tax_year": {
+                "type": "string",
+                "description": "Tax year to calculate for (e.g., \"TY25\"). Defaults to the current tax year."
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "State jurisdiction to validate (e.g., \"pa\"), in addition to federal.Use the tax_jurisdictions tool to list available jurisdictions."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7286883c26e288b8b0d304bbec3525e5ee2dbf1209023a875f40ecaa62f4a5a7"
+        },
+        {
+          "name": "generate_tax_pdf_tool",
+          "canonical_hash": "sha256:b1e44fefa7c1d748c4a6984c33ee8f3b2712aeaef73ca0776bdf83bf402f32d6",
+          "description": "Start async PDF generation for a tax return. The 'input' argument must conform to the JSON schema returned by the tax_namespace_schema tool. Returns a job ID to poll with get_tax_pdf.Use the check_tax tool first to validate the input before generating the tax PDF with this tool.The input follows the same rules as calculate_tax: all values wrapped as {\"value\": <val>}, array items require UUIDv4 fields (extended link items use UUIDv5), references use who_applies_to, and return_header is top-level (not inside return_data). Use tax_simple_return to see the full input structure.",
+          "is_mutating": false,
+          "property_keys": [
+            "input",
+            "jurisdiction",
+            "tax_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "input": "object",
+            "tax_year": "string",
+            "jurisdiction": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "description": "Tax input data conforming to the schema from the tax_namespace_schema tool."
+              },
+              "tax_year": {
+                "type": "string",
+                "description": "Tax year to generate for (e.g., \"TY25\"). Defaults to the current tax year."
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "Jurisdiction to include in the PDF (e.g., \"pa\"), in addition to the federal.Use the tax_jurisdictions tool to list available jurisdictions."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2181a8363545b9c321b4ed46afb2891165cb99dc038b80c1e65d7884cc562722"
+        },
+        {
+          "name": "generate_uuid_v5",
+          "canonical_hash": "sha256:e643d5231a3394cb42160857381f4b4ce38e32bbcbd86ebb836d0208157b4c4e",
+          "description": "Generate a UUID v5 based on a source uuid and namespace.",
+          "is_mutating": false,
+          "property_keys": [
+            "namespace",
+            "source_uuid"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "namespace": "string",
+            "source_uuid": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "namespace": {
+                "type": "string",
+                "description": "The namespace to use for generating the UUID v5."
+              },
+              "source_uuid": {
+                "type": "string",
+                "description": "The source UUID to use for generating the UUID v5."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fa06b987a617204454f5ab6029a3526db7f22b7c8bdfd60940a91a424b70184c"
+        },
+        {
+          "name": "get_tax_pdf_tool",
+          "canonical_hash": "sha256:028529eb8a90e7094a79314dcc990ba6efaef3f93eb45a08c9ac591583281a25",
+          "description": "Check status of a PDF generation job. Returns the status and a download URL when completed, only     use this tool after generating the tax PDF with the generate_tax_pdf tool and it successfully returns a job ID.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The PDF result UUID returned by generate_tax_pdf."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:53c7f538c9cf5032a0d22c8858fe0e7af898ae6ad945bf4ff5f2c3bbf47906e6"
+        },
+        {
+          "name": "tax_jurisdictions",
+          "canonical_hash": "sha256:e0571ab8e22f69e7032129ecb257bc326c044e896065a574920bd10a52a911bc",
+          "description": "List all supported tax jurisdictions for a given tax year.",
+          "is_mutating": false,
+          "property_keys": [
+            "tax_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tax_year": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tax_year": {
+                "type": "string",
+                "description": "Tax year to list jurisdictions for (e.g., \"TY25\"). Defaults to the current tax year."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a1ec88c7c48a0551d3a7533358b3bafb675f42954c6b22b2b5b5bec4c2b7cd50"
+        },
+        {
+          "name": "tax_namespace_schema",
+          "canonical_hash": "sha256:3c39a0460c7f09e401fe3f2c653cfeb71244d3e8f84df17b819b930c08c48f87",
+          "description": "Get the TCB input schema for a single namespace (e.g. \"irs1040\", \"irs1040_schedulec\", \"ca_form540\"). Returns the properties and types for that namespace. HOW TO READ THE SCHEMA: (1) Each field references a type like tcb_string_null, tcb_integer_null, or tcb_boolean_null. All values must be wrapped as {\"value\": <val>}. (2) If the namespace title ends in '_list' (e.g. 'w2_list', 'dependent_detail_list'), it is a NamespaceList — an array of objects. Each array item MUST include a \"uuid\" field (non-null UUIDv4 string). (3) Reference fields link entries to other namespaces e.g. \"person\" in qualifying_person_grp, \"student\" in student_educational_instn_grp. All use the same format: {\"value\": \"<namespace>#<uuid>\"} (e.g. \"dependent_detail#<uuid>\"). (4) Nested arrays within a namespace (e.g. w2_state_local_tax_grp inside w2) also require uuid on each nested item. (5) Pattern-validated strings (e.g. SSNs, ZIPs, dates) have regex constraints in the schema $defs. SSNs/EINs: 9-digit string (no dashes). ZIPs: 5 or 9 digits. Dates: YYYY-MM-DD.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "namespace",
+            "tax_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "tax_year": "string",
+            "namespace": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "enum": [
+                  "summary",
+                  "full"
+                ],
+                "type": "string",
+                "description": "Output format. \"summary\" (default) returns a compact list of fields with type, enum, required, and description. \"full\" returns the raw JSON Schema."
+              },
+              "tax_year": {
+                "type": "string",
+                "description": "Tax year (e.g. \"TY25\"). Defaults to the current tax year."
+              },
+              "namespace": {
+                "type": "string",
+                "description": "The namespace ID (e.g. \"irs1040\", \"irs1040_schedulec\", \"ca_form540\")."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c30b49e3fdace1692007af70f4147fb38cdeb33c4f37166048d62acd4cfcb6b6"
+        },
+        {
+          "name": "tax_namespaces",
+          "canonical_hash": "sha256:86bdb6c602ae863d4612d667bc709ffaa77eda68b21cfcbcd87d5af1f5fff3a5",
+          "description": "List all available input namespaces for a given jurisdiction. Use the returned names with the tax_namespace_schema tool to get the schema for a specific namespace. Requires a jurisdiction (e.g. \"us\" for federal, \"ca\" for California). Use the tax_jurisdictions tool first to discover available jurisdictions. NAMESPACE NAMING CONVENTIONS: Federal namespaces: irs1040, irs1040_schedule1, irs8962, w2, dependent_detail, etc. State namespaces: always prefixed with the state abbreviation (ca_form540, ny_it201, az_form140). NAMESPACE TYPES: Some namespaces are singletons (object), others are NamespaceLists (array) that can hold multiple items — e.g. w2 (multiple W-2s), dependent_detail (multiple dependents), irs1040_schedulec (multiple businesses). NamespaceList items require UUIDv4 fields. State NamespaceLists may act as Extended Links that extend a federal NamespaceList (e.g. ca_provider extends care_provider_grp). Extended link items must use UUIDv5 (deterministic, derived from source item UUID as namespace + extended namespace name as name). Matching is UUID-based, not positional. Wrong UUIDs cause silent data loss.Use the generate_uuid_v5 tool with the source item's UUID as the source_uuid and the extended namespace name (e.g. \"ca_provider\", \"ca_irsw2_g\") as the namespace input.Example: generate_uuid_v5(source_uuid: w2_uuid, namespace: \"ca_irsw2_g\") for a CA W-2 extension.",
+          "is_mutating": false,
+          "property_keys": [
+            "jurisdiction",
+            "tax_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tax_year": "string",
+            "jurisdiction": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tax_year": {
+                "type": "string",
+                "description": "Tax year (e.g. \"TY25\"). Defaults to the current tax year."
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "Jurisdiction to list namespaces for (e.g. \"us\", \"ca\", \"az\")."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cffc7e1ac5fe63b6351e31cfe4a43f6e4a4fcdcbfa37570e92a7e87d4185d4aa"
+        },
+        {
+          "name": "tax_simple_return",
+          "canonical_hash": "sha256:01fc832c3b3b531c45ad9fe705a8d87e1795d107069a5814a40de17520d8c810",
+          "description": "Call this FIRST when beginning any tax return. Returns the curated namespace list, top-level structure guide, example input, and step-by-step filing workflow. By default returns a simple scenario (single or MFJ filer, W-2 income only, standard deduction, no dependents). Pass scenario=\"with_dependents\" for returns that include dependents, child care (Form 2441), and education credits (Form 8863). Optionally pass a state jurisdiction (e.g. \"ca\") to also include state-level namespaces — if you don't know which state applies, ask the user before calling.",
+          "is_mutating": false,
+          "property_keys": [
+            "jurisdiction",
+            "scenario",
+            "tax_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "scenario": "string",
+            "tax_year": "string",
+            "jurisdiction": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scenario": {
+                "enum": [
+                  "simple",
+                  "with_dependents"
+                ],
+                "type": "string",
+                "description": "Return scenario. \"simple\" (default): single/MFJ, W-2 only, no dependents. \"with_dependents\": includes dependents, Form 2441 (child care), and Form 8863 (education credits)."
+              },
+              "tax_year": {
+                "type": "string",
+                "description": "Tax year (e.g. \"TY25\"). Defaults to the current tax year."
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "State jurisdiction code (e.g. \"ca\", \"ny\"). Omit for federal-only."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:891f95d9c619254f0d8555bcb4311aac97594b53c81636d4cbccbab7c1a52319"
+        },
+        {
+          "name": "tax_years",
+          "canonical_hash": "sha256:912cef406b6716beb57bfee5cabb11a07375846a23e60238af75ce384b9d2f5d",
+          "description": "List all supported tax years.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object"
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6d5a8f3451a896de3b2a98f1cd341c5636019cc2d0ece08ca4ba7e1834736450"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

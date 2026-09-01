@@ -1,0 +1,302 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "zachary-royals/devmatch",
+  "purl": "pkg:npm/zachary-royals%2Fdevmatch",
+  "ecosystem": "npm",
+  "display_name": "zachary-royals/devmatch",
+  "description": "DevMatch is an MCP server for hiring engineers based on what they've actually built. Connect from Cursor, Claude Desktop, or any MCP-compatible AI assistant and search 35M+ developers ranked by verified open-source contributions — not LinkedIn keywords or self-reported skills.\n\n **Three tools:**\n\n**`find_candidates`** — paste a job description, get a ranked shortlist with bio, top repos, contribution evidence, and contact info. Pro tier adds verified email enrichment on the top 5 results.\n**`get_profile`** — deep-dive any GitHub handle. Bio, recent activity, top projects, and outreach channels in one call.\n**`find_similar_projects`** — landscape mapping from a seed repo with top contributors surfaced, so you can pivot from a project to its maintainers in one step.\n\nBuilt for mission-driven teams that want engineers who care about the work, not just check the keyword box. OAuth sign-in (no API keys to juggle). Free tier with 50 monthly credits, $129/mo Pro for higher quotas plus verified email enrichment.",
+  "repository_url": "https://devmatch--zachary-royals.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "zachary-royals/devmatch"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:07dd73236597026425103b00be13349ebad94bc213230a46bb990e50b8d242cb",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://devmatch--zachary-royals.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "find_candidates",
+          "canonical_hash": "sha256:4318bc65d20133311bba3c467bf6d68cee1998b1fe4e806e2696a92716821076",
+          "description": "Search the DevMatch index for engineers matching a job description. Pass JD text — formal description, informal request, role brief, paste of a README, or anything in between. The longer + more specific, the better the match. Returns ranked candidates with FULL profile data inline per result: handle, name, bio, location, followers, top_repos, top_topics, matched_projects (with contribution counts), contact info (email + social URLs when available), and candidate_score. You do NOT need to call get_profile for candidates returned here — their profiles are already embedded in the response. Only call get_profile when the user asks about a handle that was NOT in the find_candidates results.\n\nPublic github.com repo URLs are also accepted as input (server fetches README + topics + language and uses it as the JD), but ONLY for PUBLIC repos. For private repos, paste the README content directly as the JD string.",
+          "is_mutating": false,
+          "property_keys": [
+            "input"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "input": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "string",
+                "description": "Job description text (preferred), OR a PUBLIC github.com repo URL. For private repos, paste the README content as text instead of the URL. The richer the input, the better the ranking."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "query_ms": {
+                "type": "integer",
+                "description": "End-to-end query time in milliseconds"
+              },
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "bio": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "login": {
+                      "type": "string",
+                      "description": "GitHub handle"
+                    },
+                    "contact": {
+                      "type": "object",
+                      "description": "Contact channels. enriched_email present on Pro-tier callers for top 5."
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "followers": {
+                      "type": "integer"
+                    },
+                    "top_repos": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "top_topics": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "candidate_score": {
+                      "type": "number",
+                      "description": "Higher = stronger fit"
+                    },
+                    "matched_projects": {
+                      "type": "array",
+                      "description": "Repos this candidate contributed to that matched the JD"
+                    }
+                  }
+                },
+                "description": "Ranked engineer candidates. Highest candidate_score first."
+              },
+              "total_count": {
+                "type": "integer",
+                "description": "Count of candidates returned (≤ requested limit)"
+              },
+              "cache_source": {
+                "enum": [
+                  "hit",
+                  "miss"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "candidates",
+              "total_count"
+            ]
+          },
+          "description_hash": "sha256:eed841c187fde473e99869df60315ff1191361b2bfa12007fefe96de7999d0ef"
+        },
+        {
+          "name": "find_similar_projects",
+          "canonical_hash": "sha256:6484ae631029a78bee0683174effba5e6cc08545e14c585098320f72521fd2fb",
+          "description": "Find open-source projects similar to a given GitHub repo, ranked by semantic similarity to its description/topics/README. Each result includes the project's top contributors so the caller can pivot from a project to its maintainers in one step. Use for landscape mapping (\"what else is like X?\"), competitive intel, or to expand a candidate search past a single anchor project.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "repo"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "repo": "string",
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "repo": {
+                "type": "string",
+                "description": "Seed repo in `owner/name` form (e.g. 'karpathy/llm.c'). A full github.com URL is also accepted; the server strips the prefix."
+              },
+              "limit": {
+                "type": "integer",
+                "maximum": 25,
+                "minimum": 1,
+                "description": "Number of similar projects to return. Defaults to 10, max 25."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "projects": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "stars": {
+                      "type": "integer"
+                    },
+                    "topics": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "language": {
+                      "type": "string"
+                    },
+                    "full_name": {
+                      "type": "string",
+                      "description": "owner/name on GitHub"
+                    },
+                    "similarity": {
+                      "type": "number",
+                      "description": "Cosine similarity to seed repo, 0–1"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "top_contributors": {
+                      "type": "array",
+                      "description": "Top 3-5 contributors with handle + contribution count. Pivot point from project → maintainers."
+                    }
+                  }
+                },
+                "description": "Similar projects, ranked by vector similarity to the seed repo."
+              },
+              "seed_repo": {
+                "type": "string",
+                "description": "The owner/name that was searched against"
+              }
+            },
+            "required": [
+              "projects"
+            ]
+          },
+          "description_hash": "sha256:a25f6c9c6cc7e934eb3dd71fbc1971545d7465ee0947a28c2657ed837d28b5bc"
+        },
+        {
+          "name": "get_profile",
+          "canonical_hash": "sha256:e0306aab659d6338447eaa83254aff4cc3e1fc26b1ac5df3b37b4f87b72da3f9",
+          "description": "Fetch one contributor's profile card when the user mentions a specific GitHub handle that was NOT already returned by find_candidates. Use cases: (a) user types 'tell me about @karpathy'; (b) user references a handle they found elsewhere; (c) user wants to verify someone before outreach. Do NOT call this immediately after find_candidates for handles in those results — find_candidates already returns full profile data inline per candidate (bio, location, contact, top_repos, top_topics).\n\nIMPORTANT — interpreting recent_activities: this field reflects indexed GitHub activity in the current ingestion window (2025–2026), up to ~20 events per recent project. It is NOT a complete career history. Older or empty activity does not mean the person is inactive; they may be outside the index window or not yet enriched. Do not infer tenure or 'last active' from activity older than 2025.",
+          "is_mutating": false,
+          "property_keys": [
+            "handle"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "handle": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "description": "The GitHub handle to look up. Plain login name, no '@' prefix (e.g. 'karpathy', not '@karpathy')."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "bio": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "company": {
+                "type": "string"
+              },
+              "html_url": {
+                "type": "string",
+                "description": "Profile URL on GitHub"
+              },
+              "location": {
+                "type": "string"
+              },
+              "followers": {
+                "type": "integer"
+              },
+              "avatar_url": {
+                "type": "string"
+              },
+              "login_name": {
+                "type": "string",
+                "description": "GitHub handle"
+              },
+              "display_name": {
+                "type": "string"
+              },
+              "public_repos": {
+                "type": "integer"
+              },
+              "top_projects": {
+                "type": "array",
+                "description": "Highest-contribution projects this user worked on"
+              },
+              "profile_readme": {
+                "type": "string",
+                "description": "User's profile README content if present"
+              },
+              "social_accounts": {
+                "type": "object",
+                "description": "Social URLs (twitter, linkedin, etc.)"
+              },
+              "recent_activities": {
+                "type": "array",
+                "description": "Indexed GitHub events from current ingestion window (2025–2026). NOT a full career timeline."
+              }
+            },
+            "required": [
+              "login_name"
+            ]
+          },
+          "description_hash": "sha256:3ff8459c8049d7c790ef4024b0c7b5619f4b67e6d47cf4bb1891c8351a48a620"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

@@ -1,0 +1,705 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "king-of-the-grackles/discourse-forum-mcp",
+  "purl": "pkg:npm/king-of-the-grackles%2Fdiscourse-forum-mcp",
+  "ecosystem": "npm",
+  "display_name": "king-of-the-grackles/discourse-forum-mcp",
+  "description": "Manage and explore forum communities by searching topics, reading posts, and viewing user profiles. Facilitate communication through chat channels, draft management, and categorized content discovery. Streamline interactions with tools for filtering topics and generating post summaries or replies.",
+  "repository_url": "https://discourse-forum-mcp--king-of-the-grackles.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "king-of-the-grackles/discourse-forum-mcp"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:bb6c832ba8a9d867a330d01b3acff4bb96469d2e2f40ef3bffe756d21b1ad22a",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://discourse-forum-mcp--king-of-the-grackles.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "site": {
+                "type": "string",
+                "x-from": {
+                  "query": "site"
+                },
+                "x-order": 0,
+                "description": "Discourse instance URL (e.g. https://meta.discourse.org)"
+              },
+              "api_key": {
+                "type": "string",
+                "x-from": {
+                  "query": "api_key"
+                },
+                "x-order": 1,
+                "description": "Discourse Admin API key for full access"
+              },
+              "log_level": {
+                "type": "string",
+                "x-from": {
+                  "query": "log_level"
+                },
+                "default": "info",
+                "x-order": 9,
+                "description": "Logging verbosity: debug, info, warn, or error"
+              },
+              "read_only": {
+                "type": "string",
+                "x-from": {
+                  "query": "read_only"
+                },
+                "default": "true",
+                "x-order": 5,
+                "description": "Restrict to read-only operations"
+              },
+              "tools_mode": {
+                "type": "string",
+                "x-from": {
+                  "query": "tools_mode"
+                },
+                "default": "auto",
+                "x-order": 7,
+                "description": "Tool selection mode: auto, all, read, write, or search"
+              },
+              "allow_writes": {
+                "type": "string",
+                "x-from": {
+                  "query": "allow_writes"
+                },
+                "default": "false",
+                "x-order": 6,
+                "description": "Enable write operations like creating posts and topics (true/false)"
+              },
+              "api_username": {
+                "type": "string",
+                "x-from": {
+                  "query": "api_username"
+                },
+                "x-order": 2,
+                "description": "Discourse API username (e.g. system)"
+              },
+              "user_api_key": {
+                "type": "string",
+                "x-from": {
+                  "query": "user_api_key"
+                },
+                "x-order": 3,
+                "description": "Discourse User API key (alternative to admin API key)"
+              },
+              "max_read_length": {
+                "type": "string",
+                "x-from": {
+                  "query": "max_read_length"
+                },
+                "default": "50000",
+                "x-order": 8,
+                "description": "Maximum character length for content reads"
+              },
+              "user_api_client_id": {
+                "type": "string",
+                "x-from": {
+                  "query": "user_api_client_id"
+                },
+                "x-order": 4,
+                "description": "Client ID for User API key authentication"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "discourse_filter_topics",
+          "canonical_hash": "sha256:2fb7257fe53d6865e44e35c28c30fc83017f23cf17c7ea838df432dfc3dbde3e",
+          "description": "Filter topics with a concise query language: use key:value tokens separated by spaces; category/categories for categories (comma = OR, '=category' = without subcats, '-' prefix = exclude), tag/tags (comma = OR, '+' = AND) and tag_group; status:(open|closed|archived|listed|unlisted|public) and personal in:(bookmarked|watching|tracking|muted|pinned); dates: created/activity/latest-post-(before|after) with YYYY-MM-DD or N (days); numeric: likes[-op]-(min|max), posts-(min|max), posters-(min|max), views-(min|max); order: activity|created|latest-post|likes|likes-op|posters|title|views|category with optional -asc; free text terms are matched full-text. Results are permission-aware.",
+          "is_mutating": false,
+          "property_keys": [
+            "filter",
+            "page",
+            "per_page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "filter": "string",
+            "per_page": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Page number (0-based, default: 0)"
+              },
+              "filter": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Filter query, e.g. 'category:support status:open created-after:30 order:activity'"
+              },
+              "per_page": {
+                "type": "integer",
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Items per page (max 50)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1b7d18488d46370a51cf61c7d68a1608fa77d0a19ea3715104cb666bc1cbd05b"
+        },
+        {
+          "name": "discourse_get_chat_messages",
+          "canonical_hash": "sha256:1018d27dd9fe363535a6f54679072a98804f95ae4d1362d855a346b9891c3463",
+          "description": "Get messages from a chat channel with flexible pagination and date-based filtering. Supports: (1) paginating with direction='past'/'future' from a target_message_id, (2) querying messages around a specific target_date, (3) getting messages around a target_message_id, or (4) fetching from last read position.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_id",
+            "direction",
+            "fetch_from_last_read",
+            "include_target_message_id",
+            "page_size",
+            "target_date",
+            "target_message_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "direction": "string",
+            "page_size": "integer",
+            "channel_id": "integer",
+            "target_date": "string",
+            "target_message_id": "integer",
+            "fetch_from_last_read": "boolean",
+            "include_target_message_id": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "direction": {
+                "enum": [
+                  "past",
+                  "future"
+                ],
+                "type": "string",
+                "description": "Pagination direction: 'past' for older messages (DESC), 'future' for newer messages (ASC)"
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Number of messages to return (default: 50, max: 500)"
+              },
+              "channel_id": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "description": "The chat channel ID",
+                "exclusiveMinimum": 0
+              },
+              "target_date": {
+                "type": "string",
+                "description": "ISO 8601 date string (e.g., '2024-01-15' or '2024-01-15T10:30:00Z') to query messages around that date"
+              },
+              "target_message_id": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "description": "Message ID to query around or paginate from",
+                "exclusiveMinimum": 0
+              },
+              "fetch_from_last_read": {
+                "type": "boolean",
+                "description": "If true, start from the user's last read message"
+              },
+              "include_target_message_id": {
+                "type": "boolean",
+                "description": "Whether to include the target message in results (default: true)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6b9b2fac7ab040aa522ed3d404b1ee7ce2ad848785e664143c28bbe71423799e"
+        },
+        {
+          "name": "discourse_get_draft",
+          "canonical_hash": "sha256:2fd27f70c53d0980dc420cd947c5e6817bf8c64020924dcec985431312a4a518",
+          "description": "Retrieve a specific draft by its key. Common keys: \"new_topic\" for new topic drafts, \"topic_<id>\" for reply drafts.",
+          "is_mutating": false,
+          "property_keys": [
+            "draft_key",
+            "sequence"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sequence": "integer",
+            "draft_key": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sequence": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Expected sequence number (optional)"
+              },
+              "draft_key": {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1,
+                "description": "Draft key (e.g., \"new_topic\", \"topic_123\", \"new_private_message\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6a0cb3cbf84c1f6f91fc52f432a27296a74f8dc94a493335cb5b11b943746bb5"
+        },
+        {
+          "name": "discourse_get_user",
+          "canonical_hash": "sha256:6d0583f09109757a535870467384f829de43e5e81db2189d8b66da57e7c8b09f",
+          "description": "Get information about a Discourse user by username. Returns name, trust level, join date, bio, and profile link.",
+          "is_mutating": false,
+          "property_keys": [
+            "username"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "username": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The Discourse username to look up (without @ symbol, e.g., 'codinghorror')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:13e22e8c15cd974f03416dbf48c55ae4aeb05c915bdf73c26f0cadf233216344"
+        },
+        {
+          "name": "discourse_list_categories",
+          "canonical_hash": "sha256:646a0b485aeeb6e9324354c291e9e3a0c2672bab217577b7c7ea086a435ac769",
+          "description": "List all categories visible to the current user. Returns category names and topic counts. Useful for discovering where to post or search.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:26929fa43b3c3e4142c1373fcb6a36dd80096f81c58b55efe12a5e0fafbde93a"
+        },
+        {
+          "name": "discourse_list_chat_channels",
+          "canonical_hash": "sha256:f28ad3765895f396117eb7aa5a0d973f04ee7da29d98cdbf98a916f46e6438c2",
+          "description": "List all public chat channels visible to the current user. Returns channel information including title, description, and member counts. Supports filtering and pagination.",
+          "is_mutating": false,
+          "property_keys": [
+            "filter",
+            "limit",
+            "offset",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "filter": "string",
+            "offset": "integer",
+            "status": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Number of channels to return (default: 25, max: 100)"
+              },
+              "filter": {
+                "type": "string",
+                "description": "Filter channels by name/slug"
+              },
+              "offset": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Pagination offset (default: 0)"
+              },
+              "status": {
+                "type": "string",
+                "description": "Filter by channel status (e.g., 'open', 'closed', 'archived')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:386a148086672949eb3d5dc1dc710527f4fb559bdfc2716d89408dcc474d9bde"
+        },
+        {
+          "name": "discourse_list_drafts",
+          "canonical_hash": "sha256:b1f0362e9e6be04c0d7b078ebd9cd5f100da853bf04a9922b8789012d79aac9e",
+          "description": "List all drafts for the current user. Returns draft keys, sequences, and preview content. Use this to find existing drafts before updating them.",
+          "is_mutating": false,
+          "property_keys": [
+            "offset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offset": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Pagination offset (default: 0)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:765196e30e7b95d59dc1af38b7d77796eb1758d5f3b6ed4bf0de68167999e658"
+        },
+        {
+          "name": "discourse_list_tags",
+          "canonical_hash": "sha256:32e3608fe3ef94161b6443002ed286916e56acff714217ae90d44daa65dd37c6",
+          "description": "List all available tags on the Discourse site (if tagging is enabled). Returns tag names and usage counts. Use tags in search queries with #tagname.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4d1d5b3907370a48d9ed74ee7b3c31839c2cbb51cbefb21369814a749b1c6db4"
+        },
+        {
+          "name": "discourse_list_user_chat_channels",
+          "canonical_hash": "sha256:b43f6428962e798840dadebd146d6648ad1f8c95a7e4b2984f2e7c0847abf015",
+          "description": "List all chat channels for the currently authenticated user, including both public channels they're a member of and direct message channels. Includes unread tracking information.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:be61642dd59ce9c164c9918f51a0027a3461414726dac81afcc02aa3a74840c5"
+        },
+        {
+          "name": "discourse_list_user_posts",
+          "canonical_hash": "sha256:1ad6d83fce698235e63483e2b0c013994bbe99c180406a4fa7c9a7d862614367",
+          "description": "Get a paginated list of posts and replies by a specific user, with the most recent first. Returns 30 posts per page. Includes topic title, post date, excerpt, and direct links.",
+          "is_mutating": false,
+          "property_keys": [
+            "page",
+            "username"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "username": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Page number for pagination (0-based). Each page returns 30 posts. Default: 0"
+              },
+              "username": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The Discourse username to fetch posts for (without @ symbol, e.g., 'codinghorror')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fd5225394405a1062ec89b434cbad65860bfdfa56099feaf4261d5531f55699e"
+        },
+        {
+          "name": "discourse_read_post",
+          "canonical_hash": "sha256:25ce87659f1974bda72496f2f66a1e864b7643e4fcc7555ff54daed8502047a0",
+          "description": "Read a specific post by its ID. Returns the post content, author, creation date, and link to the post.",
+          "is_mutating": false,
+          "property_keys": [
+            "post_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "post_id": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "post_id": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "description": "The numeric post ID to read (found in post JSON data or API responses)",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8a29ec36fc9705ef38a158cd355eaff825e6ddabd944d446cdf937fa9ebe9237"
+        },
+        {
+          "name": "discourse_read_topic",
+          "canonical_hash": "sha256:37d28a4983668639db366e6a4f9e993d328483b55898ec5135be5aa39d8a19d3",
+          "description": "Read a Discourse topic including its metadata (title, category, tags) and posts. Supports pagination for long topics.",
+          "is_mutating": false,
+          "property_keys": [
+            "post_limit",
+            "start_post_number",
+            "topic_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "topic_id": "integer",
+            "post_limit": "integer",
+            "start_post_number": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "topic_id": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "description": "The numeric ID of the topic to read (e.g., 12345 from URL /t/topic-slug/12345)",
+                "exclusiveMinimum": 0
+              },
+              "post_limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Maximum number of posts to retrieve (1-100). Default: 5"
+              },
+              "start_post_number": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "Start reading from this post number (1-based). Use for pagination through long topics"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:95ddddc7c0b86640d149c41343d0fba2743b953c3011b7b974c70c96564b4cfe"
+        },
+        {
+          "name": "discourse_search",
+          "canonical_hash": "sha256:34510a15bf446d6d032fc9fb9390c50cf023ad8745f69f59fc50706d25100d3f",
+          "description": "Search Discourse site content including topics, posts, and users. Use search operators like @username, #tag, category:name for filtered results.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_results",
+            "query",
+            "with_private"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "max_results": "integer",
+            "with_private": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Search query text (e.g., 'how to install plugin'). Supports Discourse search operators like @username, #tag, category:name, status:open, order:latest"
+              },
+              "max_results": {
+                "type": "integer",
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Maximum number of results to return (1-50). Default: 10"
+              },
+              "with_private": {
+                "type": "boolean",
+                "description": "Include private messages and topics in search results (requires authentication). Default: false"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:236cebe2e5d8a195c2aa408b6b97acce134f0fd351ec7dded8e9037cd4252d7f"
+        },
+        {
+          "name": "discourse_select_site",
+          "canonical_hash": "sha256:317f6a0245812f9025dabd9588c6dd40b6822946ab6646431e6d7338d973a744",
+          "description": "Validate and select a Discourse site for subsequent tool calls. Verifies the site is reachable and retrieves its title. Must be called before using other tools when multiple sites are configured.",
+          "is_mutating": false,
+          "property_keys": [
+            "site"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "site": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "site": {
+                "type": "string",
+                "format": "uri",
+                "description": "Base URL of the Discourse site (e.g., 'https://meta.discourse.org' or 'https://community.example.com')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4a81415877ffbf8b217b2e87b85c406ff0f28216308ec4cea403f9d40e29c59a"
+        },
+        {
+          "name": "search_discourse_communities",
+          "canonical_hash": "sha256:75d6298549dee35affdf31534c7344952512f7bed6bc8435bd0444334485af21",
+          "description": "Discover Discourse forum communities by topic or find similar communities. Use 'query' for semantic text search (e.g., 'note taking productivity') or 'similar_to' to find communities similar to a known one by URL or ID. Provide exactly one of 'query' or 'similar_to'. Returns communities with confidence scores and engagement metrics.",
+          "is_mutating": false,
+          "property_keys": [
+            "engagement_tier",
+            "limit",
+            "locale",
+            "min_users",
+            "query",
+            "similar_to"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "locale": "string",
+            "min_users": "integer",
+            "similar_to": "string",
+            "engagement_tier": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Maximum number of results to return (default: 10, max: 50)"
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Semantic text search query (e.g., 'note taking productivity')"
+              },
+              "locale": {
+                "type": "string",
+                "description": "Filter by locale code (e.g., 'en', 'de', 'fr')"
+              },
+              "min_users": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Filter by minimum total user count"
+              },
+              "similar_to": {
+                "type": "string",
+                "description": "Find communities similar to this one. Accepts a community URL (e.g., 'https://forum.obsidian.md') or ID (e.g., 'discover_1376')"
+              },
+              "engagement_tier": {
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ],
+                "type": "string",
+                "description": "Filter by engagement level: high (>5% MAU), medium (>1% MAU), low (<1% MAU)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5e4a29e601fe3427317d237b8e362b649523ba4088a73d22db5dbc35cf9d2713"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "discourse-search-help",
+          "description": "",
+          "argument_keys": [
+            "topic"
+          ],
+          "required_arguments": [
+            "topic"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "discourse-post-draft",
+          "description": "",
+          "argument_keys": [
+            "topic",
+            "type"
+          ],
+          "required_arguments": [
+            "topic",
+            "type"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "discourse-summarize-topic",
+          "description": "",
+          "argument_keys": [
+            "focus",
+            "topic_id"
+          ],
+          "required_arguments": [
+            "topic_id"
+          ],
+          "arguments": []
+        },
+        {
+          "name": "discourse-reply-suggestions",
+          "description": "",
+          "argument_keys": [
+            "tone",
+            "topic_id"
+          ],
+          "required_arguments": [
+            "topic_id"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "discourse://site-info",
+          "name": "site-info",
+          "description": "",
+          "mime_type": "application/json"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}
