@@ -1,0 +1,1362 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/orcid-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Forcid-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/orcid-mcp-server",
+  "description": "Researcher profiles, works, affiliations, funding, and peer reviews from the ORCID registry.",
+  "repository_url": "https://orcid-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/orcid-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:d4e7ac36deab5d882dc289a03708fa52d0bf83e8b6b329751090aa74fc936414",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://orcid-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "orcid_get_affiliations",
+          "canonical_hash": "sha256:cf1a051b0b938d705ca52e12e0e6b7f7e2b6c9624f5ee5afa029af5d781ca7c4",
+          "description": "Fetch affiliation records for an ORCID researcher. The `types` parameter controls which affiliation sections to return: employment, education, invited-positions, distinctions, memberships, qualifications, services, or all. Default is employment and education. Returns organization names, disambiguated organization identifiers (ROR/GRID/Ringgold), departments, roles, and date ranges. Affiliation data is self-reported; absence does not mean no affiliation.",
+          "is_mutating": false,
+          "property_keys": [
+            "orcid_id",
+            "types"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "types": "array",
+            "orcid_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "types": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "employment",
+                    "education",
+                    "invited-positions",
+                    "distinctions",
+                    "memberships",
+                    "qualifications",
+                    "services",
+                    "all"
+                  ],
+                  "type": "string",
+                  "description": "Affiliation section type. Use \"all\" to include all section types."
+                },
+                "default": [
+                  "employment",
+                  "education"
+                ],
+                "description": "Which affiliation types to return. Defaults to employment and education. Use [\"all\"] to get every section."
+              },
+              "orcid_id": {
+                "type": "string",
+                "pattern": "^(https?:\\/\\/orcid\\.org\\/)?\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                "description": "ORCID iD — bare format (0000-0001-2345-6789) or full URI (https://orcid.org/0000-0001-2345-6789)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Note when no affiliations were found — may indicate private visibility or no self-reported affiliations."
+              },
+              "orcidId": {
+                "type": "string",
+                "description": "Normalized ORCID iD (bare format)."
+              },
+              "orcidUri": {
+                "type": "string",
+                "description": "Full ORCID URI."
+              },
+              "affiliations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL for the affiliation record, if provided."
+                    },
+                    "role": {
+                      "type": "string",
+                      "description": "Job title or role."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Affiliation section type (employment, education, invited-positions, etc.)."
+                    },
+                    "endDate": {
+                      "type": "string",
+                      "description": "End date (YYYY, YYYY-MM, or YYYY-MM-DD). Absent if current."
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "description": "Start date (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    },
+                    "department": {
+                      "type": "string",
+                      "description": "Department or unit within the organization."
+                    },
+                    "organization": {
+                      "type": "object",
+                      "properties": {
+                        "city": {
+                          "type": "string",
+                          "description": "City of the organization."
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Organization name."
+                        },
+                        "country": {
+                          "type": "string",
+                          "description": "Country of the organization."
+                        },
+                        "disambiguatedId": {
+                          "type": "string",
+                          "description": "Disambiguated organization identifier (ROR URL, GRID ID, or Ringgold ID)."
+                        },
+                        "disambiguationSource": {
+                          "type": "string",
+                          "description": "Source of the disambiguation (ROR, GRID, or RINGGOLD)."
+                        }
+                      },
+                      "description": "Organization details.",
+                      "additionalProperties": false
+                    }
+                  },
+                  "description": "Affiliation record.",
+                  "additionalProperties": false
+                },
+                "description": "Affiliation records for the requested types."
+              },
+              "requestedTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Affiliation type."
+                },
+                "description": "Affiliation types that were requested."
+              },
+              "affiliationCount": {
+                "type": "number",
+                "description": "Total number of affiliation records returned."
+              }
+            },
+            "required": [
+              "orcidId",
+              "orcidUri",
+              "affiliationCount",
+              "affiliations",
+              "requestedTypes"
+            ]
+          },
+          "description_hash": "sha256:c25650774c882381cf5aad81a1d38b447f82f19d153f43fecfa87ec180b2fea8"
+        },
+        {
+          "name": "orcid_get_funding",
+          "canonical_hash": "sha256:39f8657e0ac21cae43efc1d2fbeb28fb75c6dc8d6a9aa4518cdd875d0f7446a8",
+          "description": "Fetch funding records for an ORCID researcher: grants, contracts, awards, and salary awards. Returns funder names, funder organization identifiers, grant numbers, and funding periods. Funding data is entirely self-reported — most researchers do not enter funding even when they have grants. Absence of funding records does not imply absence of funding. When records exist they are high-value for grant tracking and funder analysis.",
+          "is_mutating": false,
+          "property_keys": [
+            "orcid_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orcid_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orcid_id": {
+                "type": "string",
+                "pattern": "^(https?:\\/\\/orcid\\.org\\/)?\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                "description": "ORCID iD — bare format (0000-0001-2345-6789) or full URI (https://orcid.org/0000-0001-2345-6789)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Note when no funding is found — absence of records does not mean absence of funding."
+              },
+              "funding": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "grantNumbers"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL for the funding record, if available."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Funding type (e.g. grant, contract, award, salary-award)."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Funding title or project name."
+                    },
+                    "funder": {
+                      "type": "object",
+                      "properties": {
+                        "city": {
+                          "type": "string",
+                          "description": "Funder city."
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Funder organization name."
+                        },
+                        "country": {
+                          "type": "string",
+                          "description": "Funder country."
+                        },
+                        "disambiguatedId": {
+                          "type": "string",
+                          "description": "Disambiguated funder identifier (e.g. Crossref Funder ID URL or ROR URL)."
+                        },
+                        "disambiguationSource": {
+                          "type": "string",
+                          "description": "Source of funder disambiguation (FUNDREF, ROR, GRID, etc.)."
+                        }
+                      },
+                      "description": "Funder organization details.",
+                      "additionalProperties": false
+                    },
+                    "endDate": {
+                      "type": "string",
+                      "description": "Funding end date (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "description": "Funding start date (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    },
+                    "grantNumbers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Grant or award number."
+                      },
+                      "description": "Grant numbers or award identifiers for this funding record."
+                    }
+                  },
+                  "description": "Funding record.",
+                  "additionalProperties": false
+                },
+                "description": "Funding records associated with this ORCID iD."
+              },
+              "orcidId": {
+                "type": "string",
+                "description": "Normalized ORCID iD (bare format)."
+              },
+              "orcidUri": {
+                "type": "string",
+                "description": "Full ORCID URI."
+              },
+              "fundingCount": {
+                "type": "number",
+                "description": "Total number of funding records returned."
+              }
+            },
+            "required": [
+              "orcidId",
+              "orcidUri",
+              "fundingCount",
+              "funding"
+            ]
+          },
+          "description_hash": "sha256:005942442be4de3f710d1fd3dd79a98263ca2d9025746d94442daaee32e74e46"
+        },
+        {
+          "name": "orcid_get_peer_reviews",
+          "canonical_hash": "sha256:baed4a6146d50aa219a5b28fcd19c0f4f43263093b1b15fa3b6cf9d5cceb13b7",
+          "description": "Fetch peer review activity for an ORCID researcher: convening organizations (journals and publishers), reviewer role (reviewer, editor, chair, etc.), review type, completion dates, and ISSN-keyed group identifiers. Use to assess editorial activity, journal affiliations, and the scope of a researcher's peer review contributions. Peer review records are self-reported or imported by participating publishers — coverage varies by researcher.",
+          "is_mutating": false,
+          "property_keys": [
+            "orcid_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orcid_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orcid_id": {
+                "type": "string",
+                "pattern": "^(https?:\\/\\/orcid\\.org\\/)?\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                "description": "ORCID iD — bare format (0000-0001-2345-6789) or full URI (https://orcid.org/0000-0001-2345-6789)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Note when no peer reviews are found — coverage varies by researcher and publisher participation."
+              },
+              "orcidId": {
+                "type": "string",
+                "description": "Normalized ORCID iD (bare format)."
+              },
+              "orcidUri": {
+                "type": "string",
+                "description": "Full ORCID URI."
+              },
+              "peerReviews": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "groupIssn": {
+                      "type": "string",
+                      "description": "ISSN of the journal group this review belongs to, if available."
+                    },
+                    "reviewUrl": {
+                      "type": "string",
+                      "description": "URL for the review record, if available."
+                    },
+                    "reviewType": {
+                      "type": "string",
+                      "description": "Review type (e.g. review, evaluation, grant-review, editor-report)."
+                    },
+                    "reviewerRole": {
+                      "type": "string",
+                      "description": "Reviewer role (e.g. reviewer, editor, chair, organizer, co-investigator, co-reviewer)."
+                    },
+                    "completionDate": {
+                      "type": "string",
+                      "description": "Completion date of the review (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    },
+                    "conveningOrganization": {
+                      "type": "object",
+                      "properties": {
+                        "city": {
+                          "type": "string",
+                          "description": "Convening organization city."
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Convening organization name (journal or publisher)."
+                        },
+                        "country": {
+                          "type": "string",
+                          "description": "Convening organization country."
+                        },
+                        "disambiguatedId": {
+                          "type": "string",
+                          "description": "Disambiguated organization identifier."
+                        },
+                        "disambiguationSource": {
+                          "type": "string",
+                          "description": "Source of disambiguation (ROR, GRID, RINGGOLD, etc.)."
+                        }
+                      },
+                      "description": "Journal or publisher that convened the review.",
+                      "additionalProperties": false
+                    }
+                  },
+                  "description": "Peer review record.",
+                  "additionalProperties": false
+                },
+                "description": "Peer review records for this ORCID iD."
+              },
+              "reviewCount": {
+                "type": "number",
+                "description": "Total number of peer review records returned."
+              }
+            },
+            "required": [
+              "orcidId",
+              "orcidUri",
+              "reviewCount",
+              "peerReviews"
+            ]
+          },
+          "description_hash": "sha256:9a447d951225383552a2aaec2b8dd4b9d7e8946e71c3485baffb4279b8a0e707"
+        },
+        {
+          "name": "orcid_get_profile",
+          "canonical_hash": "sha256:4966e7d48925f4f37913b8af96a9cddcde15385e7047114059a03f92cb349293",
+          "description": "Fetch a researcher's public profile from ORCID: name, biography, keywords, researcher URLs, and external identifiers such as Scopus Author ID, ResearcherID, and Loop profile. This is the entry point for building a researcher dossier. Pass a bare ORCID iD (0000-0001-2345-6789) or a full URI (https://orcid.org/0000-0001-2345-6789). The profile contains only publicly visible data — researchers control visibility per field.",
+          "is_mutating": false,
+          "property_keys": [
+            "orcid_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orcid_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orcid_id": {
+                "type": "string",
+                "pattern": "^(https?:\\/\\/orcid\\.org\\/)?\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                "description": "ORCID iD — bare format (0000-0001-2345-6789) or full URI (https://orcid.org/0000-0001-2345-6789)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "emails": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "email"
+                  ],
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                      "description": "Email address."
+                    },
+                    "primary": {
+                      "type": "boolean",
+                      "description": "True when this is the primary email address."
+                    }
+                  },
+                  "description": "Email address entry.",
+                  "additionalProperties": false
+                },
+                "description": "Publicly visible email addresses."
+              },
+              "orcidId": {
+                "type": "string",
+                "description": "Normalized ORCID iD (bare format without URI prefix)."
+              },
+              "keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Keyword term."
+                },
+                "description": "Research keywords set by the researcher."
+              },
+              "orcidUri": {
+                "type": "string",
+                "description": "Full ORCID URI (https://orcid.org/{id})."
+              },
+              "biography": {
+                "type": "string",
+                "description": "Researcher biography, if publicly visible."
+              },
+              "countries": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "ISO 3166-1 alpha-2 country code."
+                },
+                "description": "Countries listed in the researcher's address section."
+              },
+              "creditName": {
+                "type": "string",
+                "description": "Published credit name, if set."
+              },
+              "familyName": {
+                "type": "string",
+                "description": "Family (last) name, if publicly visible."
+              },
+              "givenNames": {
+                "type": "string",
+                "description": "Given (first) name, if publicly visible."
+              },
+              "researcherUrls": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "url"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL value."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Label for this URL."
+                    }
+                  },
+                  "description": "Researcher URL entry.",
+                  "additionalProperties": false
+                },
+                "description": "Researcher-provided URLs (personal site, lab page, blog, etc.)."
+              },
+              "externalIdentifiers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "value"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "Resolver URL for this identifier, if provided."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Identifier type (e.g. Scopus Author ID, ResearcherID, Loop)."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Identifier value."
+                    },
+                    "relationship": {
+                      "type": "string",
+                      "description": "Relationship type (self or part-of)."
+                    }
+                  },
+                  "description": "External identifier linking to another scholarly system.",
+                  "additionalProperties": false
+                },
+                "description": "External identifiers from scholarly systems (Scopus, Web of Science, Loop, etc.)."
+              }
+            },
+            "required": [
+              "orcidId",
+              "orcidUri",
+              "keywords",
+              "researcherUrls",
+              "externalIdentifiers",
+              "emails",
+              "countries"
+            ]
+          },
+          "description_hash": "sha256:f6174b5ef96d4c11e1c56c0a8cf6bebac29765146d2ec543a908b907f96dbf13"
+        },
+        {
+          "name": "orcid_get_research_resources",
+          "canonical_hash": "sha256:c1124b1f61d90a52f3073ce0671b237f5274585367148375981e86eac354238c",
+          "description": "List research resources associated with an ORCID researcher — compute allocations, equipment access, lab facilities, data resources, and clinical study registrations. This is a newer ORCID section; most researchers have no entries. Returns the resource title, hosting organization, external identifiers (often a URI to the allocation portal), and access period. Most entries are deposited by resource-allocation systems (e.g. ACCESS, XSEDE) rather than researchers themselves.",
+          "is_mutating": false,
+          "property_keys": [
+            "orcid_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orcid_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orcid_id": {
+                "type": "string",
+                "pattern": "^(https?:\\/\\/orcid\\.org\\/)?\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                "description": "ORCID iD — bare format (0000-0001-2345-6789) or full URI (https://orcid.org/0000-0001-2345-6789)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Note when no research resources are found — this section is sparsely populated across ORCID profiles."
+              },
+              "orcidId": {
+                "type": "string",
+                "description": "Normalized ORCID iD (bare format)."
+              },
+              "orcidUri": {
+                "type": "string",
+                "description": "Full ORCID URI."
+              },
+              "resources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "putCode",
+                    "externalIds"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL for the resource or allocation record."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Resource or proposal title."
+                    },
+                    "endDate": {
+                      "type": "string",
+                      "description": "Access or allocation end date (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    },
+                    "putCode": {
+                      "type": "number",
+                      "description": "Put-code of this research resource record."
+                    },
+                    "startDate": {
+                      "type": "string",
+                      "description": "Access or allocation start date (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    },
+                    "externalIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "value"
+                        ],
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Resolver URL for this identifier, if available."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Identifier type (e.g. uri, doi, grant_number)."
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "Identifier value."
+                          },
+                          "relationship": {
+                            "type": "string",
+                            "description": "Relationship to the resource (self or part-of)."
+                          }
+                        },
+                        "description": "External identifier for the research resource.",
+                        "additionalProperties": false
+                      },
+                      "description": "External identifiers for the resource (often a portal URI)."
+                    },
+                    "hostOrganization": {
+                      "type": "object",
+                      "properties": {
+                        "city": {
+                          "type": "string",
+                          "description": "City of the organization."
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Organization name."
+                        },
+                        "country": {
+                          "type": "string",
+                          "description": "Country code of the organization."
+                        },
+                        "disambiguatedId": {
+                          "type": "string",
+                          "description": "Disambiguated organization ID (e.g. ROR or GRID identifier)."
+                        },
+                        "disambiguationSource": {
+                          "type": "string",
+                          "description": "Source of the disambiguation ID (e.g. ROR, GRID, RINGGOLD)."
+                        }
+                      },
+                      "description": "Organization that hosts or manages the resource.",
+                      "additionalProperties": false
+                    }
+                  },
+                  "description": "Research resource record.",
+                  "additionalProperties": false
+                },
+                "description": "Research resources associated with this ORCID iD."
+              },
+              "resourceCount": {
+                "type": "number",
+                "description": "Total number of research resources returned."
+              }
+            },
+            "required": [
+              "orcidId",
+              "orcidUri",
+              "resourceCount",
+              "resources"
+            ]
+          },
+          "description_hash": "sha256:f4c94cb1f6236706d39cb44289b5bd4164f0004f114340dbbc91263f6de1195e"
+        },
+        {
+          "name": "orcid_get_work_detail",
+          "canonical_hash": "sha256:4e8dfd1c1ade6fb920ecf18563755abe92c6a0f70ae76fea1fad2748c4eca9ce",
+          "description": "Fetch full detail records for 1–100 works by their put-codes in a single request. Put-codes are returned by orcid_get_works in the put_code field of each work entry. Returns the abstract (short-description), all contributors with CRediT roles, the complete external ID list (DOI, PMID, arXiv, ISBN, etc.), citation metadata (BibTeX or other formats when provided), journal title, and URL for each work. Per-record errors (not-found or inaccessible put-codes) are surfaced as error entries rather than failing the whole call.",
+          "is_mutating": false,
+          "property_keys": [
+            "orcid_id",
+            "put_codes"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orcid_id": "string",
+            "put_codes": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orcid_id": {
+                "type": "string",
+                "pattern": "^(https?:\\/\\/orcid\\.org\\/)?\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                "description": "ORCID iD — bare format (0000-0001-2345-6789) or full URI (https://orcid.org/0000-0001-2345-6789)."
+              },
+              "put_codes": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "maximum": 9007199254740991,
+                  "description": "Work put-code (positive integer).",
+                  "exclusiveMinimum": 0
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Array of 1–100 work put-codes to fetch. Put-codes are available in the put_code field returned by orcid_get_works."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "works": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "putCode",
+                    "externalIds",
+                    "contributors"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL for the work, when available."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Work title."
+                    },
+                    "putCode": {
+                      "type": "number",
+                      "description": "Put-code of this work record."
+                    },
+                    "abstract": {
+                      "type": "string",
+                      "description": "Abstract or short description, when provided."
+                    },
+                    "citation": {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "value"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "description": "Citation format (e.g. bibtex, formatted-unspecified)."
+                        },
+                        "value": {
+                          "type": "string",
+                          "description": "Citation string in the specified format."
+                        }
+                      },
+                      "description": "Citation metadata, when provided by the depositing system.",
+                      "additionalProperties": false
+                    },
+                    "subtitle": {
+                      "type": "string",
+                      "description": "Work subtitle, when provided."
+                    },
+                    "workType": {
+                      "type": "string",
+                      "description": "Work type (e.g. journal-article, dataset, software, preprint)."
+                    },
+                    "externalIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "value"
+                        ],
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Resolver URL for this identifier, if available."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Identifier type (e.g. doi, pmid, arxiv, isbn, ppr)."
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "Identifier value."
+                          },
+                          "relationship": {
+                            "type": "string",
+                            "description": "Relationship to the work (self or part-of)."
+                          }
+                        },
+                        "description": "External identifier for the work.",
+                        "additionalProperties": false
+                      },
+                      "description": "All external identifiers (DOIs, PMIDs, arXiv IDs, ISBNs, etc.)."
+                    },
+                    "contributors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Contributor display name or credit name."
+                          },
+                          "role": {
+                            "type": "string",
+                            "description": "Contributor role (e.g. author, editor, conceptualization, data-curation). May be a CRediT taxonomy term."
+                          },
+                          "orcidId": {
+                            "type": "string",
+                            "description": "Contributor ORCID iD (bare format), if linked."
+                          },
+                          "sequence": {
+                            "type": "string",
+                            "description": "Contributor sequence position (first or additional)."
+                          }
+                        },
+                        "description": "Work contributor with optional role and ORCID iD.",
+                        "additionalProperties": false
+                      },
+                      "description": "Work contributors with optional roles. May be empty if not deposited."
+                    },
+                    "journalTitle": {
+                      "type": "string",
+                      "description": "Journal or container title, when provided."
+                    },
+                    "languageCode": {
+                      "type": "string",
+                      "description": "Language code of the work, when provided."
+                    },
+                    "publicationDate": {
+                      "type": "string",
+                      "description": "Publication date (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    }
+                  },
+                  "description": "Full detail record for one work.",
+                  "additionalProperties": false
+                },
+                "description": "Successfully resolved work detail records."
+              },
+              "errors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "message"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "description": "Error message from ORCID (e.g. not found or access denied)."
+                    },
+                    "putCode": {
+                      "type": "number",
+                      "description": "Put-code that produced this error, when identifiable."
+                    }
+                  },
+                  "description": "Error entry for a put-code that could not be resolved.",
+                  "additionalProperties": false
+                },
+                "description": "Per-record errors for put-codes that could not be resolved (not found or inaccessible). Empty when all put-codes resolved successfully."
+              },
+              "orcidId": {
+                "type": "string",
+                "description": "Normalized ORCID iD (bare format)."
+              },
+              "orcidUri": {
+                "type": "string",
+                "description": "Full ORCID URI."
+              }
+            },
+            "required": [
+              "orcidId",
+              "orcidUri",
+              "works",
+              "errors"
+            ]
+          },
+          "description_hash": "sha256:c209934e1907fe850f1e2f6da3e54e303efab953d434ff00df5aa6c2e6eaa651"
+        },
+        {
+          "name": "orcid_get_works",
+          "canonical_hash": "sha256:5be33f423bd1d5ef7621540b1c07579fa4fc1a3e486d8c2b253dc72492faa59d",
+          "description": "Retrieve works associated with an ORCID iD — publications, datasets, software, preprints, and more. Returns work summaries with put-codes, titles, types, publication dates, journal names, and all external identifiers (DOIs, PMIDs, arXiv IDs, ISBNs). Pass the put_code from each work to orcid_get_work_detail to retrieve the full record including abstract and contributors. External IDs are ready for chaining to Crossref, PubMed, or arXiv servers. Works are self-reported; a researcher may not have linked all their publications.",
+          "is_mutating": false,
+          "property_keys": [
+            "orcid_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orcid_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orcid_id": {
+                "type": "string",
+                "pattern": "^(https?:\\/\\/orcid\\.org\\/)?\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                "description": "ORCID iD — bare format (0000-0001-2345-6789) or full URI (https://orcid.org/0000-0001-2345-6789)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "works": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "externalIds"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL for the work, if available."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Work title."
+                    },
+                    "putCode": {
+                      "type": "number",
+                      "description": "Work put-code — pass to orcid_get_work_detail to fetch the full record including abstract and contributors."
+                    },
+                    "workType": {
+                      "type": "string",
+                      "description": "Work type (e.g. journal-article, dataset, software, preprint)."
+                    },
+                    "externalIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "value"
+                        ],
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "Resolver URL for this identifier, if available."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Identifier type (e.g. doi, pmid, arxiv, isbn)."
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "Identifier value."
+                          },
+                          "relationship": {
+                            "type": "string",
+                            "description": "Relationship to the work (self or part-of)."
+                          }
+                        },
+                        "description": "External identifier for a work.",
+                        "additionalProperties": false
+                      },
+                      "description": "External identifiers (DOIs, PMIDs, arXiv IDs, ISBNs, etc.)."
+                    },
+                    "journalTitle": {
+                      "type": "string",
+                      "description": "Journal or container title."
+                    },
+                    "publicationDate": {
+                      "type": "string",
+                      "description": "Publication date (YYYY, YYYY-MM, or YYYY-MM-DD)."
+                    }
+                  },
+                  "description": "Work summary record.",
+                  "additionalProperties": false
+                },
+                "description": "Works associated with this ORCID iD."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Note when the works list is empty — may indicate no self-reported works or private visibility settings."
+              },
+              "orcidId": {
+                "type": "string",
+                "description": "Normalized ORCID iD (bare format)."
+              },
+              "orcidUri": {
+                "type": "string",
+                "description": "Full ORCID URI."
+              },
+              "workCount": {
+                "type": "number",
+                "description": "Total number of works returned."
+              }
+            },
+            "required": [
+              "orcidId",
+              "orcidUri",
+              "workCount",
+              "works"
+            ]
+          },
+          "description_hash": "sha256:4f66ee80ed24f68415cece1b0cd7e829d5c413a1bf15b0ca4611bea96342998e"
+        },
+        {
+          "name": "orcid_resolve_researcher",
+          "canonical_hash": "sha256:c2f7f3029601efc8018b911e623712bc1c63730f09c913742a6618b7c3ef4bb5",
+          "description": "Disambiguate an author name to a verified ORCID iD. Returns up to 5 ranked candidates with transparent disambiguation signals: name match type (exact/partial/other-name/none), institution overlap flag, and whether a DOI or PMID anchor was used in the query. A DOI or PMID anchor is near-deterministic — it filters to researchers who have linked that specific work to their ORCID record. Use this tool (not orcid_search_researchers) when the input is an ambiguous name that needs ranked disambiguation. No synthetic scores are used — raw signals only.",
+          "is_mutating": false,
+          "property_keys": [
+            "affiliation",
+            "doi",
+            "name",
+            "pmid",
+            "rows"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "doi": "string",
+            "name": "string",
+            "pmid": "string",
+            "rows": "integer",
+            "affiliation": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "doi": {
+                "type": "string",
+                "description": "DOI of a work authored by this researcher. Acts as a near-deterministic anchor — filters to researchers who linked this DOI to their ORCID record."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Author name to disambiguate (full name preferred, e.g. \"Jennifer Doudna\" or \"J. Doudna\")."
+              },
+              "pmid": {
+                "type": "string",
+                "description": "PubMed ID of a work authored by this researcher. Acts as a near-deterministic anchor — filters to researchers who linked this PMID to their ORCID record."
+              },
+              "rows": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 20,
+                "minimum": 1,
+                "description": "Maximum candidate count to return (1–20). Defaults to 5."
+              },
+              "affiliation": {
+                "type": "string",
+                "description": "Researcher's institution or organization name. Used for institution overlap scoring and optionally as a search constraint."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when no candidates are found or when the anchor query failed to match."
+              },
+              "queryUsed": {
+                "type": "string",
+                "description": "Solr query sent to ORCID for the primary search."
+              },
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "orcidId",
+                    "orcidUri",
+                    "institutionNames",
+                    "nameMatchType",
+                    "institutionOverlap",
+                    "anchorType"
+                  ],
+                  "properties": {
+                    "orcidId": {
+                      "type": "string",
+                      "description": "Candidate ORCID iD (bare format)."
+                    },
+                    "orcidUri": {
+                      "type": "string",
+                      "description": "Full ORCID URI."
+                    },
+                    "anchorType": {
+                      "enum": [
+                        "doi",
+                        "pmid",
+                        "none"
+                      ],
+                      "type": "string",
+                      "description": "Type of identifier anchor used in the query: doi, pmid, or none. A doi or pmid anchor means the candidate has linked that work to their ORCID record."
+                    },
+                    "creditName": {
+                      "type": "string",
+                      "description": "Published credit name, if set."
+                    },
+                    "givenNames": {
+                      "type": "string",
+                      "description": "Given names from the ORCID record."
+                    },
+                    "familyNames": {
+                      "type": "string",
+                      "description": "Family name from the ORCID record."
+                    },
+                    "nameMatchType": {
+                      "enum": [
+                        "exact",
+                        "partial",
+                        "other-name",
+                        "none"
+                      ],
+                      "type": "string",
+                      "description": "How closely the candidate name matches the input name: exact (full match), partial (token overlap), other-name (match on alternate name), or none."
+                    },
+                    "institutionNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Institution name."
+                      },
+                      "description": "Affiliated institutions from the ORCID record."
+                    },
+                    "institutionOverlap": {
+                      "type": "boolean",
+                      "description": "True when at least one of the candidate's institutions matches tokens from the provided affiliation parameter."
+                    }
+                  },
+                  "description": "Disambiguation candidate with transparency signals.",
+                  "additionalProperties": false
+                },
+                "description": "Ranked candidates, ordered by name match quality then institution overlap."
+              },
+              "totalFound": {
+                "type": "number",
+                "description": "Total ORCID records matching the primary query."
+              },
+              "relaxedQuery": {
+                "type": "string",
+                "description": "Solr query used in a secondary relaxed search, if the primary returned no results."
+              }
+            },
+            "required": [
+              "candidates",
+              "queryUsed",
+              "totalFound"
+            ]
+          },
+          "description_hash": "sha256:c728c6ce476d5abdcd25141355c5e719d0acb953eaf62d3d669ced15eaf30f55"
+        },
+        {
+          "name": "orcid_search_researchers",
+          "canonical_hash": "sha256:c2553b3aaea5cccc387a3cfee94d563c92401a9725fb1665218b52a4c6f2eeb5",
+          "description": "Search the ORCID registry using structured field parameters or raw Solr syntax. All provided structured params are ANDed together. The `query` field appends raw Solr syntax to the generated clause. Returns ORCID iDs with inline name and institution data — no follow-up profile fetches needed for basic disambiguation. For ranked disambiguation of an ambiguous author name, use orcid_resolve_researcher instead. The ORCID Public API caps results at 10,000 — use pagination for large result sets.",
+          "is_mutating": false,
+          "property_keys": [
+            "affiliation",
+            "doi",
+            "family_name",
+            "given_name",
+            "keyword",
+            "pmid",
+            "query",
+            "ror_id",
+            "rows",
+            "start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "doi": "string",
+            "pmid": "string",
+            "rows": "integer",
+            "query": "string",
+            "start": "integer",
+            "ror_id": "string",
+            "keyword": "string",
+            "given_name": "string",
+            "affiliation": "string",
+            "family_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "doi": {
+                "type": "string",
+                "description": "DOI to anchor the search. Returns researchers who have linked this DOI to their ORCID record."
+              },
+              "pmid": {
+                "type": "string",
+                "description": "PubMed ID to anchor the search. Returns researchers who have linked this PMID to their ORCID record."
+              },
+              "rows": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Maximum results to return (1–1000)."
+              },
+              "query": {
+                "type": "string",
+                "description": "Raw Solr query string appended to the generated clause with AND. Supports all ORCID Solr fields and boolean operators."
+              },
+              "start": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 10000,
+                "minimum": 0,
+                "description": "Pagination offset (0-based), 0–10,000. The ORCID Public API rejects start > 10,000 for unauthenticated requests."
+              },
+              "ror_id": {
+                "type": "string",
+                "description": "ROR organization ID to filter by (full URL, e.g. https://ror.org/00f54p054). Returns researchers affiliated with this organization."
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Keyword to search in the researcher's keyword fields. Phrase match."
+              },
+              "given_name": {
+                "type": "string",
+                "description": "Researcher's given (first) name."
+              },
+              "affiliation": {
+                "type": "string",
+                "description": "Organization name to filter by. Phrase match."
+              },
+              "family_name": {
+                "type": "string",
+                "description": "Researcher's family (last) name."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "type": "number",
+                "description": "Number of results returned in this response."
+              },
+              "start": {
+                "type": "number",
+                "description": "Pagination offset used for this response."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when results are empty or pagination overshoots the total. Absent on successful pages."
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "orcidId",
+                    "orcidUri",
+                    "otherNames",
+                    "institutionNames"
+                  ],
+                  "properties": {
+                    "orcidId": {
+                      "type": "string",
+                      "description": "ORCID iD (bare format)."
+                    },
+                    "orcidUri": {
+                      "type": "string",
+                      "description": "Full ORCID URI."
+                    },
+                    "creditName": {
+                      "type": "string",
+                      "description": "Published credit name, if set."
+                    },
+                    "givenNames": {
+                      "type": "string",
+                      "description": "Given names from the ORCID record."
+                    },
+                    "otherNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Alternative name."
+                      },
+                      "description": "Other names listed on the ORCID record."
+                    },
+                    "familyNames": {
+                      "type": "string",
+                      "description": "Family name from the ORCID record."
+                    },
+                    "institutionNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Institution name."
+                      },
+                      "description": "Affiliated institution names returned by expanded-search."
+                    }
+                  },
+                  "description": "Expanded search result for one researcher.",
+                  "additionalProperties": false
+                },
+                "description": "Matching researchers with inline name and institution data."
+              },
+              "numFound": {
+                "type": "number",
+                "description": "Total number of matching records in ORCID (before pagination)."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "Solr query sent to the ORCID API."
+              }
+            },
+            "required": [
+              "results",
+              "rows",
+              "start",
+              "effectiveQuery",
+              "numFound"
+            ]
+          },
+          "description_hash": "sha256:2ef19bd076486867daf6d43c08c4e4bc59b33773359f2c0ba6f84ced9a4fbd54"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}
