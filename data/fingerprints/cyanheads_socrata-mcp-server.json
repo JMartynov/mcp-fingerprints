@@ -1,0 +1,783 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/socrata-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fsocrata-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/socrata-mcp-server",
+  "description": "Search and query government open-data portals (Socrata SODA API).",
+  "repository_url": "https://socrata-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/socrata-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:d35bcc9f14aa88e0097d989f213411a4d0539c793769416cf52b3182e1546248",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://socrata-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "socrata_dataframe_describe",
+          "canonical_hash": "sha256:009153ddd12cd273bf6d5045d7ed5adf013c777edc9fb68bcd5b37c27d55b2d1",
+          "description": "List registered tables in a DataCanvas session — schema, row count, column names, and registration time. Shows what datasets are available for SQL queries via socrata_dataframe_query. Only meaningful when CANVAS_PROVIDER_TYPE=duckdb is set. Use after socrata_query_dataset spills a large result set to canvas.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "canvas_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID returned by socrata_query_dataset when a large result spills to canvas. Required in practice when canvas is enabled — canvases cannot be enumerated, so omitting it fails with canvas_id_required instead of listing tables."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Status message when canvas is not enabled or no tables are registered. Absent when tables are present."
+              },
+              "tables": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "table_id",
+                    "row_count",
+                    "columns"
+                  ],
+                  "properties": {
+                    "columns": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "type"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Column name."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "DuckDB inferred type (e.g. VARCHAR, DOUBLE, BIGINT)."
+                          }
+                        },
+                        "description": "Column name and DuckDB type.",
+                        "additionalProperties": false
+                      },
+                      "description": "Column names and DuckDB types. Numeric SODA columns become queryable with numeric comparisons after spillover."
+                    },
+                    "table_id": {
+                      "type": "string",
+                      "description": "Table name registered on the canvas."
+                    },
+                    "row_count": {
+                      "type": "number",
+                      "description": "Number of rows in this table."
+                    }
+                  },
+                  "description": "A registered DataCanvas table.",
+                  "additionalProperties": false
+                },
+                "description": "Tables available for SQL queries. Empty when none registered."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID resolved, when canvas is enabled."
+              }
+            },
+            "required": [
+              "tables"
+            ]
+          },
+          "description_hash": "sha256:30f7466c41d84af023251792f87279efc66542e2469d4c914caeba394903a511"
+        },
+        {
+          "name": "socrata_dataframe_query",
+          "canonical_hash": "sha256:db64cc60de86f153c439f5cefa68ad7e63488527ecb79ce338d7d97cbcbc73bd",
+          "description": "Run SELECT-only SQL against a DataCanvas table populated by socrata_query_dataset. DuckDB infers types from spilled data, so numeric columns that SODA returned as strings become queryable with numeric comparisons (year > 2020, amount < 500). Only works when CANVAS_PROVIDER_TYPE=duckdb is set. Use socrata_dataframe_describe to see registered tables and their schemas.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "limit",
+            "sql"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sql": "string",
+            "limit": "integer",
+            "canvas_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sql": {
+                "type": "string",
+                "description": "SELECT-only SQL to run against registered canvas tables. DDL, DML, and file-reading functions are rejected. Use table names from socrata_dataframe_describe."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 1000,
+                "maximum": 10000,
+                "minimum": 1,
+                "description": "Max rows to return (1–10000). Default 1000."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID returned from socrata_query_dataset or socrata_dataframe_describe."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cap": {
+                "type": "number",
+                "description": "The row limit that was applied when capped."
+              },
+              "sql": {
+                "type": "string",
+                "description": "SQL that was executed."
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Query result rows. DuckDB may return native JS types (number, boolean, null) for numeric/boolean columns."
+              },
+              "shown": {
+                "type": "number",
+                "description": "Rows returned in this response when capped."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when the SQL returned zero rows. Absent when rows are present."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID queried."
+              },
+              "row_count": {
+                "type": "number",
+                "description": "Number of rows returned."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when results were capped at the limit — more rows match the query."
+              }
+            },
+            "required": [
+              "rows",
+              "row_count",
+              "sql",
+              "canvas_id"
+            ]
+          },
+          "description_hash": "sha256:e7fdb07fb3f43b15c4126c189e227dd11e45663d0e497ffa7b8dd8123e57d30c"
+        },
+        {
+          "name": "socrata_find_datasets",
+          "canonical_hash": "sha256:67d8c9c1273f108a60d7ed972f3122e7f9e00399868fa71c4ac23d7e968209c5",
+          "description": "Search for datasets across all Socrata-powered government open-data portals, or scope to one portal with the domain parameter. Returns dataset IDs, names, abbreviated column lists, domains, and update timestamps. Use socrata_get_dataset to fetch the full typed column schema before writing queries — columnNames here are preview-only and lack type information.",
+          "is_mutating": false,
+          "property_keys": [
+            "categories",
+            "domain",
+            "limit",
+            "offset",
+            "only",
+            "order",
+            "query",
+            "tags"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "only": "string",
+            "tags": "array",
+            "limit": "integer",
+            "order": "string",
+            "query": "string",
+            "domain": "string",
+            "offset": "integer",
+            "categories": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "only": {
+                "enum": [
+                  "datasets",
+                  "maps",
+                  "files",
+                  "calendars",
+                  "stories"
+                ],
+                "type": "string",
+                "description": "Filter by asset type. Omit to include all types. Usually \"datasets\" is what you want."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Filter by tags (e.g. [\"covid19\", \"permits\"])."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Number of results to return (1–100). Default 10."
+              },
+              "order": {
+                "enum": [
+                  "relevance",
+                  "page_views_total",
+                  "created_at",
+                  "updated_at"
+                ],
+                "type": "string",
+                "description": "Sort order. Defaults to relevance. Use updated_at to surface recently-refreshed datasets."
+              },
+              "query": {
+                "type": "string",
+                "description": "Full-text search across dataset names and descriptions. Omit to browse without filtering."
+              },
+              "domain": {
+                "type": "string",
+                "description": "Scope search to a single portal (e.g. data.seattle.gov, data.cityofnewyork.us). Omit to search all portals."
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Pagination offset. Default 0."
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Filter by domain categories (e.g. [\"Public Safety\", \"Transportation\"])."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when results are empty — echoes filters and suggests how to broaden. Absent on non-empty result pages."
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "dataset_id",
+                    "domain",
+                    "name",
+                    "tags",
+                    "column_names"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Dataset display name."
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Associated tags."
+                    },
+                    "domain": {
+                      "type": "string",
+                      "description": "Portal domain hosting this dataset (e.g. data.seattle.gov)."
+                    },
+                    "license": {
+                      "type": "string",
+                      "description": "Dataset license when available."
+                    },
+                    "category": {
+                      "type": "string",
+                      "description": "Domain category when available."
+                    },
+                    "dataset_id": {
+                      "type": "string",
+                      "description": "Four-by-four dataset ID (e.g. kzjm-xkqj). Pass to socrata_get_dataset or socrata_query_dataset."
+                    },
+                    "view_count": {
+                      "type": "number",
+                      "description": "Total page views when available."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Dataset description when available."
+                    },
+                    "column_names": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Preview column name list (no type info). Call socrata_get_dataset for typed schema."
+                    },
+                    "data_updated_at": {
+                      "type": "string",
+                      "description": "ISO 8601 timestamp of last data update when available."
+                    }
+                  },
+                  "description": "A single matching dataset.",
+                  "additionalProperties": false
+                },
+                "description": "Matching datasets. Empty when no results."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matches before pagination. 0 when empty."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "Search query applied, for reference."
+              }
+            },
+            "required": [
+              "results",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:df27a5c1b9c40fc89cb2a3701b9e668df92ffe3bac3d144a519b032820cb53d8"
+        },
+        {
+          "name": "socrata_get_dataset",
+          "canonical_hash": "sha256:6f88137751d9eb63cc530b661aa0cb6004d8f1f9744e682c340d4f51a54ef740",
+          "description": "Fetch full metadata and column schema for a Socrata dataset by ID. Returns field names, data types, descriptions, row count, and licensing. Always call this before writing a socrata_query_dataset — the column types determine correct WHERE clause syntax: Number columns accept bare literals (year=2023) while Text columns require single-quoted strings (year='2023').",
+          "is_mutating": false,
+          "property_keys": [
+            "dataset_id",
+            "domain"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "domain": "string",
+            "dataset_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "Portal domain (e.g. data.seattle.gov). Defaults to SOCRATA_DEFAULT_DOMAIN env var or data.seattle.gov."
+              },
+              "dataset_id": {
+                "type": "string",
+                "description": "Four-by-four dataset ID matching pattern like kzjm-xkqj. Obtain from socrata_find_datasets."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Dataset display name."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Associated tags."
+              },
+              "domain": {
+                "type": "string",
+                "description": "Portal domain hosting this dataset."
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "field_name",
+                    "data_type"
+                  ],
+                  "properties": {
+                    "data_type": {
+                      "type": "string",
+                      "description": "Socrata data type (e.g. Number, Text, Calendar date). Determines WHERE clause quoting: Number → bare literal, Text → single-quoted string."
+                    },
+                    "field_name": {
+                      "type": "string",
+                      "description": "Column field name as used in SoQL queries."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Column description when available."
+                    },
+                    "non_null_count": {
+                      "type": "number",
+                      "description": "Non-null row count for this column when available."
+                    }
+                  },
+                  "description": "A single column in the dataset schema.",
+                  "additionalProperties": false
+                },
+                "description": "Column schema. Computed region columns (:@computed_region_*) are excluded to reduce noise."
+              },
+              "license": {
+                "type": "string",
+                "description": "License name when available."
+              },
+              "category": {
+                "type": "string",
+                "description": "Domain category when available."
+              },
+              "row_count": {
+                "type": "number",
+                "description": "Approximate row count when available. See row_count_source for provenance."
+              },
+              "dataset_id": {
+                "type": "string",
+                "description": "Four-by-four dataset ID."
+              },
+              "description": {
+                "type": "string",
+                "description": "Dataset description when available."
+              },
+              "data_updated_at": {
+                "type": "string",
+                "description": "ISO 8601 timestamp of last data update when available."
+              },
+              "row_count_source": {
+                "enum": [
+                  "top_level_cached_contents",
+                  "column_cached_contents"
+                ],
+                "type": "string",
+                "description": "How row_count was obtained: 'top_level_cached_contents' — reported directly by the portal's views metadata; 'column_cached_contents' — derived as the maximum per-column cached count when the top-level value is absent. Absent when row_count is absent."
+              }
+            },
+            "required": [
+              "dataset_id",
+              "domain",
+              "name",
+              "tags",
+              "columns"
+            ]
+          },
+          "description_hash": "sha256:99a1f7426db1b529c7ed9d60034ae08a5f6f0b03a1d8afed12c536dbe93e8804"
+        },
+        {
+          "name": "socrata_list_portals",
+          "canonical_hash": "sha256:9feee19528bca3533a6d7f69f1edde3bdd29a65bdbaa3f00384049b01616e898",
+          "description": "List known Socrata-powered government open-data portals with their domain, organization name, and approximate dataset count. The catalog is a curated list of 40 well-known portals; dataset counts are fetched from the Discovery API and cached for ~24 hours. Filtering is client-side substring match on the query parameter. Use this first when you do not know which portal to target, then pass the domain to socrata_find_datasets.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "offset",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "offset": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 50,
+                "maximum": 200,
+                "minimum": 1,
+                "description": "Max portals to return (1–200). Default 50."
+              },
+              "query": {
+                "type": "string",
+                "description": "Keyword to filter portal names or organization names (case-insensitive substring match). Omit to list all portals."
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Pagination offset. Default 0."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when no portals matched the filter. Absent on non-empty pages."
+              },
+              "portals": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "domain",
+                    "dataset_count"
+                  ],
+                  "properties": {
+                    "domain": {
+                      "type": "string",
+                      "description": "Portal domain (e.g. data.seattle.gov). Pass to socrata_find_datasets."
+                    },
+                    "organization": {
+                      "type": "string",
+                      "description": "Organization name when available (e.g. City of Seattle)."
+                    },
+                    "dataset_count": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Approximate count of dataset-type assets on this portal from the Discovery API catalog (point-in-time, refreshed ~daily). 0 means the portal exposes no dataset assets to the catalog; null means the live count is temporarily unavailable."
+                    }
+                  },
+                  "description": "A single Socrata portal.",
+                  "additionalProperties": false
+                },
+                "description": "Matching portals. Empty when no results."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total portals before pagination. 0 when empty."
+              }
+            },
+            "required": [
+              "portals",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:f103fd0198e19a0577b88e4d1b662cdc8a6ec7a00b78b476a9ec4b4b380d21d5"
+        },
+        {
+          "name": "socrata_query_dataset",
+          "canonical_hash": "sha256:b18efdf1109e4a2dd68283d32e71303d379f7c8cf1db3a3d87ddd431d2f18bd9",
+          "description": "Execute a SoQL query against any dataset on any Socrata portal. Use the search parameter for quick full-text lookup, or combine select/where/group/having/order for full analytical control. Returns rows plus the assembled SoQL string so you can learn the pattern. All SODA 2.1 row values are strings even for numeric columns — check dataType from socrata_get_dataset to determine correct WHERE quoting: Number columns use bare literals (year=2023), Text columns use single-quoted strings (year='2023'). To enumerate distinct values, use select=\"col, count(*) as n\" with group=\"col\" and order=\"n DESC\". When CANVAS_PROVIDER_TYPE=duckdb and rows fill the limit, results spill to a DataCanvas table for SQL-based analysis.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "dataset_id",
+            "domain",
+            "group",
+            "having",
+            "limit",
+            "offset",
+            "order",
+            "search",
+            "select",
+            "where"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "group": "string",
+            "limit": "integer",
+            "order": "string",
+            "where": "string",
+            "domain": "string",
+            "having": "string",
+            "offset": "integer",
+            "search": "string",
+            "select": "string",
+            "canvas_id": "string",
+            "dataset_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "group": {
+                "type": "string",
+                "description": "SoQL GROUP BY clause. Requires an aggregate function in select."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 100,
+                "maximum": 5000,
+                "minimum": 1,
+                "description": "Max rows to return (1–5000). Default 100. Use with offset for pagination."
+              },
+              "order": {
+                "type": "string",
+                "description": "SoQL ORDER BY clause, e.g. \"total_deaths DESC\" or \"date ASC\"."
+              },
+              "where": {
+                "type": "string",
+                "description": "SoQL WHERE clause. Check column dataType from socrata_get_dataset first — Number columns: year=2023, Text columns: year='2023'. Operators: =, !=, >, <, LIKE, IN(...), BETWEEN, IS NULL, starts_with(), contains(), AND, OR, NOT."
+              },
+              "domain": {
+                "type": "string",
+                "description": "Portal domain (e.g. data.seattle.gov). Defaults to SOCRATA_DEFAULT_DOMAIN or data.seattle.gov."
+              },
+              "having": {
+                "type": "string",
+                "description": "SoQL HAVING clause. Filters on aggregated results, e.g. count > 100."
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Row offset for pagination. Default 0."
+              },
+              "search": {
+                "type": "string",
+                "description": "Full-text search across all text columns ($q). For field-specific filtering, use where instead."
+              },
+              "select": {
+                "type": "string",
+                "description": "SoQL SELECT clause — column names, aliases, aggregates: \"state, sum(deaths) as total_deaths\". Omit for all columns."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Optional 10-char DataCanvas token from a prior call. Omit on first call when CANVAS_PROVIDER_TYPE=duckdb to mint a fresh canvas. Large result sets spill here automatically."
+              },
+              "dataset_id": {
+                "type": "string",
+                "description": "Four-by-four dataset ID (e.g. kzjm-xkqj). Obtain from socrata_find_datasets."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cap": {
+                "type": "number",
+                "description": "The row limit that was applied when capped."
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Result rows. Scalar values are strings (SODA 2.1); geo/location columns return nested objects. Use column schema from socrata_get_dataset for type context."
+              },
+              "shown": {
+                "type": "number",
+                "description": "Rows returned in this response when capped."
+              },
+              "domain": {
+                "type": "string",
+                "description": "Portal domain queried."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when the query returned zero rows — suggests narrowing or reviewing the SoQL. Absent on non-empty result sets."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "DataCanvas token when results spilled (requires CANVAS_PROVIDER_TYPE=duckdb). Pass to socrata_dataframe_query for SQL over the full result set."
+              },
+              "row_count": {
+                "type": "number",
+                "description": "Rows returned in this response."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when rows filled the limit — more rows may match (see total_count when present). Spills to canvas when enabled."
+              },
+              "dataset_id": {
+                "type": "string",
+                "description": "Dataset ID queried."
+              },
+              "total_count": {
+                "type": "number",
+                "description": "Total matching source rows when a plain row query is truncated (row_count < total_count). Absent when the full result fits and for grouped/aggregate queries (group set), where a source-row count would not describe the returned groups."
+              },
+              "assembled_query": {
+                "type": "string",
+                "description": "SoQL clauses assembled for this request — useful for learning the syntax."
+              }
+            },
+            "required": [
+              "rows",
+              "row_count",
+              "assembled_query",
+              "domain",
+              "dataset_id"
+            ]
+          },
+          "description_hash": "sha256:061baaae02734152de533a46a9322d248eb9a2ee10bd8503889ccb24524a209a"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "explore_open_data",
+          "description": "",
+          "argument_keys": [
+            "geography",
+            "portal",
+            "topic"
+          ],
+          "required_arguments": [
+            "topic"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "socrata://portals",
+          "name": "socrata-portals",
+          "description": "",
+          "mime_type": "application/json"
+        },
+        {
+          "uri_template": "socrata://datasets/data.seattle.gov/kzjm-xkqj",
+          "name": "Seattle 911 Incidents (example)",
+          "description": "",
+          "mime_type": "application/json"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}

@@ -1,0 +1,734 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/libofcongress-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Flibofcongress-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/libofcongress-mcp-server",
+  "description": "Search LOC digital collections, Chronicling America newspapers (full OCR), and LC Subject Headings.",
+  "repository_url": "https://libofcongress-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/libofcongress-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:3bce29233d7a5234c20c1a4205bc1092a0a4897002e1b4095d2fd0fdfdfac766",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://libofcongress-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "libofcongress_browse_collections",
+          "canonical_hash": "sha256:cae23790fe9354b449748994df20e2dc1ceedc11c64fb01205eade29cc28bed6",
+          "description": "List and browse Library of Congress curated digital collections. Returns collection names, descriptions, item counts, slugs, and URLs. Optionally filter by keyword. Collections are curated subsets of the digital holdings with specific focuses (e.g., \"Civil War Glass Negatives\", \"Baseball Cards\", \"WPA Posters\"). Use the returned URL to navigate directly to a collection on loc.gov.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "page",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "limit": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "1-indexed page number for paginating results."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Maximum number of collections to return. Default 25, max 100."
+              },
+              "query": {
+                "type": "string",
+                "description": "Optional keyword to filter collections by name or description. Omit to list all collections."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "description": "Current 1-indexed page number."
+              },
+              "pages": {
+                "type": "number",
+                "description": "Total number of pages available."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total number of matching collections across all pages."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when results are empty or a page is out of range — suggests broadening the keyword or removing filters. Absent on successful result pages."
+              },
+              "has_next": {
+                "type": "boolean",
+                "description": "True when more pages are available after this one."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching collections — mirrors output.total for agent reasoning."
+              },
+              "collections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "slug",
+                    "title",
+                    "url"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "Collection URL on loc.gov."
+                    },
+                    "slug": {
+                      "type": "string",
+                      "description": "Collection URL slug — identifies the collection within loc.gov URLs."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Collection name."
+                    },
+                    "item_count": {
+                      "type": "number",
+                      "description": "Approximate number of items in this collection. Omitted when unavailable."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Description of the collection's scope and contents."
+                    }
+                  },
+                  "description": "A single LOC curated digital collection.",
+                  "additionalProperties": false
+                },
+                "description": "LOC curated collections matching the keyword filter, or all collections when no keyword is specified."
+              }
+            },
+            "required": [
+              "collections",
+              "total",
+              "page",
+              "pages",
+              "has_next",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:1138c3a3341e7cc66236bcb5cec567b0071637927f8129fbd86df937cbfb5297"
+        },
+        {
+          "name": "libofcongress_get_item",
+          "canonical_hash": "sha256:cc6cd2103a6d2fadad1fdd7ea926fc5fae8b7cafafd2ebd6012d73348013b796",
+          "description": "Retrieve the full metadata record for a specific LOC digital item. Returns contributors, subjects, rights information, physical description, notes, related items, and links to digital resources (TIFF, JPEG, PDF) for items with digital surrogates. Use after libofcongress_search to get complete details on a result. Pass the bare item ID from the search result — do not include URL path segments.",
+          "is_mutating": false,
+          "property_keys": [
+            "item_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "item_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "item_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "LOC item ID from a libofcongress_search result's \"id\" field (e.g., \"loc.pnp.ppmsc.02404\" or \"2009632251\"). Pass the bare ID only — no URL path segments."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "Canonical LOC item URL."
+              },
+              "date": {
+                "type": "string",
+                "description": "Publication or creation date."
+              },
+              "notes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Descriptive notes and annotations from catalogers."
+              },
+              "title": {
+                "type": "string",
+                "description": "Item title."
+              },
+              "item_id": {
+                "type": "string",
+                "description": "LOC item ID as resolved by the service (matches the input item_id)."
+              },
+              "contributors": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Names of contributors, creators, or photographers."
+              },
+              "related_items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "IDs or URLs of related LOC items for follow-up retrieval."
+              },
+              "resource_links": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "URLs to downloadable digital files (TIFF, JPEG, PDF). Empty when no digital surrogate exists."
+              },
+              "subject_headings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "LCSH subject headings assigned to this item."
+              },
+              "rights_information": {
+                "type": "string",
+                "description": "Rights and reproduction statement for this item."
+              },
+              "physical_description": {
+                "type": "string",
+                "description": "Physical or technical description of the original item."
+              }
+            },
+            "required": [
+              "item_id",
+              "title",
+              "contributors",
+              "subject_headings",
+              "notes",
+              "resource_links",
+              "related_items",
+              "url"
+            ]
+          },
+          "description_hash": "sha256:3db1bee4e814f56dbcc442eeacb582c6ebf41692a6c112bb8837c678bbb5fd69"
+        },
+        {
+          "name": "libofcongress_get_newspaper_page",
+          "canonical_hash": "sha256:f8224703cf8e3fe14fdc56bfea7e6bd4ba1887b58148dfa9b5346bf2c43e7841",
+          "description": "Retrieve the full OCR text of a specific historical newspaper page along with publication metadata. Pass the url field from a libofcongress_search_newspapers result — do not construct this URL manually. OCR quality varies by digitization batch and era: 19th-century and degraded materials may contain fragmented text, garbled words, and line-break artifacts that are surfaced as-is. When a page exists but has no digitized text, ocr_available is false and ocr_text is empty — this is a data property, not an error.",
+          "is_mutating": false,
+          "property_keys": [
+            "page_url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page_url": {
+                "type": "string",
+                "description": "The url field from a libofcongress_search_newspapers result (e.g., \"https://www.loc.gov/resource/sn83045462/1905-03-15/ed-1/seq-1/\"). Always pass the value directly from search results — do not construct or modify this URL."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "description": "Issue publication date."
+              },
+              "state": {
+                "type": "string",
+                "description": "State where the newspaper was published."
+              },
+              "edition": {
+                "type": "string",
+                "description": "Edition or publication context identifier."
+              },
+              "ocr_text": {
+                "type": "string",
+                "description": "Full plain-text OCR content for the page. Empty string when ocr_available is false. May contain fragmented words, line-break artifacts, and misspellings inherent to historical OCR — do not attempt to repair."
+              },
+              "page_url": {
+                "type": "string",
+                "description": "The LOC resource URL for this newspaper page."
+              },
+              "sequence": {
+                "type": "number",
+                "description": "Page sequence number within the issue."
+              },
+              "ocr_available": {
+                "type": "boolean",
+                "description": "True when digitized OCR text exists for this page. False for image-only digitization batches where OCR has not been applied."
+              },
+              "newspaper_title": {
+                "type": "string",
+                "description": "Title of the newspaper publication."
+              }
+            },
+            "required": [
+              "page_url",
+              "ocr_text",
+              "ocr_available"
+            ]
+          },
+          "description_hash": "sha256:1bfce5184427bba4bb21ea6cb914ac5ccfb1aab80ae1ae45c8c3defa9e55c1f4"
+        },
+        {
+          "name": "libofcongress_search",
+          "canonical_hash": "sha256:ae59a38d4a5622cfefccd5f4a9d8b758a949d85ecfd07ee70d60c428b8475354",
+          "description": "Search the Library of Congress digital collections by keyword. Optionally filter by material format (photos, maps, newspapers, audio, etc.), date range, subject heading, or geographic location. Returns item summaries with titles, dates, descriptions, LOC IDs, and format tags. Use libofcongress_get_item to retrieve full metadata for a specific result. Use libofcongress_search_subjects first to find the exact LCSH heading spelling before applying a subject filter.",
+          "is_mutating": false,
+          "property_keys": [
+            "date_end",
+            "date_start",
+            "format",
+            "limit",
+            "location",
+            "page",
+            "query",
+            "subject"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "limit": "integer",
+            "query": "string",
+            "format": "string",
+            "subject": "string",
+            "date_end": "integer",
+            "location": "string",
+            "date_start": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "1-indexed page number for paginating results."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Results per page. Default 25, max 100."
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Full-text search across metadata and available descriptive text."
+              },
+              "format": {
+                "enum": [
+                  "photo",
+                  "map",
+                  "newspaper",
+                  "manuscript",
+                  "audio",
+                  "film",
+                  "book",
+                  "notated-music"
+                ],
+                "type": "string",
+                "description": "Material type filter. Options: photo, map, newspaper, manuscript, audio, film, book, notated-music. Omit to search all formats."
+              },
+              "subject": {
+                "type": "string",
+                "description": "Subject heading filter. Use the exact label from libofcongress_search_subjects results for best precision. Example: \"World War, 1939-1945\"."
+              },
+              "date_end": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "End year for date filter, inclusive (e.g., 1930). Omit for no upper bound."
+              },
+              "location": {
+                "type": "string",
+                "description": "Geographic location filter (e.g., \"oklahoma\", \"washington d.c.\"). Lowercase, matches LOC location facets."
+              },
+              "date_start": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Start year for date filter, inclusive (e.g., 1920). Omit for no lower bound."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "description": "Current 1-indexed page number."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "title",
+                    "url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "LOC item ID — pass to libofcongress_get_item for full metadata."
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "LOC item URL."
+                    },
+                    "date": {
+                      "type": "string",
+                      "description": "Publication or creation date."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Item title."
+                    },
+                    "format": {
+                      "type": "string",
+                      "description": "Material format (e.g., photo, map, manuscript)."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Brief description or summary."
+                    }
+                  },
+                  "description": "A single LOC item summary.",
+                  "additionalProperties": false
+                },
+                "description": "Item summaries matching the search query and filters."
+              },
+              "pages": {
+                "type": "number",
+                "description": "Total number of pages available."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total number of matching items across all pages."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when results are empty or a page is out of range — echoes applied filters and suggests how to broaden. Absent on successful result pages."
+              },
+              "has_next": {
+                "type": "boolean",
+                "description": "True when more pages are available after this one."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching items across all pages — mirrors output.total for agent reasoning."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "The query as submitted to the LOC API, after trimming."
+              }
+            },
+            "required": [
+              "items",
+              "total",
+              "page",
+              "pages",
+              "has_next",
+              "effectiveQuery",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:fa322b0c9a1a6492958ccba281460687b13541ed66a8c0706ff4b556ae137d71"
+        },
+        {
+          "name": "libofcongress_search_newspapers",
+          "canonical_hash": "sha256:4ff2c56ca1a861f182cf48d73df479c6b16813534c65e09eb5669b2e7b727dcc",
+          "description": "Search historical newspaper pages in the Chronicling America corpus. Returns matching pages with OCR text excerpts (~500 characters), publication title, date, state, and the page URL needed for libofcongress_get_newspaper_page. Filters by keyword, date range, US state, and newspaper title. The OCR excerpts are sufficient for relevance assessment — call libofcongress_get_newspaper_page with the returned url field to read the full page text. OCR quality varies: 19th-century and degraded materials may contain fragmented or garbled text.",
+          "is_mutating": false,
+          "property_keys": [
+            "date_end",
+            "date_start",
+            "limit",
+            "newspaper_title",
+            "page",
+            "query",
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "limit": "integer",
+            "query": "string",
+            "state": "string",
+            "date_end": "integer",
+            "date_start": "integer",
+            "newspaper_title": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "default": 1,
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "1-indexed page number for paginating results."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Results per page. Default 25, max 100."
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Keyword search across OCR text and newspaper metadata."
+              },
+              "state": {
+                "type": "string",
+                "description": "Filter to newspapers published in this US state. Use the full state name, lowercase (e.g., \"oklahoma\", \"new york\")."
+              },
+              "date_end": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "End year for date filter, inclusive (e.g., 1920). Omit for no upper bound."
+              },
+              "date_start": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Start year for date filter, inclusive (e.g., 1900). Omit for no lower bound."
+              },
+              "newspaper_title": {
+                "type": "string",
+                "description": "Filter to a specific newspaper by title (partial match accepted)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "description": "Current 1-indexed page number."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "url",
+                    "title"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "LOC resource URL for this page — pass to libofcongress_get_newspaper_page to get full OCR text."
+                    },
+                    "date": {
+                      "type": "string",
+                      "description": "Issue publication date."
+                    },
+                    "state": {
+                      "type": "string",
+                      "description": "State where the newspaper was published."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Page or issue title."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "OCR text excerpt (~500 chars) for relevance assessment."
+                    },
+                    "newspaper_title": {
+                      "type": "string",
+                      "description": "Newspaper publication title."
+                    }
+                  },
+                  "description": "A single newspaper page search result.",
+                  "additionalProperties": false
+                },
+                "description": "Newspaper page results matching the search query and filters."
+              },
+              "pages": {
+                "type": "number",
+                "description": "Total number of pages available."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total number of matching newspaper pages in the result set."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when results are empty or a page is out of range — echoes applied filters and suggests how to broaden. Absent on successful result pages."
+              },
+              "has_next": {
+                "type": "boolean",
+                "description": "True when more pages are available after this one."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matching newspaper pages — mirrors output.total for agent reasoning."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "The keyword query as submitted to the Chronicling America API, after trimming."
+              }
+            },
+            "required": [
+              "items",
+              "total",
+              "page",
+              "pages",
+              "has_next",
+              "effectiveQuery",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:703dde7b4048cf443ee04ffb1e233f5120a6d8f0220d84213520234544497813"
+        },
+        {
+          "name": "libofcongress_search_subjects",
+          "canonical_hash": "sha256:74b746218ce39e9befa40853055426a8e87c387037af26c3384e194fe0b7ed80",
+          "description": "Search Library of Congress Subject Headings (LCSH) by keyword. Returns controlled-vocabulary subject labels and their URIs. Use the returned label as the subject filter in libofcongress_search — LCSH uses precise, standardized terms that differ from natural language (e.g., \"World War, 1939-1945\" not \"World War II\"; \"Photography, Aerial\" not \"Aerial photography\"). Running this tool before a subject-filtered libofcongress_search dramatically improves result quality.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Maximum number of subject headings to return. Default 10, max 50."
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Keyword or partial subject heading to search for (e.g., \"civil war\", \"immigration\", \"jazz\")."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cap": {
+                "type": "number",
+                "description": "The limit applied to this response — maximum headings the API will return."
+              },
+              "shown": {
+                "type": "number",
+                "description": "Number of subject headings returned in this response."
+              },
+              "total": {
+                "type": "number",
+                "description": "Number of subject headings returned."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Recovery hint when results are empty — suggests alternative LCSH search strategies. Absent on non-empty results."
+              },
+              "subjects": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "label",
+                    "uri"
+                  ],
+                  "properties": {
+                    "uri": {
+                      "type": "string",
+                      "description": "Stable LOC URI identifying this subject heading in the authority file."
+                    },
+                    "count": {
+                      "type": "number",
+                      "description": "Approximate number of LOC items carrying this heading. Omitted when unavailable."
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Standardized LCSH heading — use this exact string in the libofcongress_search subject filter."
+                    }
+                  },
+                  "description": "A single LCSH subject heading record.",
+                  "additionalProperties": false
+                },
+                "description": "LCSH subject headings matching the query, ordered by relevance."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when results were capped at the requested limit. Increase limit or refine the query to surface additional headings."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "The keyword query as submitted to the id.loc.gov suggest endpoint, after trimming."
+              }
+            },
+            "required": [
+              "subjects",
+              "total",
+              "effectiveQuery"
+            ]
+          },
+          "description_hash": "sha256:ba151740dd2c0c19505d41b864530cba510f1b5961837a279b0aee7de76c9d39"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

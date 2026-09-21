@@ -1,0 +1,1116 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/openstreetmap-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fopenstreetmap-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/openstreetmap-mcp-server",
+  "description": "Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data.",
+  "repository_url": "https://openstreetmap-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/openstreetmap-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:48f6bb28d671f290c014a4b17161d3fd987e906cc8b79c9a942288943951e885",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://openstreetmap-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "openstreetmap_geocode",
+          "canonical_hash": "sha256:a0b393210e6118d69d963f9f0a02890861ef0a1810d1c2e36d4b592ab4d70ecd",
+          "description": "Convert a place name or address to geographic coordinates and structured place data via Nominatim/OpenStreetMap. Accepts either a free-form query string (e.g., \"Space Needle Seattle\") or structured address fields (street, city, state, etc.) — the two modes are mutually exclusive. Returns results ordered by Nominatim relevance (importance score). Use countrycodes to restrict results to specific countries. For exhaustive POI lists in an area, use openstreetmap_query_nearby or openstreetmap_query_bbox instead — Nominatim search returns best matches, not all matching objects.",
+          "is_mutating": false,
+          "property_keys": [
+            "city",
+            "country",
+            "countrycodes",
+            "county",
+            "exclude_place_ids",
+            "extratags",
+            "featureType",
+            "language",
+            "layer",
+            "limit",
+            "postalcode",
+            "query",
+            "state",
+            "street"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string",
+            "layer": "string",
+            "limit": "integer",
+            "query": "string",
+            "state": "string",
+            "county": "string",
+            "street": "string",
+            "country": "string",
+            "language": "string",
+            "extratags": "boolean",
+            "postalcode": "string",
+            "featureType": "string",
+            "countrycodes": "string",
+            "exclude_place_ids": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "City name (structured query)."
+              },
+              "layer": {
+                "type": "string",
+                "description": "Filter by data layer. Comma-separated values: address, poi, railway, natural, manmade. Default: no restriction."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 40,
+                "minimum": 1,
+                "description": "Maximum results to return. Nominatim may return fewer when additional results do not sufficiently match. Max 40."
+              },
+              "query": {
+                "type": "string",
+                "description": "Free-form search string (e.g., \"Space Needle Seattle\" or \"1600 Pennsylvania Ave NW, Washington DC\"). Cannot be combined with structured address fields. Keep the query to a POI name plus its city or region. Do not insert a parent institution, campus, or building name between the name and the locality: Nominatim reads commas as an address hierarchy and returns nothing when an intermediate token is not a matching containment level. For example, use \"Beinecke Library, New Haven\", not \"Beinecke Library, Yale University, New Haven\"."
+              },
+              "state": {
+                "type": "string",
+                "description": "State or province (structured query)."
+              },
+              "county": {
+                "type": "string",
+                "description": "County or district (structured query)."
+              },
+              "street": {
+                "type": "string",
+                "description": "House number and street name (structured query). Use with city/state/country fields. Cannot be combined with query."
+              },
+              "country": {
+                "type": "string",
+                "description": "Country name or ISO 3166-1 alpha-2 code (structured query)."
+              },
+              "language": {
+                "type": "string",
+                "description": "Preferred language for result names (BCP 47 code or Accept-Language string, e.g., \"en\", \"de\", \"fr,en\"). Defaults to local OSM language."
+              },
+              "extratags": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include extra OSM tags when available (e.g., phone, website, opening_hours, wikidata). Increases response size."
+              },
+              "postalcode": {
+                "type": "string",
+                "description": "Postal or ZIP code (structured query)."
+              },
+              "featureType": {
+                "enum": [
+                  "country",
+                  "state",
+                  "city",
+                  "settlement"
+                ],
+                "type": "string",
+                "description": "Restrict results to a geographic feature type. Automatically implies the address layer."
+              },
+              "countrycodes": {
+                "type": "string",
+                "description": "Restrict results to one or more countries. Comma-separated ISO 3166-1 alpha-2 codes (e.g., \"us,ca\"). Preferred over the structured country field when filtering."
+              },
+              "exclude_place_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "OSM refs (N/W/R + id) or Nominatim place_ids to drop from results, forwarded as the exclude_place_ids parameter. Pass the nextExcludeIds value from a prior truncated response to page toward the next-best matches — it emits stable OSM refs when available, which page more reliably than volatile place_ids. Best-effort progressive retrieval, not a stable cursor — Nominatim ranking can reorder slightly between calls, so already-seen results may shift."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cap": {
+                "type": "number",
+                "description": "The limit applied to this request."
+              },
+              "shown": {
+                "type": "number",
+                "description": "Number of results returned."
+              },
+              "total": {
+                "type": "number",
+                "description": "Number of results returned."
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "place_id",
+                    "lat",
+                    "lon",
+                    "display_name"
+                  ],
+                  "properties": {
+                    "lat": {
+                      "type": "string",
+                      "description": "Latitude (WGS84, as string from API)."
+                    },
+                    "lon": {
+                      "type": "string",
+                      "description": "Longitude (WGS84, as string from API)."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Feature name if applicable (e.g., \"Space Needle\"). Absent for address-only results."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "OSM feature type within category (e.g., \"hospital\", \"tower\", \"administrative\")."
+                    },
+                    "osm_id": {
+                      "type": "number",
+                      "description": "OSM object ID. Combine with osm_type for openstreetmap_lookup."
+                    },
+                    "address": {
+                      "type": "object",
+                      "description": "Structured address breakdown. Keys vary by feature type and country. Common keys: house_number, road, suburb, city, state, postcode, country, country_code.",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "category": {
+                      "type": "string",
+                      "description": "OSM feature category (e.g., \"amenity\", \"man_made\", \"boundary\")."
+                    },
+                    "osm_type": {
+                      "enum": [
+                        "node",
+                        "way",
+                        "relation"
+                      ],
+                      "type": "string",
+                      "description": "OSM object type."
+                    },
+                    "place_id": {
+                      "type": "number",
+                      "description": "Nominatim internal place ID. Use osm_type+osm_id for stable cross-server references."
+                    },
+                    "extratags": {
+                      "type": "object",
+                      "description": "Additional OSM tags (phone, website, opening_hours, wikidata). Present only when extratags was requested.",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "importance": {
+                      "type": "number",
+                      "description": "Nominatim relevance score (0–1). Higher is more globally prominent."
+                    },
+                    "boundingbox": {
+                      "type": "array",
+                      "items": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "description": "Bounding box as [south, north, west, east] strings."
+                    },
+                    "display_name": {
+                      "type": "string",
+                      "description": "Full human-readable address string."
+                    }
+                  },
+                  "description": "A single geocoding result.",
+                  "additionalProperties": false
+                },
+                "description": "Geocoding results, ordered by Nominatim relevance (importance score descending)."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True if the result count equals the requested limit (Nominatim may have more)."
+              },
+              "attribution": {
+                "type": "string",
+                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "The effective query sent to Nominatim — the free-form query string, or a reconstructed string from the provided structured address fields."
+              },
+              "nextExcludeIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Accumulated exclude tokens (prior excludes plus this page) to pass as exclude_place_ids on the next call, retrieving the next-best matches. Each token is a stable OSM ref (N/W/R + osm_id) when the result carries one, falling back to the Nominatim place_id otherwise. Present only when results were truncated. Best-effort: Nominatim ranking is not perfectly stable across calls."
+              }
+            },
+            "required": [
+              "results",
+              "total",
+              "attribution",
+              "effectiveQuery"
+            ]
+          },
+          "description_hash": "sha256:907e2d7156e2ebd3631c0d155e2b86a9dd3f8144347bf6e00ba4dcedacda5882"
+        },
+        {
+          "name": "openstreetmap_lookup",
+          "canonical_hash": "sha256:2f6a62f4a8abdc53e78d597703e224997a0465e3a6c99040b69561c2ef8a55d3",
+          "description": "Fetch address details for one or more known OSM objects by their IDs via Nominatim. Each ID must be prefixed with N (node), W (way), or R (relation), e.g., \"N240109189\", \"W50637691\", \"R146656\". Up to 50 IDs per call. Use when an OSM ID is already known from a prior openstreetmap_query_nearby or openstreetmap_query_bbox result — this is more efficient than a geocoding round trip to get the full Nominatim address record.",
+          "is_mutating": false,
+          "property_keys": [
+            "extratags",
+            "language",
+            "osm_ids"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "language": "string",
+            "extratags": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "osm_ids": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "description": "Single OSM ID string, e.g., \"N240109189\"."
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 50,
+                    "minItems": 1,
+                    "description": "Array of OSM ID strings, up to 50."
+                  }
+                ],
+                "description": "One or more OSM IDs, each prefixed with N (node), W (way), or R (relation). E.g., \"N240109189\", [\"W50637691\", \"R146656\"]. Up to 50 IDs per call."
+              },
+              "language": {
+                "type": "string",
+                "description": "Preferred language for names (BCP 47 code)."
+              },
+              "extratags": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include extra OSM tags (phone, website, wikidata, etc.)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number",
+                "description": "Number of results returned."
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "place_id",
+                    "lat",
+                    "lon",
+                    "display_name"
+                  ],
+                  "properties": {
+                    "lat": {
+                      "type": "string",
+                      "description": "Latitude (WGS84, as string from API)."
+                    },
+                    "lon": {
+                      "type": "string",
+                      "description": "Longitude (WGS84, as string from API)."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Feature name if applicable."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "OSM feature type within category."
+                    },
+                    "osm_id": {
+                      "type": "number",
+                      "description": "OSM object ID."
+                    },
+                    "address": {
+                      "type": "object",
+                      "description": "Structured address breakdown. Keys vary by feature type.",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "category": {
+                      "type": "string",
+                      "description": "OSM feature category."
+                    },
+                    "osm_type": {
+                      "enum": [
+                        "node",
+                        "way",
+                        "relation"
+                      ],
+                      "type": "string",
+                      "description": "OSM object type."
+                    },
+                    "place_id": {
+                      "type": "number",
+                      "description": "Nominatim internal place ID."
+                    },
+                    "extratags": {
+                      "type": "object",
+                      "description": "Additional OSM tags. Present only when extratags was requested.",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "boundingbox": {
+                      "type": "array",
+                      "items": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "description": "Bounding box as [south, north, west, east] strings."
+                    },
+                    "display_name": {
+                      "type": "string",
+                      "description": "Full human-readable address string."
+                    }
+                  },
+                  "description": "Address details for a single OSM ID lookup result.",
+                  "additionalProperties": false
+                },
+                "description": "Address details for the requested OSM IDs that were found."
+              },
+              "not_found": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "OSM IDs from the request that returned no result."
+              },
+              "attribution": {
+                "type": "string",
+                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+              }
+            },
+            "required": [
+              "results",
+              "not_found",
+              "total",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:d093e71103b426faac6233c32ad6723c076169f893c2830762d1df9e0d5c0f57"
+        },
+        {
+          "name": "openstreetmap_query_bbox",
+          "canonical_hash": "sha256:b281cfc73f9c640db511363b4fafb843b7881b0f45c6699585468af74ea4c34d",
+          "description": "Find OSM features within a rectangular geographic area (bounding box) via the Overpass API. Useful for area surveys where you want everything in a region, not proximity searches. Use amenity for common POI types (hospital, pharmacy, cafe, school, etc.) or tag_key + tag_value for other OSM categories (leisure=park, shop=supermarket, natural=peak). Exactly one of amenity or tag_key/tag_value must be provided. Every feature includes its full OSM tag set; the extratags flag (used by geocode/reverse/lookup) does not apply here. For proximity searches centered on a point, use openstreetmap_query_nearby instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "amenity",
+            "east",
+            "element_types",
+            "limit",
+            "north",
+            "offset",
+            "south",
+            "tag_key",
+            "tag_value",
+            "timeout_seconds",
+            "west"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "east": "number",
+            "west": "number",
+            "limit": "integer",
+            "north": "number",
+            "south": "number",
+            "offset": "integer",
+            "amenity": "string",
+            "tag_key": "string",
+            "tag_value": "string",
+            "element_types": "array",
+            "timeout_seconds": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "east": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Eastern boundary longitude (maximum longitude)."
+              },
+              "west": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Western boundary longitude (minimum longitude)."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Maximum results to return. Applied after the Overpass query — if the area has more features, they are truncated."
+              },
+              "north": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Northern boundary latitude (maximum latitude)."
+              },
+              "south": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Southern boundary latitude (minimum latitude)."
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of matching features to skip before applying limit, for paging through a large result set. The full match set is fetched and cached ~10 minutes keyed by the query, so re-paging at a new offset is deterministic and costs no extra upstream request. Pass the nextOffset value from a prior truncated response."
+              },
+              "amenity": {
+                "type": "string",
+                "description": "OSM amenity tag value shortcut (e.g., \"cafe\", \"bench\", \"hospital\"). Cannot be combined with tag_key/tag_value."
+              },
+              "tag_key": {
+                "type": "string",
+                "description": "OSM tag key for non-amenity queries (e.g., \"leisure\", \"shop\", \"natural\"). Use with tag_value. Cannot be combined with amenity."
+              },
+              "tag_value": {
+                "type": "string",
+                "description": "OSM tag value paired with tag_key (e.g., \"park\", \"supermarket\", \"peak\")."
+              },
+              "element_types": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "node",
+                    "way",
+                    "relation"
+                  ],
+                  "type": "string"
+                },
+                "default": [
+                  "node",
+                  "way"
+                ],
+                "description": "OSM element types to search. Ways cover most buildings and areas; nodes cover most standalone POIs. Add \"relation\" for complex structures."
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 60,
+                "minimum": 5,
+                "description": "Overpass query timeout in seconds. Increase for large bounding boxes or dense areas."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no features were found — e.g., try a different bounding box or tag. Absent when results were returned."
+              },
+              "elements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "osm_type",
+                    "osm_id",
+                    "tags"
+                  ],
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "description": "Latitude (present for nodes and ways/relations with computed center)."
+                    },
+                    "lon": {
+                      "type": "number",
+                      "description": "Longitude (present for nodes and ways/relations with computed center)."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Feature name from OSM tags."
+                    },
+                    "tags": {
+                      "type": "object",
+                      "description": "All OSM tags for this feature. Values are always strings.",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "osm_id": {
+                      "type": "number",
+                      "description": "OSM element ID. Use with osm_type for openstreetmap_lookup."
+                    },
+                    "osm_type": {
+                      "enum": [
+                        "node",
+                        "way",
+                        "relation"
+                      ],
+                      "type": "string",
+                      "description": "OSM element type."
+                    }
+                  },
+                  "description": "A single matching OSM feature.",
+                  "additionalProperties": false
+                },
+                "description": "Matching OSM features within the bounding box, up to the limit."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True if results were cut at the limit. Reduce bbox area, add more specific tags, or page with offset to retrieve the rest."
+              },
+              "nextOffset": {
+                "type": "number",
+                "description": "Offset to pass on the next call to retrieve the following page of features. Present only when more features remain beyond this page."
+              },
+              "totalFound": {
+                "type": "number",
+                "description": "Total features returned by Overpass before limit truncation."
+              },
+              "attribution": {
+                "type": "string",
+                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+              },
+              "effectiveTag": {
+                "type": "string",
+                "description": "The OSM tag filter applied (key=value, e.g. \"amenity=cafe\" or \"leisure=park\")."
+              },
+              "data_timestamp": {
+                "type": "string",
+                "description": "OSM data freshness timestamp from the Overpass response."
+              }
+            },
+            "required": [
+              "elements",
+              "data_timestamp",
+              "attribution",
+              "effectiveTag",
+              "totalFound",
+              "truncated"
+            ]
+          },
+          "description_hash": "sha256:5023b7a325906f78a63c683fe88a2928360aea6e811622a15363253fd26bc71b"
+        },
+        {
+          "name": "openstreetmap_query_nearby",
+          "canonical_hash": "sha256:a34ff25388b3fa79d5d3e2dcc363125c5e01177fa36c198c8369d93432abbb5a",
+          "description": "Find OSM features within a radius around a geographic point via the Overpass API. The primary tool for \"what's near X?\" spatial queries. Use amenity for common POI types (hospital, pharmacy, restaurant, cafe, school, atm, etc.) or tag_key + tag_value for other OSM categories (leisure=park, shop=supermarket, natural=peak). Exactly one of amenity or tag_key/tag_value must be provided. Results include all element types specified (nodes cover standalone POIs, ways cover buildings and areas), each with its full OSM tag set, sorted nearest-first by distance_meters from the center point. The extratags flag is not needed here — it applies only to the Nominatim-backed geocode/reverse/lookup tools.",
+          "is_mutating": false,
+          "property_keys": [
+            "amenity",
+            "element_types",
+            "lat",
+            "limit",
+            "lon",
+            "offset",
+            "radius_meters",
+            "tag_key",
+            "tag_value",
+            "timeout_seconds"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "lat": "number",
+            "lon": "number",
+            "limit": "integer",
+            "offset": "integer",
+            "amenity": "string",
+            "tag_key": "string",
+            "tag_value": "string",
+            "element_types": "array",
+            "radius_meters": "number",
+            "timeout_seconds": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Center latitude in WGS84 decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Center longitude in WGS84 decimal degrees."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Maximum results to return. Applied after the Overpass query — if the area has more features, they are truncated."
+              },
+              "offset": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of matching features to skip before applying limit, for paging through a large result set. Features are distance-sorted before paging, so higher offsets return progressively farther matches; the full set is cached ~10 minutes so re-paging costs no extra upstream request. Pass the nextOffset value from a prior truncated response."
+              },
+              "amenity": {
+                "type": "string",
+                "description": "OSM amenity tag value (e.g., \"hospital\", \"pharmacy\", \"restaurant\", \"school\", \"atm\"). Shortcut for tag_key=\"amenity\". Cannot be combined with tag_key/tag_value."
+              },
+              "tag_key": {
+                "type": "string",
+                "description": "OSM tag key for non-amenity queries (e.g., \"leisure\", \"shop\", \"highway\", \"natural\"). Use with tag_value. Cannot be combined with amenity."
+              },
+              "tag_value": {
+                "type": "string",
+                "description": "OSM tag value paired with tag_key (e.g., \"park\", \"supermarket\", \"primary\", \"peak\")."
+              },
+              "element_types": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "node",
+                    "way",
+                    "relation"
+                  ],
+                  "type": "string"
+                },
+                "default": [
+                  "node",
+                  "way"
+                ],
+                "description": "OSM element types to search. Ways cover most buildings and areas; nodes cover most standalone POIs. Add \"relation\" for complex structures like large campuses."
+              },
+              "radius_meters": {
+                "type": "number",
+                "default": 1000,
+                "maximum": 50000,
+                "description": "Search radius in meters. Max 50,000m (50km). Keep under 5,000m for dense urban POI queries to avoid slow responses.",
+                "exclusiveMinimum": 0
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 60,
+                "minimum": 5,
+                "description": "Overpass query timeout in seconds. Increase for large radius or dense areas."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no features were found — e.g., try a larger radius or different tag. Absent when results were returned."
+              },
+              "elements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "osm_type",
+                    "osm_id",
+                    "tags"
+                  ],
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "description": "Latitude (present for nodes and ways/relations with computed center)."
+                    },
+                    "lon": {
+                      "type": "number",
+                      "description": "Longitude (present for nodes and ways/relations with computed center)."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Feature name from OSM tags."
+                    },
+                    "tags": {
+                      "type": "object",
+                      "description": "All OSM tags for this feature. Values are always strings.",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "osm_id": {
+                      "type": "number",
+                      "description": "OSM element ID. Use with osm_type for openstreetmap_lookup."
+                    },
+                    "osm_type": {
+                      "enum": [
+                        "node",
+                        "way",
+                        "relation"
+                      ],
+                      "type": "string",
+                      "description": "OSM element type."
+                    },
+                    "distance_meters": {
+                      "type": "number",
+                      "description": "Great-circle distance in meters from the query center, rounded to one decimal. Results are sorted ascending by this value; omitted for elements without a computed coordinate."
+                    }
+                  },
+                  "description": "A single matching OSM feature.",
+                  "additionalProperties": false
+                },
+                "description": "Matching OSM features, up to the limit."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True if results were cut at the limit. Reduce radius, add more specific tags, or page with offset to retrieve the rest."
+              },
+              "nextOffset": {
+                "type": "number",
+                "description": "Offset to pass on the next call to retrieve the following page of features. Present only when more features remain beyond this page."
+              },
+              "totalFound": {
+                "type": "number",
+                "description": "Total features returned by Overpass before limit truncation."
+              },
+              "attribution": {
+                "type": "string",
+                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+              },
+              "effectiveTag": {
+                "type": "string",
+                "description": "The OSM tag filter applied (key=value, e.g. \"amenity=cafe\" or \"leisure=park\")."
+              },
+              "data_timestamp": {
+                "type": "string",
+                "description": "OSM data freshness timestamp from the Overpass response."
+              }
+            },
+            "required": [
+              "elements",
+              "data_timestamp",
+              "attribution",
+              "effectiveTag",
+              "totalFound",
+              "truncated"
+            ]
+          },
+          "description_hash": "sha256:235f687e6cb2408c809a02d250f58d2dc4117b7b7a1e3534c3aecc850a066966"
+        },
+        {
+          "name": "openstreetmap_query_raw",
+          "canonical_hash": "sha256:cb290f23c7036775e98b604980a850c6d9804cd6ad3c01f11181adbe6f3f3536",
+          "description": "Execute a raw Overpass QL query for advanced spatial queries that the convenience tools do not cover. Use for multi-type queries, union queries, relation membership, historical queries, or any operation requiring full Overpass QL expressiveness. The query must include [out:json]. Example: \"[out:json][timeout:15];node[\\\"natural\\\"=\\\"peak\\\"](47.5,-122.5,47.7,-122.2);out body;\" Validate complex queries at overpass-turbo.eu before use. For simple \"what's near X?\" or \"what's in this area?\" queries, use openstreetmap_query_nearby or openstreetmap_query_bbox instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "query",
+            "timeout_seconds"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "timeout_seconds": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Overpass QL query string. Must include [out:json]. The server sets the endpoint and User-Agent; do not include those. Example: \"[out:json][timeout:15];node[\\\"natural\\\"=\\\"peak\\\"](47.5,-122.5,47.7,-122.2);out body;\""
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "default": 30,
+                "maximum": 180,
+                "minimum": 5,
+                "description": "Query timeout in seconds. The [timeout:N] directive in the query string takes precedence if present. Max 180s."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when no elements were returned — e.g., check query syntax or broaden the filter. Absent when results were returned."
+              },
+              "elements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Raw Overpass API response elements. Structure varies by query type — nodes have lat/lon, ways have nodes[], relations have members[]."
+              },
+              "attribution": {
+                "type": "string",
+                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+              },
+              "data_timestamp": {
+                "type": "string",
+                "description": "OSM data freshness timestamp from the Overpass response. Absent if not included in the response."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "The Overpass QL string as sent to the API (after any timeout injection)."
+              },
+              "total_elements": {
+                "type": "number",
+                "description": "Number of elements returned."
+              }
+            },
+            "required": [
+              "elements",
+              "total_elements",
+              "attribution",
+              "effectiveQuery"
+            ]
+          },
+          "description_hash": "sha256:b939ded0b3a4338ed89cc4c31c7675abb3316f959891a02f694b27dbbebb3d6b"
+        },
+        {
+          "name": "openstreetmap_reverse",
+          "canonical_hash": "sha256:fc7f9ee98592414094553e654eedf9b37934aed32041f182075b5a17a2534881",
+          "description": "Convert latitude/longitude coordinates to the nearest address or place name via Nominatim/OpenStreetMap. Returns the closest matching OSM object at the given coordinates. Note: Nominatim finds the nearest indexed OSM object — in dense areas this may differ from the address at the exact coordinate. Use zoom=18 for building-level accuracy, lower zoom values for coarser resolution (e.g., zoom=10 for city-level).",
+          "is_mutating": false,
+          "property_keys": [
+            "extratags",
+            "language",
+            "lat",
+            "layer",
+            "lon",
+            "zoom"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "lat": "number",
+            "lon": "number",
+            "zoom": "integer",
+            "layer": "string",
+            "language": "string",
+            "extratags": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90,
+                "description": "Latitude in WGS84 decimal degrees."
+              },
+              "lon": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Longitude in WGS84 decimal degrees."
+              },
+              "zoom": {
+                "type": "integer",
+                "default": 18,
+                "maximum": 18,
+                "minimum": 3,
+                "description": "Address detail level, roughly corresponding to map zoom. 18=building, 16=street, 14=neighbourhood, 12=town, 10=city, 8=county, 5=state, 3=country."
+              },
+              "layer": {
+                "type": "string",
+                "description": "Restrict which OSM layer is matched. Comma-separated: address, poi, railway, natural, manmade. Default: address,poi."
+              },
+              "language": {
+                "type": "string",
+                "description": "Preferred language for the result (BCP 47 code or Accept-Language string)."
+              },
+              "extratags": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include extra OSM tags when available (phone, website, opening_hours, wikidata, etc.)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "object",
+                "required": [
+                  "place_id",
+                  "lat",
+                  "lon",
+                  "display_name"
+                ],
+                "properties": {
+                  "lat": {
+                    "type": "string",
+                    "description": "Latitude of the matched OSM object."
+                  },
+                  "lon": {
+                    "type": "string",
+                    "description": "Longitude of the matched OSM object."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Feature name if the result is a named place."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "OSM feature type within category."
+                  },
+                  "osm_id": {
+                    "type": "number",
+                    "description": "OSM object ID. Combine with osm_type for openstreetmap_lookup."
+                  },
+                  "address": {
+                    "type": "object",
+                    "description": "Structured address. Keys vary by feature type. Common: house_number, road, suburb, city, state, postcode, country, country_code.",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "OSM feature category (e.g., \"amenity\", \"building\")."
+                  },
+                  "osm_type": {
+                    "enum": [
+                      "node",
+                      "way",
+                      "relation"
+                    ],
+                    "type": "string",
+                    "description": "OSM object type."
+                  },
+                  "place_id": {
+                    "type": "number",
+                    "description": "Nominatim internal place ID."
+                  },
+                  "extratags": {
+                    "type": "object",
+                    "description": "Additional OSM tags (phone, website, opening_hours, wikidata). Present only when extratags was requested.",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "boundingbox": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ],
+                    "description": "Bounding box as [south, north, west, east] strings."
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "Full human-readable address."
+                  }
+                },
+                "description": "The closest matching OSM object at the given coordinates.",
+                "additionalProperties": false
+              },
+              "attribution": {
+                "type": "string",
+                "description": "Required data attribution."
+              }
+            },
+            "required": [
+              "result",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:8d0024d6a5c7399d1b1f5d0d06679c51f346509a994a685abb2e13d88141e74e"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}

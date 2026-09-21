@@ -1,0 +1,994 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/faostat-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Ffaostat-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/faostat-mcp-server",
+  "description": "UN FAOSTAT global food & agriculture statistics over a local SQLite mirror, via MCP.",
+  "repository_url": "https://faostat-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/faostat-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:b57bbaa26f239de75369527ad59939a15d56fa501379d4bc0187a92bfb9d32d7",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://faostat-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "faostat_commodity_profile",
+          "canonical_hash": "sha256:1c6718608b66d7211fbd078db5692bfb4e5af98c0fc2c906c942e4a82c1e1c9a",
+          "description": "Assemble a global profile for one commodity in a single call: top-producing countries, the multi-decade production trend, and trade flows (top exporters and importers). Accepts a commodity name, resolves it to item codes, then queries the production (QCL) and trade (TCL) domains and merges the results. Country-level only (aggregates excluded). When a required domain is not indexed locally, returns a partial profile with a notice naming the gap rather than failing. The full merged observation set spills to a DataCanvas table for deeper SQL via faostat_dataframe_query.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "item_query",
+            "top_n",
+            "year_end",
+            "year_start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "top_n": "integer",
+            "year_end": "integer",
+            "canvas_id": "string",
+            "item_query": "string",
+            "year_start": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "top_n": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Number of top producers / exporters / importers to return. Max 50."
+              },
+              "year_end": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Inclusive end year for the trend (e.g. 2022)."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID from a prior call to stage onto. Omit to start a fresh canvas."
+              },
+              "item_query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Commodity name to profile (e.g. \"maize\", \"wheat\", \"coffee green\")."
+              },
+              "year_start": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Inclusive start year for the trend (e.g. 1990)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Names any required domain that was not indexed, or other partial-result context."
+              },
+              "spilled": {
+                "type": "boolean",
+                "description": "True when the merged observation set was staged on a canvas table."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID holding the merged set — pass to faostat_dataframe_query / _describe."
+              },
+              "item_query": {
+                "type": "string",
+                "description": "The commodity query echoed back."
+              },
+              "table_name": {
+                "type": "string",
+                "description": "Canvas table holding the merged production+trade observations (present when spilled)."
+              },
+              "trend_points": {
+                "type": "number",
+                "description": "Count of production trend observations staged for the resolved commodity."
+              },
+              "top_exporters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "area_code",
+                    "area",
+                    "value",
+                    "unit",
+                    "year",
+                    "flag"
+                  ],
+                  "properties": {
+                    "area": {
+                      "type": "string",
+                      "description": "Country name."
+                    },
+                    "flag": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Data-quality flag; null when unflagged."
+                    },
+                    "unit": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Unit of measure; null when unspecified."
+                    },
+                    "year": {
+                      "type": "number",
+                      "description": "The latest year the ranking is drawn from."
+                    },
+                    "value": {
+                      "type": "number",
+                      "description": "Export quantity in the latest year present."
+                    },
+                    "area_code": {
+                      "type": "number",
+                      "description": "Country code."
+                    }
+                  },
+                  "description": "One top-exporting country.",
+                  "additionalProperties": false
+                },
+                "description": "Top exporters by export quantity (empty when trade is not indexed)."
+              },
+              "top_importers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "area_code",
+                    "area",
+                    "value",
+                    "unit",
+                    "year",
+                    "flag"
+                  ],
+                  "properties": {
+                    "area": {
+                      "type": "string",
+                      "description": "Country name."
+                    },
+                    "flag": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Data-quality flag; null when unflagged."
+                    },
+                    "unit": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Unit of measure; null when unspecified."
+                    },
+                    "year": {
+                      "type": "number",
+                      "description": "The latest year the ranking is drawn from."
+                    },
+                    "value": {
+                      "type": "number",
+                      "description": "Import quantity in the latest year present."
+                    },
+                    "area_code": {
+                      "type": "number",
+                      "description": "Country code."
+                    }
+                  },
+                  "description": "One top-importing country.",
+                  "additionalProperties": false
+                },
+                "description": "Top importers by import quantity (empty when trade is not indexed)."
+              },
+              "top_producers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "area_code",
+                    "area",
+                    "value",
+                    "unit",
+                    "year",
+                    "flag"
+                  ],
+                  "properties": {
+                    "area": {
+                      "type": "string",
+                      "description": "Country name."
+                    },
+                    "flag": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Data-quality flag; null when unflagged."
+                    },
+                    "unit": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Unit of measure; null when unspecified."
+                    },
+                    "year": {
+                      "type": "number",
+                      "description": "The latest year the ranking is drawn from."
+                    },
+                    "value": {
+                      "type": "number",
+                      "description": "Production value in the latest year present."
+                    },
+                    "area_code": {
+                      "type": "number",
+                      "description": "Country code."
+                    }
+                  },
+                  "description": "One top-producing country.",
+                  "additionalProperties": false
+                },
+                "description": "Top producers by production value (countries only)."
+              },
+              "resolved_items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "name"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "number",
+                      "description": "Resolved item code."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Resolved item name."
+                    }
+                  },
+                  "description": "One resolved commodity.",
+                  "additionalProperties": false
+                },
+                "description": "Commodities the query resolved to (the profile aggregates across all of them)."
+              },
+              "resolvedItemCodes": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "description": "Item codes the commodity query resolved to."
+              }
+            },
+            "required": [
+              "item_query",
+              "resolved_items",
+              "top_producers",
+              "top_exporters",
+              "top_importers",
+              "trend_points",
+              "spilled",
+              "resolvedItemCodes"
+            ]
+          },
+          "description_hash": "sha256:790d37da90bc1b0ddf44e122d6c15efd93d7aa0d3fff3e219f373e566d972766"
+        },
+        {
+          "name": "faostat_dataframe_describe",
+          "canonical_hash": "sha256:abbe3d46b5bc83fc2c510e340a8630023a3f6849d97683a774f4ce91cc938752",
+          "description": "List the canvas tables (faostat_xxxxxxxx) staged by faostat_query_observations and faostat_commodity_profile, each with its source tool, the query parameters that produced it, creation/expiry timestamps, row count, and column schema. Call this before faostat_dataframe_query to discover the exact table and column names to reference in SQL.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "canvas_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Optional table name (faostat_xxxxxxxx) to describe a single staged table. Omit to list all."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Optional canvas ID from a prior faostat_query_observations / faostat_commodity_profile call. Omit to list the tables staged in this session (the common case)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "tables": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "source_tool",
+                    "query_params",
+                    "created_at",
+                    "expires_at",
+                    "row_count",
+                    "truncated",
+                    "column_schema"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Canvas table name (faostat_xxxxxxxx)."
+                    },
+                    "row_count": {
+                      "type": "number",
+                      "description": "Rows staged in the table."
+                    },
+                    "truncated": {
+                      "type": "boolean",
+                      "description": "True when the staging cap was hit and the table holds fewer rows than the full result."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "ISO 8601 creation timestamp."
+                    },
+                    "expires_at": {
+                      "type": "string",
+                      "description": "ISO 8601 expiry timestamp. Sliding TTL touched on every staged-table op."
+                    },
+                    "source_tool": {
+                      "type": "string",
+                      "description": "Tool that staged this table."
+                    },
+                    "query_params": {
+                      "type": "object",
+                      "description": "Input parameters the source tool was called with.",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    "column_schema": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "name",
+                          "type"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Column name."
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "Canvas column type (VARCHAR, BIGINT, DOUBLE, …)."
+                          }
+                        },
+                        "description": "One column declaration.",
+                        "additionalProperties": false
+                      },
+                      "description": "Resolved column schema for the staged table."
+                    }
+                  },
+                  "description": "Provenance and schema for one staged table.",
+                  "additionalProperties": false
+                },
+                "description": "Active staged tables for this session, newest first. Empty when none are staged."
+              }
+            },
+            "required": [
+              "tables"
+            ]
+          },
+          "description_hash": "sha256:73cdbe0c06fa3b0e2f4d8e7548e452f750de87a8f96080a8071eeefdea49da4a"
+        },
+        {
+          "name": "faostat_dataframe_query",
+          "canonical_hash": "sha256:a1d10c74903ac7fecd1aedb8f170c6f9379f25cb40215759668935782096151f",
+          "description": "Run a single-statement SELECT against the canvas tables staged by faostat_query_observations and faostat_commodity_profile (table names look like faostat_xxxxxxxx). Use this for cross-country and cross-item aggregation, GROUP BY rankings, joins, and time-series analysis over the full result set the inline preview only sampled. Standard DuckDB SQL — joins, aggregates, window functions, CTEs all work. Read-only: writes, DDL, DROP, COPY, PRAGMA, ATTACH, and external-file table functions are rejected; system catalogs (information_schema, sqlite_master, duckdb_*) are denied — list staged tables via faostat_dataframe_describe. Every row carries its data-quality `flag` (A=Official, E=Estimated, I=Imputed, …) — keep it in projections and honor it in interpretation.",
+          "is_mutating": false,
+          "property_keys": [
+            "canvas_id",
+            "row_limit",
+            "sql"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sql": "string",
+            "canvas_id": "string",
+            "row_limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sql": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Single-statement read-only SELECT against staged faostat_<id> tables. Columns: area_code, area, item_code, item, element_code, element, year, unit, value, flag. CAST(value AS DOUBLE) for arithmetic."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Optional canvas ID from a prior faostat_query_observations / faostat_commodity_profile call. Omit to query the tables staged in this session (the common case)."
+              },
+              "row_limit": {
+                "type": "integer",
+                "default": 1000,
+                "maximum": 10000,
+                "minimum": 1,
+                "description": "Hard cap on rows in the response. Default 1000, max 10000."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "description": "Materialized result rows, bounded by row_limit."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when the query returned no rows or when results were capped."
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Column names in projection order."
+              },
+              "row_count": {
+                "type": "number",
+                "description": "Total rows the query produced (may exceed rows.length when capped)."
+              }
+            },
+            "required": [
+              "columns",
+              "row_count",
+              "rows"
+            ]
+          },
+          "description_hash": "sha256:b09944f0c1db3f95584763e710d7f48ee59959e764d39a4067f35d8fda508822"
+        },
+        {
+          "name": "faostat_list_domains",
+          "canonical_hash": "sha256:52c5a06b90695e2386a3db43a539c291ee90aa918348258c80823db88b80c3a7",
+          "description": "Discover FAOSTAT statistical domains (production, trade, food balances, food security, land use, agri-emissions, prices, value) with their codes, descriptions, last-update date, upstream row count, and local index status. Every query keys on a domain code from here. The `indexed` flag tells you which domains are queryable right now; un-indexed domains exist in the catalog but must be added to FAOSTAT_DOMAINS and re-synced before faostat_query_observations can read them.",
+          "is_mutating": false,
+          "property_keys": [
+            "indexed_only",
+            "topic"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "topic": "string",
+            "indexed_only": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string",
+                "description": "Case-insensitive substring filter over domain code, name, and topic (e.g. \"trade\", \"emissions\", \"QCL\"). Omit to list the full catalog."
+              },
+              "indexed_only": {
+                "type": "boolean",
+                "default": false,
+                "description": "When true, return only domains indexed in the local mirror (queryable now)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when a topic filter matched nothing or no domains are indexed yet."
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "name",
+                    "last_update",
+                    "indexed",
+                    "index_ready"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Domain code — the key for every query (e.g. \"QCL\")."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Human-readable domain name."
+                    },
+                    "topic": {
+                      "type": "string",
+                      "description": "FAOSTAT topic grouping, when provided."
+                    },
+                    "indexed": {
+                      "type": "boolean",
+                      "description": "True when this domain is in the local mirror selection (FAOSTAT_DOMAINS)."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Domain description, when provided."
+                    },
+                    "index_ready": {
+                      "type": "boolean",
+                      "description": "True when the local mirror for this domain has completed an initial sync."
+                    },
+                    "last_update": {
+                      "type": "string",
+                      "description": "Upstream last-update date (ISO 8601) from the manifest."
+                    },
+                    "indexed_last_sync": {
+                      "type": "string",
+                      "description": "ISO 8601 timestamp of the last completed local sync (when synced)."
+                    },
+                    "indexed_row_count": {
+                      "type": "number",
+                      "description": "Rows in the local mirror for this domain (present when indexed and synced)."
+                    },
+                    "file_size_in_bytes": {
+                      "type": "number",
+                      "description": "Compressed ZIP size in bytes, parsed from the manifest size string."
+                    },
+                    "upstream_row_count": {
+                      "type": "number",
+                      "description": "Row count reported by the manifest for the full domain."
+                    }
+                  },
+                  "description": "One FAOSTAT domain with catalog metadata and local mirror status.",
+                  "additionalProperties": false
+                },
+                "description": "Matching domains, sorted by code."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total domains in the FAOSTAT catalog."
+              },
+              "indexedCount": {
+                "type": "number",
+                "description": "Domains currently indexed in the local mirror."
+              }
+            },
+            "required": [
+              "domains",
+              "totalCount",
+              "indexedCount"
+            ]
+          },
+          "description_hash": "sha256:8dad6c0ed9005f4e5d2d3ceb34977f8a57c5c671fed94f7d71139295b0efdc1c"
+        },
+        {
+          "name": "faostat_query_observations",
+          "canonical_hash": "sha256:73ec050b8d0cf5c5e8de7c117384f4ac650b8fd9fd1558eaf6bdff6dcbfab4fe",
+          "description": "Query a FAOSTAT domain's data cube by area(s), item(s), element(s), and year range, returning observations (area, item, element, year, value, unit, and the data-quality flag). Resolve codes first with faostat_resolve_codes — the cube is unqueryable without them. Aggregate regions (World, continents, economic groupings) are EXCLUDED by default so a naive SUM does not double-count a region with its member countries; set include_aggregates=true to get the regional roll-ups, or pass explicit area_codes to query exactly what you name. Small result sets return inline; large ones spill to a DataCanvas table (returned canvas_id + table_name) for GROUP BY / ranking / time-series analysis via faostat_dataframe_query. Every row carries its flag (A=Official, E=Estimated, I=Imputed, B=break, X=external) — honor it; never treat estimated/imputed values as official.",
+          "is_mutating": false,
+          "property_keys": [
+            "area_codes",
+            "canvas_id",
+            "domain",
+            "element_codes",
+            "include_aggregates",
+            "item_codes",
+            "limit",
+            "year_end",
+            "year_start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "domain": "string",
+            "year_end": "integer",
+            "canvas_id": "string",
+            "area_codes": "array",
+            "item_codes": "array",
+            "year_start": "integer",
+            "element_codes": "array",
+            "include_aggregates": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 200,
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Max observations returned inline when the result does not spill. Max 1000."
+              },
+              "domain": {
+                "type": "string",
+                "minLength": 1,
+                "description": "FAOSTAT domain code (e.g. \"QCL\"). Must be indexed locally."
+              },
+              "year_end": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Inclusive end year (e.g. 2022)."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID from a prior call to stage onto. Omit to start a fresh canvas (a new id is returned)."
+              },
+              "area_codes": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991
+                },
+                "description": "Area codes from faostat_resolve_codes. When set, aggregates are NOT auto-excluded — the codes are honored verbatim."
+              },
+              "item_codes": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991
+                },
+                "description": "Item codes from faostat_resolve_codes."
+              },
+              "year_start": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Inclusive start year (e.g. 2000)."
+              },
+              "element_codes": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "maximum": 9007199254740991,
+                  "minimum": -9007199254740991
+                },
+                "description": "Element codes from faostat_resolve_codes (e.g. 5510 Production)."
+              },
+              "include_aggregates": {
+                "type": "boolean",
+                "default": false,
+                "description": "When false (default), exclude aggregate-region rows (codes ≥ 5000) so sums are not double-counted. Set true for World/continent/grouping roll-ups. Ignored when explicit area_codes are passed."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "The domain code echoed back."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance on empty results, aggregate exclusion, or how to reach the spilled set."
+              },
+              "spilled": {
+                "type": "boolean",
+                "description": "True when the full result was staged on a DataCanvas table."
+              },
+              "canvas_id": {
+                "type": "string",
+                "description": "Canvas ID holding the staged result — pass to faostat_dataframe_query / _describe."
+              },
+              "table_name": {
+                "type": "string",
+                "description": "Canvas table name holding the full result set (present when spilled)."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total observations matched before any inline cap."
+              },
+              "observations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "area_code",
+                    "area",
+                    "item_code",
+                    "item",
+                    "element_code",
+                    "element",
+                    "year",
+                    "value",
+                    "unit",
+                    "flag"
+                  ],
+                  "properties": {
+                    "area": {
+                      "type": "string",
+                      "description": "Area name."
+                    },
+                    "flag": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Data-quality flag (A=Official, E=Estimated, I=Imputed, B=break, X=external); null when unflagged."
+                    },
+                    "item": {
+                      "type": "string",
+                      "description": "Item name."
+                    },
+                    "unit": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Unit of measure; null when unspecified."
+                    },
+                    "year": {
+                      "type": "number",
+                      "description": "Observation year."
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Observed value; null when the cell is empty."
+                    },
+                    "element": {
+                      "type": "string",
+                      "description": "Element (metric) name."
+                    },
+                    "area_code": {
+                      "type": "number",
+                      "description": "Area code."
+                    },
+                    "item_code": {
+                      "type": "number",
+                      "description": "Item code."
+                    },
+                    "element_code": {
+                      "type": "number",
+                      "description": "Element code."
+                    }
+                  },
+                  "description": "One observation. The flag is load-bearing — never drop or ignore it.",
+                  "additionalProperties": false
+                },
+                "description": "Inline observations (preview when the full set spilled to a canvas table)."
+              }
+            },
+            "required": [
+              "domain",
+              "observations",
+              "spilled",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:3a96442a0a8d62e02c9ceb67decac7e534260e01eeba46253c14c2666c755e5b"
+        },
+        {
+          "name": "faostat_resolve_codes",
+          "canonical_hash": "sha256:cfe88992d22e95428b1ff24e5ed86cc34d2a5a3fb2efd5b2b80d1b64396098bc",
+          "description": "Resolve human terms to the opaque integer codes faostat_query_observations needs, within a dimension: areas (countries/regions), items (commodities), or elements (metrics like production, yield, import quantity). Pass `query` for fuzzy full-text matching (\"maize\" → item 56), `name_contains` for a substring filter, or `code` for an exact-code lookup; omit all three to list the whole dimension. Every area match is flagged `country` or `aggregate` — aggregates (World, continents, economic groupings; codes ≥ 5000) double-count if summed with their member countries, so resolve before querying and exclude aggregates unless you want the regional roll-up.",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "dimension",
+            "domain",
+            "limit",
+            "name_contains",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "integer",
+            "limit": "integer",
+            "query": "string",
+            "domain": "string",
+            "dimension": "string",
+            "name_contains": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Exact code lookup. Takes precedence over `query`/`name_contains` when provided."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 50,
+                "maximum": 200,
+                "minimum": 1,
+                "description": "Maximum matches to return (max 200)."
+              },
+              "query": {
+                "type": "string",
+                "description": "Full-text search term, FTS5-matched against the dimension labels with prefix matching (e.g. \"wheat\", \"import quantity\"). Relevance-ranked."
+              },
+              "domain": {
+                "type": "string",
+                "minLength": 1,
+                "description": "FAOSTAT domain code to verify the index is ready (e.g. \"QCL\"). Dimension code lists (areas, items, elements) are shared across all indexed domains."
+              },
+              "dimension": {
+                "enum": [
+                  "area",
+                  "item",
+                  "element"
+                ],
+                "type": "string",
+                "description": "Which dimension to resolve: \"area\" (countries/regions), \"item\" (commodities), or \"element\" (metrics)."
+              },
+              "name_contains": {
+                "type": "string",
+                "description": "Case-insensitive substring filter over the label. Used only when `query` is omitted."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "The domain code echoed back."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Guidance when nothing matched or the dimension is not yet indexed."
+              },
+              "matches": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "name",
+                    "kind"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "number",
+                      "description": "The opaque integer code to pass into faostat_query_observations."
+                    },
+                    "kind": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "country",
+                            "aggregate"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "For areas: \"country\" (individual nation) or \"aggregate\" (region/grouping; excluded from sums by default). Null for items/elements."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Human-readable label."
+                    },
+                    "cpc_code": {
+                      "type": "string",
+                      "description": "CPC crosswalk code for items (apostrophe stripped), when available."
+                    }
+                  },
+                  "description": "One resolved code match.",
+                  "additionalProperties": false
+                },
+                "description": "Matching codes, relevance-ranked for query mode, else by code."
+              },
+              "dimension": {
+                "type": "string",
+                "description": "The dimension resolved."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when matches were capped at the limit."
+              },
+              "totalMatches": {
+                "type": "number",
+                "description": "Total matches before the result cap."
+              }
+            },
+            "required": [
+              "domain",
+              "dimension",
+              "matches",
+              "totalMatches",
+              "truncated"
+            ]
+          },
+          "description_hash": "sha256:c6817d7deb15b58f1edb71e4679f6e54dbb421d8158c01f1036f368859b138ef"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}
