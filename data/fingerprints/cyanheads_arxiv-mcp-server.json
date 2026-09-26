@@ -1,0 +1,588 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/arxiv-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Farxiv-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/arxiv-mcp-server",
+  "description": "Search arXiv, fetch paper metadata, and read full-text content.",
+  "repository_url": "https://arxiv-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/arxiv-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:f47b66a1397b085cd87464b911e3e0666608b9e5030ef9cc552ee470849df835",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://arxiv-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": true
+      },
+      "tool_signatures": [
+        {
+          "name": "arxiv_get_metadata",
+          "canonical_hash": "sha256:47173c336147949effb3fcb45796a4a3c2ee1b3bf3c5c9756d4811071123272d",
+          "description": "Get full metadata for one or more arXiv papers by ID. Use when you have known IDs from citations, prior search results, or memory.",
+          "is_mutating": false,
+          "property_keys": [
+            "paper_ids"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "paper_ids": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Single arXiv paper ID (e.g., \"2401.12345\" or \"2401.12345v2\")."
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "description": "Array of up to 10 arXiv paper IDs for batch lookup."
+                  }
+                ],
+                "description": "arXiv paper ID or array of up to 10 IDs. Format: \"2401.12345\" or \"2401.12345v2\" (with version). Also accepts legacy IDs like \"hep-th/9901001\"."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "papers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "title",
+                    "authors",
+                    "abstract",
+                    "primary_category",
+                    "categories",
+                    "published",
+                    "updated",
+                    "pdf_url",
+                    "abstract_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "arXiv paper ID (e.g., \"2401.12345v1\")."
+                    },
+                    "doi": {
+                      "type": "string",
+                      "description": "DOI if available."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Paper title."
+                    },
+                    "authors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Author names."
+                    },
+                    "comment": {
+                      "type": "string",
+                      "description": "Author comment (e.g., page count, conference)."
+                    },
+                    "pdf_url": {
+                      "type": "string",
+                      "description": "Direct PDF download URL."
+                    },
+                    "updated": {
+                      "type": "string",
+                      "description": "Last update date (ISO 8601)."
+                    },
+                    "abstract": {
+                      "type": "string",
+                      "description": "Full abstract text."
+                    },
+                    "published": {
+                      "type": "string",
+                      "description": "Original submission date (ISO 8601)."
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "All arXiv categories assigned to this paper."
+                    },
+                    "journal_ref": {
+                      "type": "string",
+                      "description": "Journal reference if published."
+                    },
+                    "abstract_url": {
+                      "type": "string",
+                      "description": "arXiv abstract page URL."
+                    },
+                    "primary_category": {
+                      "type": "string",
+                      "description": "Primary arXiv category (e.g., \"cs.CL\")."
+                    }
+                  },
+                  "description": "arXiv paper metadata — identifier, title, authors, abstract, categories, and links.",
+                  "additionalProperties": false
+                },
+                "description": "Papers found. May be fewer than requested if some IDs are invalid."
+              },
+              "not_found": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "reason"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "arXiv ID that returned no data."
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "Additional human-readable context, when available"
+                    },
+                    "reason": {
+                      "enum": [
+                        "not_in_arxiv"
+                      ],
+                      "type": "string",
+                      "description": "Why the paper ID could not be returned."
+                    }
+                  },
+                  "description": "A requested ID that arXiv did not return.",
+                  "additionalProperties": false
+                },
+                "description": "Per-input explanations for inputs that could not be returned. Absent when nothing failed."
+              },
+              "totalSucceeded": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of successful items in 'papers'"
+              }
+            },
+            "required": [
+              "papers",
+              "totalSucceeded"
+            ]
+          },
+          "description_hash": "sha256:7458c5642e71f6942dc7456d8ef1ac527248c8a33b9adef378b62e9a89128480"
+        },
+        {
+          "name": "arxiv_list_categories",
+          "canonical_hash": "sha256:26090af80ea0756a8a81389458f9328277c30812d1a5e725756c911852ce4180",
+          "description": "List arXiv category codes and names. Useful for discovering valid category filters for arxiv_search.",
+          "is_mutating": false,
+          "property_keys": [
+            "group"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "group": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "group": {
+                "enum": [
+                  "cs",
+                  "econ",
+                  "eess",
+                  "math",
+                  "physics",
+                  "q-bio",
+                  "q-fin",
+                  "stat"
+                ],
+                "type": "string",
+                "description": "Filter by top-level group (e.g., \"cs\", \"math\", \"physics\"). Returns all categories if omitted."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Guidance when the group filter returns no categories."
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "name",
+                    "group"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Category code (e.g., \"cs.AI\")."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Full name (e.g., \"Artificial Intelligence\")."
+                    },
+                    "group": {
+                      "type": "string",
+                      "description": "Top-level group (e.g., \"cs\")."
+                    }
+                  },
+                  "description": "arXiv category — subject code, full name, and top-level group.",
+                  "additionalProperties": false
+                },
+                "description": "arXiv categories matching the filter."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total number of categories returned."
+              }
+            },
+            "required": [
+              "categories",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:1202a874ead5b2db4ac90c8d6dee3ee35f9d6dfd4345f5dd3f19d3cd94f90dbb"
+        },
+        {
+          "name": "arxiv_read_paper",
+          "canonical_hash": "sha256:29ebb6b8ac1690d1bd228ca9948c7ff26065028c3859e9283390de558d9e69b6",
+          "description": "Fetch the full text of an arXiv paper as HTML. Tries arxiv.org/html first; falls back to ar5iv.labs.arxiv.org when the native render is unavailable. PDF-only papers (no HTML render on either source) return an html_unavailable error with the pdf_url for direct download. Page through long papers with the start and max_characters parameters.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_characters",
+            "paper_id",
+            "start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "start": "integer",
+            "paper_id": "string",
+            "max_characters": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Character offset into the cleaned body to begin reading from. Defaults to 0. Use with max_characters to page through long papers — e.g., start=100000 with max_characters=100000 returns chars 100,000–199,999. The total length is reported as body_characters in the response."
+              },
+              "paper_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "arXiv paper ID (e.g., \"2401.12345\" or \"2401.12345v2\")."
+              },
+              "max_characters": {
+                "type": "integer",
+                "default": 100000,
+                "maximum": 9007199254740991,
+                "minimum": 1,
+                "description": "Maximum characters of paper body content to return. Defaults to 100,000. HTML head/boilerplate is stripped before counting. When truncated, a notice and total character count are included."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "number",
+                "description": "Character offset of the first character in content within the cleaned body."
+              },
+              "title": {
+                "type": "string",
+                "description": "Paper title (from metadata, not parsed from HTML)."
+              },
+              "source": {
+                "enum": [
+                  "arxiv_html",
+                  "ar5iv"
+                ],
+                "type": "string",
+                "description": "Which HTML source the content was fetched from."
+              },
+              "content": {
+                "type": "string",
+                "description": "Cleaned paper body HTML for the requested slice. Empty when start is past body_characters."
+              },
+              "pdf_url": {
+                "type": "string",
+                "description": "Direct PDF download URL."
+              },
+              "paper_id": {
+                "type": "string",
+                "description": "arXiv paper ID."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when more body content exists past this slice (start + content.length < body_characters)."
+              },
+              "abstract_url": {
+                "type": "string",
+                "description": "arXiv abstract page URL for attribution."
+              },
+              "body_characters": {
+                "type": "number",
+                "description": "Character count of the full cleaned body HTML. Use with start and max_characters to page. Typically 3-4× smaller than total_characters for math-heavy papers."
+              },
+              "total_characters": {
+                "type": "number",
+                "description": "Character count of the original unprocessed HTML body."
+              }
+            },
+            "required": [
+              "paper_id",
+              "title",
+              "content",
+              "source",
+              "truncated",
+              "start",
+              "total_characters",
+              "body_characters",
+              "pdf_url",
+              "abstract_url"
+            ]
+          },
+          "description_hash": "sha256:102d8d5ab32173f56f227040f579e1dbf5f980d135958ed905fbdefa8d08e24e"
+        },
+        {
+          "name": "arxiv_search",
+          "canonical_hash": "sha256:1fcfc731ab566ed7183e2a0386bc38b55e4e98ec8e6b61ed91dac52051de8a86",
+          "description": "Search arXiv papers by query with category and sort filters. Returns paper metadata including title, authors, abstract, categories, and links.",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "max_results",
+            "query",
+            "sort_by",
+            "sort_order",
+            "start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "start": "integer",
+            "sort_by": "string",
+            "category": "string",
+            "sort_order": "string",
+            "max_results": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "pattern": "^[^\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]*$",
+                "maxLength": 1000,
+                "minLength": 1,
+                "description": "Search query. Field prefixes: ti: (title), au: (author — token-based; quote multi-token names like au:\"hinton g\" or pair with a topical clause to disambiguate common surnames), abs: (abstract), cat: (category — exact code match, not fuzzy), co: (comment), jr: (journal ref), all: (all fields). Boolean operators: AND, OR, ANDNOT. Examples: \"au:bengio AND ti:attention\", \"all:transformer AND cat:cs.CL\"."
+              },
+              "start": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 10000,
+                "minimum": 0,
+                "description": "Pagination offset (0-10000). Use with max_results to page through results. E.g., start=10 with max_results=10 returns results 11-20."
+              },
+              "sort_by": {
+                "enum": [
+                  "relevance",
+                  "submitted",
+                  "updated"
+                ],
+                "type": "string",
+                "default": "relevance",
+                "description": "Sort criterion. Use \"submitted\" for newest papers, \"relevance\" for best query matches."
+              },
+              "category": {
+                "type": "string",
+                "description": "Filter results to a specific arXiv category (e.g., \"cs.CL\", \"math.AG\"). Use arxiv_list_categories to discover valid codes."
+              },
+              "sort_order": {
+                "enum": [
+                  "ascending",
+                  "descending"
+                ],
+                "type": "string",
+                "default": "descending",
+                "description": "Sort direction. \"descending\" returns newest/most relevant first."
+              },
+              "max_results": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Maximum results to return (1-50). Default 10. Each result includes title, authors, abstract, and metadata — keep low to limit response size."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cap": {
+                "type": "number",
+                "description": "The max_results limit applied to this page."
+              },
+              "shown": {
+                "type": "number",
+                "description": "Papers returned on this page."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Recovery guidance when results are empty or paging overshot. Absent on successful pages."
+              },
+              "papers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "title",
+                    "authors",
+                    "abstract",
+                    "primary_category",
+                    "categories",
+                    "published",
+                    "updated",
+                    "pdf_url",
+                    "abstract_url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "arXiv paper ID (e.g., \"2401.12345v1\")."
+                    },
+                    "doi": {
+                      "type": "string",
+                      "description": "DOI if available."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Paper title."
+                    },
+                    "authors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Author names."
+                    },
+                    "comment": {
+                      "type": "string",
+                      "description": "Author comment (e.g., page count, conference)."
+                    },
+                    "pdf_url": {
+                      "type": "string",
+                      "description": "Direct PDF download URL."
+                    },
+                    "updated": {
+                      "type": "string",
+                      "description": "Last update date (ISO 8601)."
+                    },
+                    "abstract": {
+                      "type": "string",
+                      "description": "Full abstract text."
+                    },
+                    "published": {
+                      "type": "string",
+                      "description": "Original submission date (ISO 8601)."
+                    },
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "All arXiv categories assigned to this paper."
+                    },
+                    "journal_ref": {
+                      "type": "string",
+                      "description": "Journal reference if published."
+                    },
+                    "abstract_url": {
+                      "type": "string",
+                      "description": "arXiv abstract page URL."
+                    },
+                    "primary_category": {
+                      "type": "string",
+                      "description": "Primary arXiv category (e.g., \"cs.CL\")."
+                    }
+                  },
+                  "description": "arXiv paper metadata — identifier, title, authors, abstract, categories, and links.",
+                  "additionalProperties": false
+                },
+                "description": "Matching papers with full metadata."
+              },
+              "pageStart": {
+                "type": "number",
+                "description": "Pagination offset of this result page."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when more matching papers exist beyond this page (totalFound > start + shown)."
+              },
+              "totalFound": {
+                "type": "number",
+                "description": "Total matching papers reported by arXiv (before pagination)."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "The query as sent to arXiv after input normalization."
+              }
+            },
+            "required": [
+              "papers",
+              "effectiveQuery",
+              "totalFound",
+              "pageStart"
+            ]
+          },
+          "description_hash": "sha256:0ed5884baec9b8d9be163500a9119f719f306f9ada5b80e1c8dabe8c5d87ef0a"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": [
+        {
+          "uri_template": "arxiv://categories",
+          "name": "arXiv Categories",
+          "description": "",
+          "mime_type": "application/json"
+        }
+      ]
+    }
+  ],
+  "security_profile": {}
+}
