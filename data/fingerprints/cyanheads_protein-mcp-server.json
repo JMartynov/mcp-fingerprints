@@ -1,0 +1,1754 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "cyanheads/protein-mcp-server",
+  "purl": "pkg:npm/cyanheads%2Fprotein-mcp-server",
+  "ecosystem": "npm",
+  "display_name": "cyanheads/protein-mcp-server",
+  "description": "Federated protein structure & annotation across experimental (PDB) and predicted (AlphaFold) models.",
+  "repository_url": "https://protein-mcp-server--cyanheads.run.tools",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "cyanheads/protein-mcp-server"
+  ],
+  "sources_merged": [
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:0821413ff5b110da15807d76af333fa31010e5189e0be0a0393753babc6b7cfd",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://protein-mcp-server--cyanheads.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "tool_signatures": [
+        {
+          "name": "protein_analyze_collection",
+          "canonical_hash": "sha256:4d601cb64acb735e1e904515e05bbfad7f4a06e111f88a79a6dddf248c1e2d3f",
+          "description": "Profile the PDB into distributions and trends over an optional scoping query: counts by method, organism, or polymer composition; resolution and molecular-weight histograms; release-year timelines; and multidimensional cross-tabs (e.g. method × release_year). Aggregation runs server-side at RCSB — one call returns compact buckets, no row pull. Pass one group_by dimension for a single breakdown, or two for a cross-tab (the first nests the second).",
+          "is_mutating": false,
+          "property_keys": [
+            "bucket_limit",
+            "content_type",
+            "group_by",
+            "interval",
+            "max_resolution",
+            "method",
+            "organism",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "method": "string",
+            "group_by": "array",
+            "organism": "string",
+            "bucket_limit": "integer",
+            "content_type": "string",
+            "max_resolution": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Optional free-text scope (e.g. \"kinase\"); omit to profile the whole PDB."
+              },
+              "method": {
+                "type": "string",
+                "description": "Optional experimental-method scope."
+              },
+              "group_by": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "method",
+                    "organism",
+                    "polymer_type",
+                    "resolution",
+                    "release_year",
+                    "molecular_weight"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 2,
+                "minItems": 1,
+                "description": "1 dimension for a breakdown, or 2 for a cross-tab (the first nests the second)."
+              },
+              "interval": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "description": "Numeric bin width for a value histogram (e.g. resolution Å).",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "enum": [
+                      "year",
+                      "month",
+                      "quarter"
+                    ],
+                    "type": "string",
+                    "description": "Period granularity for a date histogram."
+                  }
+                ],
+                "description": "Bin width for a histogram dimension (number) or period for a date histogram (year/month/quarter)."
+              },
+              "organism": {
+                "type": "string",
+                "description": "Optional source-organism scope."
+              },
+              "bucket_limit": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Max buckets per dimension. Defaults to the server PROTEIN_FACET_BUCKET_CAP."
+              },
+              "content_type": {
+                "enum": [
+                  "experimental",
+                  "predicted",
+                  "all"
+                ],
+                "type": "string",
+                "default": "experimental",
+                "description": "Which structure universe to profile. Default experimental."
+              },
+              "max_resolution": {
+                "type": "number",
+                "description": "Optional maximum-resolution scope (Å).",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "description": "Echoed scope description for follow-up calls."
+              },
+              "total": {
+                "type": "number",
+                "description": "Total entries in the scoped collection."
+              },
+              "facets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "dimension",
+                    "buckets"
+                  ],
+                  "properties": {
+                    "buckets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "label",
+                          "count"
+                        ],
+                        "properties": {
+                          "count": {
+                            "type": "number",
+                            "description": "Number of entries in the bucket."
+                          },
+                          "label": {
+                            "type": "string",
+                            "description": "Bucket value — category, numeric bin start, or period."
+                          },
+                          "rangeTo": {
+                            "type": "number",
+                            "description": "Exclusive upper bound of a numeric histogram bin (rangeFrom + bin interval), so the bin covers [rangeFrom, rangeTo). Present only for numeric facets."
+                          },
+                          "children": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "dimension",
+                                "buckets"
+                              ],
+                              "properties": {
+                                "buckets": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "required": [
+                                      "label",
+                                      "count"
+                                    ],
+                                    "properties": {
+                                      "count": {
+                                        "type": "number",
+                                        "description": "Number of entries in the bucket."
+                                      },
+                                      "label": {
+                                        "type": "string",
+                                        "description": "Bucket value — category, numeric bin start, or period."
+                                      },
+                                      "rangeTo": {
+                                        "type": "number",
+                                        "description": "Exclusive upper bound of a numeric histogram bin (rangeFrom + bin interval), so the bin covers [rangeFrom, rangeTo). Present only for numeric facets."
+                                      },
+                                      "rangeFrom": {
+                                        "type": "number",
+                                        "description": "Inclusive lower bound of a numeric histogram bin (= label). Present only for numeric facets (resolution, molecular_weight); absent for term/period facets."
+                                      }
+                                    },
+                                    "description": "A leaf aggregation bucket: a value and its entry count.",
+                                    "additionalProperties": false
+                                  },
+                                  "description": "Nested buckets within the parent bucket."
+                                },
+                                "dimension": {
+                                  "type": "string",
+                                  "description": "Nested dimension name."
+                                },
+                                "truncated": {
+                                  "type": "boolean",
+                                  "description": "True when this nested bucket list was capped by the per-dimension bucket limit."
+                                }
+                              },
+                              "description": "A nested cross-tab dimension within a parent bucket.",
+                              "additionalProperties": false
+                            },
+                            "description": "Nested dimension breakdown for cross-tabs (present only for multidimensional facets)."
+                          },
+                          "rangeFrom": {
+                            "type": "number",
+                            "description": "Inclusive lower bound of a numeric histogram bin (= label). Present only for numeric facets (resolution, molecular_weight); absent for term/period facets."
+                          }
+                        },
+                        "description": "A top-level aggregation bucket, optionally cross-tabbed by a nested dimension.",
+                        "additionalProperties": false
+                      },
+                      "description": "Aggregation buckets, count-descending for terms."
+                    },
+                    "dimension": {
+                      "type": "string",
+                      "description": "Friendly dimension name (e.g. method, organism, release_year)."
+                    },
+                    "truncated": {
+                      "type": "boolean",
+                      "description": "True when buckets were capped by the per-dimension bucket limit."
+                    }
+                  },
+                  "description": "A facet dimension and its aggregation buckets.",
+                  "additionalProperties": false
+                },
+                "description": "The requested breakdown(s)."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Advisory note (e.g. bucket truncation, empty scope)."
+              }
+            },
+            "required": [
+              "total",
+              "facets"
+            ]
+          },
+          "description_hash": "sha256:52edbd975786e88b37c32050ede0db7cd99cbc131c008ff40595c8a4a41d8a37"
+        },
+        {
+          "name": "protein_compare_structures",
+          "canonical_hash": "sha256:fe87add25038c92df3c30c8bfdb49590b0995af5c120a653f0f5c2138cf1b7ed",
+          "description": "Structurally align multiple structures (up to the configured batch cap) via the RCSB Structural Comparison service (TM-align / jFATCAT). reference:\"first\" aligns every structure to the first; reference:\"all_pairs\" computes the full pairwise matrix. Each pair is an independent async alignment job, fanned out with a concurrency cap and per-pair partial success — a pair still computing when the budget elapses returns status \"computing\" with its job UUID, and a failed pair degrades its row without sinking the others. Re-call with a matching entry in resume[] to poll a computing pair's UUID instead of resubmitting. Returns TM-score, RMSD, and aligned-residue count per pair. TM-score is length-normalized and can shift sharply between structures that differ only by a terminal residue or two — the greedy superposition can settle into a worse local optimum — so read tmScore alongside rmsd and alignedResidues, the columns that make such cases diagnosable.",
+          "is_mutating": false,
+          "property_keys": [
+            "method",
+            "reference",
+            "resume",
+            "structures",
+            "timeout_s"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "method": "string",
+            "resume": "array",
+            "reference": "string",
+            "timeout_s": "integer",
+            "structures": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "method": {
+                "enum": [
+                  "tm-align",
+                  "fatcat-rigid",
+                  "fatcat-flexible"
+                ],
+                "type": "string",
+                "default": "tm-align",
+                "description": "Alignment algorithm: tm-align, fatcat-rigid, or fatcat-flexible."
+              },
+              "resume": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "a",
+                    "b",
+                    "uuid"
+                  ],
+                  "properties": {
+                    "a": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "First structure label (entry or entry.chain) of a pair from a prior response."
+                    },
+                    "b": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Second structure label (entry or entry.chain) of a pair from a prior response."
+                    },
+                    "uuid": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Alignment job UUID returned for that pair by a prior call."
+                    }
+                  },
+                  "description": "A prior pair to resume by UUID instead of resubmitting."
+                },
+                "description": "Resume tickets from a prior call: for each pair whose labels match an entry here, poll the existing UUID instead of submitting a new alignment job. Copy a, b, and uuid verbatim from a prior response's pairs[]; keep structures and reference unchanged."
+              },
+              "reference": {
+                "enum": [
+                  "first",
+                  "all_pairs"
+                ],
+                "type": "string",
+                "default": "first",
+                "description": "Align all to the first structure, or compute the full pairwise matrix."
+              },
+              "timeout_s": {
+                "type": "integer",
+                "maximum": 120,
+                "minimum": 5,
+                "description": "Poll budget per pair in seconds before returning \"computing\". Defaults to the server setting."
+              },
+              "structures": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "pdb_id"
+                  ],
+                  "properties": {
+                    "chain": {
+                      "type": "string",
+                      "description": "Chain (label_asym_id) to restrict the alignment to a single chain."
+                    },
+                    "pdb_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "PDB entry ID."
+                    }
+                  },
+                  "description": "A structure to align, by PDB entry ID with optional chain."
+                },
+                "maxItems": 25,
+                "minItems": 2,
+                "description": "The structures to compare, up to the configured batch cap (excess is dropped with a notice)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "pairs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "a",
+                    "b",
+                    "status"
+                  ],
+                  "properties": {
+                    "a": {
+                      "type": "string",
+                      "description": "First structure of the pair (entry[.chain])."
+                    },
+                    "b": {
+                      "type": "string",
+                      "description": "Second structure of the pair (entry[.chain])."
+                    },
+                    "rmsd": {
+                      "type": "number",
+                      "description": "RMSD in Å over aligned residues."
+                    },
+                    "uuid": {
+                      "type": "string",
+                      "description": "Alignment job UUID (present for computing/complete pairs)."
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Failure detail (failed pairs)."
+                    },
+                    "status": {
+                      "enum": [
+                        "complete",
+                        "computing",
+                        "failed"
+                      ],
+                      "type": "string",
+                      "description": "Outcome for this pair."
+                    },
+                    "tmScore": {
+                      "type": "number",
+                      "description": "TM-score (0–1; higher is more similar). Length-normalized, so it can be sensitive to terminal length differences between the two structures — a one-residue overhang can flip the greedy superposition into a worse local optimum, dropping the score sharply. Cross-check rmsd and alignedResidues to spot such cases."
+                    },
+                    "alignedResidues": {
+                      "type": "number",
+                      "description": "Number of aligned residue pairs."
+                    }
+                  },
+                  "description": "Alignment outcome for one structure pair.",
+                  "additionalProperties": false
+                },
+                "description": "One row per aligned pair."
+              },
+              "method": {
+                "type": "string",
+                "description": "Alignment method used."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Advisory note (pending pairs, failures)."
+              },
+              "computing": {
+                "type": "number",
+                "description": "Number of pairs still computing."
+              },
+              "reference": {
+                "enum": [
+                  "first",
+                  "all_pairs"
+                ],
+                "type": "string",
+                "description": "Comparison mode used."
+              },
+              "pairsTotal": {
+                "type": "number",
+                "description": "Number of pairs compared."
+              }
+            },
+            "required": [
+              "method",
+              "reference",
+              "pairs",
+              "pairsTotal",
+              "computing"
+            ]
+          },
+          "description_hash": "sha256:090044df492c110205fddbf65411ce6ffef2c8f1a8e9456be5c36742cb2a28cc"
+        },
+        {
+          "name": "protein_find_similar",
+          "canonical_hash": "sha256:7e9f70c931911c3dc306ff70a0605d71f62c1ea8eaa9b71aa0da45f3e7d95070",
+          "description": "Find structurally or evolutionarily related proteins. by:\"sequence\" runs an RCSB mmseqs2 sequence-similarity search (synchronous) over a sequence — supplied directly, or pulled from a PDB ID or UniProt accession. by:\"structure\" runs a Foldseek fold-similarity search (asynchronous) against experimental and predicted databases; if the job is still computing when the poll budget elapses, the response reports status \"computing\" with a ticket — re-call with ticket_id set to that value to resume the same job instead of resubmitting. Output names the engine and database each hit came from.",
+          "is_mutating": false,
+          "property_keys": [
+            "by",
+            "databases",
+            "limit",
+            "max_evalue",
+            "min_identity",
+            "pdb_id",
+            "sequence",
+            "ticket_id",
+            "uniprot"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "by": "string",
+            "limit": "integer",
+            "pdb_id": "string",
+            "uniprot": "string",
+            "sequence": "string",
+            "databases": "array",
+            "ticket_id": "string",
+            "max_evalue": "number",
+            "min_identity": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "by": {
+                "enum": [
+                  "sequence",
+                  "structure"
+                ],
+                "type": "string",
+                "description": "Similarity axis: sequence (mmseqs2) or structure (Foldseek)."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Maximum hits to return (1–100)."
+              },
+              "pdb_id": {
+                "type": "string",
+                "description": "PDB entry ID to derive the query from."
+              },
+              "uniprot": {
+                "type": "string",
+                "description": "UniProt accession to derive the query from."
+              },
+              "sequence": {
+                "type": "string",
+                "description": "One-letter amino-acid sequence to search from (by:sequence)."
+              },
+              "databases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Foldseek target databases (by:structure). Default pdb100 + afdb50. e.g. afdb-swissprot, BFVD."
+              },
+              "ticket_id": {
+                "type": "string",
+                "description": "Foldseek ticket ID from a prior by:structure response whose status was \"computing\". When set, polls that existing job instead of submitting a new search (by:structure only) — pdb_id/uniprot/databases are ignored."
+              },
+              "max_evalue": {
+                "type": "number",
+                "description": "Maximum E-value (by:sequence). Default 1.",
+                "exclusiveMinimum": 0
+              },
+              "min_identity": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0,
+                "description": "Minimum sequence identity 0–1 (by:sequence). Default 0."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "by": {
+                "enum": [
+                  "sequence",
+                  "structure"
+                ],
+                "type": "string",
+                "description": "Echoed similarity axis."
+              },
+              "hits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "source"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Hit identifier that chains directly into protein_get_structure: a bare PDB entry ID (e.g. 1A00), or a UniProt accession for predicted hits."
+                    },
+                    "score": {
+                      "type": "number",
+                      "description": "Relevance / alignment score."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Structure title (enriched sequence hits)."
+                    },
+                    "evalue": {
+                      "type": "number",
+                      "description": "Alignment E-value (structure hits)."
+                    },
+                    "source": {
+                      "enum": [
+                        "experimental",
+                        "predicted"
+                      ],
+                      "type": "string",
+                      "description": "Whether the hit is an experimental or predicted structure."
+                    },
+                    "database": {
+                      "type": "string",
+                      "description": "Source database the hit came from (structure hits)."
+                    },
+                    "entityId": {
+                      "type": "string",
+                      "description": "Matched polymer-entity ID (e.g. 1A00_1) for sequence hits; the chainable entry ID is in `id`."
+                    },
+                    "identity": {
+                      "type": "number",
+                      "description": "Sequence identity 0–1 over the alignment (structure hits)."
+                    },
+                    "organism": {
+                      "type": "string",
+                      "description": "Source organism (enriched sequence hits)."
+                    },
+                    "uniprotAccession": {
+                      "type": "string",
+                      "description": "UniProt accession (predicted structure hits)."
+                    }
+                  },
+                  "description": "A similar protein, with alignment scores when available.",
+                  "additionalProperties": false
+                },
+                "description": "Similar proteins, best first."
+              },
+              "engine": {
+                "type": "string",
+                "description": "The engine that answered (e.g. \"RCSB mmseqs2\", \"Foldseek\")."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Advisory note (still computing, empty results)."
+              },
+              "status": {
+                "enum": [
+                  "complete",
+                  "computing"
+                ],
+                "type": "string",
+                "description": "complete with hits, or computing (async — re-call with ticket_id to resume)."
+              },
+              "ticketId": {
+                "type": "string",
+                "description": "Async job ticket ID when status is computing (by:structure)."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total upstream matches before pagination (by:sequence)."
+              }
+            },
+            "required": [
+              "by",
+              "engine",
+              "status",
+              "hits"
+            ]
+          },
+          "description_hash": "sha256:92c6f5ff83dd7acc98bd38b10ec7a747c876b277e1e2b87eefc16b7ec111a41e"
+        },
+        {
+          "name": "protein_get_annotations",
+          "canonical_hash": "sha256:5ad01709f111603fd363711545b7a99bca4d9febe5f87dc15c114eb9f21b5704",
+          "description": "Sequence and functional annotation for a protein: UniProt features (domains, binding sites, PTMs), natural variants, and InterPro domain/family memberships (Pfam, PROSITE, …) with GO terms. Provide a UniProt accession directly, or a PDB ID — it is resolved to its UniProt accession via the structure's sequence cross-reference. A multi-chain PDB entry can map to several accessions; the default pick is deterministic (lowest author chain ID) and the alternatives are listed in \"ambiguity\" — pass \"chain\" to select a specific one. Use \"include\" to scope which annotation classes are fetched. Every response carries an \"attribution\" block with the upstream data licenses and citations.",
+          "is_mutating": false,
+          "property_keys": [
+            "chain",
+            "include",
+            "limit",
+            "pdb_id",
+            "uniprot"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "chain": "string",
+            "limit": "integer",
+            "pdb_id": "string",
+            "include": "string",
+            "uniprot": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chain": {
+                "type": "string",
+                "description": "Author chain ID (auth_asym_id, e.g. \"A\") that disambiguates a multi-chain PDB entry to a specific UniProt accession. Case-sensitive — must match the author chain ID exactly (large structures can carry distinct \"A\" and \"a\" chains). Only applies with pdb_id; ignored when uniprot is supplied directly. See polymerEntities[].chains in the pdb://{entry_id} resource for an entry's author chain IDs."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 50,
+                "maximum": 200,
+                "minimum": 1,
+                "description": "Per-class cap (1–200): features, natural variants, and InterPro domains are each independently truncated to at most this many records. The default keeps a typical annotation set intact while bounding a densely-annotated protein (a well-studied protein can carry 150+ natural variants); a truncated class is disclosed in the response notice — raise it to retrieve more."
+              },
+              "pdb_id": {
+                "type": "string",
+                "description": "PDB entry ID; resolved to a UniProt accession via cross-reference."
+              },
+              "include": {
+                "enum": [
+                  "features",
+                  "domains",
+                  "variants",
+                  "all"
+                ],
+                "type": "string",
+                "default": "all",
+                "description": "Which annotation classes to fetch: features, domains (InterPro), variants, or all."
+              },
+              "uniprot": {
+                "type": "string",
+                "description": "UniProt accession (e.g. P69905). Takes precedence over pdb_id."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notice": {
+                "type": "string",
+                "description": "Advisory note: a per-class \"showing N of M\" line for each capped class and a no-data note for any requested-but-empty class."
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "accession",
+                    "name",
+                    "type",
+                    "memberDatabases",
+                    "goTerms"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Domain/family name."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Entry type (e.g. domain, family, homologous_superfamily)."
+                    },
+                    "goTerms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "GO term ID (e.g. GO:0005515)."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "GO term name."
+                          },
+                          "category": {
+                            "type": "string",
+                            "description": "GO aspect (molecular_function, biological_process, …)."
+                          }
+                        },
+                        "description": "An associated Gene Ontology term.",
+                        "additionalProperties": false
+                      },
+                      "description": "Associated GO terms."
+                    },
+                    "accession": {
+                      "type": "string",
+                      "description": "InterPro accession (e.g. IPR000001)."
+                    },
+                    "memberDatabases": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Contributing member databases (e.g. pfam, profile)."
+                    }
+                  },
+                  "description": "An InterPro domain/family membership with GO terms.",
+                  "additionalProperties": false
+                },
+                "description": "InterPro domain/family memberships."
+              },
+              "features": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "end": {
+                      "type": "number",
+                      "description": "End residue (1-based)."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Feature type (e.g. Domain, Binding site, Modified residue)."
+                    },
+                    "start": {
+                      "type": "number",
+                      "description": "Start residue (1-based)."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Feature description."
+                    }
+                  },
+                  "description": "A sequence feature or natural variant over a residue range.",
+                  "additionalProperties": false
+                },
+                "description": "Structural/functional features."
+              },
+              "function": {
+                "type": "string",
+                "description": "UniProt function summary."
+              },
+              "organism": {
+                "type": "string",
+                "description": "Source organism scientific name."
+              },
+              "variants": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "end": {
+                      "type": "number",
+                      "description": "End residue (1-based)."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Feature type (e.g. Domain, Binding site, Modified residue)."
+                    },
+                    "start": {
+                      "type": "number",
+                      "description": "Start residue (1-based)."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Feature description."
+                    }
+                  },
+                  "description": "A sequence feature or natural variant over a residue range.",
+                  "additionalProperties": false
+                },
+                "description": "Natural sequence variants."
+              },
+              "accession": {
+                "type": "string",
+                "description": "UniProt accession the annotations describe."
+              },
+              "ambiguity": {
+                "type": "object",
+                "required": [
+                  "accessions",
+                  "notice"
+                ],
+                "properties": {
+                  "notice": {
+                    "type": "string",
+                    "description": "Why multiple mappings exist and how to select one via the chain input."
+                  },
+                  "accessions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "chain",
+                        "accession"
+                      ],
+                      "properties": {
+                        "chain": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Author chain IDs (auth_asym_id) this entity covers (e.g. [\"A\", \"C\"])."
+                        },
+                        "accession": {
+                          "type": "string",
+                          "description": "UniProt accession the chains map to."
+                        },
+                        "proteinName": {
+                          "type": "string",
+                          "description": "Polymer entity description."
+                        }
+                      },
+                      "description": "One chain-group → UniProt accession mapping within the entry.",
+                      "additionalProperties": false
+                    },
+                    "description": "Every distinct UniProt mapping for the entry, lowest-chain first."
+                  }
+                },
+                "description": "Alternative UniProt mappings when a PDB ID resolved ambiguously (no chain given).",
+                "additionalProperties": false
+              },
+              "geneNames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Gene names."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when at least one annotation class hit the per-class limit and was capped; the notice names each capped class with its pre-cap count."
+              },
+              "attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "license",
+                    "citation",
+                    "homepage"
+                  ],
+                  "properties": {
+                    "source": {
+                      "type": "string",
+                      "description": "Contributing data-source display name (e.g. \"RCSB PDB\", \"AlphaFold DB\", \"SWISS-MODEL\", \"UniProt\"). Open-ended — best_available structures are federated through 3D-Beacons providers."
+                    },
+                    "license": {
+                      "type": "string",
+                      "description": "License the source data is released under (e.g. \"CC BY 4.0\")."
+                    },
+                    "citation": {
+                      "type": "string",
+                      "description": "Primary-literature citation to credit the source."
+                    },
+                    "homepage": {
+                      "type": "string",
+                      "description": "Source homepage (absolute URL)."
+                    }
+                  },
+                  "description": "Upstream data-source attribution: license, citation, and homepage.",
+                  "additionalProperties": false
+                },
+                "description": "Upstream data-source licenses and citations for every source that contributed to this response. Always present — the attribution obligation travels with the data."
+              },
+              "proteinName": {
+                "type": "string",
+                "description": "Recommended protein name."
+              },
+              "resolvedFrom": {
+                "type": "string",
+                "description": "PDB ID the accession was resolved from, when applicable."
+              },
+              "sequenceLength": {
+                "type": "number",
+                "description": "Sequence length in residues."
+              }
+            },
+            "required": [
+              "accession",
+              "geneNames",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:f7a076287aa5c2cd35bb9e1e3faf683219d9ea298ea81fdeebef0e6895fc3d7b"
+        },
+        {
+          "name": "protein_get_structure",
+          "canonical_hash": "sha256:99b376ee406fa2f4ebb5f341ed5a76758bfc77e627ccf821f77bb381ac4dcefd",
+          "description": "Fetch structures with metadata and coordinate-file URLs. source \"experimental\" takes PDB entry IDs (batched in one call); \"predicted\" takes UniProt accessions (AlphaFold, with pLDDT/PAE confidence); \"best_available\" takes UniProt accessions and returns the top federated model — the highest-resolution experimental structure if one exists (optimizing resolution, not biological representativeness, so it can return an engineered mutant over the wild-type entry), else the best prediction. Resolves up to the configured batch cap per call with per-ID partial success — missed IDs are listed in failed[]. Set include_coords to inline coordinate content; if that overflows, a section outline is returned — re-call with sections:[ids] to inline specific structures.",
+          "is_mutating": false,
+          "property_keys": [
+            "ids",
+            "include_coords",
+            "sections",
+            "source"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ids": "array",
+            "source": "string",
+            "sections": "array",
+            "include_coords": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "PDB entry IDs (source experimental) or UniProt accessions (predicted / best_available)."
+              },
+              "source": {
+                "enum": [
+                  "experimental",
+                  "predicted",
+                  "best_available"
+                ],
+                "type": "string",
+                "default": "experimental",
+                "description": "Where to fetch: experimental (PDB), predicted (AlphaFold), or best_available (federated pick)."
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Structure IDs to inline coordinates for, from a prior overflow outline."
+              },
+              "include_coords": {
+                "type": "boolean",
+                "default": false,
+                "description": "Inline coordinate-file content (cif). Off by default — URLs are always returned."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "failed": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "reason"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Requested ID that failed."
+                    },
+                    "reason": {
+                      "type": "string",
+                      "description": "Why it failed."
+                    }
+                  },
+                  "description": "A requested ID that did not resolve, with the reason.",
+                  "additionalProperties": false
+                },
+                "description": "IDs that could not be resolved (partial success)."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Advisory note (partial failures, overflow guidance)."
+              },
+              "overflow": {
+                "type": "object",
+                "required": [
+                  "sections",
+                  "notice"
+                ],
+                "properties": {
+                  "notice": {
+                    "type": "string",
+                    "description": "How to retrieve specific coordinates via the sections parameter."
+                  },
+                  "sections": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "bytes"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Structure ID whose coordinates were withheld."
+                        },
+                        "bytes": {
+                          "type": "number",
+                          "description": "Serialized size of the withheld coordinate content."
+                        }
+                      },
+                      "description": "A withheld structure and its coordinate byte size.",
+                      "additionalProperties": false
+                    },
+                    "description": "Per-structure coordinate sizes available for targeted re-call."
+                  }
+                },
+                "description": "Present only when inlined coordinates across the batch exceeded the response budget.",
+                "additionalProperties": false
+              },
+              "resolved": {
+                "type": "number",
+                "description": "Number of IDs resolved."
+              },
+              "requested": {
+                "type": "number",
+                "description": "Number of IDs requested."
+              },
+              "structures": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "source",
+                    "coordinateUrls"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Structure identifier (PDB entry ID or UniProt accession)."
+                    },
+                    "pdbId": {
+                      "type": "string",
+                      "description": "Chosen PDB entry ID when a best_available query resolved to an experimental structure (id stays the queried UniProt accession). Lets an agent cite the structure without parsing the coordinate URL."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Structure / protein title."
+                    },
+                    "method": {
+                      "type": "string",
+                      "description": "Experimental method(s)."
+                    },
+                    "source": {
+                      "enum": [
+                        "experimental",
+                        "predicted"
+                      ],
+                      "type": "string",
+                      "description": "Whether the structure is experimental or predicted."
+                    },
+                    "organism": {
+                      "type": "string",
+                      "description": "Source organism."
+                    },
+                    "provider": {
+                      "type": "string",
+                      "description": "Model provider (predicted / best_available)."
+                    },
+                    "meanPlddt": {
+                      "type": "number",
+                      "description": "Mean pLDDT confidence (0–100); present only for pLDDT-scored models. For other metrics read confidence + confidenceType."
+                    },
+                    "paeDocUrl": {
+                      "type": "string",
+                      "description": "Predicted Aligned Error documentation URL (predicted)."
+                    },
+                    "confidence": {
+                      "type": "number",
+                      "description": "Model confidence on its native scale; confidenceType names the metric and range (e.g. pLDDT 0–100, QMEANDisCo 0–1). Present for predicted models that report a score."
+                    },
+                    "resolution": {
+                      "type": "number",
+                      "description": "Resolution in Å (experimental)."
+                    },
+                    "coordinates": {
+                      "type": "string",
+                      "description": "Inlined coordinate-file content (only when include_coords)."
+                    },
+                    "confidenceType": {
+                      "type": "string",
+                      "description": "Name of the confidence metric carried in confidence (e.g. \"pLDDT\", \"QMEANDisCo\"). Providers score on different scales; this names the one in use."
+                    },
+                    "coordinateUrls": {
+                      "type": "object",
+                      "properties": {
+                        "cif": {
+                          "type": "string",
+                          "description": "mmCIF coordinate file URL."
+                        },
+                        "pdb": {
+                          "type": "string",
+                          "description": "PDB-format coordinate file URL."
+                        },
+                        "bcif": {
+                          "type": "string",
+                          "description": "Binary CIF coordinate file URL."
+                        }
+                      },
+                      "description": "Coordinate file download URLs.",
+                      "additionalProperties": false
+                    },
+                    "coordinateFormat": {
+                      "enum": [
+                        "cif",
+                        "pdb",
+                        "bcif"
+                      ],
+                      "type": "string",
+                      "description": "Format of inlined coordinates, when present."
+                    },
+                    "confidenceBuckets": {
+                      "type": "object",
+                      "required": [
+                        "veryLow",
+                        "low",
+                        "confident",
+                        "veryHigh"
+                      ],
+                      "properties": {
+                        "low": {
+                          "type": "number",
+                          "description": "Fraction with pLDDT 50–70."
+                        },
+                        "veryLow": {
+                          "type": "number",
+                          "description": "Fraction of residues with pLDDT < 50."
+                        },
+                        "veryHigh": {
+                          "type": "number",
+                          "description": "Fraction with pLDDT > 90."
+                        },
+                        "confident": {
+                          "type": "number",
+                          "description": "Fraction with pLDDT 70–90."
+                        }
+                      },
+                      "description": "pLDDT confidence-band fractions (predicted).",
+                      "additionalProperties": false
+                    }
+                  },
+                  "description": "A resolved structure with metadata and coordinate-file URLs.",
+                  "additionalProperties": false
+                },
+                "description": "Resolved structures (metadata always present)."
+              },
+              "attribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "license",
+                    "citation",
+                    "homepage"
+                  ],
+                  "properties": {
+                    "source": {
+                      "type": "string",
+                      "description": "Contributing data-source display name (e.g. \"RCSB PDB\", \"AlphaFold DB\", \"SWISS-MODEL\", \"UniProt\"). Open-ended — best_available structures are federated through 3D-Beacons providers."
+                    },
+                    "license": {
+                      "type": "string",
+                      "description": "License the source data is released under (e.g. \"CC BY 4.0\")."
+                    },
+                    "citation": {
+                      "type": "string",
+                      "description": "Primary-literature citation to credit the source."
+                    },
+                    "homepage": {
+                      "type": "string",
+                      "description": "Source homepage (absolute URL)."
+                    }
+                  },
+                  "description": "Upstream data-source attribution: license, citation, and homepage.",
+                  "additionalProperties": false
+                },
+                "description": "Upstream data-source licenses and citations for every source present in structures[] — RCSB PDB for experimental records, AlphaFold DB for predicted. Always present — the attribution obligation travels with the data."
+              }
+            },
+            "required": [
+              "structures",
+              "failed",
+              "attribution",
+              "requested",
+              "resolved"
+            ]
+          },
+          "description_hash": "sha256:c25b0db4dcabb02dd7fd3d62f4798ba42ad4484e05aa2d11721589f33d2ff367"
+        },
+        {
+          "name": "protein_search_structures",
+          "canonical_hash": "sha256:1f4de452a8167ed58f8685eae1d5d7258e8a922debca0d6ee8f2f00ba53cf20c",
+          "description": "Search experimental (PDB) and predicted (computed-model) protein structures by free text, protein sequence (triggers an mmseqs2 similarity search), and/or organism, method, and resolution filters. Returns ranked hits; the experimental page is enriched with title, method, resolution, and organism. Chain hit IDs into protein_get_structure. Optionally returns a facet breakdown (counts by method / organism / release year / …) alongside the hits at no extra call. A facet on a dimension you are already filtering (e.g. the organism facet while organism is set) lists unfiltered alternatives by design — it does not constrain by its own active filter, so you can see sibling values to pivot to. Numeric histogram buckets (resolution, molecular weight) carry explicit rangeFrom/rangeTo bounds so a boundary label is unambiguous.",
+          "is_mutating": false,
+          "property_keys": [
+            "content_type",
+            "facets",
+            "limit",
+            "max_evalue",
+            "max_resolution",
+            "method",
+            "min_identity",
+            "organism",
+            "query",
+            "sequence"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "facets": "array",
+            "method": "string",
+            "organism": "string",
+            "sequence": "string",
+            "max_evalue": "number",
+            "content_type": "string",
+            "min_identity": "number",
+            "max_resolution": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Maximum hits to return (1–100)."
+              },
+              "query": {
+                "type": "string",
+                "description": "Free-text query (protein name, gene, keyword, PDB title terms)."
+              },
+              "facets": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "method",
+                    "organism",
+                    "polymer_type",
+                    "resolution",
+                    "release_year",
+                    "molecular_weight"
+                  ],
+                  "type": "string"
+                },
+                "description": "Optional dimensions to summarize as a facet breakdown alongside the hits."
+              },
+              "method": {
+                "type": "string",
+                "description": "Filter by experimental method (e.g. \"X-RAY DIFFRACTION\", \"ELECTRON MICROSCOPY\")."
+              },
+              "organism": {
+                "type": "string",
+                "description": "Filter by source organism scientific name (e.g. \"Homo sapiens\")."
+              },
+              "sequence": {
+                "type": "string",
+                "description": "One-letter amino-acid sequence; triggers an RCSB mmseqs2 sequence-similarity search."
+              },
+              "max_evalue": {
+                "type": "number",
+                "description": "Maximum E-value for a sequence search. Default 1.",
+                "exclusiveMinimum": 0
+              },
+              "content_type": {
+                "enum": [
+                  "experimental",
+                  "predicted",
+                  "all"
+                ],
+                "type": "string",
+                "default": "all",
+                "description": "Which structure universe to search: experimental (PDB), predicted (computed models), or all."
+              },
+              "min_identity": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0,
+                "description": "Minimum sequence identity (0–1) for a sequence search. Default 0."
+              },
+              "max_resolution": {
+                "type": "number",
+                "description": "Maximum resolution in Å (lower is sharper); applies to experimental structures.",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "source"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Structure identifier (PDB entry ID or computed-model ID)."
+                    },
+                    "score": {
+                      "type": "number",
+                      "description": "RCSB relevance score."
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Structure title (enriched experimental hits)."
+                    },
+                    "method": {
+                      "type": "string",
+                      "description": "Experimental method(s) (enriched experimental hits)."
+                    },
+                    "source": {
+                      "enum": [
+                        "experimental",
+                        "predicted"
+                      ],
+                      "type": "string",
+                      "description": "Which universe the hit came from."
+                    },
+                    "organism": {
+                      "type": "string",
+                      "description": "Primary source organism (enriched experimental hits)."
+                    },
+                    "resolution": {
+                      "type": "number",
+                      "description": "Resolution in Å (enriched experimental hits)."
+                    },
+                    "uniprotAccession": {
+                      "type": "string",
+                      "description": "UniProt accession parsed from a computed-model ID, when available."
+                    }
+                  },
+                  "description": "A ranked structure hit with optional enrichment metadata.",
+                  "additionalProperties": false
+                },
+                "description": "Ranked structure hits."
+              },
+              "facets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "dimension",
+                    "buckets"
+                  ],
+                  "properties": {
+                    "buckets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "label",
+                          "count"
+                        ],
+                        "properties": {
+                          "count": {
+                            "type": "number",
+                            "description": "Number of entries in the bucket."
+                          },
+                          "label": {
+                            "type": "string",
+                            "description": "Bucket value — category, numeric bin start, or period."
+                          },
+                          "rangeTo": {
+                            "type": "number",
+                            "description": "Exclusive upper bound of a numeric histogram bin (rangeFrom + bin interval), so the bin covers [rangeFrom, rangeTo). Present only for numeric facets."
+                          },
+                          "children": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "dimension",
+                                "buckets"
+                              ],
+                              "properties": {
+                                "buckets": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "required": [
+                                      "label",
+                                      "count"
+                                    ],
+                                    "properties": {
+                                      "count": {
+                                        "type": "number",
+                                        "description": "Number of entries in the bucket."
+                                      },
+                                      "label": {
+                                        "type": "string",
+                                        "description": "Bucket value — category, numeric bin start, or period."
+                                      },
+                                      "rangeTo": {
+                                        "type": "number",
+                                        "description": "Exclusive upper bound of a numeric histogram bin (rangeFrom + bin interval), so the bin covers [rangeFrom, rangeTo). Present only for numeric facets."
+                                      },
+                                      "rangeFrom": {
+                                        "type": "number",
+                                        "description": "Inclusive lower bound of a numeric histogram bin (= label). Present only for numeric facets (resolution, molecular_weight); absent for term/period facets."
+                                      }
+                                    },
+                                    "description": "A leaf aggregation bucket: a value and its entry count.",
+                                    "additionalProperties": false
+                                  },
+                                  "description": "Nested buckets within the parent bucket."
+                                },
+                                "dimension": {
+                                  "type": "string",
+                                  "description": "Nested dimension name."
+                                },
+                                "truncated": {
+                                  "type": "boolean",
+                                  "description": "True when this nested bucket list was capped by the per-dimension bucket limit."
+                                }
+                              },
+                              "description": "A nested cross-tab dimension within a parent bucket.",
+                              "additionalProperties": false
+                            },
+                            "description": "Nested dimension breakdown for cross-tabs (present only for multidimensional facets)."
+                          },
+                          "rangeFrom": {
+                            "type": "number",
+                            "description": "Inclusive lower bound of a numeric histogram bin (= label). Present only for numeric facets (resolution, molecular_weight); absent for term/period facets."
+                          }
+                        },
+                        "description": "A top-level aggregation bucket, optionally cross-tabbed by a nested dimension.",
+                        "additionalProperties": false
+                      },
+                      "description": "Aggregation buckets, count-descending for terms."
+                    },
+                    "dimension": {
+                      "type": "string",
+                      "description": "Friendly dimension name (e.g. method, organism, release_year)."
+                    },
+                    "truncated": {
+                      "type": "boolean",
+                      "description": "True when buckets were capped by the per-dimension bucket limit."
+                    }
+                  },
+                  "description": "A facet dimension and its aggregation buckets.",
+                  "additionalProperties": false
+                },
+                "description": "Optional facet breakdown when requested."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Advisory note (empty results, predicted-search caveats, truncation)."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total matches upstream before pagination."
+              },
+              "effectiveQuery": {
+                "type": "string",
+                "description": "Echoed text query for follow-up calls."
+              }
+            },
+            "required": [
+              "hits",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:3863660732a46aaec49a55d92eb54bd32a3aaaf949312058f4d69619afa9b47e"
+        },
+        {
+          "name": "protein_track_ligands",
+          "canonical_hash": "sha256:6957d1f7e84ee82d5b2bd90272033a27008ec2f6f07898f96192788cca84f7ef",
+          "description": "Ligand discovery and binding-site analysis across the PDB. mode \"find_ligand\" resolves a name or formula to chemical component IDs with metadata (formula, weight, SMILES), ranked by deposition frequency — most-deposited component first, so the top hit is the most common match for the name, not necessarily an exact name-string match. mode \"structures_with_ligand\" returns PDB entries containing a ligand (by exact component ID — get the ID from find_ligand first), highest-resolution first, each with its resolution in Å. mode \"binding_site\" returns the protein residues lining a ligand's pocket in a given structure, with contact distances. Binding sites are experimental-only (computed from deposited coordinates; predicted models carry no bound ligands).",
+          "is_mutating": false,
+          "property_keys": [
+            "comp_id",
+            "limit",
+            "mode",
+            "pdb_id",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mode": "string",
+            "limit": "integer",
+            "query": "string",
+            "pdb_id": "string",
+            "comp_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "find_ligand",
+                  "structures_with_ligand",
+                  "binding_site"
+                ],
+                "type": "string",
+                "description": "Operation: resolve a ligand, find structures containing it, or analyze its binding site."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Maximum results to return (1–100)."
+              },
+              "query": {
+                "type": "string",
+                "description": "Ligand name or formula (mode find_ligand)."
+              },
+              "pdb_id": {
+                "type": "string",
+                "description": "PDB entry ID (mode binding_site)."
+              },
+              "comp_id": {
+                "type": "string",
+                "description": "Exact chemical component ID (modes structures_with_ligand and binding_site)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "find_ligand",
+                  "structures_with_ligand",
+                  "binding_site"
+                ],
+                "type": "string",
+                "description": "Echoed mode."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Advisory note when a mode-specific input is missing or absent."
+              },
+              "ligands": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "compId",
+                    "depositionCount"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Chemical name."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Component type (e.g. non-polymer)."
+                    },
+                    "compId": {
+                      "type": "string",
+                      "description": "Chemical component ID (e.g. STI, HEM)."
+                    },
+                    "smiles": {
+                      "type": "string",
+                      "description": "Isomeric SMILES."
+                    },
+                    "formula": {
+                      "type": "string",
+                      "description": "Molecular formula."
+                    },
+                    "inchikey": {
+                      "type": "string",
+                      "description": "InChIKey."
+                    },
+                    "formulaWeight": {
+                      "type": "number",
+                      "description": "Formula weight in Da."
+                    },
+                    "depositionCount": {
+                      "type": "number",
+                      "description": "Number of PDB entries containing this component (deposition frequency). Candidates are ranked by this value, most-deposited first."
+                    }
+                  },
+                  "description": "A resolved chemical component (ligand) and its identifiers.",
+                  "additionalProperties": false
+                },
+                "description": "Resolved chemical components (find_ligand)."
+              },
+              "structures": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "PDB entry ID containing the ligand."
+                    },
+                    "resolution": {
+                      "type": "number",
+                      "description": "Best reported resolution in Å (absent for methods without one, e.g. NMR)."
+                    }
+                  },
+                  "description": "A PDB entry containing the ligand, with its resolution.",
+                  "additionalProperties": false
+                },
+                "description": "PDB entries containing the ligand, highest-resolution first (structures_with_ligand)."
+              },
+              "totalCount": {
+                "type": "number",
+                "description": "Total upstream matches before pagination (structures_with_ligand)."
+              },
+              "bindingSites": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "ligandCompId",
+                    "residues"
+                  ],
+                  "properties": {
+                    "residues": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "residueCompId",
+                          "asymId"
+                        ],
+                        "properties": {
+                          "seqId": {
+                            "type": "number",
+                            "description": "Residue sequence position."
+                          },
+                          "asymId": {
+                            "type": "string",
+                            "description": "Chain ID the residue belongs to."
+                          },
+                          "distance": {
+                            "type": "number",
+                            "description": "Contact distance to the ligand in Å."
+                          },
+                          "residueCompId": {
+                            "type": "string",
+                            "description": "Interacting residue type (e.g. ASP)."
+                          }
+                        },
+                        "description": "A pocket residue in contact with the ligand.",
+                        "additionalProperties": false
+                      },
+                      "description": "Protein residues lining the pocket, nearest first."
+                    },
+                    "ligandAsymId": {
+                      "type": "string",
+                      "description": "Ligand instance chain (asym) ID."
+                    },
+                    "ligandCompId": {
+                      "type": "string",
+                      "description": "Bound ligand chemical component ID."
+                    }
+                  },
+                  "description": "A ligand instance and the protein residues lining its pocket.",
+                  "additionalProperties": false
+                },
+                "description": "Binding-site residues (binding_site)."
+              },
+              "resolvedCompId": {
+                "type": "string",
+                "description": "The chemical component ID used to query."
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "description_hash": "sha256:eb71e58dbc3e3d7bed285683a358892d153972616462bb315932b46e264d9804"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "security_profile": {}
+}
