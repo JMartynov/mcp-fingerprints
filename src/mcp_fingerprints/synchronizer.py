@@ -134,8 +134,12 @@ class PassportSynchronizer:
                 existing_version_map[v.version] = v
 
         # 1. Ingest Smithery runtime tools
+        is_simulated = False
         if smithery_data:
-            sources.append("smithery")
+            if not smithery_data.get("_is_simulated"):
+                sources.append("smithery")
+            else:
+                is_simulated = True
             tools = [t for t in (smithery_data.get("tools") or []) if isinstance(t, dict)]
             prompts = [p for p in (smithery_data.get("prompts") or []) if isinstance(p, dict)]
             resources = [r for r in (smithery_data.get("resources") or []) if isinstance(r, dict)]
@@ -179,17 +183,23 @@ class PassportSynchronizer:
                     continue
 
                 v_tools = tools if v_str == dist_tags.get("latest", v_str) else []
+                v_caps = {
+                    "tools": bool(v_tools),
+                    "prompts": bool(prompts),
+                    "resources": bool(resources),
+                }
+                if v_tools and is_simulated:
+                    v_caps["inherited_tools"] = True
+                elif v_tools:
+                    v_caps["verified_tools"] = True
+
                 v_fp = build_version_fingerprint(
                     version=v_str,
                     tools=v_tools,
                     prompts=prompts if v_tools else None,
                     resources=resources if v_tools else None,
                     release_date=v_date,
-                    capabilities={
-                        "tools": bool(v_tools),
-                        "prompts": bool(prompts),
-                        "resources": bool(resources),
-                    },
+                    capabilities=v_caps,
                 )
                 v_fp_dict = v_fp.to_dict()
                 v_fp_dict["dependencies"] = v_deps
@@ -208,14 +218,30 @@ class PassportSynchronizer:
             releases = pypi_data.get("releases", {})
             latest_v = info.get("version", "1.0.0")
             for v_str, r_list in releases.items():
+                if not re.match(r"^\d+\.\d+", v_str):
+                    continue
+                # If version already exists in existing_spec with signatures, preserve it
+                if v_str in existing_version_map and existing_version_map[v_str].tool_signatures:
+                    all_versions.append(existing_version_map[v_str])
+                    continue
                 v_date = r_list[0].get("upload_time_iso_8601") if r_list else None
                 v_tools = tools if v_str == latest_v else []
+                v_caps = {
+                    "tools": bool(v_tools),
+                    "prompts": bool(prompts),
+                    "resources": bool(resources),
+                }
+                if v_tools and is_simulated:
+                    v_caps["inherited_tools"] = True
+                elif v_tools:
+                    v_caps["verified_tools"] = True
                 v_fp = build_version_fingerprint(
                     version=v_str,
                     tools=v_tools,
                     prompts=prompts if v_tools else None,
                     resources=resources if v_tools else None,
                     release_date=v_date,
+                    capabilities=v_caps,
                 )
                 all_versions.append(v_fp)
 
@@ -261,17 +287,50 @@ class PassportSynchronizer:
                 v_fp_dict["connections"] = connections
                 all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
 
-        # If no multi-version releases, build single version snapshot
+        # If no multi-version releases (e.g. standalone Smithery/catalog server), preserve existing versions and add/update target version
         if not all_versions:
-            ver_fp = build_version_fingerprint(
-                version="1.0.0",
-                tools=tools,
-                prompts=prompts,
-                resources=resources,
-            )
-            v_fp_dict = ver_fp.to_dict()
-            v_fp_dict["connections"] = connections
-            all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
+            if existing_spec and existing_spec.versions:
+                all_versions.extend(existing_spec.versions)
+            s_ver = (smithery_data.get("version") if smithery_data else None) or "1.0.0"
+            existing_target = next((v for v in all_versions if v.version == s_ver), None)
+            if not existing_target:
+                v_caps = {
+                    "tools": bool(tools),
+                    "prompts": bool(prompts),
+                    "resources": bool(resources),
+                }
+                if tools:
+                    v_caps["verified_tools"] = not is_simulated
+                    if is_simulated:
+                        v_caps["inherited_tools"] = True
+                ver_fp = build_version_fingerprint(
+                    version=s_ver,
+                    tools=tools,
+                    prompts=prompts,
+                    resources=resources,
+                    capabilities=v_caps,
+                )
+                v_fp_dict = ver_fp.to_dict()
+                v_fp_dict["connections"] = connections
+                all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
+            elif tools and not existing_target.tool_signatures:
+                # Target version exists but had no tools, hydrate with new tools
+                all_versions.remove(existing_target)
+                v_caps = dict(existing_target.capabilities)
+                v_caps["tools"] = bool(tools)
+                v_caps["verified_tools"] = not is_simulated
+                ver_fp = build_version_fingerprint(
+                    version=s_ver,
+                    tools=tools,
+                    prompts=prompts or [p.to_dict() for p in existing_target.prompt_signatures],
+                    resources=resources or [r.to_dict() for r in existing_target.resource_signatures],
+                    release_date=existing_target.release_date,
+                    capabilities=v_caps,
+                )
+                v_fp_dict = ver_fp.to_dict()
+                v_fp_dict["connections"] = connections or existing_target.connections
+                v_fp_dict["dependencies"] = existing_target.dependencies
+                all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
 
         # Validate with McpServerValidator
         all_deps = {}
@@ -319,8 +378,24 @@ class PassportSynchronizer:
             versions=tuple(sorted(sanitized_versions, key=lambda x: x.version)),
         )
 
+    @staticmethod
+    def _extract_prior_tools(
+        spec: ServerPackageSpec,
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+        existing_tools: list[dict[str, Any]] = []
+        existing_prompts: list[dict[str, Any]] = []
+        existing_resources: list[dict[str, Any]] = []
+        for v in reversed(spec.versions):
+            if v.tool_signatures and not existing_tools:
+                existing_tools = [t.to_dict() for t in v.tool_signatures]
+            if v.prompt_signatures and not existing_prompts:
+                existing_prompts = [p.to_dict() for p in v.prompt_signatures]
+            if v.resource_signatures and not existing_resources:
+                existing_resources = [r.to_dict() for r in v.resource_signatures]
+        return existing_tools, existing_prompts, existing_resources
+
     def update_existing_passports(self) -> int:
-        """Scan all passport files in data/fingerprints/ and check for upstream version updates."""
+        """Scan all passport files in data/fingerprints/ and check for upstream version updates across npm, PyPI, and Smithery."""
         updated_count = 0
         for j_file in sorted(self.output_dir.rglob("*.json")):
             if j_file.name in ("sync_state.json", "index.json"):
@@ -331,7 +406,7 @@ class PassportSynchronizer:
                 eco = spec.ecosystem.lower()
 
                 # Check upstream for new versions
-                if eco == "npm":
+                if eco == "npm" or "npm_registry" in spec.sources_merged:
                     npm_meta, _ = fetch_json(
                         f"https://registry.npmjs.org/{pkg_name}",
                         headers={"Accept": "application/vnd.npm.install-v1+json"},
@@ -341,40 +416,81 @@ class PassportSynchronizer:
                         known_versions = {v.version for v in spec.versions}
                         if latest_dist and latest_dist not in known_versions:
                             logger.info(
-                                "Found NEW version for %s: %s (was %s)",
+                                "Found NEW version for npm %s: %s (was %s)",
                                 pkg_name,
                                 latest_dist,
                                 known_versions,
                             )
-                            # Extract latest known tool definitions from existing spec
-                            existing_tools = []
-                            existing_prompts = []
-                            existing_resources = []
-                            for v in reversed(spec.versions):
-                                if v.tool_signatures and not existing_tools:
-                                    existing_tools = [t.to_dict() for t in v.tool_signatures]
-                                if v.prompt_signatures and not existing_prompts:
-                                    existing_prompts = [p.to_dict() for p in v.prompt_signatures]
-                                if v.resource_signatures and not existing_resources:
-                                    existing_resources = [
-                                        r.to_dict() for r in v.resource_signatures
-                                    ]
-
+                            e_tools, e_prompts, e_resources = self._extract_prior_tools(spec)
                             smithery_simulated = (
                                 {
-                                    "tools": existing_tools,
-                                    "prompts": existing_prompts,
-                                    "resources": existing_resources,
+                                    "tools": e_tools,
+                                    "prompts": e_prompts,
+                                    "resources": e_resources,
+                                    "_is_simulated": True,
                                 }
-                                if existing_tools
+                                if e_tools
                                 else None
                             )
-
                             merged_spec = self.merge_and_enrich_passport(
                                 package_name=pkg_name,
                                 ecosystem="npm",
                                 npm_data=npm_meta,
                                 smithery_data=smithery_simulated,
+                                existing_spec=spec,
+                            )
+                            if merged_spec:
+                                FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
+                                updated_count += 1
+                elif eco in ("pypi", "python") or "pypi" in spec.sources_merged:
+                    pypi_meta, _ = fetch_json(f"https://pypi.org/pypi/{pkg_name}/json")
+                    if pypi_meta and "info" in pypi_meta:
+                        latest_dist = pypi_meta["info"].get("version")
+                        known_versions = {v.version for v in spec.versions}
+                        if latest_dist and latest_dist not in known_versions:
+                            logger.info(
+                                "Found NEW version for PyPI %s: %s (was %s)",
+                                pkg_name,
+                                latest_dist,
+                                known_versions,
+                            )
+                            e_tools, e_prompts, e_resources = self._extract_prior_tools(spec)
+                            smithery_simulated = (
+                                {
+                                    "tools": e_tools,
+                                    "prompts": e_prompts,
+                                    "resources": e_resources,
+                                    "_is_simulated": True,
+                                }
+                                if e_tools
+                                else None
+                            )
+                            merged_spec = self.merge_and_enrich_passport(
+                                package_name=pkg_name,
+                                ecosystem="pypi",
+                                pypi_data=pypi_meta,
+                                smithery_data=smithery_simulated,
+                                existing_spec=spec,
+                            )
+                            if merged_spec:
+                                FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
+                                updated_count += 1
+                elif eco == "smithery" or "smithery" in spec.sources_merged:
+                    s_detail, _ = fetch_json(f"https://api.smithery.ai/servers/{pkg_name}")
+                    if s_detail and isinstance(s_detail, dict):
+                        s_ver = s_detail.get("version")
+                        known_versions = {v.version for v in spec.versions}
+                        if s_ver and s_ver not in known_versions:
+                            logger.info(
+                                "Found NEW version for Smithery %s: %s (was %s)",
+                                pkg_name,
+                                s_ver,
+                                known_versions,
+                            )
+                            merged_spec = self.merge_and_enrich_passport(
+                                package_name=pkg_name,
+                                ecosystem="smithery",
+                                smithery_data=s_detail,
                                 existing_spec=spec,
                             )
                             if merged_spec:
