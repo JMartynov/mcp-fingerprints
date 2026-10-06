@@ -66,6 +66,16 @@ while True:
 class TestMcpStdioProber(unittest.TestCase):
     """Test suite verifying McpStdioProber communication, matching, and vulnerability auditing."""
 
+    def test_build_package_command(self) -> None:
+        cmd_npm = McpStdioProber.build_package_command("@modelcontextprotocol/server-brave", ecosystem="npm")
+        self.assertEqual(cmd_npm, ["npx", "-y", "@modelcontextprotocol/server-brave"])
+
+        cmd_pypi = McpStdioProber.build_package_command("mcp-server-git", ecosystem="pypi")
+        self.assertEqual(cmd_pypi, ["python", "-m", "mcp_server_git"])
+
+        cmd_uvx = McpStdioProber.build_package_command("some-custom-pypi", ecosystem="pypi")
+        self.assertEqual(cmd_uvx, ["uvx", "some-custom-pypi"])
+
     def test_probe_live_mock_mcp_server(self) -> None:
         """Verify McpStdioProber handshakes with mock server and matches its identity."""
         with tempfile.TemporaryDirectory() as tmpdir:

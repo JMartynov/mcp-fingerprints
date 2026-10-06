@@ -81,6 +81,37 @@ class McpStdioProber:
                 continue
         return None
 
+    @staticmethod
+    def build_package_command(package_name: str, ecosystem: str = "npm") -> list[str]:
+        """Construct standard stdio launch command for package across ecosystems (npm, PyPI)."""
+        eco = ecosystem.lower()
+        if eco in ("npm", "javascript", "typescript"):
+            return ["npx", "-y", package_name]
+        elif eco in ("pypi", "python"):
+            if package_name.startswith("mcp-server-"):
+                mod_name = package_name.replace("-", "_")
+                return ["python", "-m", mod_name]
+            return ["uvx", package_name]
+        return ["npx", "-y", package_name]
+
+    def probe_package(
+        self,
+        package_name: str,
+        ecosystem: str = "npm",
+        cwd: str | Path | None = None,
+        timeout: float = 10.0,
+        min_confidence_threshold: float = 0.65,
+    ) -> ProbeReport:
+        """Construct runner command for package and conduct live stdio probe handshake."""
+        cmd = self.build_package_command(package_name, ecosystem=ecosystem)
+        return self.probe(
+            command=cmd,
+            cwd=cwd,
+            timeout=timeout,
+            server_name_hint=package_name,
+            min_confidence_threshold=min_confidence_threshold,
+        )
+
     def probe(
         self,
         command: list[str],
