@@ -10,8 +10,24 @@ Connecting directly to real web data sources:
 
 from __future__ import annotations
 
-import unittest
+import os
+
+import pytest
+
 from mcp_fingerprints.synchronizer import PassportSynchronizer, fetch_json
+
+pytestmark = pytest.mark.integration
+
+LIVE_INTEGRATION_ENV = "RUN_LIVE_INTEGRATION_TESTS"
+
+
+def _require_live_integration() -> None:
+    """Skip network-dependent tests unless explicitly enabled for integration runs."""
+    if not os.getenv(LIVE_INTEGRATION_ENV):
+        pytest.skip(
+            "Live integration tests are disabled by default; set RUN_LIVE_INTEGRATION_TESTS=1 "
+            "to run them."
+        )
 
 
 class TestLiveClustersIntegration(unittest.TestCase):
@@ -23,6 +39,7 @@ class TestLiveClustersIntegration(unittest.TestCase):
         Live connection demonstrates fetching from Official Registry, identifying missing tools,
         and cross-resolving against Smithery / manifest sources to hydrate tool signatures.
         """
+        _require_live_integration()
         # 1. Fetch live entry from Official Registry
         reg_data, _ = fetch_json("https://registry.modelcontextprotocol.io/v0.1/servers")
         self.assertIsNotNone(reg_data, "Official Registry API should be reachable")
@@ -72,6 +89,7 @@ class TestLiveClustersIntegration(unittest.TestCase):
 
         Live connection fetches package metadata from npm and resolves tool contracts via Smithery API.
         """
+        _require_live_integration()
         pkg_name = "express"
 
         # 1. Fetch live metadata from npm registry
@@ -107,6 +125,7 @@ class TestLiveClustersIntegration(unittest.TestCase):
 
         Live connection fetches PyPI metadata and cross-resolves tool contracts.
         """
+        _require_live_integration()
         pkg_name = "mcp"
 
         # 1. Fetch live PyPI metadata
@@ -136,6 +155,7 @@ class TestLiveClustersIntegration(unittest.TestCase):
 
         Live connection fetches raw repository manifest files directly from GitHub.
         """
+        _require_live_integration()
         raw_url = "https://raw.githubusercontent.com/modelcontextprotocol/servers/main/package.json"
         pkg_json, _ = fetch_json(raw_url)
         self.assertIsNotNone(pkg_json, "GitHub raw manifest should be readable")
