@@ -245,6 +245,10 @@ class PassportSynchronizer:
                 )
                 all_versions.append(v_fp)
 
+        # 3.5. Ingest GitHub / Curated metadata
+        if is_curated_source and "github" not in sources:
+            sources.append("github")
+
         # 4. Ingest Official MCP Registry metadata
         if official_registry_data:
             sources.append("official_registry")
