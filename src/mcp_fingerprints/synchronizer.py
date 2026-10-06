@@ -112,9 +112,21 @@ class PassportSynchronizer:
         official_registry_data: dict[str, Any] | None = None,
         existing_spec: ServerPackageSpec | None = None,
         is_curated_source: bool = False,
+        auto_cross_resolve: bool = True,
     ) -> ServerPackageSpec | None:
         """Merge complementary metadata from Smithery, npm, and PyPI into one Passport."""
         sources: list[str] = []
+
+        # Auto cross-resolve runtime tool contracts from Smithery if not provided
+        if not smithery_data and auto_cross_resolve:
+            s_names = [package_name]
+            if "/" in package_name:
+                s_names.append(package_name.split("/")[-1])
+            for s_name in s_names:
+                s_detail, _ = fetch_json(f"https://api.smithery.ai/servers/{s_name}")
+                if s_detail and isinstance(s_detail, dict) and "tools" in s_detail:
+                    smithery_data = s_detail
+                    break
         tools: list[dict[str, Any]] = []
         prompts: list[dict[str, Any]] = []
         resources: list[dict[str, Any]] = []
