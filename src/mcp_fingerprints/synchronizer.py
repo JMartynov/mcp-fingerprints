@@ -12,10 +12,13 @@ import ssl
 import threading
 import urllib.error
 import urllib.request
+import io
+import tarfile
+
 from pathlib import Path
 from typing import Any
 
-from mcp_fingerprints.ast_parser import parse_mcp_source_code
+from mcp_fingerprints.ast_parser import parse_mcp_source_code, parse_typescript_mcp_ast
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
@@ -104,6 +107,69 @@ class PassportSynchronizer:
             json.dumps(self.state, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
+
+
+    def _extract_tools_from_npm_tarball(
+        self, package_name: str, dist_tarball_url: str | None = None
+    ) -> list[dict[str, Any]]:
+        if not dist_tarball_url:
+            url = f"https://registry.npmjs.org/{package_name}"
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0", "Accept": "application/json"}
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=5.0) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+                    latest_version = data.get("dist-tags", {}).get("latest")
+                    dist_tarball_url = data.get("versions", {}).get(latest_version, {}).get("dist", {}).get("tarball")
+            except Exception as e:
+                logger.warning(f"Error fetching npm metadata for {package_name}: {e}")
+                return []
+
+        if not dist_tarball_url:
+            return []
+
+        req = urllib.request.Request(dist_tarball_url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=2.5) as response:
+                tarball_data = bytearray()
+                # Enforce 10MB limit
+                MAX_SIZE = 10 * 1024 * 1024
+                while True:
+                    chunk = response.read(65536)
+                    if not chunk:
+                        break
+                    tarball_data.extend(chunk)
+                    if len(tarball_data) > MAX_SIZE:
+                        logger.warning(f"Tarball for {package_name} exceeded 10MB limit, skipping.")
+                        return []
+        except Exception as e:
+            logger.warning(f"Error downloading tarball for {package_name}: {e}")
+            return []
+
+        buf = io.BytesIO(tarball_data)
+        try:
+            with tarfile.open(fileobj=buf, mode="r:gz") as tar:
+                for member in tar.getmembers():
+                    if not member.isfile():
+                        continue
+                    name = member.name
+                    if not name.endswith((".js", ".mjs", ".ts")):
+                        continue
+                    parts = name.split("/")
+                    if len(parts) >= 2 and parts[0] == "package":
+                        if parts[1] in ("dist", "build", "src") or len(parts) == 2:
+                            f_obj = tar.extractfile(member)
+                            if f_obj:
+                                code = f_obj.read().decode("utf-8", errors="ignore")
+                                tools = parse_typescript_mcp_ast(code)
+                                if tools:
+                                    return tools
+        except tarfile.TarError as e:
+            logger.warning(f"Tar error extracting {package_name}: {e}")
+            return []
+
+        return []
 
     def _extract_ast_tools_from_github(
         self,
