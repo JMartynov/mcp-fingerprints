@@ -281,18 +281,39 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
         t_desc = desc_m.group(1) if desc_m else t_name
         properties = {}
         required = []
-        schema_m = re.search(r'inputSchema\s*:\s*\{([^}]*)\}', chunk, re.DOTALL)
+        # We need a safe boundary for inputSchema properties, usually ending at the next `}` or `},` or `});`
+        # Using a reluctant quantifier up to the next structural brace or end of object literal.
+        # Alternatively, search only within `inputSchema: { ... }` where `...` doesn't contain the start of the next tool or closing of the current registerTool.
+        schema_m = re.search(r'inputSchema\s*:\s*\{([^{}]*?(?:\{[^{}]*\}[^{}]*?)*)\}', chunk, re.DOTALL)
         if schema_m:
-            for line in schema_m.group(1).split(","):
-                pm = re.search(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', line)
-                if pm:
-                    pname = pm.group(1)
-                    properties[pname] = {"type": "string"}
-                    if "optional" not in line:
-                        required.append(pname)
+            schema_chunk = schema_m.group(1)
+            # Find zod definitions like `repo_name: z.string()`
+            for pm in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', schema_chunk):
+                pname = pm.group(1)
+                ptype = pm.group(2).lower()
+                
+                stype = "string"
+                if ptype in ("number", "int", "float"):
+                    stype = "number"
+                elif ptype in ("boolean", "bool"):
+                    stype = "boolean"
+                elif ptype in ("array", "list"):
+                    stype = "array"
+                elif ptype in ("object", "record"):
+                    stype = "object"
+                    
+                properties[pname] = {"type": stype}
+                
+                # Check if it has .optional() following it on the same line or before next property
+                # simple heuristic: just check the line containing the match
+                line_match = re.search(rf'{pname}\s*:\s*z\.[^,]+', schema_chunk)
+                if line_match and "optional" not in line_match.group(0):
+                    required.append(pname)
+
         add_tool(t_name, t_desc, properties, required)
 
     # Pattern 3: Object literal array declaration [{ name: "...", description: "...", inputSchema: ... }]
+    # E.g. tools = [{ name: "read_file", ... }]
     obj_literal_regex = re.compile(
         r'\{\s*(?:[^{}]*?\bname\s*:\s*[\'"]([a-zA-Z0-9_\-]+)[\'"][^{}]*?\bdescription\s*:\s*([\'"][^,;\}]+[\'"])|[^{}]*?\bdescription\s*:\s*([\'"][^,;\}]+[\'"][^{}]*?\bname\s*:\s*[\'"]([a-zA-Z0-9_\-]+)[\'"]))',
         re.MULTILINE,
@@ -302,7 +323,46 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
         raw_desc = match.group(2) or match.group(3) or ""
         cleaned_desc = re.sub(r'[\'"]\s*\+\s*[\'"]', '', raw_desc)
         t_desc = re.sub(r'\s+', ' ', cleaned_desc).strip('\'" \n') or t_name
-        add_tool(t_name, t_desc, {}, [])
+        
+        # Look ahead for inputSchema to get properties and required
+        chunk = code[match.start():match.start() + 1500]
+        properties = {}
+        required = []
+        
+        # Simple extraction of properties and required fields within the chunk
+        # We need a safe boundary for properties block to avoid consuming other tools' schemas.
+        # Find the start of the `properties:` block for this tool. 
+        # By searching only the first properties block within the object literal representing the tool.
+        # Let's extract up to the end of properties block by matching nested structures up to depth 1 or looking for next keyword like required
+        
+        # Limit chunk to just this tool by stopping at the next 'name:' or next array element boundary
+        schema_m = re.search(r'inputSchema\s*:\s*\{(.*)', chunk, re.DOTALL)
+        if schema_m:
+            schema_chunk = schema_m.group(1)
+            
+            # Prevent greediness by cutting off at the start of the next tool (usually "name:")
+            next_name_idx = schema_chunk.find('name:')
+            if next_name_idx != -1:
+                schema_chunk = schema_chunk[:next_name_idx]
+            
+            # Find innermost { ... } blocks that contain type: "..." within schema chunk
+            for p_match in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*\{([^{}]+)\}', schema_chunk, re.DOTALL):
+                p_name = p_match.group(1)
+                p_body = p_match.group(2)
+                t_match = re.search(r'type\s*:\s*["\']([^"\']+)["\']', p_body)
+                if t_match:
+                    properties[p_name] = {"type": t_match.group(1)}
+            
+            # Extract required array from schema chunk
+            req_match = re.search(r'required\s*:\s*\[([^\]]*?)\]', schema_chunk, re.DOTALL)
+            if req_match:
+                req_str = req_match.group(1)
+                for req_item in req_str.split(","):
+                    req_item_clean = req_item.strip().strip('"\' \n\t')
+                    if req_item_clean:
+                        required.append(req_item_clean)
+            
+        add_tool(t_name, t_desc, properties, required)
 
     return extracted
 
