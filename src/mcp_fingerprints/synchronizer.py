@@ -128,21 +128,91 @@ class PassportSynchronizer:
         if not owner or not repo:
             return []
 
-        candidates = [
-            ("src/tools.ts", "ts"),
-            ("src/index.ts", "ts"),
-            ("src/server.ts", "ts"),
-            ("index.ts", "ts"),
-            ("server.ts", "ts"),
-            ("server.py", "py"),
-            ("src/server.py", "py"),
-            ("main.py", "py"),
-            ("src/tools.js", "js"),
-            ("src/index.js", "js"),
-        ]
-
         for branch in ("main", "master"):
+            candidates = []
+            
+            # Dynamic probe package.json
+            pkg_json_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/package.json"
+            try:
+                req = urllib.request.Request(
+                    pkg_json_url,
+                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                )
+                with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=2.5) as resp:
+                    if resp.status == 200:
+                        import json
+                        pj = json.loads(resp.read().decode("utf-8", errors="ignore"))
+                        
+                        dynamic_paths = []
+                        for field in ("main", "module", "source"):
+                            if isinstance(pj.get(field), str):
+                                dynamic_paths.append(pj[field])
+                        
+                        if "bin" in pj:
+                            if isinstance(pj["bin"], str):
+                                dynamic_paths.append(pj["bin"])
+                            elif isinstance(pj["bin"], dict):
+                                dynamic_paths.extend(pj["bin"].values())
+                        
+                        if "exports" in pj:
+                            exports = pj["exports"]
+                            if isinstance(exports, str):
+                                dynamic_paths.append(exports)
+                            elif isinstance(exports, dict):
+                                def get_export_paths(d):
+                                    for v in d.values():
+                                        if isinstance(v, str):
+                                            dynamic_paths.append(v)
+                                        elif isinstance(v, dict):
+                                            get_export_paths(v)
+                                get_export_paths(exports)
+                        
+                        for p in dynamic_paths:
+                            if not isinstance(p, str):
+                                continue
+                            p = p.lstrip("./")
+                            # Map compiled path to source equivalents
+                            m_path = re.sub(r'^(dist|build|lib)/', 'src/', p)
+                            m_path = re.sub(r'\.(js|cjs|mjs|d\.ts)$', '', m_path)
+                            if m_path != p:
+                                candidates.append((f"{m_path}.ts", "ts"))
+                                candidates.append((f"{m_path}.js", "js"))
+                                # Also try root without src/
+                                root_path = m_path.removeprefix("src/")
+                                if root_path != m_path:
+                                    candidates.append((f"{root_path}.ts", "ts"))
+                                    candidates.append((f"{root_path}.js", "js"))
+            except Exception:
+                pass
+
+            candidates.extend([
+                ("src/tools.ts", "ts"),
+                ("src/index.ts", "ts"),
+                ("src/server.ts", "ts"),
+                ("index.ts", "ts"),
+                ("server.ts", "ts"),
+                ("server.py", "py"),
+                ("src/server.py", "py"),
+                ("main.py", "py"),
+                ("src/tools.js", "js"),
+                ("src/index.js", "js"),
+                ("src/tools/index.ts", "ts"),
+                ("src/tools/index.js", "js"),
+                ("src/handlers.ts", "ts"),
+                ("src/handlers/index.ts", "ts"),
+                ("src/server/index.ts", "ts"),
+                ("src/mcp/server.ts", "ts"),
+            ])
+
+            # Deduplicate preserving order
+            seen = set()
+            unique_candidates = []
             for path, lang in candidates:
+                if path not in seen:
+                    seen.add(path)
+                    unique_candidates.append((path, lang))
+
+            for path, lang in unique_candidates:
                 raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
                 try:
                     req = urllib.request.Request(
