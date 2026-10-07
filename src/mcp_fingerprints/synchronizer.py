@@ -195,6 +195,68 @@ class PassportSynchronizer:
             return []
 
         for branch in ("main", "master"):
+            aggregated_tools = []
+            seen_tool_names = set()
+            tree_api_success = False
+
+            tree_url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
+            try:
+                req = urllib.request.Request(
+                    tree_url,
+                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                )
+                with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=3.0) as resp:
+                    if resp.status == 200:
+                        import json
+                        tree_data = json.loads(resp.read().decode("utf-8", errors="ignore"))
+                        tree_api_success = True
+                        
+                        candidate_files = []
+                        for entry in tree_data.get("tree", []):
+                            if entry.get("type") == "blob":
+                                p = entry.get("path", "")
+                                match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py)$', p)
+                                match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js)$', p)
+                                match3 = re.search(r'^src/handlers/.*\.(ts|js)$', p)
+                                if match1 or match2 or match3:
+                                    candidate_files.append(p)
+                                    
+                        # Prioritize files with tools/ in path
+                        candidate_files.sort(key=lambda x: 0 if '/tools/' in f'/{x}' else 1)
+                        candidate_files = candidate_files[:5]
+                        
+                        for p in candidate_files:
+                            raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{p}"
+                            try:
+                                req_raw = urllib.request.Request(
+                                    raw_url,
+                                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                                )
+                                with urllib.request.urlopen(req_raw, context=_create_ssl_context(), timeout=3.0) as raw_resp:
+                                    if raw_resp.status == 200:
+                                        code = raw_resp.read().decode("utf-8", errors="ignore")
+                                        lang = p.split('.')[-1]
+                                        if lang == "mjs": lang = "js"
+                                        extracted = parse_mcp_source_code(code, language=lang)
+                                        for tool in extracted:
+                                            if tool.get("name") not in seen_tool_names:
+                                                seen_tool_names.add(tool.get("name"))
+                                                aggregated_tools.append(tool)
+                            except Exception:
+                                continue
+            except urllib.error.HTTPError as e:
+                pass
+            except Exception:
+                pass
+
+            if tree_api_success:
+                if aggregated_tools:
+                    return aggregated_tools
+                # If tree API succeeded but found no tools on this branch, we should try the next branch.
+                continue
+                
+            # If tree API didn't succeed (e.g. 403, 404), fall back to existing logic
+
             candidates = []
             
             # Dynamic probe package.json

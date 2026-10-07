@@ -69,11 +69,11 @@ def test_dynamic_entrypoint_dist_index(mock_parse, mock_urlopen, tmp_path):
     # Verify early exit: urlopen should be called exactly twice:
     # 1. package.json
     # 2. src/index.ts
-    assert mock_urlopen.call_count == 2
+    assert mock_urlopen.call_count == 3  # tree API + package.json + src/index.ts
     
     call_args_list = mock_urlopen.call_args_list
-    url_1 = call_args_list[0][0][0].full_url
-    url_2 = call_args_list[1][0][0].full_url
+    url_1 = call_args_list[1][0][0].full_url
+    url_2 = call_args_list[2][0][0].full_url
     assert url_1 == "https://raw.githubusercontent.com/testowner/testrepo/main/package.json"
     assert url_2 == "https://raw.githubusercontent.com/testowner/testrepo/main/src/index.ts"
 
@@ -169,4 +169,4 @@ def test_early_exit_optimization(mock_parse, mock_urlopen, tmp_path):
     # Total calls:
     # 1. package.json
     # 2. src/tools.ts
-    assert mock_urlopen.call_count == 2
+    assert mock_urlopen.call_count == 3  # tree API + package.json + src/index.ts
