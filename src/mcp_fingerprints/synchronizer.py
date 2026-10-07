@@ -810,12 +810,21 @@ class PassportSynchronizer:
         self._save_state()
         return updated_count
 
-    def enrich_zero_tool_passports(self, limit: int = 250, max_workers: int = 10) -> int:
-        """Scan passports with zero tool signatures and attempt static AST enrichment via GitHub."""
+    def enrich_zero_tool_passports(self, limit: int = 500, max_workers: int = 12) -> int:
+        """Scan passports with zero tool signatures and attempt static AST enrichment via GitHub or npm tarball."""
         enriched_count = 0
-        ast_probed_repos = set(self.state.get("ast_probed_repos", []))
         
-        candidates_to_probe = []
+        # State cleanup: sanitize `ast_probed_repos` to remove non-github strings
+        ast_probed_repos_list = self.state.get("ast_probed_repos", [])
+        cleaned_ast_probed_repos = [repo for repo in ast_probed_repos_list if "github.com" in repo]
+        ast_probed_repos = set(cleaned_ast_probed_repos)
+        self.state["ast_probed_repos"] = list(ast_probed_repos)
+        
+        npm_probed_packages = set(self.state.get("npm_probed_packages", []))
+        
+        npm_candidates = []
+        github_candidates = []
+        
         for j_file in sorted(self.output_dir.rglob("*.json")):
             if j_file.name in ("sync_state.json", "index.json"):
                 continue
@@ -826,32 +835,39 @@ class PassportSynchronizer:
                     continue
                 
                 check_repo = spec.repository_url
-                if check_repo in ast_probed_repos:
-                    continue
                 
-                candidates_to_probe.append((j_file, spec, check_repo))
+                if spec.ecosystem == "npm" or "npm_registry" in spec.sources_merged:
+                    if spec.package_name not in npm_probed_packages:
+                        npm_candidates.append((j_file, spec, check_repo, "npm"))
+                elif check_repo and "github.com" in check_repo:
+                    if check_repo not in ast_probed_repos:
+                        github_candidates.append((j_file, spec, check_repo, "github"))
             except Exception as exc:
                 logger.debug("Error loading potential AST candidate %s: %s", j_file.name, exc)
 
+        candidates_to_probe = npm_candidates + github_candidates
         if not candidates_to_probe:
             return 0
         
         candidates_to_probe = candidates_to_probe[:limit]
         state_lock = threading.Lock()
         
-        def _process_candidate(item: tuple[Path, ServerPackageSpec, str | None]) -> bool:
-            j_file, spec, check_repo = item
-            ast_tools = []
+        def _process_candidate(item: tuple[Path, ServerPackageSpec, str | None, str]) -> bool:
+            j_file, spec, check_repo, strategy = item
+            tools = []
             try:
-                ast_tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
-                with state_lock:
-                    if check_repo:
+                if strategy == "npm":
+                    tools = self._extract_tools_from_npm_tarball(spec.package_name)
+                    with state_lock:
+                        npm_probed_packages.add(spec.package_name)
+                        self.state["npm_probed_packages"] = list(npm_probed_packages)
+                elif strategy == "github":
+                    tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
+                    with state_lock:
                         ast_probed_repos.add(check_repo)
-                    else:
-                        ast_probed_repos.add(spec.package_name)
-                    self.state["ast_probed_repos"] = list(ast_probed_repos)
+                        self.state["ast_probed_repos"] = list(ast_probed_repos)
                     
-                if ast_tools:
+                if tools:
                     merged_spec = self.merge_and_enrich_passport(
                         package_name=spec.package_name,
                         ecosystem=spec.ecosystem,
@@ -861,19 +877,21 @@ class PassportSynchronizer:
                         with state_lock:
                             FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
                         logger.info(
-                            "Enriched zero-tool passport with AST tools: %s (%d tools)",
+                            "Enriched zero-tool passport with %s tools: %s (%d tools)",
+                            strategy,
                             spec.package_name,
-                            len(ast_tools),
+                            len(tools),
                         )
                         return True
             except Exception as exc:
-                logger.debug("Error during AST tool enrichment for %s: %s", j_file.name, exc)
+                logger.debug("Error during %s tool enrichment for %s: %s", strategy, j_file.name, exc)
                 with state_lock:
-                    if check_repo:
+                    if strategy == "npm":
+                        npm_probed_packages.add(spec.package_name)
+                        self.state["npm_probed_packages"] = list(npm_probed_packages)
+                    elif strategy == "github" and check_repo:
                         ast_probed_repos.add(check_repo)
-                    else:
-                        ast_probed_repos.add(spec.package_name)
-                    self.state["ast_probed_repos"] = list(ast_probed_repos)
+                        self.state["ast_probed_repos"] = list(ast_probed_repos)
             return False
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
