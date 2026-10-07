@@ -13,6 +13,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from mcp_fingerprints.ast_parser import parse_mcp_source_code
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
@@ -101,6 +102,60 @@ class PassportSynchronizer:
             json.dumps(self.state, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
+
+    def _extract_ast_tools_from_github(
+        self,
+        package_name: str,
+        repo_url: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Attempt to statically extract MCP tool signatures from GitHub repository entrypoints."""
+        owner = None
+        repo = None
+
+        if repo_url:
+            m = re.search(r"github\.com/([^/]+)/([^/#?]+)", repo_url)
+            if m:
+                owner = m.group(1)
+                repo = m.group(2).removesuffix(".git")
+
+        if not owner and "/" in package_name and not package_name.startswith("@"):
+            parts = package_name.split("/")
+            if len(parts) == 2:
+                owner, repo = parts[0], parts[1]
+
+        if not owner or not repo:
+            return []
+
+        candidates = [
+            ("src/tools.ts", "ts"),
+            ("src/index.ts", "ts"),
+            ("src/server.ts", "ts"),
+            ("index.ts", "ts"),
+            ("server.ts", "ts"),
+            ("server.py", "py"),
+            ("src/server.py", "py"),
+            ("main.py", "py"),
+            ("src/tools.js", "js"),
+            ("src/index.js", "js"),
+        ]
+
+        for branch in ("main", "master"):
+            for path, lang in candidates:
+                raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
+                try:
+                    req = urllib.request.Request(
+                        raw_url,
+                        headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                    )
+                    with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=2.5) as resp:
+                        if resp.status == 200:
+                            code = resp.read().decode("utf-8", errors="ignore")
+                            extracted = parse_mcp_source_code(code, language=lang)
+                            if extracted:
+                                return extracted
+                except Exception:
+                    continue
+        return []
 
     def merge_and_enrich_passport(
         self,
@@ -286,6 +341,18 @@ class PassportSynchronizer:
                             "configSchema": {},
                         }
                     )
+
+        # Auto cross-resolve runtime tool contracts from GitHub AST if Smithery yielded no tools
+        if not tools and auto_cross_resolve:
+            check_repo = repo_url or (existing_spec.repository_url if existing_spec else None)
+            ast_tools = self._extract_ast_tools_from_github(package_name, check_repo)
+            if ast_tools:
+                tools = ast_tools
+                if "github_ast" not in sources:
+                    sources.append("github_ast")
+
+        if official_registry_data:
+            srv = official_registry_data.get("server", {})
             reg_v = srv.get("version", "1.0.0")
             if not all_versions:
                 v_fp = build_version_fingerprint(
@@ -347,6 +414,31 @@ class PassportSynchronizer:
                 v_fp_dict["connections"] = connections or existing_target.connections
                 v_fp_dict["dependencies"] = existing_target.dependencies
                 all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
+
+        # Hydrate existing versions if tools were newly discovered and existing versions lacked them
+        if tools and all_versions and not any(bool(v.tool_signatures) for v in all_versions):
+            latest_idx = len(all_versions) - 1
+            if dist_tags.get("latest"):
+                for idx, v in enumerate(all_versions):
+                    if v.version == dist_tags["latest"]:
+                        latest_idx = idx
+                        break
+            old_target = all_versions[latest_idx]
+            v_caps = dict(old_target.capabilities)
+            v_caps["tools"] = True
+            v_caps["verified_tools"] = not is_simulated
+            hydrated_fp = build_version_fingerprint(
+                version=old_target.version,
+                tools=tools,
+                prompts=prompts or [p.to_dict() for p in old_target.prompt_signatures],
+                resources=resources or [r.to_dict() for r in old_target.resource_signatures],
+                release_date=old_target.release_date,
+                capabilities=v_caps,
+            )
+            h_dict = hydrated_fp.to_dict()
+            h_dict["connections"] = old_target.connections
+            h_dict["dependencies"] = old_target.dependencies
+            all_versions[latest_idx] = VersionFingerprint.from_dict(h_dict)
 
         # Validate with McpServerValidator
         all_deps = {}
@@ -517,6 +609,43 @@ class PassportSynchronizer:
         logger.info("Updated %d existing passports with new release versions", updated_count)
         self._save_state()
         return updated_count
+
+    def enrich_zero_tool_passports(self, limit: int = 50) -> int:
+        """Scan passports with zero tool signatures and attempt static AST enrichment via GitHub."""
+        enriched_count = 0
+        for j_file in sorted(self.output_dir.rglob("*.json")):
+            if j_file.name in ("sync_state.json", "index.json"):
+                continue
+            try:
+                spec = ServerPackageSpec.from_dict(json.loads(j_file.read_text(encoding="utf-8")))
+                has_tools = any(bool(v.tool_signatures) for v in spec.versions)
+                if has_tools:
+                    continue
+
+                check_repo = spec.repository_url
+                ast_tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
+                if ast_tools:
+                    merged_spec = self.merge_and_enrich_passport(
+                        package_name=spec.package_name,
+                        ecosystem=spec.ecosystem,
+                        existing_spec=spec,
+                    )
+                    if merged_spec and any(bool(v.tool_signatures) for v in merged_spec.versions):
+                        FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
+                        enriched_count += 1
+                        logger.info(
+                            "Enriched zero-tool passport with AST tools: %s (%d tools)",
+                            spec.package_name,
+                            len(ast_tools),
+                        )
+                        if enriched_count >= limit:
+                            break
+            except Exception as exc:
+                logger.debug("Error during AST tool enrichment for %s: %s", j_file.name, exc)
+
+        logger.info("Enriched %d passports with static AST tools", enriched_count)
+        self._save_state()
+        return enriched_count
 
     def discover_new_mcps(self, limit: int = 500) -> int:
         """Query search feeds, full Smithery directory, PyPI registry, and awesome-mcp-servers."""

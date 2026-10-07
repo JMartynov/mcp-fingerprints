@@ -77,6 +77,51 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
         return is_tool, custom_name, custom_desc
 
+    def visit_Call(self, node: ast.Call) -> None:
+        """Handle low-level Tool(name="...", description="...", inputSchema={...}) or types.Tool(...)."""
+        is_tool_call = False
+        if isinstance(node.func, ast.Name) and node.func.id in ("Tool", "types_Tool"):
+            is_tool_call = True
+        elif isinstance(node.func, ast.Attribute) and node.func.attr == "Tool":
+            is_tool_call = True
+
+        if is_tool_call:
+            name = None
+            desc = ""
+            properties: dict[str, dict[str, str]] = {}
+            required: list[str] = []
+
+            for kw in node.keywords:
+                if kw.arg == "name" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                    name = kw.value.value
+                elif kw.arg == "description" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                    desc = kw.value.value
+                elif kw.arg == "inputSchema" and isinstance(kw.value, ast.Dict):
+                    for k, v in zip(kw.value.keys, kw.value.values):
+                        if isinstance(k, ast.Constant) and k.value == "properties" and isinstance(v, ast.Dict):
+                            for pk in v.keys:
+                                if isinstance(pk, ast.Constant) and isinstance(pk.value, str):
+                                    properties[pk.value] = {"type": "string"}
+                        elif isinstance(k, ast.Constant) and k.value == "required" and isinstance(v, ast.List):
+                            for item in v.elts:
+                                if isinstance(item, ast.Constant) and isinstance(item.value, str):
+                                    required.append(item.value)
+
+            if name and not any(t["name"] == name for t in self.extracted_tools):
+                self.extracted_tools.append({
+                    "name": name,
+                    "description": desc or name,
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": properties,
+                        "required": sorted(required),
+                    },
+                    "property_keys": sorted(properties.keys()),
+                    "required_keys": sorted(required),
+                })
+
+        self.generic_visit(node)
+
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._process_function(node)
         self.generic_visit(node)
@@ -166,6 +211,23 @@ def parse_python_mcp_ast(code: str) -> list[dict[str, Any]]:
 def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
     """Statically extract MCP tool definitions from TypeScript/JavaScript source code."""
     extracted: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+
+    def add_tool(name: str, desc: str, props: dict[str, Any], req: list[str]) -> None:
+        if not name or name in seen_names:
+            return
+        seen_names.add(name)
+        extracted.append({
+            "name": name,
+            "description": desc or name,
+            "inputSchema": {
+                "type": "object",
+                "properties": props,
+                "required": sorted(req),
+            },
+            "property_keys": sorted(props.keys()),
+            "required_keys": sorted(req),
+        })
 
     # Pattern 1: server.tool("name", "desc", { schema }, handler) or server.tool("name", { schema }, handler)
     tool_call_regex = re.compile(
@@ -202,36 +264,45 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
                     if "optional" not in line:
                         required.append(p_name)
 
-        input_schema = {
-            "type": "object",
-            "properties": properties,
-            "required": sorted(required),
-        }
+        add_tool(tool_name, tool_desc, properties, required)
 
-        extracted.append({
-            "name": tool_name,
-            "description": tool_desc,
-            "inputSchema": input_schema,
-            "property_keys": sorted(properties.keys()),
-            "required_keys": sorted(required),
-        })
+    # Pattern 2: server.registerTool("name", { title: "...", description: "...", inputSchema: { ... } }, handler)
+    register_tool_regex = re.compile(
+        r'(?:server|mcp|app)\.registerTool\s*\(\s*["\']([^"\']+)["\']\s*,\s*\{',
+        re.MULTILINE,
+    )
+    for m in register_tool_regex.finditer(code):
+        t_name = m.group(1)
+        if t_name in seen_names:
+            continue
+        start_idx = m.end() - 1
+        chunk = code[start_idx : start_idx + 1500]
+        desc_m = re.search(r'description\s*:\s*["\']([^"\']+)["\']', chunk)
+        t_desc = desc_m.group(1) if desc_m else t_name
+        properties = {}
+        required = []
+        schema_m = re.search(r'inputSchema\s*:\s*\{([^}]*)\}', chunk, re.DOTALL)
+        if schema_m:
+            for line in schema_m.group(1).split(","):
+                pm = re.search(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', line)
+                if pm:
+                    pname = pm.group(1)
+                    properties[pname] = {"type": "string"}
+                    if "optional" not in line:
+                        required.append(pname)
+        add_tool(t_name, t_desc, properties, required)
 
-    # Pattern 2: Object literal declaration [{ name: "...", description: "...", inputSchema: ... }]
+    # Pattern 3: Object literal array declaration [{ name: "...", description: "...", inputSchema: ... }]
     obj_literal_regex = re.compile(
-        r'\{\s*name\s*:\s*["\']([^"\']+)["\']\s*,\s*description\s*:\s*["\']([^"\']+)["\']',
-        re.DOTALL | re.MULTILINE,
+        r'\{\s*(?:[^{}]*?\bname\s*:\s*[\'"]([a-zA-Z0-9_\-]+)[\'"][^{}]*?\bdescription\s*:\s*([\'"][^,;\}]+[\'"])|[^{}]*?\bdescription\s*:\s*([\'"][^,;\}]+[\'"][^{}]*?\bname\s*:\s*[\'"]([a-zA-Z0-9_\-]+)[\'"]))',
+        re.MULTILINE,
     )
     for match in obj_literal_regex.finditer(code):
-        t_name = match.group(1)
-        t_desc = match.group(2)
-        if not any(t["name"] == t_name for t in extracted):
-            extracted.append({
-                "name": t_name,
-                "description": t_desc,
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
-                "property_keys": [],
-                "required_keys": [],
-            })
+        t_name = match.group(1) or match.group(4)
+        raw_desc = match.group(2) or match.group(3) or ""
+        cleaned_desc = re.sub(r'[\'"]\s*\+\s*[\'"]', '', raw_desc)
+        t_desc = re.sub(r'\s+', ' ', cleaned_desc).strip('\'" \n') or t_name
+        add_tool(t_name, t_desc, {}, [])
 
     return extracted
 

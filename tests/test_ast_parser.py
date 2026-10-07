@@ -76,6 +76,69 @@ server.tool(
         self.assertEqual(t["description"], "Create a new user account in database")
         self.assertIn("username", t["property_keys"])
 
+    def test_parse_typescript_register_tool(self) -> None:
+        ts_code = '''
+server.registerTool(
+  "create_entities",
+  {
+    title: "Create Entities",
+    description: "Create multiple new entities in the knowledge graph",
+    inputSchema: {
+      entities: z.array(EntitySchema)
+    }
+  },
+  async ({ entities }) => {}
+);
+'''
+        tools = parse_typescript_mcp_ast(ts_code)
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0]["name"], "create_entities")
+        self.assertEqual(tools[0]["description"], "Create multiple new entities in the knowledge graph")
+        self.assertIn("entities", tools[0]["property_keys"])
+
+    def test_parse_typescript_tool_definitions_array(self) -> None:
+        ts_code = '''
+export const TOOL_DEFINITIONS = [
+  {
+    name: 'list_proxies',
+    title: 'List Proxies',
+    description: 'List all available proxies' + ' for account',
+    inputSchema: { type: 'object', properties: {} }
+  },
+  {
+    name: 'buy_proxy',
+    description: 'Purchase proxy traffic'
+  }
+];
+'''
+        tools = parse_typescript_mcp_ast(ts_code)
+        self.assertEqual(len(tools), 2)
+        self.assertEqual(tools[0]["name"], "list_proxies")
+        self.assertEqual(tools[0]["description"], "List all available proxies for account")
+        self.assertEqual(tools[1]["name"], "buy_proxy")
+        self.assertEqual(tools[1]["description"], "Purchase proxy traffic")
+
+    def test_parse_python_low_level_tool_constructor(self) -> None:
+        py_code = '''
+from mcp.types import Tool
+
+@server.list_tools()
+async def handle_list_tools():
+    return [
+        Tool(
+            name="git_status",
+            description="Shows working tree status",
+            inputSchema={"type": "object", "properties": {"repo": {"type": "string"}}, "required": ["repo"]}
+        )
+    ]
+'''
+        tools = parse_python_mcp_ast(py_code)
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0]["name"], "git_status")
+        self.assertEqual(tools[0]["description"], "Shows working tree status")
+        self.assertEqual(tools[0]["property_keys"], ["repo"])
+        self.assertEqual(tools[0]["required_keys"], ["repo"])
+
     def test_parse_mcp_source_code_dispatcher(self) -> None:
         py_code = "@mcp.tool()\ndef echo(text: str):\n    '''Echo text'''\n    pass"
         tools = parse_mcp_source_code(py_code, language="python")

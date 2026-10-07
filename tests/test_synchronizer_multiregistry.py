@@ -121,6 +121,83 @@ class TestSynchronizerMultiRegistry(unittest.TestCase):
             self.assertTrue(version_map["1.1.0"].capabilities.get("verified_tools", False))
             self.assertEqual(len(version_map["1.1.0"].tool_signatures), 1)
 
+    def test_ast_tool_extraction_and_enrichment(self) -> None:
+        """Verify enrich_zero_tool_passports discovers tools via static AST and updates passport."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            passport_path = out_dir / "zero_tool_server.json"
+
+            initial_spec = ServerPackageSpec(
+                package_name="test-org/test-server",
+                purl="pkg:generic/test-org%2Ftest-server",
+                ecosystem="generic",
+                repository_url="https://github.com/test-org/test-server",
+                sources_merged=("official_registry",),
+                versions=(
+                    VersionFingerprint(
+                        version="1.0.0",
+                        toolset_canonical_hash="sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    ),
+                ),
+            )
+            passport_path.write_text(json.dumps(initial_spec.to_dict()), encoding="utf-8")
+
+            sample_server_code = b"""
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+const server = new Server({ name: "test", version: "1.0.0" });
+server.tool(
+    "query_weather",
+    "Get current weather for location",
+    { location: z.string() },
+    async ({ location }) => ({ weather: "sunny" })
+);
+"""
+
+            class MockResponse:
+                def __init__(self, data: bytes, status: int = 200) -> None:
+                    self.data = data
+                    self.status = status
+
+                def read(self) -> bytes:
+                    return self.data
+
+                def __enter__(self) -> MockResponse:
+                    return self
+
+                def __exit__(self, *args: object) -> None:
+                    pass
+
+            sync = PassportSynchronizer(output_dir=out_dir)
+
+            # Mock urlopen: return MockResponse for source file URL, 404 otherwise
+            def mock_urlopen(req: object, *args: object, **kwargs: object) -> MockResponse:
+                url_str = req.full_url if hasattr(req, "full_url") else str(req)
+                if "src/index.ts" in url_str:
+                    return MockResponse(sample_server_code, status=200)
+                raise Exception("Not Found")
+
+            with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+                with patch("mcp_fingerprints.synchronizer.fetch_json", return_value=(None, None)):
+                    enriched_count = sync.enrich_zero_tool_passports(limit=5)
+
+            self.assertEqual(enriched_count, 1)
+
+            updated_data = json.loads(passport_path.read_text(encoding="utf-8"))
+            updated_spec = ServerPackageSpec.from_dict(updated_data)
+
+            self.assertIn("github_ast", updated_spec.sources_merged)
+            self.assertEqual(len(updated_spec.versions), 1)
+            v0 = updated_spec.versions[0]
+            self.assertTrue(v0.capabilities.get("tools", False))
+            self.assertTrue(v0.capabilities.get("verified_tools", False))
+            self.assertEqual(len(v0.tool_signatures), 1)
+            self.assertEqual(v0.tool_signatures[0].name, "query_weather")
+            self.assertEqual(v0.tool_signatures[0].description, "Get current weather for location")
+            self.assertNotEqual(
+                v0.toolset_canonical_hash,
+                "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
