@@ -7,7 +7,9 @@ import datetime
 import json
 import logging
 import re
+import concurrent.futures
 import ssl
+import threading
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -610,9 +612,12 @@ class PassportSynchronizer:
         self._save_state()
         return updated_count
 
-    def enrich_zero_tool_passports(self, limit: int = 50) -> int:
+    def enrich_zero_tool_passports(self, limit: int = 250, max_workers: int = 10) -> int:
         """Scan passports with zero tool signatures and attempt static AST enrichment via GitHub."""
         enriched_count = 0
+        ast_probed_repos = set(self.state.get("ast_probed_repos", []))
+        
+        candidates_to_probe = []
         for j_file in sorted(self.output_dir.rglob("*.json")):
             if j_file.name in ("sync_state.json", "index.json"):
                 continue
@@ -621,9 +626,33 @@ class PassportSynchronizer:
                 has_tools = any(bool(v.tool_signatures) for v in spec.versions)
                 if has_tools:
                     continue
-
+                
                 check_repo = spec.repository_url
+                if check_repo in ast_probed_repos:
+                    continue
+                
+                candidates_to_probe.append((j_file, spec, check_repo))
+            except Exception as exc:
+                logger.debug("Error loading potential AST candidate %s: %s", j_file.name, exc)
+
+        if not candidates_to_probe:
+            return 0
+        
+        candidates_to_probe = candidates_to_probe[:limit]
+        state_lock = threading.Lock()
+        
+        def _process_candidate(item: tuple[Path, ServerPackageSpec, str | None]) -> bool:
+            j_file, spec, check_repo = item
+            ast_tools = []
+            try:
                 ast_tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
+                with state_lock:
+                    if check_repo:
+                        ast_probed_repos.add(check_repo)
+                    else:
+                        ast_probed_repos.add(spec.package_name)
+                    self.state["ast_probed_repos"] = list(ast_probed_repos)
+                    
                 if ast_tools:
                     merged_spec = self.merge_and_enrich_passport(
                         package_name=spec.package_name,
@@ -631,17 +660,31 @@ class PassportSynchronizer:
                         existing_spec=spec,
                     )
                     if merged_spec and any(bool(v.tool_signatures) for v in merged_spec.versions):
-                        FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
-                        enriched_count += 1
+                        with state_lock:
+                            FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
                         logger.info(
                             "Enriched zero-tool passport with AST tools: %s (%d tools)",
                             spec.package_name,
                             len(ast_tools),
                         )
-                        if enriched_count >= limit:
-                            break
+                        return True
             except Exception as exc:
                 logger.debug("Error during AST tool enrichment for %s: %s", j_file.name, exc)
+                with state_lock:
+                    if check_repo:
+                        ast_probed_repos.add(check_repo)
+                    else:
+                        ast_probed_repos.add(spec.package_name)
+                    self.state["ast_probed_repos"] = list(ast_probed_repos)
+            return False
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(_process_candidate, c) for c in candidates_to_probe]
+            for future in concurrent.futures.as_completed(futures):
+                if future.result():
+                    enriched_count += 1
+                if enriched_count >= limit:
+                    break
 
         logger.info("Enriched %d passports with static AST tools", enriched_count)
         self._save_state()

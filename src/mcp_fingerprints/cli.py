@@ -28,7 +28,7 @@ def main() -> None:
     sync_p.add_argument("--output", default="data/fingerprints", help="Output directory")
     sync_p.add_argument("--update-existing", action="store_true", help="Check and update existing MCP versions")
     sync_p.add_argument("--discover-new", action="store_true", help="Discover and pull new MCP servers")
-    sync_p.add_argument("--enrich-ast", action="store_true", help="Extract tool contracts via static AST parsing for zero-tool repositories")
+    sync_p.add_argument("--enrich-ast", type=int, nargs="?", const=250, default=False, help="Extract tool contracts via static AST parsing for zero-tool repositories (optional limit, default 250)")
     sync_p.add_argument("--all", action="store_true", help="Run both update and discovery")
     sync_p.add_argument("--snapshot", action="store_true", default=True, help="Compile snapshot after sync")
 
@@ -69,16 +69,17 @@ def main() -> None:
 
     if args.command == "sync":
         sync = PassportSynchronizer(output_dir=args.output)
-        if args.all or (not args.update_existing and not args.discover_new and not args.enrich_ast):
+        if args.all or (not args.update_existing and not args.discover_new and args.enrich_ast is False):
             logger.info("Running full multi-source passport synchronization...")
             sync.update_existing_passports()
-            sync.enrich_zero_tool_passports(limit=50)
+            sync.enrich_zero_tool_passports(limit=250)
             sync.discover_new_mcps()
         else:
             if args.update_existing:
                 sync.update_existing_passports()
-            if args.enrich_ast:
-                sync.enrich_zero_tool_passports(limit=100)
+            if args.enrich_ast is not False:
+                limit = args.enrich_ast if isinstance(args.enrich_ast, int) else 250
+                sync.enrich_zero_tool_passports(limit=limit)
             if args.discover_new:
                 sync.discover_new_mcps()
 
