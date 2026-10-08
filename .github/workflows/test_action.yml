@@ -1,0 +1,57 @@
+name: Test Reusable Action
+
+on:
+  push:
+    paths:
+      - 'action.yml'
+      - 'src/mcp_fingerprints/conflict_detector.py'
+      - 'src/mcp_fingerprints/cli.py'
+      - '.github/workflows/test_action.yml'
+  pull_request:
+    paths:
+      - 'action.yml'
+      - 'src/mcp_fingerprints/conflict_detector.py'
+      - 'src/mcp_fingerprints/cli.py'
+      - '.github/workflows/test_action.yml'
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Test Valid Config (Expect Success)
+        uses: ./
+        with:
+          config-file: 'tests/fixtures/configs/valid_claude_desktop_config.json'
+
+      - name: Test Colliding Config with fail-on-critical false (Expect Success)
+        uses: ./
+        with:
+          config-file: 'tests/fixtures/configs/colliding_cursor_config.json'
+          fail-on-critical: 'false'
+
+      - name: Test Colliding Config with fail-on-critical true (Expect Failure)
+        id: test_fail
+        continue-on-error: true
+        uses: ./
+        with:
+          config-file: 'tests/fixtures/configs/colliding_cursor_config.json'
+          fail-on-critical: 'true'
+
+      - name: Assert Failure Step
+        if: steps.test_fail.outcome != 'failure'
+        run: |
+          echo "Expected the previous step to fail, but it succeeded."
+          exit 1

@@ -61,6 +61,50 @@ with urllib.request.urlopen(url) as resp:
 print(f"Loaded {data['total_passports']} MCP server passports.")
 ```
 
+## CI Integration (GitHub Action)
+
+You can use the MCP Fingerprints GitHub Action to automatically audit your client configurations (Claude Desktop, Cursor, Cline, Zed) in your CI pipeline to catch tool collisions and security shadowing before they reach production:
+
+```yaml
+name: Audit MCP Configuration
+
+on:
+  push:
+    paths:
+      - 'claude_desktop_config.json'
+
+jobs:
+  audit-mcp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit MCP Client Config
+        uses: JMartynov/mcp-fingerprints@v1
+        with:
+          config-file: 'claude_desktop_config.json'
+          fail-on-critical: 'true'
+```
+
+## Pre-Commit Integration
+
+To prevent committing conflicting or shadowed MCP configurations locally, add `mcp-audit-config` to your repository's `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/JMartynov/mcp-fingerprints
+    rev: v1.0.0
+    hooks:
+      - id: mcp-audit-config
+```
+
+To run pre-commit locally across all files:
+```bash
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
 ## CLI Usage
 ```bash
 # Sync from registries

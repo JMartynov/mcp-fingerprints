@@ -96,3 +96,25 @@ def test_validate_passports_bad_tool(mock_passports_dir, capsys):
     captured = capsys.readouterr()
     assert "FAILED" in captured.out
     assert "Invalid toolset_canonical_hash" in captured.out
+
+
+def test_daily_sync_drift_detection_step():
+    workflow_path = Path(".github/workflows/daily_sync.yml")
+    assert workflow_path.exists(), "daily_sync.yml workflow not found"
+
+    with open(workflow_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    assert "Compile Consolidated Snapshot & Web Catalog" in content
+    assert "previous_passports.json.gz" in content
+    assert "detect-drift" in content
+    assert "--output drift_report.json" in content
+    assert "SECURITY_WEBHOOK_URL" in content
+
+    # Verify sequencing: backup happens before snapshot compilation, and detect-drift happens after snapshot
+    idx_backup = content.find("cp passports.json.gz previous_passports.json.gz")
+    idx_snapshot = content.find("python -m mcp_fingerprints.snapshot")
+    idx_drift = content.find("python -m mcp_fingerprints.cli detect-drift")
+    assert idx_backup != -1 and idx_snapshot != -1 and idx_drift != -1
+    assert idx_backup < idx_snapshot < idx_drift
+

@@ -141,6 +141,7 @@ def main() -> None:
     drift_p.add_argument("--webhook-url", help="Webhook URL to notify upon drift or tamper")
     drift_p.add_argument("--fail-on-tamper", action="store_true", help="Exit with code 1 if tamper incidents are detected")
     drift_p.add_argument("--json", action="store_true", help="Output audit report as JSON")
+    drift_p.add_argument("--output", help="Optional file path to write output drift report")
 
     args = parser.parse_args()
 
@@ -358,13 +359,20 @@ def main() -> None:
             print(f"ERROR: {e}")
             sys.exit(1)
 
-        if args.webhook_url:
+        if args.webhook_url or os.environ.get("SECURITY_WEBHOOK_URL") or os.environ.get("WEBHOOK_URL"):
             dispatch_drift_webhook(report, webhook_url=args.webhook_url)
 
+        out_content = ""
         if args.json:
-            print(json.dumps(report.to_dict(), indent=2))
+            out_content = json.dumps(report.to_dict(), indent=2)
+            print(out_content)
         else:
-            print(format_drift_report(report))
+            out_content = format_drift_report(report)
+            print(out_content)
+
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(out_content)
 
         if args.fail_on_tamper and report.has_tamper_incidents:
             sys.exit(1)

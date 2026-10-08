@@ -43,8 +43,22 @@ jobs:
           PYTHONPATH=src pytest -v
 
       - name: Compile Consolidated Snapshot & Web Catalog
+        env:
+          SECURITY_WEBHOOK_URL: ${{ secrets.SECURITY_WEBHOOK_URL }}
         run: |
+          # Preserve previous snapshot for drift detection
+          cp passports.json.gz previous_passports.json.gz || true
+
+          # Compile new snapshot
           python -m mcp_fingerprints.snapshot data/fingerprints passports.json.gz
+
+          # Run drift detection if previous snapshot existed
+          if [ -f "previous_passports.json.gz" ]; then
+            python -m mcp_fingerprints.cli detect-drift --old previous_passports.json.gz --new data/fingerprints --output drift_report.json
+            echo "## Supply-Chain Drift & Tamper Report" >> $GITHUB_STEP_SUMMARY
+            cat drift_report.json >> $GITHUB_STEP_SUMMARY
+          fi
+
           PYTHONPATH=src:. python scripts/generate_web_catalog.py
 
       - name: Commit and push updated passports & snapshot

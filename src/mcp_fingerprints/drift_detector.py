@@ -284,7 +284,12 @@ def dispatch_drift_webhook(
     timeout: float = 5.0,
 ) -> bool:
     """Dispatch drift audit notification payload to a configured webhook (Slack, Discord, generic)."""
-    target_url = webhook_url or os.environ.get("WEBHOOK_URL") or os.environ.get("SLACK_WEBHOOK_URL")
+    target_url = (
+        webhook_url
+        or os.environ.get("SECURITY_WEBHOOK_URL")
+        or os.environ.get("WEBHOOK_URL")
+        or os.environ.get("SLACK_WEBHOOK_URL")
+    )
     if not target_url:
         logger.info("No webhook URL configured; skipping notification dispatch.")
         return False
