@@ -20,6 +20,7 @@ from typing import Any
 
 from mcp_fingerprints.ast_parser import parse_mcp_source_code, parse_typescript_mcp_ast, parse_python_mcp_ast
 from mcp_fingerprints.openapi_parser import parse_openapi_spec
+from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
@@ -623,6 +624,47 @@ class PassportSynchronizer:
                     continue
         return []
 
+    def _extract_tools_from_github_readme(
+        self,
+        package_name: str,
+        repo_url: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Fallback tool extraction by parsing README.md documentation."""
+        owner = None
+        repo = None
+
+        if repo_url:
+            m = re.search(r"github\.com/([^/]+)/([^/#?]+)", repo_url)
+            if m:
+                owner = m.group(1)
+                repo = m.group(2).removesuffix(".git")
+
+        if not owner and "/" in package_name and not package_name.startswith("@"):
+            parts = package_name.split("/")
+            if len(parts) == 2:
+                owner, repo = parts[0], parts[1]
+
+        if not owner or not repo:
+            return []
+
+        for branch in ("main", "master"):
+            for filename in ("README.md", "readme.md"):
+                raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{filename}"
+                try:
+                    req = urllib.request.Request(
+                        raw_url,
+                        headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                    )
+                    with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=3.0) as resp:
+                        if resp.status == 200:
+                            content = resp.read().decode("utf-8", errors="ignore")
+                            tools = parse_markdown_tool_docs(content)
+                            if tools:
+                                return tools
+                except Exception:
+                    continue
+        return []
+
     def merge_and_enrich_passport(
         self,
         package_name: str,
@@ -1166,8 +1208,11 @@ class PassportSynchronizer:
                         pypi_probed_packages.add(spec.package_name)
                         self.state["pypi_probed_packages"] = list(pypi_probed_packages)
                 elif strategy == "github":
-
                     tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
+                    if not tools:
+                        tools = self._extract_tools_from_github_readme(spec.package_name, check_repo)
+                        if tools:
+                            gateway_caps["documentation_extracted_tools"] = True
                     with state_lock:
                         ast_probed_repos.add(check_repo)
                         self.state["ast_probed_repos"] = list(ast_probed_repos)
@@ -1178,10 +1223,13 @@ class PassportSynchronizer:
                         "ecosystem": spec.ecosystem,
                         "existing_spec": spec,
                     }
-                    if gateway_conns:
+                    if gateway_conns or gateway_caps:
                         kwargs["pre_extracted_connections"] = gateway_conns
                         kwargs["pre_extracted_capabilities"] = gateway_caps
-                    if strategy != "github" and tools:
+                    if strategy == "github" and "documentation_extracted_tools" in gateway_caps:
+                        kwargs["pre_extracted_tools"] = tools
+                        kwargs["pre_extracted_source"] = "github_readme"
+                    elif strategy != "github" and tools:
                         kwargs["pre_extracted_tools"] = tools
                         kwargs["pre_extracted_source"] = strategy
                     merged_spec = self.merge_and_enrich_passport(**kwargs)
