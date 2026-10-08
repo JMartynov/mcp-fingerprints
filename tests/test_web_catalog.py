@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+
 from scripts.generate_web_catalog import build_catalog_entry, compile_web_catalog
 
 
@@ -75,4 +76,28 @@ def test_web_index_html_exists_and_valid():
     assert "<title>MCP Passports & Server Directory</title>" in html_content
     assert 'id="searchInput"' in html_content
     assert 'id="serverGrid"' in html_content
-    assert "copyConfig" in html_content
+    assert "app.js" in html_content
+
+
+def test_web_index_html_multi_server_ui_elements():
+    index_file = Path("web/index.html")
+    assert index_file.is_file()
+    html_content = index_file.read_text(encoding="utf-8")
+    assert 'id="bottomDrawer"' in html_content
+    assert 'id="selectedCount"' in html_content
+    assert 'id="btnBuild"' in html_content
+    assert 'id="configModal"' in html_content
+    assert 'id="collisionWarning"' in html_content
+    assert 'id="configOutput"' in html_content
+
+
+def test_web_app_js_multi_server_logic():
+    app_file = Path("web/app.js")
+    assert app_file.is_file()
+    js_content = app_file.read_text(encoding="utf-8")
+    assert "let selectedServers = new Map();" in js_content
+    assert "function toggleSelection(name)" in js_content
+    assert "function detectCollisions()" in js_content
+    assert "function generateCombinedConfig(client)" in js_content
+    assert "mcpServers[safeKey] = { command, args };" in js_content
+    assert "downloadCombinedConfig" in js_content

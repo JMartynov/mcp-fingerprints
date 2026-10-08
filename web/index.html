@@ -155,6 +155,189 @@
       transition: opacity 0.2s;
     }
     #toast.show { opacity: 1; }
+
+    /* Multi-Server Config Builder CSS */
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+    }
+    .checkbox-container input {
+      accent-color: var(--accent);
+      width: 1.1rem;
+      height: 1.1rem;
+      cursor: pointer;
+    }
+
+    /* Floating Bottom Drawer */
+    #bottomDrawer {
+      position: fixed;
+      bottom: -100px;
+      left: 0;
+      width: 100%;
+      background: var(--card-bg);
+      border-top: 2px solid var(--accent);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.4);
+      transition: bottom 0.3s ease-in-out;
+      z-index: 100;
+    }
+    #bottomDrawer.show {
+      bottom: 0;
+    }
+    .drawer-info {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .btn-build {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-build:hover {
+      background: #22c55e;
+    }
+
+    /* Modal */
+    #configModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #configModal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title { font-size: 1.25rem; font-weight: 700; }
+    .btn-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .btn-close:hover { color: var(--text); }
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    
+    /* Collision Warning */
+    #collisionWarning {
+      display: none;
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid var(--risk-high);
+      color: var(--risk-high);
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    #collisionWarning.show {
+      display: block;
+    }
+    
+    /* Code area */
+    .code-area {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      min-height: 200px;
+    }
+    
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+    .btn-modal {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+    }
+    .btn-primary:hover { background: #22c55e; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--text-muted); }
+
   </style>
 </head>
 <body>
@@ -183,150 +366,49 @@
     <div class="grid" id="serverGrid"></div>
   </div>
 
+
+  <!-- Floating Bottom Drawer -->
+  <div id="bottomDrawer">
+    <div class="drawer-info">
+      Selected Servers: <span id="selectedCount">0</span>
+    </div>
+    <button class="btn-build" id="btnBuild" onclick="openConfigModal()">Build Config</button>
+  </div>
+
+  <!-- Multi-Server Config Modal -->
+  <div id="configModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Combined Configuration</div>
+        <button class="btn-close" onclick="closeConfigModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="collisionWarning">
+          <strong>⚠️ Tool Collision Warning:</strong> The selected servers have duplicate tool names. This may cause conflicts in clients.
+          <ul id="collisionList" style="margin-top: 0.5rem; margin-bottom: 0; padding-left: 1.5rem;"></ul>
+        </div>
+        
+        <div class="tabs">
+          <button class="tab-btn active" data-client="claude" onclick="switchTab('claude')">Claude Desktop</button>
+          <button class="tab-btn" data-client="cursor" onclick="switchTab('cursor')">Cursor</button>
+          <button class="tab-btn" data-client="cline" onclick="switchTab('cline')">Cline</button>
+          <button class="tab-btn" data-client="zed" onclick="switchTab('zed')">Zed</button>
+          <button class="tab-btn" data-client="windsurf" onclick="switchTab('windsurf')">Windsurf</button>
+          <button class="tab-btn" data-client="docker" onclick="switchTab('docker')">Docker</button>
+        </div>
+        
+        <div class="code-area" id="configOutput"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-secondary" onclick="closeConfigModal()">Cancel</button>
+        <button class="btn-modal btn-primary" onclick="copyCombinedConfig()">Copy Combined Config</button>
+        <button class="btn-modal btn-primary" onclick="downloadCombinedConfig()">Download config.json</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast">Copied configuration to clipboard!</div>
 
-  <script>
-    let catalog = [];
-    let activeEco = "all";
-    let activeQuery = "";
-
-    async function loadCatalog() {
-      try {
-        const resp = await fetch("catalog.json");
-        if (!resp.ok) throw new Error("Catalog file not found");
-        catalog = await resp.json();
-      } catch (err) {
-        console.warn("Could not load catalog.json, using fallback sample data:", err);
-        catalog = [
-          {
-            name: "@modelcontextprotocol/server-filesystem",
-            ecosystem: "npm",
-            version: "1.0.0",
-            description: "Direct local filesystem reader and writer toolset for Claude and Cursor.",
-            tool_count: 5,
-            tools: [{name: "read_file"}, {name: "write_file"}, {name: "list_directory"}],
-            risk_tier: "low",
-            command: "npx -y @modelcontextprotocol/server-filesystem"
-          },
-          {
-            name: "postgres-mcp-server",
-            ecosystem: "pypi",
-            version: "1.2.0",
-            description: "Execute read and write SQL statements against PostgreSQL databases.",
-            tool_count: 4,
-            tools: [{name: "execute_query"}, {name: "list_tables"}],
-            risk_tier: "high",
-            command: "uvx postgres-mcp-server"
-          }
-        ];
-      }
-      render();
-    }
-
-    function render() {
-      const q = activeQuery.toLowerCase().trim();
-      const filtered = catalog.filter(item => {
-        if (activeEco !== "all" && item.ecosystem.toLowerCase() !== activeEco) return false;
-        if (!q) return true;
-        if (item.name.toLowerCase().includes(q)) return true;
-        if (item.description.toLowerCase().includes(q)) return true;
-        return item.tools.some(t => t.name.toLowerCase().includes(q));
-      });
-
-      document.getElementById("metricsDisplay").innerText = 
-        `Showing ${filtered.length.toLocaleString()} of ${catalog.length.toLocaleString()} MCP servers`;
-
-      const grid = document.getElementById("serverGrid");
-      grid.innerHTML = "";
-
-      filtered.slice(0, 100).forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const safeKey = item.name.replace(/[@/_]/g, "-");
-        const displayedTools = item.tools.slice(0, 6);
-
-        card.innerHTML = `
-          <div>
-            <div class="card-header">
-              <div class="card-title">${item.name}</div>
-              <div style="display: flex; gap: 0.35rem;">
-                <span class="badge badge-eco">${item.ecosystem}</span>
-                <span class="badge badge-${item.risk_tier}">${item.risk_tier}</span>
-              </div>
-            </div>
-            <div class="card-desc">${item.description || "No description provided."}</div>
-            
-            ${item.tool_count > 0 ? `
-              <div class="tools-section">
-                <div class="tools-label">Tools (${item.tool_count})</div>
-                <div class="tool-tags">
-                  ${displayedTools.map(t => `<span class="tool-tag">${t.name}</span>`).join("")}
-                  ${item.tool_count > 6 ? `<span class="tool-tag">+${item.tool_count - 6} more</span>` : ""}
-                </div>
-              </div>
-            ` : `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 0.5rem;">Zero static tools recorded</div>`}
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'claude', this)">Claude</button>
-            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cursor', this)">Cursor</button>
-            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cline', this)">Cline</button>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function copyConfig(name, eco, cmd, client, btn) {
-      const safeKey = name.replace(/[@/_]/g, "-");
-      const parts = cmd.split(" ");
-      const command = parts[0] || (eco === "pypi" ? "uvx" : "npx");
-      const args = parts.slice(1);
-
-      let payload = {};
-      if (client === "claude" || client === "cursor") {
-        payload = {
-          mcpServers: {
-            [safeKey]: { command, args }
-          }
-        };
-      } else if (client === "cline") {
-        payload = {
-          mcpServers: {
-            [safeKey]: { command, args, disabled: false, autoApprove: [] }
-          }
-        };
-      }
-
-      navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
-        showToast();
-        btn.classList.add("copied");
-        setTimeout(() => btn.classList.remove("copied"), 1500);
-      });
-    }
-
-    function showToast() {
-      const t = document.getElementById("toast");
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2000);
-    }
-
-    document.getElementById("searchInput").addEventListener("input", e => {
-      activeQuery = e.target.value;
-      render();
-    });
-
-    document.querySelectorAll(".filter-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-        e.target.classList.add("active");
-        activeEco = e.target.getAttribute("data-val");
-        render();
-      });
-    });
-
-    loadCatalog();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
