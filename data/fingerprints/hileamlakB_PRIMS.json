@@ -4,8 +4,8 @@
   "purl": "pkg:pypi/prims",
   "ecosystem": "pypi",
   "display_name": "prims",
-  "description": "Python Runtime Interpreter MCP Server",
-  "repository_url": "https://github.com/hileamlakB/PRIMS",
+  "description": "",
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,22 +13,188 @@
     "prims"
   ],
   "sources_merged": [
+    "github_ast",
     "pypi"
   ],
   "dist_tags": {},
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:89a8938a912591f101d63afd94c78c34efb229853781e30477b7d7ce66f913bc",
       "release_date": null,
       "dependencies": {},
       "connections": [],
       "capabilities": {
         "tools": true,
         "prompts": false,
-        "resources": false
+        "resources": false,
+        "verified_tools": true,
+        "is_unpublished": true,
+        "http_status": 404,
+        "archival_reason": "Repository or package returned HTTP 404/Not Found"
       },
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "list_dir",
+          "canonical_hash": "sha256:6cb07e633c8e43e520fdfdef22a647bf130457acd6cef729b2a0750e2bbe267f",
+          "description": "List files and directories within the current session workspace. Parameter `path` is relative to the session root (default '.') and cannot contain '..'.",
+          "is_mutating": false,
+          "property_keys": [
+            "dir_path"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dir_path": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dir_path": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e57a8a70f8b47069f0aebb002e86e169a9dddef05fd090dc0ef0ad844f6d133a"
+        },
+        {
+          "name": "mount_file",
+          "canonical_hash": "sha256:9930a830199179d0871543e701378cda13d4fe30365f8a061088b93b4193cf96",
+          "description": "Download a remote file once per session and store it under mounts/<mountPath>. Subsequent run_code calls can access it via that path without re-downloading.",
+          "is_mutating": false,
+          "property_keys": [
+            "mount_path",
+            "url"
+          ],
+          "required_keys": [
+            "mount_path",
+            "url"
+          ],
+          "parameter_types": {
+            "url": "string",
+            "mount_path": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "mount_path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "mount_path",
+              "url"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4d00e7956e89d25771d84f93f7950fa04ad72e9560aa38c826ba4db8b015654d"
+        },
+        {
+          "name": "persist_artifact",
+          "canonical_hash": "sha256:bb78bb01172920ecb8de917e74a1080fba914b6628b14712da2e025a79bfd938",
+          "description": "Upload a file previously created by run_code to a presigned URL. The file path must be relative to the output/ directory of the current session, for example 'reports/report.pdf'. The client must include the same mcp-session-id header used for run_code so the tool can locate the correct session workspace.",
+          "is_mutating": false,
+          "property_keys": [
+            "presigned_url",
+            "relative_path"
+          ],
+          "required_keys": [
+            "presigned_url",
+            "relative_path"
+          ],
+          "parameter_types": {
+            "relative_path": "string",
+            "presigned_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "relative_path": {
+                "type": "string"
+              },
+              "presigned_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "presigned_url",
+              "relative_path"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:257b602fd3b6abff43ed7236d7d0b53e0a9217e971896fa20729f34bd32e3607"
+        },
+        {
+          "name": "preview_file",
+          "canonical_hash": "sha256:458f1f68b695247501ad959e7d486a231e9bed4671cc439f63000b0fb925269c",
+          "description": "Return up to 8 KB of a text file from the session workspace for quick inspection. `relative_path` must point to a file inside the session and not contain '..'.",
+          "is_mutating": false,
+          "property_keys": [
+            "relative_path"
+          ],
+          "required_keys": [
+            "relative_path"
+          ],
+          "parameter_types": {
+            "relative_path": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "relative_path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "relative_path"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cd995fda679f6a1e0e08dc6c3fd79db1b4f75b0a11b90254b126e0cc209911ce"
+        },
+        {
+          "name": "run_code",
+          "canonical_hash": "sha256:835293218ec18ca5e442d0932930a921a2e061af588641bbfe9a508197c92a2c",
+          "description": "Run self-contained Python scripts in an isolated sandbox. Send a 'session_id' header to reuse the environment across runs; otherwise the sandbox is reset each time. Use print() (or log to stderr) to capture output—expressions like df.head() alone will not be returned. Store any artifacts you want back in the output/ directory; they are returned as relative paths and downloadable via /artifacts/{relative_path}. Mounted files are available at mounts/<mountPath>. If stdout is empty or execution fails, a 'feedback' string is added to the response with suggestions. Tip: when printing large pandas DataFrames, call pd.set_option('display.max_columns', None) and pd.set_option('display.width', 10000) first. Moreover try to get column names separately.Optional parameters: requirements (list of pip specs) and files [{url, mountPath}]. Each file is downloaded before execution and made available at ./mounts/<mountPath>. ",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "files",
+            "requirements"
+          ],
+          "required_keys": [
+            "code"
+          ],
+          "parameter_types": {
+            "code": "string",
+            "requirements": "string",
+            "files": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "requirements": {
+                "type": "string"
+              },
+              "files": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d1f2441156df3137569ac2ecd38ffc4304c52eb89f7e265a7c5a338b74a1bca7"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

@@ -4,19 +4,314 @@
   "purl": "pkg:generic/BurtTheCoder%2Fmcp-shodan",
   "ecosystem": "generic",
   "display_name": "BurtTheCoder/mcp-shodan",
-  "description": "MCP server for Shodan API — device search, IP lookup, DNS, and CVE/CPE queries.",
-  "repository_url": "https://github.com/BurtTheCoder/mcp-shodan",
+  "description": "A Model Context Protocol server for querying the Shodan API and Shodan CVEDB, providing access to network intelligence and security services.",
+  "repository_url": "https://smithery.ai/servers/BurtTheCoder/mcp-shodan",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "BurtTheCoder/mcp-shodan"
+    "BurtTheCoder/mcp-shodan",
+    "burtthecoder/mcp-shodan"
   ],
   "sources_merged": [
-    "official_registry"
+    "github_readme",
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:3c9c44fd4e1eb4cfd65b2262f90c99b34336042d2764bc65b3ff4d09ecf3133e",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "https://backend.smithery.ai/storage/v1/object/public/bundles/@burtthecoder/mcp-shodan/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "shodanApiKey"
+            ],
+            "properties": {
+              "shodanApiKey": {
+                "type": "string",
+                "description": "The API key for the Shodan API."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "documentation_extracted_tools": true,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "cpe_lookup",
+          "canonical_hash": "sha256:34e2297a3df9e7f078a8cfd2b519fde05907a89a009f0801f9f979712fcc131f",
+          "description": "Search for Common Platform Enumeration (CPE) entries by product name in Shodan's CVEDB. Supports pagination and can return either full CPE details or just the total count. Useful for identifying specific versions and configurations of software and hardware.",
+          "is_mutating": false,
+          "property_keys": [
+            "count",
+            "limit",
+            "product",
+            "skip"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "skip": "number",
+            "count": "boolean",
+            "limit": "number",
+            "product": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "skip": {
+                "type": "number",
+                "default": 0,
+                "description": "Number of CPEs to skip (for pagination)."
+              },
+              "count": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, returns only the count of matching CPEs."
+              },
+              "limit": {
+                "type": "number",
+                "default": 1000,
+                "description": "Maximum number of CPEs to return (max 1000)."
+              },
+              "product": {
+                "type": "string",
+                "description": "The name of the product to search for CPEs."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2353d368b2c5b982d1612941d4c15d40f92e55581526ab501f15b77da2bcd314"
+        },
+        {
+          "name": "cve_lookup",
+          "canonical_hash": "sha256:d45085ac190515ae23f31ddad65925ec9638af0fc6765c0693a8b8e3e3c27778",
+          "description": "Query detailed vulnerability information from Shodan's CVEDB. Returns comprehensive CVE details including CVSS scores (v2/v3), EPSS probability and ranking, KEV status, proposed mitigations, ransomware associations, and affected products (CPEs).",
+          "is_mutating": false,
+          "property_keys": [
+            "cve"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cve": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cve": {
+                "type": "string",
+                "pattern": "^CVE-\\d{4}-\\d{4,}$",
+                "description": "The CVE identifier to query (format: CVE-YYYY-NNNNN)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ad7cecc4df6eadb6c01fc225b07ee1fd68f2097b28daf3890ba3c90417e758c1"
+        },
+        {
+          "name": "cves_by_product",
+          "canonical_hash": "sha256:e943016c32b328cff7355a271da31d390296957f3acd081f86c94081007fba97",
+          "description": "Search for vulnerabilities affecting specific products or CPEs. Supports filtering by KEV status, sorting by EPSS score, date ranges, and pagination. Can search by product name or CPE 2.3 identifier. Returns detailed vulnerability information including severity scores and impact assessments.",
+          "is_mutating": false,
+          "property_keys": [
+            "count",
+            "cpe23",
+            "end_date",
+            "is_kev",
+            "limit",
+            "product",
+            "skip",
+            "sort_by_epss",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "skip": "number",
+            "count": "boolean",
+            "cpe23": "string",
+            "limit": "number",
+            "is_kev": "boolean",
+            "product": "string",
+            "end_date": "string",
+            "start_date": "string",
+            "sort_by_epss": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "skip": {
+                "type": "number",
+                "default": 0,
+                "description": "Number of CVEs to skip (for pagination)."
+              },
+              "count": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, returns only the count of matching CVEs."
+              },
+              "cpe23": {
+                "type": "string",
+                "description": "The CPE version 2.3 identifier (format: cpe:2.3:part:vendor:product:version)."
+              },
+              "limit": {
+                "type": "number",
+                "default": 1000,
+                "description": "Maximum number of CVEs to return (max 1000)."
+              },
+              "is_kev": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, returns only CVEs with the KEV flag set."
+              },
+              "product": {
+                "type": "string",
+                "description": "The name of the product to search for CVEs."
+              },
+              "end_date": {
+                "type": "string",
+                "description": "End date for filtering CVEs (format: YYYY-MM-DDTHH:MM:SS)."
+              },
+              "start_date": {
+                "type": "string",
+                "description": "Start date for filtering CVEs (format: YYYY-MM-DDTHH:MM:SS)."
+              },
+              "sort_by_epss": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, sorts CVEs by EPSS score in descending order."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0b32e12f7014fb9df990998da58fde2c8782a06fe91de42f2a501277f99dae04"
+        },
+        {
+          "name": "dns_lookup",
+          "canonical_hash": "sha256:35f6373ec66328cc7f479ecb7b06f619db9c231418e0afafa70415c03503d1cd",
+          "description": "Resolve domain names to IP addresses using Shodan's DNS service. Supports batch resolution of multiple hostnames in a single query. Returns IP addresses mapped to their corresponding hostnames.",
+          "is_mutating": false,
+          "property_keys": [
+            "hostnames"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "hostnames": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "hostnames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of hostnames to resolve."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:62bf0264e3f74a9567146c52360e6296171fabb8aa0f05cbe2da72edbaac3ded"
+        },
+        {
+          "name": "ip_lookup",
+          "canonical_hash": "sha256:ca8e2f5c22a427b96dd5b80f0e03320f6afc914bd4686f4da2ba4624748758cd",
+          "description": "Retrieve comprehensive information about an IP address, including geolocation, open ports, running services, SSL certificates, hostnames, and cloud provider details if available. Returns service banners and HTTP server information when present.",
+          "is_mutating": false,
+          "property_keys": [
+            "ip"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ip": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ip": {
+                "type": "string",
+                "description": "The IP address to query."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ea96f3b88c2421044e31902532ba47f0b55e3dbc5530d763d201e07d1f8118a0"
+        },
+        {
+          "name": "reverse_dns_lookup",
+          "canonical_hash": "sha256:2ce518d554aea3bf4dc2d55328ac22cd71c377611dd2f8772751b8ae6ffa5cbc",
+          "description": "Perform reverse DNS lookups to find hostnames associated with IP addresses. Supports batch lookups of multiple IP addresses in a single query. Returns all known hostnames for each IP address, with clear indication when no hostnames are found.",
+          "is_mutating": false,
+          "property_keys": [
+            "ips"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ips": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ips": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of IP addresses to perform reverse DNS lookup on."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cca05a08b02dbe6d43c6a9b9d56a0d02fe560dc5aa63093ca0941dd49f1f7af7"
+        },
+        {
+          "name": "shodan_search",
+          "canonical_hash": "sha256:a539c73b3e7edc5d89a7168b54d6324611006dd1753ed7faefd5fc8f101f1438",
+          "description": "Search Shodan's database of internet-connected devices. Returns detailed information about matching devices including services, vulnerabilities, and geographic distribution. Supports advanced search filters and returns country-based statistics.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_results",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "max_results": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query for Shodan."
+              },
+              "max_results": {
+                "type": "number",
+                "default": 10,
+                "description": "Maximum results to return."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:736691d3bdcfaa1f8ed97d520fa22d7557bc77500e6913fc4d3e80ce43e9440c"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.0.22",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

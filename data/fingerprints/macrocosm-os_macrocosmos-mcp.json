@@ -4,10 +4,10 @@
   "purl": "pkg:pypi/macrocosmos-mcp",
   "ecosystem": "pypi",
   "display_name": "macrocosmos-mcp",
-  "description": "MCP server for integrating Macrocosmos SN13 social media data into Claude Desktop and Cursor",
-  "repository_url": "https://pypi.org/project/macrocosmos-mcp/",
+  "description": "",
+  "repository_url": null,
   "homepage_url": null,
-  "license": "MIT",
+  "license": null,
   "keywords": [],
   "aliases": [
     "macrocosmos-mcp"
@@ -89,6 +89,284 @@
         "resources": false
       },
       "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:9d159ebc1bd5dd9d279d4ac98aef315459a2fb67b418552046e13b6ffc8f59a3",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "build_dataset",
+          "canonical_hash": "sha256:26a6d637c7bb5eba97216565af151a591b46d0757cbf85e2c701b2091ae75d60",
+          "description": "\nBuild a dataset from collected data before the 7-day task completion.\nUse this when you have enough data and don't want to wait for the full collection period.\n\nWARNING: Building a dataset will STOP the crawler and de-register it from the network.\nThe crawler will no longer collect new data after this operation.\n\nParameters:\n- crawler_id (str, REQUIRED): The ID of the crawler to build dataset from\n  (Get this from get_gravity_task_status response - look for 'crawler_ids' field)\n- max_rows (int, default: 10000): Maximum number of rows to include in the dataset\n- email (str, optional): Email address for notification when dataset is ready\n- redirect_url (str, optional): URL to redirect to from the email notification\n\nReturns:\n- dataset_id: Unique identifier to track the dataset build\n- Build status and progress information (10 steps total)\n\nExample:\nbuild_dataset(\n    crawler_id=\"crawler-0-multicrawler-9f518ae4-xxxx\",\n    max_rows=10000,\n    email=\"user@example.com\"\n)\n",
+          "is_mutating": false,
+          "property_keys": [
+            "crawler_id",
+            "email",
+            "max_rows",
+            "redirect_url"
+          ],
+          "required_keys": [
+            "crawler_id"
+          ],
+          "parameter_types": {
+            "crawler_id": "string",
+            "max_rows": "integer",
+            "email": "string",
+            "redirect_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "crawler_id": {
+                "type": "string"
+              },
+              "max_rows": {
+                "type": "integer"
+              },
+              "email": {
+                "type": "string"
+              },
+              "redirect_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "crawler_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:49154fe449d33a9b263a36c168aed1ee78b653e3e57e136e3414ed1dccffebf6"
+        },
+        {
+          "name": "cancel_dataset",
+          "canonical_hash": "sha256:5d1eb26704fccd581e843a37bb59751cf4cc3a347c0eb8dca8ee43fe799b2b14",
+          "description": "\nCancel a dataset build or purge a completed dataset.\n\nParameters:\n- dataset_id (str, REQUIRED): The ID of the dataset to cancel/purge\n\nReturns:\n- Success or error message\n\nExample:\ncancel_dataset(dataset_id=\"dataset-71e97cfa-xxxx-xxxx-xxxx-33cd91be9028\")\n",
+          "is_mutating": false,
+          "property_keys": [
+            "dataset_id"
+          ],
+          "required_keys": [
+            "dataset_id"
+          ],
+          "parameter_types": {
+            "dataset_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dataset_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "dataset_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:685a965c9f454081c0f92e888e718f53c936312b049f5d59ea7f4b94325152ef"
+        },
+        {
+          "name": "cancel_gravity_task",
+          "canonical_hash": "sha256:3d6f51b7a91c3a49e04319964bc432a0dbe002be2404e2db2bd8ebdfdd6fa299",
+          "description": "\nCancel a running Gravity task and stop data collection.\n\nParameters:\n- gravity_task_id (str, REQUIRED): The ID of the gravity task to cancel\n\nReturns:\n- Success or error message\n\nExample:\ncancel_gravity_task(gravity_task_id=\"multicrawler-9f518ae4-xxxx-xxxx-xxxx-8b73d7cd4c49\")\n",
+          "is_mutating": false,
+          "property_keys": [
+            "gravity_task_id"
+          ],
+          "required_keys": [
+            "gravity_task_id"
+          ],
+          "parameter_types": {
+            "gravity_task_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "gravity_task_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "gravity_task_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:29d65747e346d1a1ecdee174f21816586b181f30f03d3a239e9fa909b489c19e"
+        },
+        {
+          "name": "create_gravity_task",
+          "canonical_hash": "sha256:ce379b5cce734d9effe68c7ea5cb35124659ad8261bfe1ef52ebd771853fa576",
+          "description": "\nCreate a Gravity task for large-scale data collection from X (Twitter) or Reddit.\nUse this for collecting large datasets over time (up to 7 days). For quick queries (up to 1000 results), use query_on_demand_data instead.\n\nThe task registers on the network within 20 minutes and collects data for 7 days.\nYou'll receive an email notification when the dataset is ready for download.\n\nParameters:\n- tasks (List[dict], REQUIRED): List of task objects, each containing:\n  * platform (str): 'x' or 'reddit'\n  * topic (str): The hashtag/subreddit to monitor\n    - For X: MUST start with '#' or '$' (e.g., '#ai', '$BTC') - plain keywords are rejected!\n    - For Reddit: subreddit name (e.g., 'r/MachineLearning')\n  * keyword (str, optional): Additional keyword filter within the topic\n    - Filters posts to only those containing this keyword\n    - Example: topic='#Bittensor', keyword='dTAO' -> only #Bittensor posts mentioning 'dTAO'\n- name (str, optional): Name for the task (helps organize multiple tasks)\n- email (str, optional): Email address for notification when dataset is ready\n- redirect_url (str, optional): URL to redirect to from the email notification\n\nReturns:\n- gravity_task_id: Unique identifier to track and manage the task\n\nExamples:\n1. Basic collection:\n   create_gravity_task(\n       tasks=[{\"platform\": \"x\", \"topic\": \"#ai\"}],\n       name=\"AI Tweets\"\n   )\n\n2. With keyword filter:\n   create_gravity_task(\n       tasks=[{\"platform\": \"x\", \"topic\": \"#Bittensor\", \"keyword\": \"dTAO\"}],\n       name=\"Bittensor dTAO mentions\"\n   )\n\n3. Multiple platforms:\n   create_gravity_task(\n       tasks=[\n           {\"platform\": \"x\", \"topic\": \"#ai\", \"keyword\": \"LLM\"},\n           {\"platform\": \"reddit\", \"topic\": \"r/MachineLearning\"}\n       ],\n       name=\"AI Data Collection\",\n       email=\"user@example.com\"\n   )\n",
+          "is_mutating": false,
+          "property_keys": [
+            "email",
+            "name",
+            "redirect_url",
+            "tasks"
+          ],
+          "required_keys": [
+            "tasks"
+          ],
+          "parameter_types": {
+            "tasks": "array",
+            "name": "string",
+            "email": "string",
+            "redirect_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tasks": {
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "redirect_url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "tasks"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ae5da785c12014af0c8e54ea56c068dce7dd043b4731175cabed5a03a9aacfb4"
+        },
+        {
+          "name": "get_dataset_status",
+          "canonical_hash": "sha256:4342a512196c9c7e6fb0df300c91a32a74ededbb3467ef1e86cf8ba53a0c722a",
+          "description": "\nGet the status of a dataset build and download links when ready.\n\nParameters:\n- dataset_id (str, REQUIRED): The ID of the dataset to check\n\nReturns:\n- Build status (Running, Completed, etc.)\n- Progress steps (10 total steps)\n- When completed: Download URLs for Parquet files\n- File metadata (size, row count, expiration date)\n\nExample:\nget_dataset_status(dataset_id=\"dataset-71e97cfa-xxxx-xxxx-xxxx-33cd91be9028\")\n",
+          "is_mutating": false,
+          "property_keys": [
+            "dataset_id"
+          ],
+          "required_keys": [
+            "dataset_id"
+          ],
+          "parameter_types": {
+            "dataset_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dataset_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "dataset_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f36866ee238341c2695ad57ce61e33b34a8d071a6f663a91dd314c394a11e548"
+        },
+        {
+          "name": "get_gravity_task_status",
+          "canonical_hash": "sha256:a814ea1e0c955391af897a7d3830d727f0b72e1a59fa76b598c6a306908b6017",
+          "description": "\nGet the status of a Gravity task and see how much data has been collected.\n\nParameters:\n- gravity_task_id (str, REQUIRED): The ID of the gravity task to check\n- include_crawlers (bool, default: True): Whether to include detailed crawler information\n  Set to True to see records_collected and bytes_collected for each crawler\n\nReturns:\n- Task status (Running, Completed, Pending, etc.)\n- Task name and start time\n- List of crawler IDs (needed for build_dataset)\n- When include_crawlers=True: records_collected, bytes_collected per crawler\n\nExample:\nget_gravity_task_status(gravity_task_id=\"multicrawler-9f518ae4-xxxx-xxxx-xxxx-8b73d7cd4c49\")\n",
+          "is_mutating": false,
+          "property_keys": [
+            "gravity_task_id",
+            "include_crawlers"
+          ],
+          "required_keys": [
+            "gravity_task_id"
+          ],
+          "parameter_types": {
+            "gravity_task_id": "string",
+            "include_crawlers": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "gravity_task_id": {
+                "type": "string"
+              },
+              "include_crawlers": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "gravity_task_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1b467c88bed86568b04ba775a7090b7071a4ff184af4cde35bb42e027edb102f"
+        },
+        {
+          "name": "query_on_demand_data",
+          "canonical_hash": "sha256:63a01343a0290a4790e8ab558fb35bd3925dc83a4cddf23fd7162d845c05c974",
+          "description": "\nFetch real-time social media data from X (Twitter) and Reddit through the Macrocosmos SN13 network.\nIMPORTANT: This tool requires 'source' parameter to be either 'X' or 'REDDIT' (case-sensitive).\nParameters:\n- source (str, REQUIRED): Data platform - must be 'X' or 'REDDIT'\n- usernames (List[str], optional): Up to 5 usernames to monitor.\n  * For X: '@' symbol is optional (e.g., ['elonmusk', '@spacex'] both work)\n  * NOT available for Reddit\n- keywords (List[str], optional): Up to 5 keywords/hashtags to search\n  * For X: any keywords or hashtags (e.g., ['AI', 'crypto', '#bitcoin'])\n  * For Reddit: subreddit names (e.g., ['r/astronomy', 'space']) or 'r/all' for all subreddits\n- start_date (str, optional): Start date/datetime in YYYY-MM-DD or ISO format\n  * Examples: '2024-04-01' or '2024-01-01T00:00:00Z'\n  * Defaults to 24 hours ago from current time if not specified\n- end_date (str, optional): End date/datetime in YYYY-MM-DD or ISO format\n  * Examples: '2024-04-25' or '2024-06-03T23:59:59Z'\n  * Defaults to current time if not specified\n- limit (int, optional): Maximum number of results to return (range: 1-1000, default: 10)\n- keyword_mode (str, optional): How to match keywords - 'any' (default) or 'all'\n  * 'any': returns posts matching ANY of the keywords\n  * 'all': returns posts matching ALL of the keywords\nDefault Behavior (when dates not specified):\nThe tool searches the last 24 hours (from current time back to 24 hours ago).\nUsage Examples:\n1. Get recent tweets from specific users:\n   query_on_demand_data(source='X', usernames=['@elonmusk', '@spacex'], limit=20)\n2. Search tweets by keywords in last 24 hours:\n   query_on_demand_data(source='X', keywords=['AI', 'machine learning'], limit=30)\n3. Monitor specific users AND filter by keywords:\n   query_on_demand_data(source='X', usernames=['@nasa'], keywords=['space', 'mars'], limit=20)\n4. Monitor Reddit subreddits:\n   query_on_demand_data(source='REDDIT', keywords=['r/astronomy', 'space'], limit=50)\n5. Search across all of Reddit with date range:\n   query_on_demand_data(source='REDDIT', keywords=['r/all', 'space'],\n                       start_date='2025-04-01', end_date='2025-04-02', limit=50)\n6. Strict keyword matching (requires ALL keywords):\n   query_on_demand_data(source='X', keywords=['AI', 'machine learning'], keyword_mode='all', limit=30)\n7. Precise datetime range search:\n   query_on_demand_data(source='X', keywords=['Bitcoin'],\n                       start_date='2024-06-01T00:00:00Z',\n                       end_date='2024-06-03T23:59:59Z', limit=100)\nReturns:\nJSON object containing:\n- status: \"success\" or error information\n- data: Array of posts/tweets with full content, user information, engagement metrics,\n        timestamps, platform-specific metadata, and media attachments\n- meta: Processing statistics (miners queried, response rates, items returned, etc.)\nPlatform-Specific Notes:\n- X (Twitter): '@' symbol is optional for usernames\n- Reddit: Does NOT support username filtering, only subreddit/keyword searches\n- All timestamps returned in UTC format\n",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "keyword_mode",
+            "keywords",
+            "limit",
+            "source",
+            "start_date",
+            "usernames"
+          ],
+          "required_keys": [
+            "source"
+          ],
+          "parameter_types": {
+            "source": "string",
+            "usernames": "string",
+            "keywords": "string",
+            "start_date": "string",
+            "end_date": "string",
+            "limit": "integer",
+            "keyword_mode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "usernames": {
+                "type": "string"
+              },
+              "keywords": {
+                "type": "string"
+              },
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "keyword_mode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ce22310f368853a24d2e7474fe5d9a8195747f609ffb004f004052cea7564c67"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

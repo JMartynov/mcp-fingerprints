@@ -4,10 +4,10 @@
   "purl": "pkg:pypi/privacyfence",
   "ecosystem": "pypi",
   "display_name": "privacyfence",
-  "description": "Privacy proxy between Claude (MCP) and your personal data, with an embedded web approval/settings UI",
-  "repository_url": "https://pypi.org/project/privacyfence/",
+  "description": "",
+  "repository_url": null,
   "homepage_url": null,
-  "license": "Apache-2.0",
+  "license": null,
   "keywords": [],
   "aliases": [
     "privacyfence"
@@ -18,6 +18,151 @@
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:26dd3b574abea6d16f7f637fbcaaf34ab7074cbc306302cdeebbe6559854581f",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "privacyfence_await_approval",
+          "canonical_hash": "sha256:0496bcf3e27082267521f4cba1ab75ac70c72eeb30093b7f847eda2418e63647",
+          "description": "Long-poll pending approvals from gated calls' {status: 'approval_pending', approval_id, ...} results; status only, never content. Before the first call for an approval, relay that result's message and url (binder_url if several) to the user -- never wait silently. If pending_count > 1, first issue your other ready gated calls, then pass all approval_ids in one call (one human pass). Keep timeout_seconds under your client's tool-call timeout. Returns {approval_id: status}: 'pending' (schedule a follow-up if you can, else call again), 'approved' (re-issue the ORIGINAL call with identical arguments -- the only way to get the data), 'denied' (a human said no -- re-issuing will not change that; don't retry, ask the user how to proceed unless denial_feedback says otherwise), 'expired' (re-issuing starts a fresh approval) or 'unknown' (no such id here). denial_feedback holds the user's instruction for a denial: follow it. Returns on any change or at the timeout. Prefer this over re-issuing the original call to poll.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1a2a77d21f0d6e421e39c508fe8c62fd4448a40ab7bac5f9d6f913d29bc53e76"
+        },
+        {
+          "name": "privacyfence_begin_unattended_session",
+          "canonical_hash": "sha256:8b25bbcfd3868c9652edca6537b622bb6d11fe35eaabd55dd3f2baccc3c09115",
+          "description": "Tell PrivacyFence this conversation is an unattended/scheduled Cowork run (e.g. a Routine firing on a schedule) with no human necessarily watching, for the rest of this connection. From then on, any gated tool call that isn't already covered by a configured auto-accept rule is denied immediately with a clear error, instead of PrivacyFence opening a native approval dialog that nobody will answer. Call this once at the start of a scheduled run, and pair it with privacyfence_check_policy to plan which steps are safe to attempt. Never changes what auto-accepts, only what happens when nothing does. Errors if an administrator hasn't enabled unattended sessions for this install. Do not call this during a normal interactive conversation -- it makes denials immediate instead of prompting. reason: one sentence on why this session is unattended (e.g. the Routine/schedule that triggered it) -- logged in the audit entry for this session change, since no popup is shown for it to appear in.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:10116225f69977b6e00d338ae43a888fba2d45cb1fc2def67fc63a758cbe6c2c"
+        },
+        {
+          "name": "privacyfence_check_policy",
+          "canonical_hash": "sha256:bbe3e7a606ad94b0a3556d53b62b355f6fee4f8808cad3dd53a927a3dba9c1c9",
+          "description": "Before calling a gated tool, ask whether that exact call would auto-accept or need a human. Pass the connector, tool and args you're about to call. Returns {gate, verdict, matched_rule, matched_rule_id, reason, pii_gate_may_apply}. verdict is 'auto_accept' (the real call will pass through identically), 'requires_review' (no configured rule can match these args), or 'unknown' (it depends on fetched content this can't see in advance). matched_rule_id is set only for 'auto_accept': the privacyfence_list_policy rule id that lets this call through, usable as privacyfence_propose_policy_change's rule_id. For 'review'-gated (read) tools pii_gate_may_apply is always true: the PII gate scans real content and can force a popup even when a rule matches, which can't be predicted. No external API call, no popup, no side effects -- call it freely while planning, especially before and during an unattended run. reason: one sentence on why you're checking now (logged, self-reported, unverified).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:62e14c2b0b67d7b886fe15adbc7c4c0480dfbe68e445c301848152500be38b59"
+        },
+        {
+          "name": "privacyfence_create_upload_slot",
+          "canonical_hash": "sha256:946007657aeffd3f9d285757630a8b892634c144f090733efbdfa9a77bd096c2",
+          "description": "Get a one-time URL to upload a local file to PrivacyFence, for a client without the PrivacyFence extension (e.g. Claude Code) -- use it when a tool's local_path/attachments parameter says PrivacyFence can't read your files directly. Returns {upload_id, upload_url, method: 'PUT', max_bytes, expires_at, example}: PUT the raw bytes to upload_url (e.g. the curl -T example); no Authorization header -- the URL is the credential. Then pass upload_id to the tool that needs the file (its upload_id parameter, e.g. drive_upload_file, or an 'upload:<upload_id>' attachments entry, e.g. gmail_*_with_attachments). Never fetch upload_url yourself or pass it as local_path. Single-use, expires in 10 minutes, claimable only by your next tool call in this conversation. This uploads, gates and approves nothing: that happens when the destination tool runs. reason: one sentence on why this file is needed now (logged, self-reported, unverified).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d9bc3727fc6c45a0cc55051449362e7795c97a9898d678a74c0c630247f5aeed"
+        },
+        {
+          "name": "privacyfence_end_unattended_session",
+          "canonical_hash": "sha256:10277cd9fca0972bc156dbd0c4e1517c1629e3e0dd33074ba88bcd1a87d200ab",
+          "description": "Clear the unattended-session flag set by privacyfence_begin_unattended_session for this connection, restoring normal interactive approval behavior. Call this when a scheduled run finishes. Not strictly required -- the flag also clears automatically when the connection closes -- but call it if this connection might be reused afterward for something interactive. reason: one sentence on why the unattended session is ending now -- logged the same way as privacyfence_begin_unattended_session's.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f7b73a76826b75f47bd8a3734e1030ddf4edcfe1d15704a4022e1b20f13ba09b"
+        },
+        {
+          "name": "privacyfence_list_policy",
+          "canonical_hash": "sha256:783a61ca82627501be23ebc10ca86c0b12d6d9121acf8e277d70a7555cd25378",
+          "description": "List every configured auto-accept rule, plus the scope catalogue privacyfence_propose_policy_change accepts. Returns {rules, scope_groups}. Each rule has: id (pass as privacyfence_propose_policy_change's rule_id to update or remove it), sentence (human-readable), connector, scope_type, value, operations (internal keys, informational), verbs ({verb, family} pairs; family is 'read', 'write', 'send' or 'destructive'), conditions, and covered_tools (every tool name the rule can auto-accept). Each scope_groups entry has an id (pass as group), the verbs that scope can govern (pass a subset as verbs; any other verb is rejected before a popup), and whether it needs a value. Call this before proposing a change: an id or group only matches something real if you listed it rather than guessed. Read-only, no popup. reason: one sentence on why you're listing the policy now (logged, self-reported; this discloses the full rule set).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fdacb95282e8102a48707a9c32081dd2ff54ff42e9fb3f48ce741b8fb9b0d5e9"
+        },
+        {
+          "name": "privacyfence_propose_policy_change",
+          "canonical_hash": "sha256:44257e73ee60d97bfc43cd2d3b5b36d9e5466cff8e4be468945e08da44bcaa70",
+          "description": "Propose adding, updating or removing an auto-accept rule (a scope plus allowed verbs). ALWAYS blocks on a dialog a human must approve. If declined, or in an unattended session, it errors -- check the result, never assume success. Call privacyfence_list_policy first: group, verbs and rule_id must be listed, not guessed; a verb not in that group's scope_groups entry is rejected before any popup.\n\noperation='add'/'update' need group (a scope_groups id, e.g. 'drive.folder'), value (resource ids/names the scope matches, e.g. a Drive folder id; omit when the group's needs_value is false) and verbs (a non-empty subset of the group's verbs, e.g. ['read', 'update']). 'update' also takes rule_id (that rule is removed, then re-added). 'remove' needs only rule_id.\n\nReturns {confirmed, changed, description, rule_ids}: changed is false when confirmed but nothing differed; rule_ids names the rules affected.\n\nreason: one sentence on why you're proposing this (logged, unverified).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c73201d30ab27bbffa85244af2b56b448bd6bdcf12a12da926cbb926fd4a8d77"
+        },
+        {
+          "name": "privacyfence_status",
+          "canonical_hash": "sha256:90e20d4c2ad230aae6f0525d4b3e20db2ca748bd8ec2cc42588215c81e8bfac8",
+          "description": "Check whether THIS PrivacyFence install is set up: call it before the first PrivacyFence-governed action in a conversation, or when asked why a connector (gmail_*, ...) is missing. An empty or partial tool list means connectors aren't authenticated yet, NOT that PrivacyFence is irrelevant -- this is the one tool guaranteed to exist even when every other tool is missing. Returns {mode ('local'/'org'), setup_complete (any connector authenticated), connectors [{name, enabled, authenticated, blocked_by: null, 'no_org_config', 'not_authenticated' or a reason}], next_step, message, sign_in_url (always null)}. If setup isn't complete, relay message to the human as-is. next_step 'open_privacyfence_companion' (local): the human opens PrivacyFence's companion app (menu-bar/tray icon; Linux: applications menu) and chooses Open Settings; you can't, and have no link. 'contact_your_administrator' (org): sign-in is via the org's IdP. Only side effect: an audit entry. reason: one sentence on why you're checking now (logged).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e15c30a6a07aff3a142be963f0cf696eafdd996877b1355e7067a6840274d9f6"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "4.0.0",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
