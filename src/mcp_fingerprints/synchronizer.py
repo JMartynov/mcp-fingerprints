@@ -441,7 +441,8 @@ class PassportSynchronizer:
                                 match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py|go|rs)$', p)
                                 match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js|go|rs)$', p)
                                 match3 = re.search(r'^src/handlers/.*\.(ts|js|go|rs)$', p)
-                                if filename in target_filenames or match1 or match2 or match3:
+                                match4 = re.search(r'.*tool.*\.py$', filename, re.IGNORECASE)
+                                if filename in target_filenames or match1 or match2 or match3 or match4:
                                     score = 10
                                     if "packages/" in p or "servers/" in p or "src/" in p:
                                         score -= 2

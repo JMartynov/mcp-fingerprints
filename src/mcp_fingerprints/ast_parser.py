@@ -96,6 +96,11 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
         if isinstance(decorator, ast.Call):
             func_node = decorator.func
+            
+            # The first positional argument might be the custom name in @tool_manager.register("some_tool")
+            if decorator.args and isinstance(decorator.args[0], ast.Constant) and isinstance(decorator.args[0].value, str):
+                custom_name = decorator.args[0].value
+
             # Extract keywords like name="...", description="..."
             for kw in decorator.keywords:
                 if kw.arg == "name" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
@@ -108,11 +113,67 @@ class FastMcpAstVisitor(ast.NodeVisitor):
         if isinstance(func_node, ast.Attribute):
             if func_node.attr == "tool":
                 is_tool = True
+            elif func_node.attr == "register" and getattr(func_node.value, "id", None) == "tool_manager":
+                is_tool = True
         elif isinstance(func_node, ast.Name):
             if func_node.id in ("tool", "mcp_tool"):
                 is_tool = True
 
         return is_tool, custom_name, custom_desc
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        is_tool_class = False
+        if node.name.endswith("Tool"):
+            is_tool_class = True
+        for base in node.bases:
+            if isinstance(base, ast.Name) and base.id in ("BaseTool", "Tool"):
+                is_tool_class = True
+            elif isinstance(base, ast.Attribute) and base.attr in ("BaseTool", "Tool"):
+                is_tool_class = True
+
+        if is_tool_class:
+            name = None
+            desc = ast.get_docstring(node) or ""
+            args_schema_name = None
+
+            for item in node.body:
+                if isinstance(item, ast.Assign):
+                    for target in item.targets:
+                        if isinstance(target, ast.Name):
+                            if target.id == "name" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                                name = item.value.value
+                            elif target.id == "description" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                                desc = item.value.value
+                            elif target.id == "args_schema" and isinstance(item.value, ast.Name):
+                                args_schema_name = item.value.id
+                elif isinstance(item, ast.AnnAssign):
+                    if isinstance(item.target, ast.Name):
+                        if item.target.id == "name" and item.value is not None and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                            name = item.value.value
+                        elif item.target.id == "description" and item.value is not None and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                            desc = item.value.value
+
+            if name and not any(t["name"] == name for t in self.extracted_tools):
+                properties = {}
+                required = []
+                if args_schema_name and args_schema_name in self.pydantic_models:
+                    model_info = self.pydantic_models[args_schema_name]
+                    properties = model_info["properties"]
+                    required = model_info["required"]
+
+                self.extracted_tools.append({
+                    "name": name,
+                    "description": desc or name,
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": properties,
+                        "required": sorted(required),
+                    },
+                    "property_keys": sorted(properties.keys()),
+                    "required_keys": sorted(required),
+                })
+
+        self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
         """Handle low-level Tool(name="...", description="...", inputSchema={...}) or types.Tool(...)."""
