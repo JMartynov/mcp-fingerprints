@@ -427,7 +427,8 @@ class PassportSynchronizer:
                         
                         target_filenames = {
                             "server.py", "main.py", "app.py", "index.ts", "server.ts", "index.js",
-                            "cli.ts", "mcp.py", "tools.ts", "tools.py", "tool.ts", "tool.py"
+                            "cli.ts", "mcp.py", "tools.ts", "tools.py", "tool.ts", "tool.py",
+                            "main.go", "server.go", "mcp.go", "main.rs", "lib.rs", "server.rs"
                         }
                         candidate_files = []
                         for entry in tree_data.get("tree", []):
@@ -437,9 +438,9 @@ class PassportSynchronizer:
                                 if len(parts) > 4:
                                     continue
                                 filename = parts[-1]
-                                match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py)$', p)
-                                match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js)$', p)
-                                match3 = re.search(r'^src/handlers/.*\.(ts|js)$', p)
+                                match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py|go|rs)$', p)
+                                match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js|go|rs)$', p)
+                                match3 = re.search(r'^src/handlers/.*\.(ts|js|go|rs)$', p)
                                 if filename in target_filenames or match1 or match2 or match3:
                                     score = 10
                                     if "packages/" in p or "servers/" in p or "src/" in p:
@@ -560,6 +561,11 @@ class PassportSynchronizer:
                 ("src/handlers/index.ts", "ts"),
                 ("src/server/index.ts", "ts"),
                 ("src/mcp/server.ts", "ts"),
+                ("main.go", "go"),
+                ("server.go", "go"),
+                ("mcp.go", "go"),
+                ("src/main.rs", "rs"),
+                ("src/lib.rs", "rs"),
             ])
 
             # Deduplicate preserving order

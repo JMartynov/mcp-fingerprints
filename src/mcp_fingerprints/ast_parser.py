@@ -425,10 +425,151 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
     return extracted
 
 
-def parse_mcp_source_code(code: str, language: str = "python") -> list[dict[str, Any]]:
-    """Parse MCP source code in Python or TypeScript/JavaScript and return extracted tool signatures."""
-    if language.lower() in ("python", "py"):
-        return parse_python_mcp_ast(code)
-    elif language.lower() in ("typescript", "ts", "javascript", "js"):
-        return parse_typescript_mcp_ast(code)
-    return []
+def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
+    """Statically extract MCP tool definitions from Golang source code."""
+    extracted: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+
+    for match in re.finditer(r'mcp\.NewTool\s*\(\s*["\']([^"\']+)["\']', code):
+        name = match.group(1)
+        if name in seen_names:
+            continue
+        seen_names.add(name)
+        
+        start_idx = match.end()
+        chunk = code[start_idx:start_idx + 1500]
+        
+        end_idx = -1
+        open_parens = 1
+        for i, char in enumerate(chunk):
+            if char == '(':
+                open_parens += 1
+            elif char == ')':
+                open_parens -= 1
+                if open_parens == 0:
+                    end_idx = i
+                    break
+        
+        body = chunk[:end_idx] if end_idx != -1 else chunk
+            
+        desc = name
+        desc_match = re.search(r'mcp\.WithDescription\s*\(\s*["\']([^"\']+)["\']\s*\)', body)
+        if desc_match:
+            desc = desc_match.group(1)
+            
+        properties: dict[str, dict[str, str]] = {}
+        required: list[str] = []
+        
+        param_regex = re.compile(
+            r'mcp\.With(String|Number|Boolean|Object|Array|Float|Int)\s*\(\s*["\']([^"\']+)["\']\s*(.*?)\)',
+            re.DOTALL
+        )
+        for p_match in param_regex.finditer(body):
+            ptype_raw = p_match.group(1).lower()
+            pname = p_match.group(2)
+            p_args = p_match.group(3)
+            
+            schema_type = "string"
+            if ptype_raw in ("number", "int", "float"):
+                schema_type = "number"
+            elif ptype_raw == "boolean":
+                schema_type = "boolean"
+            elif ptype_raw == "object":
+                schema_type = "object"
+            elif ptype_raw == "array":
+                schema_type = "array"
+                
+            properties[pname] = {"type": schema_type}
+            if "mcp.Required" in p_args or "Required:" in p_args:
+                required.append(pname)
+                
+        extracted.append({
+            "name": name,
+            "description": desc,
+            "inputSchema": {
+                "type": "object",
+                "properties": properties,
+                "required": sorted(required),
+            }
+        })
+        
+    return extracted
+
+
+def parse_rust_mcp_code(code: str) -> list[dict[str, Any]]:
+    """Statically extract MCP tool definitions from Rust source code."""
+    extracted: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+    
+    def add_tool(name: str, desc: str, props: dict[str, Any], req: list[str]) -> None:
+        if not name or name in seen_names:
+            return
+        seen_names.add(name)
+        extracted.append({
+            "name": name,
+            "description": desc or name,
+            "inputSchema": {
+                "type": "object",
+                "properties": props,
+                "required": sorted(req),
+            }
+        })
+        
+    # Pattern 1: #[mcp_tool(name = "...", description = "...")]
+    for match in re.finditer(r'#\[mcp_tool\s*\((.*?)\)\]', code, re.DOTALL):
+        attrs = match.group(1)
+        name_m = re.search(r'name\s*=\s*["\']([^"\']+)["\']', attrs)
+        if name_m:
+            name = name_m.group(1)
+            desc_m = re.search(r'description\s*=\s*["\']([^"\']+)["\']', attrs)
+            desc = desc_m.group(1) if desc_m else name
+            add_tool(name, desc, {}, [])
+            
+    # Pattern 2: define_tool!("name", "description", ...)
+    for match in re.finditer(r'define_tool!\s*\(\s*["\']([^"\']+)["\']\s*,\s*["\']([^"\']+)["\']', code):
+        name = match.group(1)
+        desc = match.group(2)
+        add_tool(name, desc, {}, [])
+        
+    # Pattern 3: Tool { name: "...", description: "..." }
+    for match in re.finditer(r'Tool\s*\{\s*[^{}]*?name\s*:\s*["\']([^"\']+)["\'](?:\.into\(\)|\.to_string\(\))?[^{}]*?description\s*:\s*["\']([^"\']+)["\'](?:\.into\(\)|\.to_string\(\))?', code, re.DOTALL):
+        name = match.group(1)
+        desc = match.group(2)
+        add_tool(name, desc, {}, [])
+
+    # Pattern 3 reverse: Tool { description: "...", name: "..." }
+    for match in re.finditer(r'Tool\s*\{\s*[^{}]*?description\s*:\s*["\']([^"\']+)["\'](?:\.into\(\)|\.to_string\(\))?[^{}]*?name\s*:\s*["\']([^"\']+)["\'](?:\.into\(\)|\.to_string\(\))?', code, re.DOTALL):
+        desc = match.group(1)
+        name = match.group(2)
+        add_tool(name, desc, {}, [])
+        
+    return extracted
+
+
+def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[str, Any]]:
+    """Parse MCP source code and return extracted tool signatures."""
+    if language:
+        lang = language.lower()
+        if lang in ("python", "py"):
+            return parse_python_mcp_ast(code)
+        elif lang in ("typescript", "ts", "javascript", "js", "mjs"):
+            return parse_typescript_mcp_ast(code)
+        elif lang in ("go", "golang"):
+            return parse_golang_mcp_code(code)
+        elif lang in ("rust", "rs"):
+            return parse_rust_mcp_code(code)
+            
+    # Heuristics if language is unknown or not matched
+    if code.startswith("package ") or "mcp.NewTool" in code:
+        res = parse_golang_mcp_code(code)
+        if res: return res
+        
+    if "fn main()" in code or "use rmcp" in code or "#[mcp_tool" in code:
+        res = parse_rust_mcp_code(code)
+        if res: return res
+
+    # Try python and ts fallbacks
+    py_res = parse_python_mcp_ast(code)
+    if py_res: return py_res
+    
+    return parse_typescript_mcp_ast(code)
