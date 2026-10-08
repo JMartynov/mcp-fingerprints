@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from mcp_fingerprints.ast_parser import parse_mcp_source_code, parse_typescript_mcp_ast, parse_python_mcp_ast
+from mcp_fingerprints.monorepo_prober import match_monorepo_subpackage_dir
 from mcp_fingerprints.openapi_parser import parse_openapi_spec
 from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from mcp_fingerprints.canonicalizer import (
@@ -470,10 +471,20 @@ class PassportSynchronizer:
                             "Server.kt", "Tools.kt", "Main.kt",
                             "openapi.json", "swagger.json", "openapi.yaml", "openapi.yml", "swagger.yaml", "swagger.yml"
                         }
+                        all_tree_paths = [
+                            entry.get("path", "") 
+                            for entry in tree_data.get("tree", []) 
+                            if entry.get("type") == "blob"
+                        ]
+                        subpackage_prefix = match_monorepo_subpackage_dir(package_name, all_tree_paths)
+
                         candidate_files = []
                         for entry in tree_data.get("tree", []):
                             if entry.get("type") == "blob":
                                 p = entry.get("path", "")
+                                
+                                if subpackage_prefix and not p.startswith(subpackage_prefix):
+                                    continue
                                 parts = p.split("/")
                                 if len(parts) > 4:
                                     continue

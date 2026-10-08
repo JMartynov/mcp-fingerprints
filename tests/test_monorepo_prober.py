@@ -54,6 +54,8 @@ def test_github_tree_monorepo_deep_extraction(mock_urlopen):
     tool_names = {t["name"] for t in tools}
     assert "postgres_query" in tool_names
     assert "postgres_insert" in tool_names
+    assert "root_tool" not in tool_names
+    assert "old_postgres" not in tool_names
 
 
 @patch("urllib.request.urlopen")
