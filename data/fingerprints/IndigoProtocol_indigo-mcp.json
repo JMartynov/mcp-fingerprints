@@ -4,16 +4,18 @@
   "purl": "pkg:generic/IndigoProtocol%2Findigo-mcp",
   "ecosystem": "generic",
   "display_name": "IndigoProtocol/indigo-mcp",
-  "description": "Indigo Protocol MCP — iAsset prices, CDP analytics, stability pools, staking & governance",
-  "repository_url": "https://github.com/IndigoProtocol/indigo-mcp",
+  "description": "# Indigo MCP\n\n\nMCP server for [Indigo Protocol](https://indigoprotocol.io/) — exposes Indigo iAsset data, prices, and CDP/loan analytics to LLM agents via the [Model Context Protocol](https://modelcontextprotocol.io/).\n\n## Features\n\n- Real-time iAsset prices (iUSD, iBTC, iETH, iSOL)\n- ADA and INDY token price feeds\n- CDP/loan browsing with pagination and filtering\n- Owner lookup by payment key hash or bech32 address\n- CDP health analysis with collateral ratio and liquidation risk status\n- Stability pool state and account queries\n- INDY staking positions and manager state\n- Protocol analytics: TVL, APR rewards, DEX yields, aggregated stats\n- Governance: protocol parameters, polls, temperature checks\n- Redemption order book and queue aggregation\n- DEX proxy: Steelswap swaps, Iris liquidity pools, Blockfrost balances\n- CDP liquidation, redemption, freeze, and merge operations\n- Leveraged CDP opening via LRP positions\n- LRP (Limit Redemption Protocol) position management\n- Oracle interest rate feeding and initialization\n- Stability pool request processing and cancellation\n- Staking reward distribution\n- Collector UTXOs, IPFS storage and retrieval\n\n## Quick Start\n\nInstall globally:\n\n```bash\nnpm install -g @indigoprotocol/indigo-mcp\n```\n\nOr run directly with npx (no install needed):\n\n```bash\nnpx @indigoprotocol/indigo-mcp\n```\n\n### Docker\n\n```bash\ndocker build -t indigo-mcp .\ndocker run -i indigo-mcp\n```\n\n### HTTP Transport (Remote)\n\nThe server supports HTTP transport for remote/hosted deployments:\n\n```bash\nMCP_TRANSPORT=http PORT=3000 npx @indigoprotocol/indigo-mcp\n```\n\nThis starts an HTTP server with:\n- `POST /mcp` — MCP endpoint (Streamable HTTP with SSE)\n- `GET /health` — Health check\n\n## Configuration\n\n> **Note:** `BLOCKFROST_API_KEY` is required for write operations (transaction building). Read-only tools work without it. Get a free key at [blockfrost.io](https://blockfrost.io/).\n\n### Claude Desktop\n\nAdd to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\\Claude\\claude_desktop_config.json` (Windows):\n\n```json\n{\n  \"mcpServers\": {\n    \"indigo\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@indigoprotocol/indigo-mcp\"],\n      \"env\": {\n        \"INDEXER_URL\": \"https://analytics.indigoprotocol.io/api/v1\",\n        \"BLOCKFROST_API_KEY\": \"your-blockfrost-project-id\"\n      }\n    }\n  }\n}\n```\n\n### Claude Code (CLI)\n\nAdd to `~/.claude/settings.json` or `.claude/settings.json` in your project:\n\n```json\n{\n  \"mcpServers\": {\n    \"indigo\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@indigoprotocol/indigo-mcp\"],\n      \"env\": {\n        \"INDEXER_URL\": \"https://analytics.indigoprotocol.io/api/v1\",\n        \"BLOCKFROST_API_KEY\": \"your-blockfrost-project-id\"\n      }\n    }\n  }\n}\n```\n\n### Cursor\n\nAdd to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project-level):\n\n```json\n{\n  \"mcpServers\": {\n    \"indigo\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@indigoprotocol/indigo-mcp\"],\n      \"env\": {\n        \"INDEXER_URL\": \"https://analytics.indigoprotocol.io/api/v1\",\n        \"BLOCKFROST_API_KEY\": \"your-blockfrost-project-id\"\n      }\n    }\n  }\n}\n```\n\n### Windsurf\n\nAdd to `~/.codeium/windsurf/mcp_config.json`:\n\n```json\n{\n  \"mcpServers\": {\n    \"indigo\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@indigoprotocol/indigo-mcp\"],\n      \"env\": {\n        \"INDEXER_URL\": \"https://analytics.indigoprotocol.io/api/v1\",\n        \"BLOCKFROST_API_KEY\": \"your-blockfrost-project-id\"\n      }\n    }\n  }\n}\n```\n\n### Any MCP-Compatible Client\n\nRun the server directly via stdio:\n\n```bash\nINDEXER_URL=https://analytics.indigoprotocol.io/api/v1 \\\nBLOCKFROST_API_KEY=your-blockfrost-project-id \\\nnpx @indigoprotocol/indigo-mcp\n```\n\nOr install globally and reference the binary:\n\n```bash\nnpm install -g @indigoprotocol/indigo-mcp\nindigo-mcp\n```\n\nFor any client that supports MCP over stdio, point it to the `npx @indigoprotocol/indigo-mcp` command with the environment variables above.\n\n## Environment Variables\n\n- `INDEXER_URL` — Indigo analytics API base URL (default: `https://analytics.indigoprotocol.io/api/v1`)\n- `BLOCKFROST_API_KEY` — Blockfrost project ID for transaction building (required for write ops)\n- `CARDANO_NETWORK` — Cardano network: `mainnet`, `preprod`, or `preview` (default: `mainnet`)\n- `MCP_TRANSPORT` — Transport mode: `stdio` or `http` (default: `stdio`)\n- `PORT` — HTTP server port when `MCP_TRANSPORT=http` (default: `3000`)\n\n## Example Queries\n\nWhen connected to an LLM agent, you can ask natural language questions like:\n\n- \"What are the current prices of all Indigo iAssets?\"\n- \"What is the price of iUSD right now?\"\n- \"How much is ADA worth in USD?\"\n- \"Show me all iETH CDPs\"\n- \"What CDPs does this address own?\" (paste a Cardano address)\n- \"Analyze the health of my CDPs\" (with your address or payment key hash)\n- \"Are any of my positions at risk of liquidation?\"\n- \"Show me the current stability pool state\"\n- \"What are my stability pool deposits?\" (with your address)\n- \"How much INDY am I staking?\" (with your address)\n- \"What's the current TVL of Indigo?\"\n- \"What APR can I earn on iUSD stability pool?\"\n- \"What are the current governance protocol parameters?\"\n- \"Show me the iUSD redemption queue\"\n- \"Get a Steelswap estimate for swapping 100 ADA to iUSD\"\n- \"What are the current DEX yields for iAsset pairs?\"",
+  "repository_url": "https://indigo-mcp--indigoprotocol.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "IndigoProtocol/indigo-mcp"
+    "IndigoProtocol/indigo-mcp",
+    "indigoprotocol/indigo-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -29,6 +31,2095 @@
         "resources": false
       },
       "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:8ba1b6eca5ee795ff38472337a5c30bf5e1eaa4233755977aa277ab0067eb1bc",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://indigo-mcp--indigoprotocol.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "adjust_lrp",
+          "canonical_hash": "sha256:9bcb8098a372640c6adc90fda57a74c5316f1325e6f30b2200e3d8335bb399b6",
+          "description": "Adjust ADA amount in an LRP position (positive to increase, negative to decrease). Optionally update the max price. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "lovelacesAdjustAmount",
+            "lrpOutputIndex",
+            "lrpTxHash",
+            "newMaxPrice"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "lrpTxHash": "string",
+            "newMaxPrice": "string",
+            "lrpOutputIndex": "number",
+            "lovelacesAdjustAmount": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "lrpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the LRP UTxO"
+              },
+              "newMaxPrice": {
+                "type": "string",
+                "description": "Optional new max price as an on-chain integer string"
+              },
+              "lrpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the LRP UTxO"
+              },
+              "lovelacesAdjustAmount": {
+                "type": "string",
+                "description": "Lovelace adjustment amount (positive to add, negative to remove)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:83947073f294bb57f77ec42794136fe1036dca6d4d0f46a81dd47e1c07724104"
+        },
+        {
+          "name": "adjust_sp_account",
+          "canonical_hash": "sha256:8b3cd837d294584091c84bf07052897ff94d8adac92fe845f7024a89fbd4c438",
+          "description": "Deposit to or withdraw from an existing stability pool account. Positive amount deposits, negative withdraws. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "accountOutputIndex",
+            "accountTxHash",
+            "address",
+            "amount",
+            "asset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "amount": "string",
+            "address": "string",
+            "accountTxHash": "string",
+            "accountOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string",
+                "description": "iAsset of the stability pool (iUSD, iBTC, iETH, or iSOL)"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount to adjust (positive = deposit, negative = withdraw, in smallest unit)"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "accountTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the account UTxO"
+              },
+              "accountOutputIndex": {
+                "type": "number",
+                "description": "Output index of the account UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2360096bdeec83f014afe9dd1eee7b077ec6af88d340d47081b78a2a360380aa"
+        },
+        {
+          "name": "adjust_staking_position",
+          "canonical_hash": "sha256:782de361f9e12182c0c653c158a4e8a82a2189362d8d56cc815e6040efc22a54",
+          "description": "Adjust an existing INDY staking position (add or remove INDY). Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount",
+            "positionOutputIndex",
+            "positionTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amount": "string",
+            "address": "string",
+            "positionTxHash": "string",
+            "positionOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "description": "INDY amount to adjust (positive = stake more, negative = unstake)"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "positionTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the staking position UTxO"
+              },
+              "positionOutputIndex": {
+                "type": "number",
+                "description": "Output index of the staking position UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9adb48dd23f7dcb5eb81be0ac3b78cd3e4bcc7222e506d23ae2285f18f7dd90f"
+        },
+        {
+          "name": "analyze_cdp_health",
+          "canonical_hash": "sha256:4242d798a35219dc0db0ecdf1e1749b31ec0065d2b5b5028d203f6fa658d738f",
+          "description": "Analyze health and collateral ratios of CDPs for an owner",
+          "is_mutating": false,
+          "property_keys": [
+            "owner"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "owner": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "type": "string",
+                "description": "Owner payment key hash (56-char hex) or bech32 address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:72eda6f7b71f2e53da902a5de0c1d68c709c55a2f7eb5f2de2935a945191114a"
+        },
+        {
+          "name": "annul_sp_request",
+          "canonical_hash": "sha256:8c4c9a508b1174399130e48ce5b045dbb93237a2ad85c3af18ba2b9b46ba3086",
+          "description": "Cancel a pending stability pool request. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "accountOutputIndex",
+            "accountTxHash",
+            "address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "accountTxHash": "string",
+            "accountOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "accountTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the account UTxO with the pending request"
+              },
+              "accountOutputIndex": {
+                "type": "number",
+                "description": "Output index of the account UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ec49cb87371cd8d5d32c01ccb4d2c8bd47a5c4f5e3ccf34285edcb51085012c6"
+        },
+        {
+          "name": "burn_cdp",
+          "canonical_hash": "sha256:15423efa394d62b404148c413070ed60e0e8ebffc1135f7d6e4006b9a663485e",
+          "description": "Burn iAssets to reduce CDP debt — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "amount": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "amount": {
+                "type": "string",
+                "description": "iAsset amount to burn in smallest unit"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:eecbfed20530fc82d73f9a140dccfda2508c5fcafc33a998f6b645ae6fea683d"
+        },
+        {
+          "name": "cancel_lrp",
+          "canonical_hash": "sha256:c895971f60817163e55808dc73fd34313661c6ac7ce45194a9a2d657a8285b44",
+          "description": "Cancel an existing LRP position. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "lrpOutputIndex",
+            "lrpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "lrpTxHash": "string",
+            "lrpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "lrpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the LRP UTxO"
+              },
+              "lrpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the LRP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:da5a0d5235a74bcdfaa157cd835c790c08c12596f21cbda92850aa3b39ec91c8"
+        },
+        {
+          "name": "claim_lrp",
+          "canonical_hash": "sha256:413bf69a028f83f04ddcd2aa99c40c4d758c54f2ad95ad0c944f00ca1294ed60",
+          "description": "Claim received iAssets from an LRP position. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "lrpOutputIndex",
+            "lrpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "lrpTxHash": "string",
+            "lrpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "lrpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the LRP UTxO"
+              },
+              "lrpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the LRP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:43cca6123f77141d67fd8556e274689827d60913921768f7634c8a6c262a0043"
+        },
+        {
+          "name": "close_cdp",
+          "canonical_hash": "sha256:31cb5719ca3ad16ff3feed6108dcfb1bdb7c1aed1e92b38d5f187e7bb696f1a9",
+          "description": "Close a CDP and reclaim collateral — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:160496959c3ddeb56dac9614cacb8aaa92af926c0d48c22a7322fb63d216cfc5"
+        },
+        {
+          "name": "close_sp_account",
+          "canonical_hash": "sha256:07ba65c818f047e7d1efb72a7b942c9288ee0d50fabddd5cef06187e2cc28c80",
+          "description": "Close a stability pool account and withdraw all deposited iAssets. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "accountOutputIndex",
+            "accountTxHash",
+            "address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "accountTxHash": "string",
+            "accountOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "accountTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the account UTxO"
+              },
+              "accountOutputIndex": {
+                "type": "number",
+                "description": "Output index of the account UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:40a0af764570141679725fa7a74737751b01ab05d424060bbcc9dbb7ae964b6e"
+        },
+        {
+          "name": "close_staking_position",
+          "canonical_hash": "sha256:c49b55cbca46864c7032d47a537d516b820f8c99b53ab41c448c8ef49f2151ea",
+          "description": "Close an INDY staking position and unstake all INDY. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "positionOutputIndex",
+            "positionTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "positionTxHash": "string",
+            "positionOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "positionTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the staking position UTxO"
+              },
+              "positionOutputIndex": {
+                "type": "number",
+                "description": "Output index of the staking position UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2af16f773248dd08d5ac4272a01a8f1d1cbf77cef3514ad59d3c5d43d254cb52"
+        },
+        {
+          "name": "create_sp_account",
+          "canonical_hash": "sha256:dc020add2491602544df7371882491d75a7c5d807328ce2328af05b7479c1e43",
+          "description": "Create a new stability pool account by depositing iAssets. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount",
+            "asset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "amount": "string",
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string",
+                "description": "iAsset to deposit (iUSD, iBTC, iETH, or iSOL)"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Amount of iAsset to deposit (in smallest unit)"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8ccb836b08db98ff0ae0d62cdf2d8b6aff6b9cc517c3f98b7035ce7207aec326"
+        },
+        {
+          "name": "deposit_cdp",
+          "canonical_hash": "sha256:76d94fa0b9bb8dc68efdc9231ec4fbb7e9cbd94f33ecc2f9d25f6267063ec2ea",
+          "description": "Deposit additional collateral into a CDP — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "amount": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Lovelace amount to deposit"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ae32e972b0f04db7473e59b15f3dbf86b7ca4af0c9809a1d1909490eaa4e76e7"
+        },
+        {
+          "name": "distribute_staking_rewards",
+          "canonical_hash": "sha256:f22e79148c8a4e2af667b72c957df008a83643f69d76a817a57f2923a102760e",
+          "description": "Distribute collected ADA rewards from collector UTxOs to staking positions. This is a protocol maintenance operation that anyone can call. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "collectorTxHashes"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "collectorTxHashes": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "collectorTxHashes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "txHash",
+                    "outputIndex"
+                  ],
+                  "properties": {
+                    "txHash": {
+                      "type": "string",
+                      "description": "Transaction hash of the collector UTxO"
+                    },
+                    "outputIndex": {
+                      "type": "number",
+                      "description": "Output index of the collector UTxO"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Array of collector UTxO references to distribute rewards from"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:efba6e410e9bc3c8481bde55b98f4f01a6b77c6e859837cfb4057f31117596c9"
+        },
+        {
+          "name": "feed_interest_oracle",
+          "canonical_hash": "sha256:40e16f9be49217a4d3684b7765577e07d73ea19cb34e3f36faa6ab9d5002ac08",
+          "description": "Feed a new interest rate to the interest oracle for a given iAsset. Returns an unsigned transaction (CBOR hex) for client-side signing. Only callable by the oracle operator.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "asset",
+            "biasTime",
+            "newInterestRate",
+            "owner"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "owner": "string",
+            "address": "string",
+            "biasTime": "string",
+            "newInterestRate": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "owner": {
+                "type": "string",
+                "description": "Oracle operator pub key hash (hex)"
+              },
+              "address": {
+                "type": "string",
+                "description": "Oracle operator Cardano bech32 address"
+              },
+              "biasTime": {
+                "type": "string",
+                "description": "Oracle bias time in milliseconds as bigint string"
+              },
+              "newInterestRate": {
+                "type": "string",
+                "description": "New interest rate as bigint string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45f56a7fffc9d349d073c2f00b3fbafe367cdf074e5b94e3fbeb8cda21e71d71"
+        },
+        {
+          "name": "freeze_cdp",
+          "canonical_hash": "sha256:b128f5563bc7be7b2c9fb28be2f02caaef466e7d15120faf6e6713ee049b2658",
+          "description": "Freeze a CDP to prevent further operations until unfrozen — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b86c9e8340d307ff6c3ef6635a6f3f1d3ca9399cdec95a27bfa7c1b29e15d415"
+        },
+        {
+          "name": "get_ada_price",
+          "canonical_hash": "sha256:3e4e13e13ce1c9b789ca2740ceaac1b16561c59da2f402387852d6075930af76",
+          "description": "Get the current ADA price in USD",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8c4c153f006f58cdc2268f53f4a350375bd8a7e838de62e3d3ab8930957b2431"
+        },
+        {
+          "name": "get_all_cdps",
+          "canonical_hash": "sha256:e03d108493c05e739b9eabc398155c42f288143e6d1b41539c92005bcbd37001",
+          "description": "Get all CDPs/loans, optionally filtered by iAsset",
+          "is_mutating": false,
+          "property_keys": [
+            "asset",
+            "limit",
+            "offset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "limit": "number",
+            "offset": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "limit": {
+                "type": "number",
+                "default": 50,
+                "maximum": 500,
+                "minimum": 1
+              },
+              "offset": {
+                "type": "number",
+                "default": 0,
+                "minimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:149619a578c698928561c78dad1795f74369557e2d421d6e17bd98358a64be53"
+        },
+        {
+          "name": "get_apr_by_key",
+          "canonical_hash": "sha256:6713835e84b1aebcc5ddcbfdd9d6ad74f8ccbd537fc1b531399a0b466505f8f3",
+          "description": "Get APR for a specific key",
+          "is_mutating": false,
+          "property_keys": [
+            "key"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "APR key, e.g. sp_iUSD_indy, sp_iUSD_ada, stake_ada"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ee8bd66fc1c599bc8aba83efbabc968b21db5bf9226a3d1bf8f0118fa1600e0e"
+        },
+        {
+          "name": "get_apr_rewards",
+          "canonical_hash": "sha256:90f774b3ddb64bfefe836cd5d90e268363e16716c4b3cfa41df5ba4eb7f70b65",
+          "description": "Get all APR reward records",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5a64a35eed7fae356320aff47a14a9fcd2bffed4b161aa0b5e8f023d51b5b414"
+        },
+        {
+          "name": "get_asset",
+          "canonical_hash": "sha256:12e1cb4896dabd94b03747d9395cf40e8de0f3e69ee6e8a688943dfb5c0d3131",
+          "description": "Get details for a specific Indigo iAsset",
+          "is_mutating": false,
+          "property_keys": [
+            "asset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b0cc80eda3fae5ec9afa168409ff5e6a6ef55cf5b8cf270fd73fbbc41d63b128"
+        },
+        {
+          "name": "get_asset_price",
+          "canonical_hash": "sha256:4ad938a6215a227913345d26285984e41a0777714bcb792bb103702f2ae3e5e6",
+          "description": "Get the current price for a specific Indigo iAsset",
+          "is_mutating": false,
+          "property_keys": [
+            "asset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ba21b249a5ccb0130e69b3378e4659ab38e4ec88a3fb72fc09524fa282cd29d5"
+        },
+        {
+          "name": "get_assets",
+          "canonical_hash": "sha256:1816655da8f4247bae6dec4b3d8b370dc757f1abe23a89f2f61f8d37021b7e73",
+          "description": "Get all Indigo iAssets with prices and interest data",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:75b64920a82ce8c3e0b55bb8f807067f2cb305036cd6867dd8bd7f695193d07e"
+        },
+        {
+          "name": "get_blockfrost_balances",
+          "canonical_hash": "sha256:70097a0146810fe891e31c48be6dd1f1a6c69edf5f433b963b8abf723823bab3",
+          "description": "Get token balances for a Cardano address via Blockfrost",
+          "is_mutating": false,
+          "property_keys": [
+            "address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Cardano bech32 address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8c92dab95150695c237c9518c616872c0d5ddb826f2ad503d62f8d5d702aee54"
+        },
+        {
+          "name": "get_cdps_by_address",
+          "canonical_hash": "sha256:9e430571a0c3b56f792ce9929c53f73e27b03f166f51b58d8b0b8fa1d74b552b",
+          "description": "Get all CDPs/loans for a specific Cardano address",
+          "is_mutating": false,
+          "property_keys": [
+            "address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Cardano bech32 address (addr1... or addr_test1...)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e6e9968849aeeab53ccb01724c9c6f9c452150968c981d0e7da67a39a3078643"
+        },
+        {
+          "name": "get_cdps_by_owner",
+          "canonical_hash": "sha256:b460a882c014281c28f655c39881ad960851ae07521eb1fabab39cd4aa90f3c9",
+          "description": "Get all CDPs/loans for a specific owner (accepts payment key hash or bech32 address)",
+          "is_mutating": false,
+          "property_keys": [
+            "owner"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "owner": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "type": "string",
+                "description": "Owner payment key hash (56-char hex) or bech32 address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4cae2f8f1d726f04a79cf1476b7a986abc1d1c4b2745835ee7fca737389a6f99"
+        },
+        {
+          "name": "get_collector_utxos",
+          "canonical_hash": "sha256:9c9869db0883524c55116d760664591fa5465f9cfddb47011f53f226ab48ce32",
+          "description": "Get collector UTXOs for fee distribution",
+          "is_mutating": false,
+          "property_keys": [
+            "length"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "length": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "length": {
+                "type": "number",
+                "description": "Maximum number of UTXOs to return"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:022eff91b8d5fc10ad1dc7ba781070cec928e015633a7cb3c8a4ed7a6ef9a44b"
+        },
+        {
+          "name": "get_dex_yields",
+          "canonical_hash": "sha256:23bfba42013090d5d811a56f6ee3987f20e94d5ffa2cb018226515753237f54b",
+          "description": "Get DEX farm yields for iAsset pairs",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e41a1adbe2f27bf12108757ca7525b3e8e5f6a5f183ad90767ed2d44c94eeead"
+        },
+        {
+          "name": "get_indy_price",
+          "canonical_hash": "sha256:e4c796688053d360b32fdd597123afc04e7eca0401a8a7baf122c3cdb3d0c3d2",
+          "description": "Get the current INDY token price in ADA and USD",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e1fb18e96b69fd184e0aa405392d7373737cb5e6f4dd73d61817bf56692f7dec"
+        },
+        {
+          "name": "get_iris_liquidity_pools",
+          "canonical_hash": "sha256:01ae1bf5e894f04ad6db0f7c43bda3296656f2485defbbe7159c08774fd357cc",
+          "description": "Get liquidity pools from Iris, optionally filtered by tokens or DEX",
+          "is_mutating": false,
+          "property_keys": [
+            "dex",
+            "tokenA",
+            "tokenB"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dex": "string",
+            "tokenA": "string",
+            "tokenB": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dex": {
+                "type": "string",
+                "description": "DEX name filter"
+              },
+              "tokenA": {
+                "type": "string",
+                "description": "First token identifier"
+              },
+              "tokenB": {
+                "type": "string",
+                "description": "Second token identifier"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:001a27dd71365c0deaaca469f4b2e5b0375e1f354c2083cac9d82b1486fd4b80"
+        },
+        {
+          "name": "get_order_book",
+          "canonical_hash": "sha256:66bee733933841caa67d2a91bf5a1d36d62042a3a7fda8cf1a251dfa23f41db1",
+          "description": "Get open limited redemption positions from the order book, optionally filtered by asset or owners",
+          "is_mutating": false,
+          "property_keys": [
+            "asset",
+            "owners"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "owners": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "owners": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ecd8b54fdeec0fc8d2f798a3f8eaf773ab5510a37d28008d294617a903f8afa2"
+        },
+        {
+          "name": "get_polls",
+          "canonical_hash": "sha256:1c3bf2082ea545e94866d252a435cac6a15faeddf22ec5879750dc61e7fb0369",
+          "description": "Get all governance polls",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:eac1522737468d77db8bce6ef8c5061a96cd5c4f5ab24948673ccf3f6d358980"
+        },
+        {
+          "name": "get_protocol_params",
+          "canonical_hash": "sha256:92126a15a22c03742abba67963d751dbeee1a63884b3b375bf1d394c3c25e92f",
+          "description": "Get latest governance protocol parameters",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a29f5439f92dc76d7d5e535ad6fc61e13dbcb3fc47c0437712149544f5e936be"
+        },
+        {
+          "name": "get_protocol_stats",
+          "canonical_hash": "sha256:e062e665cc29defbbceb79551b55231cd2d3c968bc470494a81fb9a3249556b0",
+          "description": "Get aggregated protocol statistics",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0159db6723fa6d81866e4074504df68c1101cb19b2fa9653f9bc652db18810a6"
+        },
+        {
+          "name": "get_redemption_orders",
+          "canonical_hash": "sha256:526f133c780288b3f3a5367d157afae2ebdf3afb98e39e543db56297efc4a5a1",
+          "description": "Get redemption orders, optionally filtered by timestamp or price range",
+          "is_mutating": false,
+          "property_keys": [
+            "in_range",
+            "timestamp"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "in_range": "boolean",
+            "timestamp": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "in_range": {
+                "type": "boolean",
+                "description": "Filter by price range"
+              },
+              "timestamp": {
+                "type": "number",
+                "description": "Unix timestamp in milliseconds"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:71fc04f16bbf36b7627f42f7589eff5f225b63824aa73259154674793834381e"
+        },
+        {
+          "name": "get_redemption_queue",
+          "canonical_hash": "sha256:53342c728d56e774aee7e6321b8e73a2def8a3493fbf2cd485ad1ef0bdcf1c28",
+          "description": "Get aggregated redemption queue for a specific iAsset, sorted by max price ascending",
+          "is_mutating": false,
+          "property_keys": [
+            "asset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bfed1d099adf6f5b061cde1f3ad61b0c42a0c36be142267a45525e899fd64729"
+        },
+        {
+          "name": "get_sp_account_by_owner",
+          "canonical_hash": "sha256:e10ed87f94e7dc2332c704f6b76fe75a4a1037ac6fb5b9c9aedb1d7d66c06f80",
+          "description": "Get stability pool accounts for specific owners (accepts payment key hashes or bech32 addresses)",
+          "is_mutating": false,
+          "property_keys": [
+            "owners"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "owners": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "owners": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Array of payment key hashes or bech32 addresses"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dba5fb705bc1f3fe9eec0d44e620ff82137f0af271c15f6927bb492e7b27694e"
+        },
+        {
+          "name": "get_stability_pool_accounts",
+          "canonical_hash": "sha256:de85b93e36e41bfa31bfa0c1722995a63460a885bdbafaade5aa9631396f5108",
+          "description": "Get all open stability pool accounts, optionally filtered by iAsset",
+          "is_mutating": false,
+          "property_keys": [
+            "asset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f5f4f8291d60990d30cb1b682142603cb6bb0dc8cf65ac591744f1836d3784cb"
+        },
+        {
+          "name": "get_stability_pools",
+          "canonical_hash": "sha256:71d6dac9bcb188fee762ba28a38e134a8d2d0502e382b89f147cf80e4e2632dc",
+          "description": "Get the latest stability pool state for each iAsset (snapshotP, snapshotD, snapshotS, epoch, scale)",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8efcc20d8cfa7efbd0e8319578e2484cf3296279e33214a077e9f8110f654fb7"
+        },
+        {
+          "name": "get_staking_info",
+          "canonical_hash": "sha256:97e418dad200302a74aa9d67002d53beb6b55839870413b85e71a67283cd4c34",
+          "description": "Get the current INDY staking manager state (slot, outputHash, totalStake, snapshotAda)",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c6b317fae7063c57756a4a46d7a206082e74cda14fd08305d6e878828ce28b40"
+        },
+        {
+          "name": "get_staking_position_by_address",
+          "canonical_hash": "sha256:89725bf28622c29731249d2cace57101a141680f4fb2fbbae054a900be91f2a4",
+          "description": "Get INDY staking positions for a single Cardano address",
+          "is_mutating": false,
+          "property_keys": [
+            "address"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Cardano bech32 address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:32652f135ca819ac21b32bc42e627d2e4eb4e7e16f885621e4945ebbdf8574d6"
+        },
+        {
+          "name": "get_staking_positions",
+          "canonical_hash": "sha256:6f54e5bb5e392a3b16df53e8c6e6155a6541207de120f288ec77037e40ca3d8c",
+          "description": "Get all open INDY staking positions",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d1d079e752d2bca878866cc80ab539aaba7ffda15c56c2ed06892c141391c09c"
+        },
+        {
+          "name": "get_staking_positions_by_owner",
+          "canonical_hash": "sha256:bf96aaf38041399877cf88567cff18331c2a223d1f5516439f8fd851870bd4c3",
+          "description": "Get INDY staking positions for specific owners (accepts payment key hashes or bech32 addresses)",
+          "is_mutating": false,
+          "property_keys": [
+            "owners"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "owners": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "owners": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Array of payment key hashes or bech32 addresses"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:083f6c2a6ff8fa205f2bc1819bfaecc6e0e3d58a2e3bd431b19c0b177122fd21"
+        },
+        {
+          "name": "get_steelswap_estimate",
+          "canonical_hash": "sha256:fdfd6ccd72f85957d34ce75020479564f80271113e8f3e1776d62617b173b989",
+          "description": "Get a swap estimate from Steelswap DEX",
+          "is_mutating": false,
+          "property_keys": [
+            "amountIn",
+            "tokenIn",
+            "tokenOut"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tokenIn": "string",
+            "amountIn": "number",
+            "tokenOut": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenIn": {
+                "type": "string",
+                "description": "Input token identifier"
+              },
+              "amountIn": {
+                "type": "number",
+                "description": "Amount of input token"
+              },
+              "tokenOut": {
+                "type": "string",
+                "description": "Output token identifier"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:335d7fb4400f6a07448a85de5dde19dc8e6d6744e2f894f45e69f340e7bbfeb4"
+        },
+        {
+          "name": "get_steelswap_tokens",
+          "canonical_hash": "sha256:84f749159bb447eb538d11b2182850dc75a7dd0f1e8bba05b04387f457937c6f",
+          "description": "Get all tokens available on Steelswap DEX",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2c99cddf649c3d442de27466c594d4c1622252c588f010be178f106aca7025eb"
+        },
+        {
+          "name": "get_sync_status",
+          "canonical_hash": "sha256:8bbaa9321b1c0e6aab398756bb55eec00f2ca97b2063f0b0bef556042d9d5b9a",
+          "description": "Get indexer sync status",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:62fa6b903d7ebbbdbbedd929e03272e94795c2c3f722bf466ee16c3e50ff0db0"
+        },
+        {
+          "name": "get_temperature_checks",
+          "canonical_hash": "sha256:75ab56b688c33295bdc4bf3422092183d586391083f23cc3e5f6d8ee17135d30",
+          "description": "Get temperature check polls",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c615520311a5fec1aa1664a9f88b852bbbc049a638cc6c195319cea97b77810f"
+        },
+        {
+          "name": "get_tvl",
+          "canonical_hash": "sha256:290a64c9355e216ea5b216d832426357445aab288d6c615d0fa7376a33f0b3da",
+          "description": "Get historical TVL data from DefiLlama",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:895ea0c9373a2342d9ebf3a53a1917f6c5812c37ee9b0cc25fbb631cc879a76a"
+        },
+        {
+          "name": "leverage_cdp",
+          "canonical_hash": "sha256:646ad1be7de2be12156503ae8bcef6c4c92002ee0cddd5d5027de5d265610888",
+          "description": "Open a leveraged CDP by redeeming against LRP positions — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "asset",
+            "baseCollateral",
+            "leverage"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "address": "string",
+            "leverage": "number",
+            "baseCollateral": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "leverage": {
+                "type": "number",
+                "description": "Leverage multiplier (e.g. 2.0 for 2x leverage)"
+              },
+              "baseCollateral": {
+                "type": "string",
+                "description": "Base collateral amount in lovelace"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7e08f94ee22f7469a3a13787d07de002b42dccd49ee2bfa2fbc6122bb9bd734e"
+        },
+        {
+          "name": "liquidate_cdp",
+          "canonical_hash": "sha256:56f9f3b35214fc991c39de65107795f4ce01562efbbd52740c2993d394ed591b",
+          "description": "Liquidate an undercollateralized CDP through the stability pool — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2cd4cd23d854effd934ceafc1eae16e276c4bdc6242d967c0d85577b3e35486d"
+        },
+        {
+          "name": "merge_cdps",
+          "canonical_hash": "sha256:9a711c976966215969df15a0c08965550453ec4dea48b1d4803daa9b509ca389",
+          "description": "Merge multiple CDPs into one — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "cdpOutRefs"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "cdpOutRefs": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "cdpOutRefs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "txHash",
+                    "outputIndex"
+                  ],
+                  "properties": {
+                    "txHash": {
+                      "type": "string",
+                      "description": "Transaction hash of the CDP UTxO"
+                    },
+                    "outputIndex": {
+                      "type": "number",
+                      "description": "Output index of the CDP UTxO"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "minItems": 2,
+                "description": "Array of CDP UTxO references to merge (minimum 2)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6e384001bf6a3184411ae14510f3a930a044f77725c95898545519b7d4cddc10"
+        },
+        {
+          "name": "mint_cdp",
+          "canonical_hash": "sha256:905cf333be991683e20565a2c66464c4afe3a61697704a6c75f693e79417d409",
+          "description": "Mint additional iAssets from an existing CDP (increases debt) — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "amount": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "amount": {
+                "type": "string",
+                "description": "iAsset amount to mint in smallest unit"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1d5590fe5804bf8b1a7ea379a49bf2b3342c4bd39952c789136d2352ec773677"
+        },
+        {
+          "name": "open_cdp",
+          "canonical_hash": "sha256:7d5e08529457e0047dff7b310b7bd1fe19cc943de842819a762fba5ff6f67c97",
+          "description": "Open a new CDP position — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "asset",
+            "collateralAmount",
+            "mintAmount"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "address": "string",
+            "mintAmount": "string",
+            "collateralAmount": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "mintAmount": {
+                "type": "string",
+                "description": "iAsset amount to mint in smallest unit"
+              },
+              "collateralAmount": {
+                "type": "string",
+                "description": "Collateral amount in lovelace"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d1f25552c8c6bd9480e50cdb53b4995c8a118adcf11880cf4309d80db96f4bcb"
+        },
+        {
+          "name": "open_lrp",
+          "canonical_hash": "sha256:d0cb7130e28d9b9a9338fc5dc4982d5779d6e4d15d26a64a9baa577af5bf1a07",
+          "description": "Open a new LRP (Limit Redemption Protocol) position with ADA and a max price limit. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "asset",
+            "lovelacesAmount",
+            "maxPrice"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "address": "string",
+            "maxPrice": "string",
+            "lovelacesAmount": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "maxPrice": {
+                "type": "string",
+                "description": "Max price as an on-chain integer string (the getOnChainInt value)"
+              },
+              "lovelacesAmount": {
+                "type": "string",
+                "description": "ADA amount in lovelace to deposit into the LRP"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:862ea1660665cd664634a46c6bcfa50fc88ecbe3a76a6c4ca7c1812d09d7d47c"
+        },
+        {
+          "name": "open_staking_position",
+          "canonical_hash": "sha256:b650f4fc4d35a64b8f4f78f8e6eb5cd3255f7ae2733712d8157099b1a38b63c3",
+          "description": "Stake INDY tokens by creating a new staking position. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amount": "string",
+            "address": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "string",
+                "description": "INDY amount to stake (in smallest unit)"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9d218979f99783873dc3620ae363dac5eadde7e0bc3e25e796d4b9ea2ca5a5b0"
+        },
+        {
+          "name": "process_sp_request",
+          "canonical_hash": "sha256:3eae2c4ec899763e2c85490459a3044506523601fe9aa9586abbd8956dae79a6",
+          "description": "Process a pending stability pool request (protocol maintenance operation). Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "accountOutputIndex",
+            "accountTxHash",
+            "address",
+            "asset"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "address": "string",
+            "accountTxHash": "string",
+            "accountOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string",
+                "description": "iAsset of the stability pool (iUSD, iBTC, iETH, or iSOL)"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "accountTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the account UTxO with the pending request"
+              },
+              "accountOutputIndex": {
+                "type": "number",
+                "description": "Output index of the account UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2353a489a2062ce627a0d6fdd8d1d31b85e204d1b2971b6a90fa61cbc0d0925c"
+        },
+        {
+          "name": "redeem_cdp",
+          "canonical_hash": "sha256:caceb32482437f2ac6a6f1bfbce3d1a1aa227d42a92f3f61ca63713012708521",
+          "description": "Redeem iAssets from a CDP — builds an unsigned transaction (CBOR hex) for client-side signing. To redeem the maximum possible, pass the total minted amount.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "amount": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "amount": {
+                "type": "string",
+                "description": "iAsset amount to redeem in smallest unit (pass total minted amount to redeem max)"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address (addr1... or addr_test1...)"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d74b2327c33021ca1b5460cd4559273775da1aec8b32efc8d932ca7767a6dc61"
+        },
+        {
+          "name": "redeem_lrp",
+          "canonical_hash": "sha256:4c9dff3495d5f639abce8bf6c23d9c2d792710d76e691e5e011ba67802ead773",
+          "description": "Redeem iAssets against one or more LRP positions. Returns an unsigned transaction (CBOR hex) for client-side signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "iassetOutputIndex",
+            "iassetTxHash",
+            "priceOracleOutputIndex",
+            "priceOracleTxHash",
+            "redemptionLrps"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "iassetTxHash": "string",
+            "redemptionLrps": "array",
+            "iassetOutputIndex": "number",
+            "priceOracleTxHash": "string",
+            "priceOracleOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "iassetTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the iAsset UTxO"
+              },
+              "redemptionLrps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "txHash",
+                    "outputIndex",
+                    "iAssetAmount"
+                  ],
+                  "properties": {
+                    "txHash": {
+                      "type": "string",
+                      "description": "Transaction hash of the LRP UTxO"
+                    },
+                    "outputIndex": {
+                      "type": "number",
+                      "description": "Output index of the LRP UTxO"
+                    },
+                    "iAssetAmount": {
+                      "type": "string",
+                      "description": "Amount of iAssets to redeem against this LRP"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Array of LRP positions and amounts to redeem against"
+              },
+              "iassetOutputIndex": {
+                "type": "number",
+                "description": "Output index of the iAsset UTxO"
+              },
+              "priceOracleTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the price oracle UTxO"
+              },
+              "priceOracleOutputIndex": {
+                "type": "number",
+                "description": "Output index of the price oracle UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b88802bb470e9238b4f5fc81cbbf42e5ddbb83276b05a5675293b1a140fb47d0"
+        },
+        {
+          "name": "retrieve_from_ipfs",
+          "canonical_hash": "sha256:743704a6d918d72002b212415ee224455b3d3d8c324f2e6032f729d7a1b12184",
+          "description": "Retrieve content from IPFS by CID",
+          "is_mutating": false,
+          "property_keys": [
+            "cid"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cid": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cid": {
+                "type": "string",
+                "description": "IPFS content identifier (CID)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e4a4b09d92442d1c7f51ef0ca7b9a2c4a2db0f2c2fff38d1f1825d0b80f04ed9"
+        },
+        {
+          "name": "start_interest_oracle",
+          "canonical_hash": "sha256:a7e124ec643765362e222b8ea5726718b9b57811d3298991b1119f8e42c21012",
+          "description": "Initialize a new interest oracle (one-time admin setup). Returns an unsigned transaction (CBOR hex) and the minted oracle asset class. Only callable by protocol administrators.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "biasTime",
+            "initialInterestRate",
+            "initialLastInterestUpdate",
+            "initialUnitaryInterest",
+            "owner"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "owner": "string",
+            "address": "string",
+            "biasTime": "string",
+            "initialInterestRate": "string",
+            "initialUnitaryInterest": "string",
+            "initialLastInterestUpdate": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "type": "string",
+                "description": "Oracle operator pub key hash (hex)"
+              },
+              "address": {
+                "type": "string",
+                "description": "Admin Cardano bech32 address"
+              },
+              "biasTime": {
+                "type": "string",
+                "description": "Oracle bias time in milliseconds as bigint string"
+              },
+              "initialInterestRate": {
+                "type": "string",
+                "description": "Initial interest rate as bigint string"
+              },
+              "initialUnitaryInterest": {
+                "type": "string",
+                "description": "Initial unitary interest as bigint string"
+              },
+              "initialLastInterestUpdate": {
+                "type": "string",
+                "description": "Initial last interest update timestamp (milliseconds) as bigint string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cd8e3c0d67b33642959e6d712b12faeff9780c21fd68ed5fca5993d321593ac1"
+        },
+        {
+          "name": "store_on_ipfs",
+          "canonical_hash": "sha256:2394d6726bd491b2569735ac057ab3eed067e23a46a13c47e8e648e35460a5fb",
+          "description": "Store text content on IPFS",
+          "is_mutating": false,
+          "property_keys": [
+            "text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Text content to store on IPFS"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:da6c094d35bdb76a5a77175b4fb0e9f0bfbe3ff55bc2e6fdd694fc1962f64c82"
+        },
+        {
+          "name": "withdraw_cdp",
+          "canonical_hash": "sha256:49b68ea08db700c48dc061a41d370a20888aed889e008733f8b6cc3f89cedc29",
+          "description": "Withdraw collateral from a CDP — builds an unsigned transaction (CBOR hex) for client-side signing",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "amount",
+            "asset",
+            "cdpOutputIndex",
+            "cdpTxHash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "asset": "string",
+            "amount": "string",
+            "address": "string",
+            "cdpTxHash": "string",
+            "cdpOutputIndex": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "asset": {
+                "enum": [
+                  "iUSD",
+                  "iBTC",
+                  "iETH",
+                  "iSOL"
+                ],
+                "type": "string"
+              },
+              "amount": {
+                "type": "string",
+                "description": "Lovelace amount to withdraw"
+              },
+              "address": {
+                "type": "string",
+                "description": "User Cardano bech32 address"
+              },
+              "cdpTxHash": {
+                "type": "string",
+                "description": "Transaction hash of the CDP UTxO"
+              },
+              "cdpOutputIndex": {
+                "type": "number",
+                "description": "Output index of the CDP UTxO"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6a2e43d04d91217de0351ece9932f39d304650a9736c7e92bf3e3f3f99e7a421"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

@@ -4,19 +4,263 @@
   "purl": "pkg:generic/Nikolife2016%2Fpulsefeed-x402",
   "ecosystem": "generic",
   "display_name": "Nikolife2016/pulsefeed-x402",
-  "description": "Verify x402 payment endpoints before an AI agent pays: scam scan, on-chain checks, trust scores.",
-  "repository_url": "https://github.com/Nikolife2016/pulsefeed-x402",
+  "description": "Verify before you pay or install.\n\n**Before you pay an x402 endpoint** — liveness, a 0–100 trust score, scam flags (payTo hijack, bait-and-switch pricing, honeypot receiver) and a pay/avoid verdict, with on-chain proof links on Base.\n\n**Before you trust an MCP server or npm package** — what changed *after* people adopted it: install script added in a later version, ownership swapped, repository removed, package unpublished, build provenance lost.\n\nStatic scanners answer whether a package is safe today. This answers the other question, and it needs yesterday's snapshot to exist. PulseFeed diffs the entire MCP registry against the previous day's snapshot every night, and re-probes the x402 endpoint population daily. The series runs from 2026-07-30 and cannot be reconstructed after the fact.\n\nOpen data: [drift feed](https://pulsefeed.dev/mcp/drift) · [correction page](https://pulsefeed.dev/correction) · [dataset](https://huggingface.co/datasets/Nikolife/pulsefeed-x402-security)",
+  "repository_url": "https://pulsefeed-x402--nikolife2016.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "Nikolife2016/pulsefeed-x402"
+    "Nikolife2016/pulsefeed-x402",
+    "nikolife2016/pulsefeed-x402"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:c32429df5738a7473c01595c6c4d12f12c17fc5fb3ee4d2c97ee7ddf45a0c7d3",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://pulsefeed-x402--nikolife2016.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "check_x402_endpoint",
+          "canonical_hash": "sha256:5a0f5a5c2fa8b9eb09004649738bac7cf7e0482a5d752e1b2e951850822958c0",
+          "description": "Before paying an unknown x402 endpoint, check whether it is safe: liveness, trust score (0-100), anomaly flags (receiver address changed between observations, catalog price vs. challenge price, invalid receiver, testnet listed as production, scheme outside the x402 spec), receiver stability and observation-count-qualified uptime — with a pay/avoid verdict. Reads the challenge from both the response body and the v2 PAYMENT-REQUIRED header. Free.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "The x402 endpoint URL to verify"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e92c22f0632c859214fa887c0276c211da857a9ce4f29eb3bf710cddca9a1f6e"
+        },
+        {
+          "name": "mcp_check_server",
+          "canonical_hash": "sha256:7cd6eb5ae0f47155b2970d25eeca6b72d3052aef3ab2d635e8bcddc093991f7c",
+          "description": "Before installing an MCP server or npm package, audit it: does it run an INSTALL SCRIPT (arbitrary code execution at `npm i`), is it abandoned, does it ship a repository and license, weekly downloads, provenance — with a safe/caution/avoid verdict. ~11% of audited MCP servers run install scripts. Free.",
+          "is_mutating": false,
+          "property_keys": [
+            "package"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "package": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "package": {
+                "type": "string",
+                "description": "npm package name of the MCP server, e.g. @scope/name"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f17e033ea440b0d3c6c4715e7dd33f2dc74eb9eedfc6d6f92d0f11d6a22e7042"
+        },
+        {
+          "name": "mcp_drift_check",
+          "canonical_hash": "sha256:a8f669531c208b0459ae3f638878b66a2f20827c41e6d40f13b850beb93f291d",
+          "description": "The rug pull check. `mcp_check_server` answers whether a package is safe TODAY; this answers what CHANGED after it was adopted: an install script added in a later version (arbitrary code on `npm i` that was not there at review time), package ownership swapped, repository removed, package unpublished, build provenance lost. Pass your own dependency list to check it in one call. Derived from a daily external re-audit of the whole MCP package population — an event exists only because a snapshot from before it exists. Free.",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "packages"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "number",
+            "packages": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "number",
+                "description": "Window in days (default 30)"
+              },
+              "packages": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "npm package names to check, e.g. your installed MCP servers. Omit for the whole ecosystem feed."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3a48d614b639a7f945f32dac722310cf40cba0217c8802533b0fad084fad9563"
+        },
+        {
+          "name": "mcp_security_report",
+          "canonical_hash": "sha256:0ebcdb00af9bc63b5b3a92cce222da343b94448b619aafa703b34baca1543890",
+          "description": "State of MCP Security: how many audited MCP servers run an arbitrary install script, are abandoned, ship no repository or license — with day-over-day deltas and a sample of currently-flagged servers. From a daily audit of the MCP server catalog. Free.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e6d18d41a5a80d13e11433d6d311b09dd0f7dc6dfcd6df0cc0e0433fbdd0c52f"
+        },
+        {
+          "name": "pulsefeed_products",
+          "canonical_hash": "sha256:047c40a190f4620d38ba7435a10dc12419bfc45978a3ae511f66ec41c0d3ca75",
+          "description": "List PulseFeed's paid products and how to pay via x402 (USDC on Base): deep trust check, endpoint track record, bulk trust dataset, and the cross-domain Data API. Includes the client-side spend-cap gotcha for x402-fetch.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0a550429e230b89b424624a53aa41830cc5fa4333b6d93754af34fafd7ab687b"
+        },
+        {
+          "name": "x402_changes",
+          "canonical_hash": "sha256:5f45e26fa0a1cb4e545371106b3fa131fafb35439d4be35f7404139b6922c012",
+          "description": "What changed in the x402 ecosystem recently: services that stopped returning a valid challenge, receiver (payTo) changes, price changes, recoveries, newly-seen services. Derived from compounding time-series that cannot be reconstructed after the fact. Free.",
+          "is_mutating": false,
+          "property_keys": [
+            "days"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "number",
+                "description": "Window in days (default 7)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aa88c64e00c4db7befc1c14642a86c31e7f92361023fabb86f0e866bff6ece19"
+        },
+        {
+          "name": "x402_data_sample",
+          "canonical_hash": "sha256:e71cb7b9019fa1251384e3f6ea3ad8195bad916a60a72c76ac978de42ca37ee1",
+          "description": "FREE sample of the PulseFeed Data API: top-10 live x402 services as FULL records (compounding payTo/price history, anomaly flags, on-chain receiver profile), top-10 MCP servers with full audit profile, and 3 live incidents.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:390236ebc48d3062980a88572862ffcd63bb6756aa4f82d4cfd213f9c51e0d07"
+        },
+        {
+          "name": "x402_ecosystem_stats",
+          "canonical_hash": "sha256:6fd179bf6084d43ffdfe11f9fe2e7f487540fa5a5981a3e7717350ff0bcceb53",
+          "description": "Live health of the whole x402 agent-payment ecosystem: tracked/alive/dead counts, catalog-accuracy audit (what share of listings called 'healthy' actually work), risk-level distribution, receiver stability and on-chain receiver profiles. Free.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d920b4d269097cfdacef1c99726e4e0e0845e0e9d37b970040b3033a4b72e71f"
+        },
+        {
+          "name": "x402_incidents",
+          "canonical_hash": "sha256:739858351e9be151a0678d01193ee877bffc8f391cb82d5fd1eeb7e153f38e65",
+          "description": "Anomalies observed in live x402 endpoints by continuous independent measurement: receiver-address changes between observations, catalog price vs. challenge price mismatches, invalid receivers, testnet endpoints listed as production, payment schemes outside the x402 spec — EACH WITH AN ON-CHAIN REFERENCE on Base. Measurements, not accusations of intent. Check before paying anything. Free.",
+          "is_mutating": false,
+          "property_keys": [
+            "days"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "number",
+                "description": "Look-back window in days (default 30)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c60bcebf751181d591847246519357462fc75f8a47a29e2f581da4f7cd00bba9"
+        },
+        {
+          "name": "x402_leaderboard",
+          "canonical_hash": "sha256:536d9ab37690db649d570bff75c459ce4986f935ae7f9bb84c0bdc190968a273",
+          "description": "Top x402 services ranked by the open PulseFeed Trust Score (0-100), with price and network — the most reliable live agent-payment endpoints right now. Free.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d410b3446fd02e8c39c1ab75a544f4a1087229d5b7a29127112028837cdbff4e"
+        },
+        {
+          "name": "x402_working_services",
+          "canonical_hash": "sha256:7e968404eeede7970c42266e464ff60a2f23e308039128f8c94c4247a848400d",
+          "description": "List x402 agent-payment services that are currently ALIVE and return a valid x402 challenge, ranked by PulseFeed Trust Score, plus ecosystem risk map. Use this to pick a service with a track record instead of paying an endpoint you have not checked. Free.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1897b913df2fe8472a8663a9526a9b1c50eef860f956d858b1d0d1fcd4c06ac5"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.0.7",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

@@ -4,8 +4,8 @@
   "purl": "pkg:generic/Fisher521%2Fburn-mcp-server",
   "ecosystem": "generic",
   "display_name": "Fisher521/burn-mcp-server",
-  "description": "AI-powered reading triage MCP. 26 tools with a 24h burn timer. Read less, absorb more.",
-  "repository_url": "https://github.com/Fisher521/burn-mcp-server",
+  "description": "burn-mcp-server",
+  "repository_url": "https://smithery.ai/servers/Fisher521/burn-mcp-server",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,10 +13,875 @@
     "Fisher521/burn-mcp-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:90744cc9dda9f653b8a959dd6f7837fb5c38457d099d0e1e23afcc666dd020ff",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "60537f9b-fc23-406d-9f97-236e2448859a/e96cc690-f139-4d21-9213-ec8760be7dfc/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "BURN_MCP_TOKEN"
+            ],
+            "properties": {
+              "BURN_MCP_TOKEN": {
+                "type": "string",
+                "x-order": 0,
+                "minLength": 1,
+                "description": "Long-lived MCP token from Burn App -> Settings -> MCP Server"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": true,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "add_to_collection",
+          "canonical_hash": "sha256:d20c4cb399f9d07edc71664b467de1542fd2325139ab983c0086f0cc706e465f",
+          "description": "Add bookmarks to an existing Collection. Duplicates are silently ignored.",
+          "is_mutating": false,
+          "property_keys": [
+            "bookmark_ids",
+            "collection_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bookmark_ids": "array",
+            "collection_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bookmark_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "minItems": 1,
+                "description": "Bookmark UUIDs to add"
+              },
+              "collection_id": {
+                "type": "string",
+                "description": "Collection UUID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d196fe72093c5912f002b15fa1644c04a60961bcc58de0e96fb442a657d8f70c"
+        },
+        {
+          "name": "add_watched_source",
+          "canonical_hash": "sha256:fe1478ef473e03e37cd625bc2cb8cd908918ef0cd9bdbfa224fe5e2fabc41065",
+          "description": "Watch an X user, RSS feed, or YouTube channel — new posts auto-appear in Burn Flame on each scrape.",
+          "is_mutating": false,
+          "property_keys": [
+            "handle",
+            "name",
+            "source_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "handle": "string",
+            "source_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Human-friendly display name (defaults to handle)"
+              },
+              "handle": {
+                "type": "string",
+                "description": "x_user: username without @ (e.g. \"karpathy\") | rss: full feed URL | youtube: channel ID starting with UC"
+              },
+              "source_type": {
+                "enum": [
+                  "x_user",
+                  "rss",
+                  "youtube"
+                ],
+                "type": "string",
+                "description": "x_user = Twitter/X handle | rss = any RSS/Atom feed URL | youtube = YouTube channel ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:34df40de3021b89938c476090420a887b52779548d71a60f0cb098c51e85108f"
+        },
+        {
+          "name": "batch_triage_flame",
+          "canonical_hash": "sha256:25b604d6181dbe2c439b5395baed25c83997c7344d335503c6e7e34b86695421",
+          "description": "Triage multiple Flame bookmarks at once. Each decision moves a bookmark to Spark or Ash.",
+          "is_mutating": false,
+          "property_keys": [
+            "decisions"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "decisions": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "decisions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "action"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Bookmark UUID"
+                    },
+                    "action": {
+                      "enum": [
+                        "spark",
+                        "ash"
+                      ],
+                      "type": "string",
+                      "description": "spark = keep, ash = burn"
+                    },
+                    "spark_insight": {
+                      "type": "string",
+                      "maxLength": 500,
+                      "description": "Insight (only for spark action)"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "description": "Array of triage decisions"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d365ce75c63fad6d839c5334332d030ea9191734d0520b3eff41455f83403dd3"
+        },
+        {
+          "name": "create_collection",
+          "canonical_hash": "sha256:4f0a652f5fc26fcad2ae2e54fc46e7377dd91d638b086aaab448f5fe99d90bd5",
+          "description": "Create a new Collection to group related bookmarks together.",
+          "is_mutating": false,
+          "property_keys": [
+            "bookmark_ids",
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "bookmark_ids": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "Collection name"
+              },
+              "bookmark_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Initial bookmark UUIDs to include"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9270f400e7d8eda4929e9c719471100c85132c994ddb9c1ab14b7e1c4418e5e8"
+        },
+        {
+          "name": "fetch_content",
+          "canonical_hash": "sha256:6e8bdab0e5a68ad4ec273a4ed87c6fb83917cd6630ec55c3e5416fef84253b26",
+          "description": "Fetch article/tweet content from a URL. Works with X.com (bypasses GFW via proxy), Reddit, YouTube, Bilibili, WeChat, and any web page. First checks Supabase cache, then fetches live.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "The URL to fetch content from"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:beb413f35f1b6e9d5c5d244a4421b26eec430b030f7a12e1adb28d8a581202d3"
+        },
+        {
+          "name": "get_article_content",
+          "canonical_hash": "sha256:8c4249f7e3d9d07e424bd1c0654206afad5eed92a479e3d92be247889408d58c",
+          "description": "Get full article content and AI analysis for a bookmark by ID (same as get_bookmark)",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3824226ade7365c889f63c7b02c68f9649daa6a4735a1b5b39e24b4b3fd92ef4"
+        },
+        {
+          "name": "get_bookmark",
+          "canonical_hash": "sha256:b6e3e5f8b2f8689cf6f10bc95dde5ce8bd3c8356cf85fa8825cac536e9e37449",
+          "description": "Get full details of a single bookmark including AI analysis and extracted content",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0796923bf1770adc7d5f9d1dfd45b21a6e8bb450952181060b5d593a158f3f6e"
+        },
+        {
+          "name": "get_collection_overview",
+          "canonical_hash": "sha256:c337546e597b395b06e3e1d4ce205170afc57a3cb3b931f0478d91f3b86b3fb5",
+          "description": "Get a Collection by name with its AI overview and linked bookmarks metadata",
+          "is_mutating": false,
+          "property_keys": [
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Collection name"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4aa0629dc697008208e17f84b726b32b5da85252fae67b714b6d3a1ea874d9eb"
+        },
+        {
+          "name": "get_collections",
+          "canonical_hash": "sha256:ce17fcb6bc56a1a912fb666cacb4eebeb0741643b3e98a2b04805751f4e78582",
+          "description": "List all your Collections with article counts and AI overview themes",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dbbf57ac8271cb39d78bd5c689f8a4419ecae28e63be3ed2a336f02c64167fe7"
+        },
+        {
+          "name": "get_flame_detail",
+          "canonical_hash": "sha256:ed52cb5bdbd348984be07426c52bb238f5fd28feafc200e88a61b507604d5b6b",
+          "description": "Get full details of a Flame bookmark including extracted article content, AI analysis, and reading guidance. Use this to deep-read a bookmark before deciding its fate.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a9da2756f7a85f31d52626c9c2119d6d09de73be4b53dc1abc4087a012b5f222"
+        },
+        {
+          "name": "list_categories",
+          "canonical_hash": "sha256:7cfd72534716b2125247a5592e52a4bb31b3f4a59d33e78112b611a577992685",
+          "description": "List all Vault categories with article counts",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5395bc30f1827f7466e86bc4dd1fda3b296c4f75dd97e73c8399d247afc95986"
+        },
+        {
+          "name": "list_flame",
+          "canonical_hash": "sha256:0759de6bd2c1c08020760a88f8070ad8c3763a03c91865c3be3c9e04071ae206",
+          "description": "List bookmarks in your Flame inbox (24h countdown). Shows AI triage info (strategy, relevance, novelty, hook) and time remaining. Use this to see what needs attention before it burns to Ash.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max results (default 20)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3994c1ab517858d02004963ae8d35e39f4938e59db950deeeeb0ca028ac3432a"
+        },
+        {
+          "name": "list_sparks",
+          "canonical_hash": "sha256:0ea4c5bec19cb8e9919534c6c9d378182f1dc2426c5451885bcec646ee5fd916",
+          "description": "List your Sparks (bookmarks you have read, with 30-day lifespan). Includes spark insight and expiry date.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max results (default 20)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:efae1db03d95771233a1b6c2a0c365e3478d18fb2194451140beda7e2efea379"
+        },
+        {
+          "name": "list_vault",
+          "canonical_hash": "sha256:31e9cfb402789ed8c808d50ec5da6b8879e5751e88394fc9821b4760c58340ad",
+          "description": "List bookmarks in your Vault, optionally filtered by category",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "category": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max results (default 20)"
+              },
+              "category": {
+                "type": "string",
+                "description": "Filter by vault category"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ac5b9efb47fd392f4d6c31df2ef21aba4f7edd648225de2e5dc7f8b321520252"
+        },
+        {
+          "name": "list_watched_sources",
+          "canonical_hash": "sha256:78db1193571ccb52ea79c38376e25425f03b7d561bb48b1df02388ed5316a73e",
+          "description": "List all active watched sources (X users, RSS feeds, YouTube channels).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a29ac45dfc94646d74f62607d3a03a69a9a497581bc64bb231409c5a17e81073"
+        },
+        {
+          "name": "move_flame_to_ash",
+          "canonical_hash": "sha256:565f05db219be785cf458637b507fe359fdc4c39409cb3e28f7e8cd1b5687f9d",
+          "description": "Burn a Flame bookmark to Ash (not worth keeping).",
+          "is_mutating": false,
+          "property_keys": [
+            "id",
+            "reason"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "reason": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              },
+              "reason": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Why this was burned"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:38172f02e0207e1c7f6deed2c59cddefd6a80877eb9eb5e914b4c5f5f63bca1f"
+        },
+        {
+          "name": "move_flame_to_spark",
+          "canonical_hash": "sha256:ef33a0e6428069004bc10a6816668b35a5a16ec4ed2940b4e0fccaec1d34064a",
+          "description": "Move a Flame bookmark to Spark (mark as worth reading). Sets 30-day Spark lifespan.",
+          "is_mutating": false,
+          "property_keys": [
+            "id",
+            "spark_insight"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "spark_insight": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              },
+              "spark_insight": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "One-line insight about why this is worth reading"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a095ae801bb458c210eae1e75e0ceb6e485cb0ec8a3ff0eaacd7363af6dddcba"
+        },
+        {
+          "name": "move_spark_to_ash",
+          "canonical_hash": "sha256:b5257caa2923af97f057d4535c920fe425dff5174614fae0cad5c8763748d652",
+          "description": "Burn a Spark bookmark to Ash (not valuable enough to vault).",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8538cb94f6e727485bcf44793f0ada5b02d37346a41edd968cef3f28cd1f3942"
+        },
+        {
+          "name": "move_spark_to_vault",
+          "canonical_hash": "sha256:9ec2d5d43dc394ee733ce8f2beb77d7616e2902825e460bd945ac653e6c8da86",
+          "description": "Promote a Spark bookmark to permanent Vault storage.",
+          "is_mutating": false,
+          "property_keys": [
+            "id",
+            "vault_category"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "vault_category": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              },
+              "vault_category": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "Category to file under in the Vault"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ac33757c53a84eb9cca585fc06347e3749e53b8559c9110859f9ff773feac829"
+        },
+        {
+          "name": "remove_from_collection",
+          "canonical_hash": "sha256:31d6acbe8989443b845b63c9571dd385756f1dc6029acb774b859114fa3841e1",
+          "description": "Remove bookmarks from a Collection.",
+          "is_mutating": false,
+          "property_keys": [
+            "bookmark_ids",
+            "collection_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bookmark_ids": "array",
+            "collection_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bookmark_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Bookmark UUIDs to remove"
+              },
+              "collection_id": {
+                "type": "string",
+                "description": "Collection UUID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2ccbd9436ac62c0eebf291dc376776f80377baec743912710013ca6407c31ac9"
+        },
+        {
+          "name": "remove_watched_source",
+          "canonical_hash": "sha256:3d0e96e4d8665509dbec6deced78e731bd58ff4f8248237f1fcc1d5f760e88bf",
+          "description": "Stop watching a source. Use list_watched_sources to find the source ID.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Watched source UUID from list_watched_sources"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8050d4b5242c32f40ee88042ca53de71f5156dd9041431aa7d21b7fcefe5f1fc"
+        },
+        {
+          "name": "scrape_watched_sources",
+          "canonical_hash": "sha256:60ed997a968ff9cc5357d0a7c01ca7c0684e151711225d3d07b4f0b32946a174",
+          "description": "Fetch new content from all watched sources (or one specific source) and add new items to Burn Flame. Call this on a schedule or on demand.",
+          "is_mutating": false,
+          "property_keys": [
+            "source_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "source_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "description": "Scrape only this source ID — omit to scrape all active sources"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:171c42bc0d3d09a53e31cbb9bb32bec0d8e3ce0d8ca92bfb7bb8a50919d2330b"
+        },
+        {
+          "name": "search_sparks",
+          "canonical_hash": "sha256:d847b59db714a61be7fd83c7a93e4c106980a4d8f9eaec05a370d24c1b087afa",
+          "description": "Search your Sparks by keyword (searches title, tags, AI takeaway, spark insight)",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max results (default 10)"
+              },
+              "query": {
+                "type": "string",
+                "description": "Search keyword"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8bb47c4a62154b430092a3bd49baa3671096bf14cdf3ba70496a7c8ed461329e"
+        },
+        {
+          "name": "search_vault",
+          "canonical_hash": "sha256:5839b6dfe81ad5304dfa7e644425bf72ea6e2ee642ea76f90f2b5af9446a9d3b",
+          "description": "Search your Burn Vault for bookmarks by keyword (searches title, tags, AI takeaway)",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max results (default 10)"
+              },
+              "query": {
+                "type": "string",
+                "description": "Search keyword"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8d7ecb66eda925d9b054ad732efc72cf6eafb2dca6571561ebbe94f762c2cef2"
+        },
+        {
+          "name": "update_collection_overview",
+          "canonical_hash": "sha256:89abf676d0a3ed56cf7879a8cf788944e29305103543eee971a4e888ec8dfeb9",
+          "description": "Write an AI-generated overview for a Collection (theme, synthesis, patterns, gaps).",
+          "is_mutating": false,
+          "property_keys": [
+            "collection_id",
+            "overview"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "overview": "object",
+            "collection_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "overview": {
+                "type": "object",
+                "required": [
+                  "theme"
+                ],
+                "properties": {
+                  "gaps": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Knowledge gaps identified"
+                  },
+                  "theme": {
+                    "type": "string",
+                    "description": "Overarching theme"
+                  },
+                  "patterns": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Patterns identified"
+                  },
+                  "synthesis": {
+                    "type": "string",
+                    "description": "Cross-bookmark synthesis"
+                  }
+                },
+                "description": "AI-generated overview",
+                "additionalProperties": false
+              },
+              "collection_id": {
+                "type": "string",
+                "description": "Collection UUID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f5977d66bb358f1249063915f5229f26215c4f7d4b1f6e59b6e780d528780c9f"
+        },
+        {
+          "name": "write_bookmark_analysis",
+          "canonical_hash": "sha256:66cd5c422fd4fc178882874f1407f2a87fbc0e548f3f63acc624ea06e7e0bb74",
+          "description": "Write AI analysis results into a bookmark. Agent analyzes content with its own LLM, then writes structured results back to Burn. Only provided fields are merged — existing data is preserved.",
+          "is_mutating": false,
+          "property_keys": [
+            "analysis",
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "analysis": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Bookmark UUID"
+              },
+              "analysis": {
+                "type": "object",
+                "properties": {
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 50
+                    },
+                    "maxItems": 10,
+                    "description": "Topic tags"
+                  },
+                  "ai_minutes": {
+                    "type": "integer",
+                    "maximum": 999,
+                    "minimum": 1,
+                    "description": "Estimated reading minutes"
+                  },
+                  "ai_novelty": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "description": "Novelty score 0-100"
+                  },
+                  "ai_summary": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "One-line summary"
+                  },
+                  "ai_strategy": {
+                    "enum": [
+                      "deep_read",
+                      "skim",
+                      "skip_read",
+                      "reference"
+                    ],
+                    "type": "string",
+                    "description": "Reading strategy"
+                  },
+                  "ai_takeaway": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "maxItems": 5,
+                    "description": "Key takeaways"
+                  },
+                  "ai_relevance": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "description": "Relevance score 0-100"
+                  },
+                  "ai_strategy_reason": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Why this strategy"
+                  }
+                },
+                "description": "Analysis fields to write",
+                "additionalProperties": false
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ca134b076aa4065274d28e331e46b0a5c549147ccda8d04c2df2b3d377ad6169"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": [
+        {
+          "uri_template": "burn://vault/bookmarks",
+          "name": "vault-bookmarks",
+          "description": "",
+          "mime_type": null
+        },
+        {
+          "uri_template": "burn://vault/categories",
+          "name": "vault-categories",
+          "description": "",
+          "mime_type": null
+        }
+      ]
+    },
     {
       "version": "2.1.1",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

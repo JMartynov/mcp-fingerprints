@@ -4,38 +4,312 @@
   "purl": "pkg:generic/HasData%2Fwalmart-mcp",
   "ecosystem": "generic",
   "display_name": "HasData/walmart-mcp",
-  "description": "Walmart search, product pages and customer reviews on walmart.com and walmart.ca, as JSON.",
-  "repository_url": "https://github.com/HasData/walmart-mcp",
+  "description": "Walmart search results, product pages with the buy-box seller, and customer reviews on walmart.com and walmart.ca, as structured JSON. Runs on HasData's hosted API.",
+  "repository_url": "https://walmart-mcp--hasdata.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "HasData Walmart",
-    "HasData/walmart-mcp"
+    "HasData/walmart-mcp",
+    "hasdata/walmart-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "github_readme",
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:25f7aa64c77fbc9143e576576c74a3963a59a163d180868c58685c3938abf866",
       "release_date": null,
       "dependencies": {},
       "connections": [
         {
-          "type": "streamable-http",
-          "deploymentUrl": "https://mcp.hasdata.com/api/mcp?apis=walmart",
-          "configSchema": {}
+          "type": "http",
+          "deploymentUrl": "https://walmart-mcp--hasdata.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "x-api-key": {
+                "type": "string",
+                "x-from": {
+                  "header": "x-api-key"
+                },
+                "x-order": 0,
+                "description": "Enter your API key from the HasData dashboard."
+              }
+            }
+          }
         }
       ],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
-        "resources": false
+        "resources": false,
+        "verified_tools": true,
+        "documentation_extracted_tools": true
       },
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "hasdata_walmart_product_getWalmartProduct",
+          "canonical_hash": "sha256:88fc6b2871f85b372674c83ea27124989598b88de44f49dfcc06a16024b0b1e7",
+          "description": "Get Walmart Product Details\n\nScrapes one Walmart product page on a chosen storefront by item id or URL. Returns title, brand, model, UPC, condition, availability, price with strikethrough before-price and unit price, the seller holding the buy box with its rating and return policy, badges, SNAP EBT eligibility, Walmart+ savings, star rating with the per-star review breakdown and AI review summaries, images, category path, highlights, specifications, AI-generated key item features, variant axes with every option and the itemId each combination resolves to, fulfillment details, and the other-sellers block: how many competitors the page advertises and the cheapest competing price always, plus - when otherOffers is enabled - the offer list with each seller name, storefront URL, price, condition, shipping cost, delivery date and return policy. Use for price and buy-box monitoring, seller and marketplace competitor tracking, assortment enrichment of item ids harvested from search, and variant mapping.",
+          "is_mutating": false,
+          "property_keys": [
+            "domain",
+            "itemId",
+            "language",
+            "otherOffers",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "domain": "string",
+            "itemId": "string",
+            "language": "string",
+            "otherOffers": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "A full Walmart product URL to scrape as is. When provided, it overrides `itemId` and the storefront is taken from the URL itself. Required unless `itemId` is provided."
+              },
+              "domain": {
+                "enum": [
+                  "walmart.com",
+                  "walmart.ca"
+                ],
+                "type": "string",
+                "description": "Walmart storefront the item belongs to. Each storefront has its own catalog, item ids, prices and currency, so an id from one storefront does not resolve on another. Ignored when `url` is provided. Default is `walmart.com`."
+              },
+              "itemId": {
+                "type": "string",
+                "description": "Walmart item id, taken from a product URL or from the id field of the Walmart Search API response. On `walmart.com` it is numeric (for example `14977205582`), on `walmart.ca` an alphanumeric code (for example `6NZMJ5CW6MH2`). Required unless `url` is provided."
+              },
+              "language": {
+                "enum": [
+                  "en",
+                  "es",
+                  "fr"
+                ],
+                "type": "string",
+                "description": "Language of the product details. Availability depends on the storefront - `walmart.com` serves `en` and `es`, `walmart.ca` serves `en` and `fr`. A language the storefront does not support falls back to its default."
+              },
+              "otherOffers": {
+                "type": "boolean",
+                "description": "Also collect the offers of other sellers competing for this item - each seller name, storefront, price, condition, shipping cost, delivery date and return policy. This takes an extra request to Walmart and costs 5 credits on top of the base 10, whether or not the item turns out to have competing sellers. How many competitors the item advertises, and the cheapest competing price, are returned in the `otherOffers` block whether the switch is on or off, so it can be left off until the count shows there is something to collect. Default is `false`."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:09e1400f92eee2888ed76057cf44e55f0a102b195202e0d382abab1578157422"
+        },
+        {
+          "name": "hasdata_walmart_reviews_getWalmartReviews",
+          "canonical_hash": "sha256:7f1230884e39121c03f7422c096562662ab00430b7f1b899bab391d3c1756098",
+          "description": "Get Walmart Product Reviews\n\nScrapes the customer reviews of one Walmart product on a chosen storefront by item id or URL, ten reviews a page. Returns each review with its rating, title, full text with paragraphs preserved, submission date, author, verified-purchase flag, helpful and not-helpful vote counts, badges, marketplace seller, photos and videos, and the review aspects it was tagged with. Alongside the reviews it returns the item rating, how many ratings versus how many written reviews exist, the per-star breakdown, the AI review summary, per-aspect scores such as Quality or Value for money, and a filters block listing exactly which star ratings, frequent mentions and conditions this item can be filtered by, with a count for each - the values in that block are the ones to pass back as request parameters. Sort by most relevant, most recent, most helpful, highest rated, lowest rated or oldest, and filter by star rating, frequent mention, condition or verified purchases only. Use for review mining and sentiment analysis, tracking what buyers praise or complain about per product, monitoring new reviews over time, and pulling only verified-purchase feedback.",
+          "is_mutating": false,
+          "property_keys": [
+            "aspectId",
+            "condition",
+            "domain",
+            "itemId",
+            "language",
+            "page",
+            "rating",
+            "sort",
+            "url",
+            "verifiedPurchasesOnly"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "page": "number",
+            "sort": "string",
+            "domain": "string",
+            "itemId": "string",
+            "rating": "number",
+            "aspectId": "string",
+            "language": "string",
+            "condition": "string",
+            "verifiedPurchasesOnly": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "A full Walmart product URL whose reviews to scrape. When provided, it overrides `itemId` and the storefront is taken from the URL itself. Required unless `itemId` is provided."
+              },
+              "page": {
+                "type": "number",
+                "description": "Page of reviews to return, ten reviews a page. The response reports the last available page in `pagination.totalPages`, the next one in `pagination.nextPage`, and how many reviews the current filters select in `pagination.totalResults`. Note that only reviews carrying written text are paginated, so the ceiling follows `reviewsInformation.totalReviews` rather than the larger `reviewsInformation.totalRatings`. Default is `1`."
+              },
+              "sort": {
+                "enum": [
+                  "mostRelevant",
+                  "mostRecent",
+                  "mostHelpful",
+                  "highestRated",
+                  "lowestRated",
+                  "oldest"
+                ],
+                "type": "string",
+                "description": "Order of the returned reviews, named as the Walmart review page names it. Default is `mostRelevant`."
+              },
+              "domain": {
+                "enum": [
+                  "walmart.com",
+                  "walmart.ca"
+                ],
+                "type": "string",
+                "description": "Walmart storefront the item belongs to. Each storefront has its own catalog, item ids and review pool, so an id from one storefront does not resolve on another. Ignored when `url` is provided. Default is `walmart.com`."
+              },
+              "itemId": {
+                "type": "string",
+                "description": "Walmart item id, taken from a product URL or from the id field of the Walmart Search API response. On `walmart.com` it is numeric (for example `14977205582`), on `walmart.ca` an alphanumeric code (for example `6NZMJ5CW6MH2`). Required unless `url` is provided."
+              },
+              "rating": {
+                "type": "number",
+                "description": "Return only reviews carrying this star rating, from `1` to `5`. The Star rating group of the `filters` block lists the ratings this item actually has, each with the `value` to send here and a `count` of how many reviews to expect."
+              },
+              "aspectId": {
+                "type": "string",
+                "description": "Return only reviews mentioning one topic. Send the `value` of the topic you want, taken from the Frequent mentions group of the `filters` block in the response - given `{\"name\": \"Battery Life\", \"value\": \"6049\", \"count\": 8}` you send `6049`, and `count` is how many reviews to expect. **Only one topic per request**, Walmart rejects a list of them. Topics belong to the product rather than to Walmart: a phone offers Battery Life or Display, a coffee offers Flavor or Aroma, and some items offer none at all - so make an unfiltered request first and read the block, instead of reusing a topic id across products."
+              },
+              "language": {
+                "enum": [
+                  "en",
+                  "es",
+                  "fr"
+                ],
+                "type": "string",
+                "description": "Language of the review page. Availability depends on the storefront - `walmart.com` serves `en` and `es`, `walmart.ca` serves `en` and `fr`. A language the storefront does not support falls back to its default. Reviews themselves are returned in the language their author wrote them in."
+              },
+              "condition": {
+                "type": "string",
+                "description": "Return only reviews written about one condition of the item. Send the `value` from the Condition group of the `filters` block - given `{\"name\": \"Restored: Like New\", \"value\": \"5\"}` you send `5`. **Only one condition per request.** This group appears for items Walmart sells in several conditions, and only when the request already names one: reach the variant through the `url` parameter with its `conditionGroupCode`, as in `https://www.walmart.com/ip/1028936148?conditionGroupCode=2`, and the block then lists the condition that variant carries. An item sold in a single condition has no such group, and no reviews to separate by it."
+              },
+              "verifiedPurchasesOnly": {
+                "type": "boolean",
+                "description": "Return only reviews left by customers whose purchase Walmart confirmed. Narrows the pool considerably, since most reviews are unverified or syndicated from the manufacturer."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:db8c92a0ba41505d0496ba243d71e47582d36b2beefdef708e57ba5605295e6a"
+        },
+        {
+          "name": "hasdata_walmart_search_getSearchResults",
+          "canonical_hash": "sha256:e4207d4bcac8876d6ccc2f9f2471edf12afad736388f6c3d347f8b4161b3564e",
+          "description": "Get Walmart Search Results\n\nRuns a keyword or category search on a chosen Walmart storefront with pagination, price range and fulfillment filters, facet narrowing, and sort order (best match, price low-to-high, price high-to-low, bestseller, highly rated, new arrivals). Returns the product list with item id, title, product URL, brand, price and strikethrough before-price, star rating, review count, seller, availability, sponsored flag, badges, SNAP EBT eligibility, Walmart+ savings, variants, other offers and fulfillment details (shipping, pickup, delivery messages), plus the facets block listing every filter the query supports with the exact value to send back in the facet parameter, pagination, and the store the prices belong to. Use for SERP monitoring, price and assortment tracking, share-of-shelf analysis, competitor discovery, and harvesting item ids to feed downstream product or reviews endpoints.",
+          "is_mutating": false,
+          "property_keys": [
+            "catId",
+            "deliveryType",
+            "domain",
+            "facet",
+            "language",
+            "maxPrice",
+            "minPrice",
+            "page",
+            "q",
+            "sort",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "q": "string",
+            "url": "string",
+            "page": "number",
+            "sort": "string",
+            "catId": "string",
+            "facet": "string",
+            "domain": "string",
+            "language": "string",
+            "maxPrice": "number",
+            "minPrice": "number",
+            "deliveryType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string",
+                "description": "The search term for which to get the search results. It can be omitted only when `catId` is provided, to browse a whole category instead of searching."
+              },
+              "url": {
+                "type": "string",
+                "description": "A full Walmart search or category URL to scrape as is. When provided, it overrides `q`, `catId` and the other search parameters, and the storefront is taken from the URL itself."
+              },
+              "page": {
+                "type": "number",
+                "description": "Page number for pagination (e.g., `1` for the first page, `2` for the second page, etc.). Walmart stops serving results after roughly page 10, returning an empty page beyond that."
+              },
+              "sort": {
+                "enum": [
+                  "bestMatch",
+                  "priceLowToHigh",
+                  "priceHighToLow",
+                  "bestseller",
+                  "highlyRated",
+                  "newArrivals"
+                ],
+                "type": "string",
+                "description": "The sorting option for the search results."
+              },
+              "catId": {
+                "type": "string",
+                "description": "Walmart category id, taken from a category URL (for example `976759_1086446_1229651`). Combine it with `q` to search inside a category, or send it alone to browse the whole category. Required unless `q` is provided."
+              },
+              "facet": {
+                "type": "string",
+                "description": "Walmart filter in the `name:value` form, for example `brand:Great Value`. Every value available for a query is listed in the facets block of the response, each one carrying the exact string to send back here, so a first unfiltered request tells you what can be filtered on. To combine filters, put each one on its own line. The double-pipe form Walmart's own urls use `brand:Great Value||retailer_type:Walmart` is also accepted."
+              },
+              "domain": {
+                "enum": [
+                  "walmart.com",
+                  "walmart.ca"
+                ],
+                "type": "string",
+                "description": "Walmart storefront to search. Each storefront has its own catalog, prices and currency. Default is `walmart.com`."
+              },
+              "language": {
+                "enum": [
+                  "en",
+                  "es",
+                  "fr"
+                ],
+                "type": "string",
+                "description": "Language of the results. Availability depends on the storefront - `walmart.com` serves `en` and `es`, `walmart.ca` serves `en` and `fr`. A language the storefront does not support falls back to its default."
+              },
+              "maxPrice": {
+                "type": "number",
+                "description": "Upper bound of the price range, in the storefront currency."
+              },
+              "minPrice": {
+                "type": "number",
+                "description": "Lower bound of the price range, in the storefront currency."
+              },
+              "deliveryType": {
+                "enum": [
+                  "shipping",
+                  "pickup"
+                ],
+                "type": "string",
+                "description": "Keep only the products available with the selected fulfillment method. Default is `shipping`. Note that `pickup` is answered against one Walmart store, so an item in stock nationally can still be unavailable for `pickup` nearby - the response then reports that nothing matched the filters rather than that the query had no results."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:99808b46479904d719dde816f9febe1fb67b74bbe2cd572255efe4790734daac"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

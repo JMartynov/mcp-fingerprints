@@ -4,17 +4,18 @@
   "purl": "pkg:generic/Pexafy%2Fpexafy-mcp",
   "ecosystem": "generic",
   "display_name": "Pexafy/pexafy-mcp",
-  "description": "Semantic search over free-to-use stock photos from 9 libraries: by words, image, or similar.",
-  "repository_url": "https://github.com/Pexafy/pexafy-mcp",
+  "description": "Pexafy searches photographs the way you would describe them to a person.\n\nAsk for \"someone working alone late at night in a quiet apartment, lit only by a\nwarm desk lamp\" and you get photographs that match the scene — not photographs\ntagged with those words. Search runs across nine free-license sources at once\n(Unsplash, Pexels, Pixabay, Kaboompics, Burst, StockSnap, Picjumbo, Skitterphoto,\nNegativeSpace) instead of one provider at a time.\n\nThree tools, all read-only:\n\nsearch_photos — describe a scene in a sentence, optionally filtered by colour,\norientation, source, licence, photographer or date.\n\nsearch_photos_by_image — give a reference image and get visually similar\nphotographs, optionally adjusted in words: \"like this, but at night\".\n\nget_similar_photos — more photographs like one already found, which is how you\nkeep a set visually consistent across an article or a deck.\n\nEvery result carries the credit line to display, the image at several sizes, and\nits dimensions, dominant colour, orientation, source and licence. Results are\nnumbered, so you refer to a photograph the way you would in conversation —\n\"more like the third one\" — rather than copying identifiers around.\n\nIn clients that render MCP Apps, results appear as a thumbnail grid inside the\nconversation, and clicking one opens its full metadata without another call.\n\nThe connector is hosted, so there is nothing to install and no API key to paste\ninto a configuration file: you sign in to Pexafy once in a browser and the\nconnector receives its own credential, separate from your password and revocable\non its own. It is granted read access only and never asks for more.\n\nA free Pexafy account covers 5,000 searches a month, with no card required.",
+  "repository_url": "https://pexafy-mcp.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "Pexafy",
-    "Pexafy/pexafy-mcp"
+    "Pexafy/pexafy-mcp",
+    "pexafy/pexafy-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -38,6 +39,718 @@
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:2ea4fe34a7ad207d4b96ad5440363a17a677fb86e2fd89bb71ca401f8d902485",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://pexafy-mcp.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "connect_account",
+          "canonical_hash": "sha256:900795b631de0d757b936b2109406d7aa168e8def6402a4614eec4c163da321a",
+          "description": "Asks the host to offer its own flow for connecting a Pexafy account, when none is attached. Use it when the person asks to connect, link or sign in to a Pexafy account — including from the account button in the Pexafy grid — or wants more searches than the daily allowance available without an account.\n\nWhen no account is attached, it returns an error result that carries an account-connection request for the host: the error is how that request is delivered, not a failure. A host that supports it shows its own account-connection prompt, which the person completes or dismisses; other hosts show only the result's text. Calling it again returns the same request. When an account is already attached, it says so and starts nothing.\n\nIt does not search, and searching does not require calling it. `check_only` is set by the Pexafy grid to read the state without opening a prompt; leave it unset when the person wants to connect or sign in.",
+          "is_mutating": false,
+          "property_keys": [
+            "check_only"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "check_only": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "check_only": {
+                "type": "boolean",
+                "default": false,
+                "description": "Set by the Pexafy results grid: `true` reports whether an account is connected — and the allowance in force — without opening the connection prompt. Leave it unset when the person wants to connect or sign in."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "budget": {
+                "anyOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "What is left of the current allowance, or null when it is not worth saying."
+              },
+              "connected": {
+                "type": "boolean",
+                "description": "Whether an account is attached to this conversation."
+              }
+            }
+          },
+          "description_hash": "sha256:2a4de4cfe63cbc70da17a49472665788ea38de7e6d7ccf590765cb57d9ead0c3"
+        },
+        {
+          "name": "get_grid_selected_photos",
+          "canonical_hash": "sha256:ea5db746cf8881ca915d380c241547912dcc8995e36b0af2ce5d38ab07b43f08",
+          "description": "Returns the photographs the person liked (hearted) in the Pexafy results grid. Use it when the person refers to that selection rather than asking for new photos — for example “the images I selected”, “the ones I chose”, “my selection”, “the photos I hearted”, “the photos I liked”, “use the ones I picked”, “put my selection in the document”, “download the ones I chose”, or “write the article around my photos”.\n\nThe selection is held by the grid and the server, not by the conversation: this tool is how it is read, and search results are not the selection. It takes no arguments and returns every liked photograph with its rank, photo_id, photographer, source library, licence, pixel size, orientation, description, page URL and credit line, and `selection_count`, the number of them.\n\nTo get one of them as an image file, pass its photo_id to get_photo_file_by_photo_id.\n\n`rank` is the person's order, #1 first: the order the photos were liked in, unless the person rearranged them by dragging in the grid. Where the grid is rendered, that number is drawn on each liked photograph, so it is the number the person sees and names them by (“#2”). The `rank` of a search result is only its position in that answer and is not drawn on the grid.\n\nAn empty selection means nothing is liked in the grid currently on screen; a photograph is liked with the heart on it. A selection expires an hour after its last change, and a new search replaces the grid it belongs to.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "note": {
+                "type": "string",
+                "description": "What the count means, in words: a whole selection, one that a later search replaced, or an empty one."
+              },
+              "success": {
+                "type": "boolean"
+              },
+              "selected_photos": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The photograph's page on Pexafy."
+                    },
+                    "rank": {
+                      "type": "integer",
+                      "description": "#1 is first in their order."
+                    },
+                    "width": {
+                      "type": "integer"
+                    },
+                    "height": {
+                      "type": "integer"
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "The library it came from."
+                    },
+                    "license": {
+                      "type": "string"
+                    },
+                    "photo_id": {
+                      "type": "string",
+                      "description": "What every other tool takes."
+                    },
+                    "image_url": {
+                      "type": "string",
+                      "description": "The link to the photograph."
+                    },
+                    "attribution": {
+                      "type": "string",
+                      "description": "The credit line to display."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "What is in the photograph."
+                    },
+                    "orientation": {
+                      "type": "string"
+                    },
+                    "photographer": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "description": "The photographs they liked, in their order — the order they liked them in, unless they rearranged them in the grid. Each carries its `rank` — #1 first — the `photo_id` to pass on, the photographer, the source, the licence, the pixel size, the description, the page it came from and the credit line."
+              },
+              "selection_count": {
+                "type": "integer",
+                "description": "How many photographs they liked; `selected_photos` lists every one."
+              }
+            },
+            "required": [
+              "success",
+              "selection_count",
+              "selected_photos",
+              "note"
+            ]
+          },
+          "description_hash": "sha256:9f715ccc1499f7db9017345c2748fe1fa901a6e5838d8503cbef9b1c1ee2fd80"
+        },
+        {
+          "name": "get_photo_file_by_photo_id",
+          "canonical_hash": "sha256:9ba33aec049a7a678126ad246e0cb9698cd0094df03317e9651b9464964cf0d9",
+          "description": "Returns one photograph from an earlier Pexafy result as an image file, identified by its `photo_id`. A result's link points to the image; this tool returns the image itself, so the person does not need to send the photograph again.\n\nUse it when the user wants a photograph found here as a file: to place it in a document, a slide or a post, to attach, send or download it, or to have it cropped, captioned or otherwise edited with the host's own tools.\n\nThe answer contains the photograph, at most 1280 pixels wide, and a line giving its file name, size, licence, source, `photo_id`, page at the source and the credit line to display. One photo per call; the file stays in the conversation afterwards.\n\nThis server does not edit images: what can be done to the file next depends on the host's own tools. Its licence and credit line apply to this photograph only.",
+          "is_mutating": false,
+          "property_keys": [
+            "photo_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "photo_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "photo_id": {
+                "type": "string",
+                "description": "The `photo_id` of the specific photo to retrieve from a previous Pexafy result. It is a UUID such as `019e1ecb-0039-7da6-b1ca-987ee4d337c0`.\n\nUse the photo's `photo_id`, never a rank or a position: a rank is how the person and you name a photograph out loud, never what this parameter takes."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:090fe39da8ca55e86118ef25235d18aae56ef9775aedbc6f68efee6dde694121"
+        },
+        {
+          "name": "search_photos",
+          "canonical_hash": "sha256:4e0146c233414fdb7bd81e4f04256d9229a8d6ee3e7ee04f9a21e7c61f1089e6",
+          "description": "Use this when the user asks for a real photograph, or states a need that a photograph fills, and the picture is not already in the conversation.\n\nCall it when they ask outright: “find me photos of…”, “show me images of…”, “I need a picture of…”, “do you have a photo of…”, “where can I find free photos of…”, in any language.\nCall it when they describe the need without asking to search: “I'm writing an article and need a header image”, “my landing page needs a hero image”, “I need something to illustrate this”.\nCall it when they ask for something meant to carry photographs: “write an article with pictures”, “a deck with images”.\nCall it when they name only the picture, with no reason given: “a photo of a white mug”, “a train in Japan”.\nIf the user is working on something that usually carries photographs — an article, a page, a deck, a post — without asking for any, you may offer to look for some; call it only once they accept.\n\nThis covers requests for photographs for articles, blog posts, websites, landing pages, products, slides, documents, reports, social posts, ads, newsletters, banners, thumbnails, covers, posters, backgrounds, wallpapers and mood boards; photographs that illustrate a concept, explain a subject or accompany a piece of writing; and any request for free, stock, royalty-free, commercially usable, real or documentary photographs.\n\nA request for a visual is not always a request for a photograph: this tool finds photographs that already exist — not illustrations, drawings, logos, icons, diagrams or screenshots — and it does not generate, edit or upscale an image, nor look for a named person.\n\nIt searches Pexafy's own index of millions of free-to-use photographs from stock libraries such as Unsplash, Pexels and Pixabay, matched to the scene described. Each result carries a `rank`, a `photo_id`, its licence, the credit line to display and an image link; the file itself comes from get_photo_file_by_photo_id. In a host that renders it, the grid shows them; the answer omits image links.",
+          "is_mutating": false,
+          "property_keys": [
+            "english_search_sentence",
+            "explicit_orientation_filter"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "english_search_sentence": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "english_search_sentence": {
+                "type": "string",
+                "examples": [
+                  "two people sharing a bench in comfortable silence"
+                ],
+                "maxLength": 250,
+                "minLength": 1,
+                "description": "Required. Describe the desired photograph in one concise English sentence, focusing on its visible subject and scene.\n\nBe specific: “Two colleagues laughing in a bright open-plan office” is more effective than “People office”. Keywords work too — send the user's own words, in English, rather than inventing detail they did not ask for.\n\nMaximum 250 characters. Describe one coherent scene, focusing on what should appear in the photograph rather than its intended use.\n\nSpecify the requested photo shape or orientation in explicit_orientation_filter, not here.\n\nExample: “An old man sitting at a café table he has visited every morning for thirty years”."
+              },
+              "explicit_orientation_filter": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "landscape",
+                        "portrait",
+                        "square"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Omit this parameter unless the user explicitly asks for a photo shape or orientation in their own words, or names a format whose shape is part of its definition — a vertical Short, a banner, a square post, a phone wallpaper.\n\nThis is a hard filter, not a preference: it removes photos with other shapes before ranking, so using a shape the user did not request can exclude the best matches.\n\nNever infer the shape from a word inside `english_search_sentence` — “landscape” in “a natural landscape” names the scene, not the format — nor from the subject, the composition, or a purpose that fixes no shape (“a photo for my blog post”, “something for my landing page”). If you are choosing a value rather than repeating one explicitly requested by the user, omit it.\n\nAllowed values: `landscape`, `portrait`, `square`. Multiple values are allowed: two shapes return more than one alone, though any filter still returns less than none. For example, “anything but portrait” means `['landscape', 'square']`."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "rank": {
+                      "type": "integer",
+                      "description": "This photograph's place in this answer, from 1. A person may name a result by position (“the second one”); the tools take that result's `photo_id`, not its rank. The grid draws no number on a result: the only numbers the person sees are on the photographs they liked."
+                    },
+                    "urls": {
+                      "type": "object",
+                      "properties": {
+                        "regular": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      },
+                      "description": "The photograph's image file, 1280 pixels wide, for a page, a document or a download. `urls` carries this one variant and no other."
+                    },
+                    "width": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "height": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Provider (e.g. `Pexels`, `Unsplash`, `Pixabay`)."
+                    },
+                    "photo_id": {
+                      "type": "string",
+                      "description": "Unique Pexafy identifier (UUID)."
+                    },
+                    "attribution": {
+                      "type": "object",
+                      "properties": {
+                        "plain": {
+                          "type": "string",
+                          "description": "Plain-text attribution."
+                        }
+                      },
+                      "description": "The credit line to display, already written."
+                    },
+                    "orientation": {
+                      "enum": [
+                        "landscape",
+                        "portrait",
+                        "square"
+                      ],
+                      "type": "string",
+                      "description": "The shape of this photograph — `landscape`, `portrait` or `square`, the values `explicit_orientation_filter` takes."
+                    },
+                    "preview_url": {
+                      "type": "string",
+                      "description": "Signed 480-pixel thumbnail the inline grid renders. It expires."
+                    },
+                    "license_type": {
+                      "type": "string",
+                      "description": "License type (e.g. `free`)."
+                    },
+                    "alt_description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Accessibility-friendly text."
+                    },
+                    "source_image_url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uri",
+                      "description": "The photograph's page on the library it came from — where to send someone who wants the source."
+                    },
+                    "preview_url_large": {
+                      "type": "string",
+                      "description": "Signed 1280-pixel preview the grid's photo viewer renders. Never expires."
+                    },
+                    "photographer_full_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "description": "One photograph of this answer."
+                }
+              },
+              "error": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "code",
+                      "message"
+                    ],
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "Machine-readable error code (e.g. `MISSING_PARAMS`, `PHOTO_NOT_FOUND`)."
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "Human-readable error message."
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "budget": {
+                "type": "object",
+                "properties": {
+                  "used": {
+                    "type": "integer",
+                    "description": "Searches spent in that period."
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "description": "Searches allowed in that period."
+                  },
+                  "scope": {
+                    "enum": [
+                      "day",
+                      "month"
+                    ],
+                    "type": "string",
+                    "description": "Which allowance this counts: the daily one or the monthly one. Both exist with or without an account, so `signed_in` does not tell them apart."
+                  },
+                  "state": {
+                    "enum": [
+                      "warning",
+                      "exhausted"
+                    ],
+                    "type": "string",
+                    "description": "`warning` while there is room left, `exhausted` once there is none."
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "The whole notice in words, for a host with no UI."
+                  },
+                  "remaining": {
+                    "type": "integer",
+                    "description": "Searches left in that period."
+                  },
+                  "signed_in": {
+                    "type": "boolean",
+                    "description": "Whether the caller has an account. False is the anonymous allowance."
+                  }
+                },
+                "description": "Present only when the caller is near the end of an allowance — the daily one without an account, the monthly one with. What is left of it, and, for a caller with no account, the one sentence that says what lifts the limit. Also carried by a refusal, where it describes the wall itself."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Why this answer is empty, when it is. A plan limit was reached: the allowance and when it returns. There is nothing to retry until then."
+              },
+              "success": {
+                "type": "boolean"
+              }
+            }
+          },
+          "description_hash": "sha256:e9e87b805f9092271a19214c21c2884e135470da3b9ab21186c1502ff8a4cf1c"
+        },
+        {
+          "name": "search_photos_by_image",
+          "canonical_hash": "sha256:bd7343954dcbc5d070f80f99d90b9159486834238a59065aa711d927f8dcea64",
+          "description": "Use this when the user wants photographs that look like a picture, rather than ones described in words: a picture they link to, one the host passes to the tool as a file, or a Pexafy photo already found or liked in the grid.\n\nCall it for “find images like this”, “something similar to this photo”, “find a free alternative to this image”, “I need this but royalty-free”, “photos in this style”, “more like the second one”, whether or not they say “search by image”.\n\nGive exactly one reference: `photo_id` for a Pexafy photo from an earlier result or liked in the grid; `image_url` for a picture at a public URL, such as a link the user pasted; `image_file` when the host passes the user's uploaded image to the tool; `image_base64` for image bytes a client already holds. Sending two is refused. A picture that is only visible in the conversation — not linked, not passed to the tool — is not a reference this tool can receive; its scene can be searched in words with `search_photos`. Words are optional, in `english_search_sentence`: with a `photo_id`, the words that photograph was found under; with an image, only what the user wants changed or kept (“like this but at night”).\n\nIt finds free stock photographs in Pexafy's index that visually match the reference. The reference image is sent to Pexafy only to run the search; it is not stored. Each result carries a `rank`, a `photo_id`, its licence, the credit line to display and an image link. In a host that renders it, the grid shows them; the answer omits image links.",
+          "is_mutating": false,
+          "property_keys": [
+            "english_search_sentence",
+            "explicit_orientation_filter",
+            "image_base64",
+            "image_file",
+            "image_url",
+            "photo_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image_file": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "photo_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "examples": [
+                      "019e1ecb-0039-7da6-b1ca-987ee4d337c0"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The photo_id of the Pexafy reference photo, copied from the result the user or assistant is referring to. It is a UUID such as `019e1ecb-0039-7da6-b1ca-987ee4d337c0`. Use it instead of an image when the reference is a Pexafy photo, whether it was returned in an earlier search or liked in the grid, and pass the words of that search in `english_search_sentence` if needed."
+              },
+              "image_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Public http(s) URL pointing directly to the reference image file, including a URL the user pasted in the conversation. For a photograph Pexafy returned, send its `photo_id` instead."
+              },
+              "image_file": {
+                "type": "object",
+                "required": [
+                  "download_url",
+                  "file_id"
+                ],
+                "properties": {
+                  "file_id": {
+                    "type": "string"
+                  },
+                  "file_name": {
+                    "type": "string"
+                  },
+                  "mime_type": {
+                    "type": "string"
+                  },
+                  "download_url": {
+                    "type": "string"
+                  }
+                },
+                "description": "The user's uploaded image, as a host that passes uploads to tools provides it: the upload's `download_url` and `file_id`. A picture that is only visible in the conversation has neither.",
+                "additionalProperties": false
+              },
+              "image_base64": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Reference image as base64-encoded bytes, optionally as a data: URL. Use for programmatic clients that already hold the image data."
+              },
+              "english_search_sentence": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 250
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional, and usable with any reference. Send the words that say what the user wants from the reference: with a `photo_id`, the words that photograph was found under, so the results stay on the subject they asked for; with an image, what they want changed or kept from it (“like this but at night”). The reference stays the main signal and these words adjust it. With an image, send the change alone (“at night”) rather than the whole scene rewritten, which would outweigh the picture instead of adjusting it; with a `photo_id`, the full sentence that photograph was found under is what to send. In English, like the sentence of a text search. The words a reference photograph was found under are the best ones; where the grid hands you a short description of it instead, that description serves. When it is unclear whether they want the same subject or simply the same look, send the words: staying on the subject is the safer default. Omit them only when they plainly want photographs that look like the picture itself."
+              },
+              "explicit_orientation_filter": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "landscape",
+                        "portrait",
+                        "square"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Omit this parameter unless the user explicitly asks for a photo shape or orientation in their own words, or names a format whose shape is part of its definition — a vertical Short, a banner, a square post, a phone wallpaper.\n\nThis is a hard filter, not a preference: it removes photos with other shapes before ranking, so using a shape the user did not request can exclude the best matches.\n\nNever infer the shape from the reference image the user gave — its shape is a property of the picture they had, not a constraint on the ones they want — nor from the subject, the composition, or a purpose that fixes no shape (“a photo for my blog post”, “something for my landing page”). If you are choosing a value rather than repeating one explicitly requested by the user, omit it.\n\nAllowed values: `landscape`, `portrait`, `square`. Multiple values are allowed: two shapes return more than one alone, though any filter still returns less than none. For example, “anything but portrait” means `['landscape', 'square']`."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "rank": {
+                      "type": "integer",
+                      "description": "This photograph's place in this answer, from 1. A person may name a result by position (“the second one”); the tools take that result's `photo_id`, not its rank. The grid draws no number on a result: the only numbers the person sees are on the photographs they liked."
+                    },
+                    "urls": {
+                      "type": "object",
+                      "properties": {
+                        "regular": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      },
+                      "description": "The photograph's image file, 1280 pixels wide, for a page, a document or a download. `urls` carries this one variant and no other."
+                    },
+                    "width": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "height": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "Provider (e.g. `Pexels`, `Unsplash`, `Pixabay`)."
+                    },
+                    "photo_id": {
+                      "type": "string",
+                      "description": "Unique Pexafy identifier (UUID)."
+                    },
+                    "attribution": {
+                      "type": "object",
+                      "properties": {
+                        "plain": {
+                          "type": "string",
+                          "description": "Plain-text attribution."
+                        }
+                      },
+                      "description": "The credit line to display, already written."
+                    },
+                    "orientation": {
+                      "enum": [
+                        "landscape",
+                        "portrait",
+                        "square"
+                      ],
+                      "type": "string",
+                      "description": "The shape of this photograph — `landscape`, `portrait` or `square`, the values `explicit_orientation_filter` takes."
+                    },
+                    "preview_url": {
+                      "type": "string",
+                      "description": "Signed 480-pixel thumbnail the inline grid renders. It expires."
+                    },
+                    "license_type": {
+                      "type": "string",
+                      "description": "License type (e.g. `free`)."
+                    },
+                    "alt_description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Accessibility-friendly text."
+                    },
+                    "source_image_url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uri",
+                      "description": "The photograph's page on the library it came from — where to send someone who wants the source."
+                    },
+                    "preview_url_large": {
+                      "type": "string",
+                      "description": "Signed 1280-pixel preview the grid's photo viewer renders. Never expires."
+                    },
+                    "photographer_full_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "description": "One photograph of this answer."
+                }
+              },
+              "error": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "code",
+                      "message"
+                    ],
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "description": "Machine-readable error code (e.g. `MISSING_PARAMS`, `PHOTO_NOT_FOUND`)."
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "Human-readable error message."
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "budget": {
+                "type": "object",
+                "properties": {
+                  "used": {
+                    "type": "integer",
+                    "description": "Searches spent in that period."
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "description": "Searches allowed in that period."
+                  },
+                  "scope": {
+                    "enum": [
+                      "day",
+                      "month"
+                    ],
+                    "type": "string",
+                    "description": "Which allowance this counts: the daily one or the monthly one. Both exist with or without an account, so `signed_in` does not tell them apart."
+                  },
+                  "state": {
+                    "enum": [
+                      "warning",
+                      "exhausted"
+                    ],
+                    "type": "string",
+                    "description": "`warning` while there is room left, `exhausted` once there is none."
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "The whole notice in words, for a host with no UI."
+                  },
+                  "remaining": {
+                    "type": "integer",
+                    "description": "Searches left in that period."
+                  },
+                  "signed_in": {
+                    "type": "boolean",
+                    "description": "Whether the caller has an account. False is the anonymous allowance."
+                  }
+                },
+                "description": "Present only when the caller is near the end of an allowance — the daily one without an account, the monthly one with. What is left of it, and, for a caller with no account, the one sentence that says what lifts the limit. Also carried by a refusal, where it describes the wall itself."
+              },
+              "notice": {
+                "type": "string",
+                "description": "Why this answer is empty, when it is. A plan limit was reached: the allowance and when it returns. There is nothing to retry until then."
+              },
+              "success": {
+                "type": "boolean"
+              }
+            }
+          },
+          "description_hash": "sha256:b43e1bc25fea05cc5754941c4526ae295a8fb2ef190dd3681292aac6deb5f74a"
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "find_photos",
+          "description": "",
+          "argument_keys": [
+            "scene"
+          ],
+          "required_arguments": [
+            "scene"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "ui://pexafy/grid.html",
+          "name": "pexafy_results_grid",
+          "description": "",
+          "mime_type": "text/html;profile=mcp-app"
+        }
+      ]
     }
   ],
   "security_profile": {}

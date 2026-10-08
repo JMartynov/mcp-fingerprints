@@ -4,8 +4,8 @@
   "purl": "pkg:generic/Kzino%2Fvorim-mcp-server",
   "ecosystem": "generic",
   "display_name": "Kzino/vorim-mcp-server",
-  "description": "AI agent identity, permissions, trust scores, and tamper-evident audit trails via Vorim AI",
-  "repository_url": "https://github.com/Vorim-AI-Labs/vorim-mcp-server",
+  "description": "",
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,10 +13,695 @@
     "Kzino/vorim-mcp-server"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:0981f808dbfb302226c1166b7687dcc7c8168f4fea10e13a5865a0952eb59241",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "vorim_check_permission",
+          "canonical_hash": "sha256:991906a09c2a7d588507571c2e2fe34a9bafab6bbfdf8675ac5825605c1eca12",
+          "description": "Check if an agent has a specific permission scope. Returns allowed (boolean), reason if denied, and remaining quota. Sub-5ms via Redis cache.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45ac4bc4e22a37b974a0b2eed2a6c9c8e43c35febcc86b264ab3caf4b2b844f1"
+        },
+        {
+          "name": "vorim_delegate_credential",
+          "canonical_hash": "sha256:0017b566705210bc3bcf75abc7cb0610a1ebb696f7d29ad3474717acea1efc8b",
+          "description": "Delegate a credential to an agent. Creates a scoped delegation with optional rate limits and expiry.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id",
+            "connection_id",
+            "max_requests_per_hr",
+            "scopes_delegated",
+            "valid_until"
+          ],
+          "required_keys": [
+            "agent_id",
+            "connection_id",
+            "scopes_delegated"
+          ],
+          "parameter_types": {
+            "connection_id": "string",
+            "agent_id": "string",
+            "scopes_delegated": "array",
+            "max_requests_per_hr": "number",
+            "valid_until": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "connection_id": {
+                "type": "string"
+              },
+              "agent_id": {
+                "type": "string"
+              },
+              "scopes_delegated": {
+                "type": "array"
+              },
+              "max_requests_per_hr": {
+                "type": "number"
+              },
+              "valid_until": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id",
+              "connection_id",
+              "scopes_delegated"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:da6c5bec9610ce20c74eb6f596ee19e82bb0d46224dd6486b365d1446b716165"
+        },
+        {
+          "name": "vorim_emit_event",
+          "canonical_hash": "sha256:3191e1240ff78f1da052183917872fc2077374993f79706933c1bbbe9a6e9806",
+          "description": "Log an audit event for an agent action. Every agent action should be logged for compliance and traceability. NOTE: events emitted via the MCP server are sent unsigned because the MCP server does not hold the agent",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "agent_id",
+            "error_code",
+            "event_type",
+            "latency_ms",
+            "permission",
+            "resource",
+            "result"
+          ],
+          "required_keys": [
+            "action",
+            "agent_id",
+            "event_type",
+            "permission",
+            "result"
+          ],
+          "parameter_types": {
+            "agent_id": "string",
+            "event_type": "string",
+            "action": "string",
+            "result": "string",
+            "resource": "string",
+            "permission": "string",
+            "latency_ms": "number",
+            "error_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              },
+              "event_type": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              },
+              "result": {
+                "type": "string"
+              },
+              "resource": {
+                "type": "string"
+              },
+              "permission": {
+                "type": "string"
+              },
+              "latency_ms": {
+                "type": "number"
+              },
+              "error_code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "agent_id",
+              "event_type",
+              "permission",
+              "result"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e79cc8eda2d00305aa8faa6a8d3c3867fd6392030851418d182eabc134f266d7"
+        },
+        {
+          "name": "vorim_export_audit",
+          "canonical_hash": "sha256:f142ee33cbda0c524e6bef296708da8bd6283d67cc323473c1a1e79bfbff25ec",
+          "description": "Export a signed audit bundle for a date range. Returns events with a SHA-256 manifest for tamper-proof verification. Window must be <= 90 days; the server returns 400 if from > to or the range exceeds the cap. The returned bundle has up to 1,000,000 events; if truncated, the response carries ",
+          "is_mutating": false,
+          "property_keys": [
+            "from",
+            "to"
+          ],
+          "required_keys": [
+            "from",
+            "to"
+          ],
+          "parameter_types": {
+            "from": "string",
+            "to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6d6b7563dd3a6c2f9ca9311ed902e259927f6063913f8af21cf038d4b426113d"
+        },
+        {
+          "name": "vorim_get_agent",
+          "canonical_hash": "sha256:1ac1f36d0f90141e3e1ccd7d2f76bff3042770bc89cfbff7f16d56f15e5a1d34",
+          "description": "Get details of a specific agent by agent_id. Returns name, status, trust score, capabilities, permissions, and metadata.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f9415f41b539de52e28f0a4e6bb8078c521c69394a1a366cd5889670aa5b2725"
+        },
+        {
+          "name": "vorim_grant_permission",
+          "canonical_hash": "sha256:6583d6be0f8aeaadb2057046d778e7f20c0a2b4fa623bbcab2428741f8bd9f0c",
+          "description": "Grant a permission scope to an agent. Optionally set expiry and rate limits.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id",
+            "rate_limit_max",
+            "rate_limit_window",
+            "valid_until"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string",
+            "valid_until": "string",
+            "rate_limit_max": "number",
+            "rate_limit_window": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              },
+              "valid_until": {
+                "type": "string"
+              },
+              "rate_limit_max": {
+                "type": "number"
+              },
+              "rate_limit_window": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:11abe443d937d3864db0ce83327271e74644c1ec55ffab7a01d2a8ab22eba643"
+        },
+        {
+          "name": "vorim_list_agents",
+          "canonical_hash": "sha256:f595ef5207205dd5598fea8301d8975f57d968ed3e038c5d6f7085fe90bc52a0",
+          "description": "List all agents in the organisation. Supports pagination and filtering by status.",
+          "is_mutating": false,
+          "property_keys": [
+            "page",
+            "per_page",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "per_page": "number",
+            "status": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "per_page": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0d370c8f00cbb99f916e2dbc973c8e674d406d76a748471d267a35538f688ffa"
+        },
+        {
+          "name": "vorim_list_delegations",
+          "canonical_hash": "sha256:0e2d136b7bae58b2a50078baa313da59e70601b0b9644814eacafeaab2583f04",
+          "description": "List credential delegations. Optionally filter by agent_id to see delegations for a specific agent.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6b28aff077edbf2172f889aabcdef84efe3870ee9dbea1c31b36f12ae3c11cfa"
+        },
+        {
+          "name": "vorim_list_permissions",
+          "canonical_hash": "sha256:bb0b13b21f358d6355b539dd119ffdf45a76242e076da6ccbc04ee9d5cd195d2",
+          "description": "List all active permissions for an agent.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0c24b0babec3e39ef130cabbeac6e142aa1ab876a87f87706e1470d2cf71b36f"
+        },
+        {
+          "name": "vorim_onboard_check",
+          "canonical_hash": "sha256:2b02fad7305d9ffeafd7091df01ebeb05afc6ee552351d1ee6ffaed5cc43a5ae",
+          "description": "Check whether the human has approved the onboarding request from vorim_onboard_start. ",
+          "is_mutating": false,
+          "property_keys": [
+            "device_code"
+          ],
+          "required_keys": [
+            "device_code"
+          ],
+          "parameter_types": {
+            "device_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "device_code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "device_code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7c47918ed3448bfb03dba35c960a11e3fdf5e57e4ae9fb4b4e40a743cb35b003"
+        },
+        {
+          "name": "vorim_onboard_start",
+          "canonical_hash": "sha256:f3d0223c1c59ac9150b173c21f80c535f0c39255143880cff97ba04586cece00",
+          "description": "Start onboarding a user who does NOT yet have a Vorim API key (device-authorization flow). ",
+          "is_mutating": false,
+          "property_keys": [
+            "client_name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "client_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "client_name": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:51cb89da026ecbc0464b199d8b98a13c36b65cb018f5a0009195994baf4b0ff4"
+        },
+        {
+          "name": "vorim_ping",
+          "canonical_hash": "sha256:8b9ada7176c6a73334eb7627d9ecd1d8ca035bdfee44f3af7103e035018c500e",
+          "description": "Check Vorim AI API health and connectivity. Returns status, version, and service health.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7f4634dd5deab9e1b217ce4b6a8c200225f46928f809313dc0a9f0d1b3cab2c1"
+        },
+        {
+          "name": "vorim_register_agent",
+          "canonical_hash": "sha256:61a8f724a9854e1f4a35f2f7283d3e5847013383d1bfd2e640844eeef6b2fdf2",
+          "description": "Register a new AI agent with Vorim. Returns the agent identity (Ed25519 keypair, agent_id, trust score). The private key is shown once — store it securely.",
+          "is_mutating": false,
+          "property_keys": [
+            "capabilities",
+            "description",
+            "name",
+            "scopes"
+          ],
+          "required_keys": [
+            "capabilities",
+            "name",
+            "scopes"
+          ],
+          "parameter_types": {
+            "name": "string",
+            "description": "string",
+            "capabilities": "array",
+            "scopes": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "capabilities": {
+                "type": "array"
+              },
+              "scopes": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "capabilities",
+              "name",
+              "scopes"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:24d96f0e5ed888e5513fa4ae9cb26b0119593656ea89ed7f9041f1c50473951f"
+        },
+        {
+          "name": "vorim_register_ephemeral",
+          "canonical_hash": "sha256:43068d74d5c5440247084c2decb42331ae5a5a324d51e866e0a6845eee62d4e2",
+          "description": "Register an ephemeral agent with a did:key identity. Short-lived agents that auto-expire. Returns agent_id, did:key, and keypair.",
+          "is_mutating": false,
+          "property_keys": [
+            "capabilities",
+            "scopes",
+            "ttl_seconds"
+          ],
+          "required_keys": [
+            "capabilities",
+            "scopes"
+          ],
+          "parameter_types": {
+            "capabilities": "array",
+            "scopes": "array",
+            "ttl_seconds": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "capabilities": {
+                "type": "array"
+              },
+              "scopes": {
+                "type": "array"
+              },
+              "ttl_seconds": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "capabilities",
+              "scopes"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b3b4396856b91567443c554629cd5c1cbec5e1b9b1d3a4aceae9789ffc625875"
+        },
+        {
+          "name": "vorim_request_token",
+          "canonical_hash": "sha256:80a4a5eb78c005ad45f0c40791b06ef13c665405c943c1e8e8dfbfb75b20a774",
+          "description": "Request a short-lived access token for an agent. Returns a scoped token for the specified provider.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id",
+            "provider_id",
+            "scope"
+          ],
+          "required_keys": [
+            "agent_id",
+            "scope"
+          ],
+          "parameter_types": {
+            "agent_id": "string",
+            "scope": "string",
+            "provider_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "provider_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id",
+              "scope"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:071984c7c50c62fc623e9b7166b85191a2bf716d26d41e38f213ee2f9a161c3e"
+        },
+        {
+          "name": "vorim_revoke_agent",
+          "canonical_hash": "sha256:02870416b60b6383db85d387e775243519e5339a49f5c56e38cdb3151e3e42b8",
+          "description": "Permanently revoke an agent. This cannot be undone. The agent",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ab01de982951e46e68c17f306e56d1c00f3cd5b1f7f7a6f3459da5a83fce9d35"
+        },
+        {
+          "name": "vorim_revoke_permission",
+          "canonical_hash": "sha256:25ec3a8ec92f35429f534255b64e6c54e69ca6c9977eb556756df035f708bd31",
+          "description": "Revoke a specific permission scope from an agent.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7bf2954dc443175e48f99fb09df655886205f9f123c4109b476cdf00f9786adc"
+        },
+        {
+          "name": "vorim_update_agent",
+          "canonical_hash": "sha256:1c255e7820b1039e996176fe102cbe64ebd72119bf083b2c4e9e8980a4e0f6a3",
+          "description": "Update an agent",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id",
+            "description",
+            "name",
+            "status"
+          ],
+          "required_keys": [
+            "agent_id",
+            "status"
+          ],
+          "parameter_types": {
+            "agent_id": "string",
+            "name": "string",
+            "description": "string",
+            "status": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id",
+              "status"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:687dde9a14b00a5b8c3a9d1fd382e66e59b6425338c7a4543de6b712cd725dc3"
+        },
+        {
+          "name": "vorim_verify_trust",
+          "canonical_hash": "sha256:f8369fc7f417e843d8ad4b9189e8a16ce0ba22c39ba54443a4a652bbf7be2cb3",
+          "description": "Verify an agent",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:79fabd2552d4af0a425783c496d0524cd4963d33ce594a2850705b38dda1e2ca"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.1.15",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

@@ -4,17 +4,18 @@
   "purl": "pkg:generic/WCAG-Compliance%2Fwcagc-mcp",
   "ecosystem": "generic",
   "display_name": "WCAG-Compliance/wcagc-mcp",
-  "description": "Deterministic axe-core accessibility scans (WCAG 2.1 AA, EN 301 549, PDF/UA) via your account.",
-  "repository_url": "https://github.com/WCAG-Compliance/wcagc-mcp",
+  "description": "WCAG-Compliance/wcagc-mcp lets an assistant run real axe-core accessibility scans through the user's own wcagc account, rather than guessing accessibility from markup it can see. Tools cover a single URL or PDF, a full-site crawl, saved multi-step journeys, and violation trends.",
+  "repository_url": "https://wcagc-mcp.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "WCAG-Compliance/wcagc-mcp",
-    "wcagc — accessibility scanning"
+    "wcag-compliance/wcagc-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -36,6 +37,2234 @@
         "resources": false
       },
       "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:93b019cfe3a99eeeb30e5885433436a1cf353b866f328d72f78777217db51acd",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://wcagc-mcp.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "check_pdf",
+          "canonical_hash": "sha256:37843bf58c8a219799dbc182d8cacbec6a8bf9948a748a42ece92ccaf4a0682c",
+          "description": "Downloads a public PDF URL and runs a machine-verifiable veraPDF PDF/UA-1 check (document structure, tags, reading order — not a full WCAG audit). Free tier, counted against the caller's daily quota. Queues the check and returns immediately with an id; call get_pdf_check to poll.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 2048,
+                "description": "A public URL serving a PDF file."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "pdfCheck": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status",
+                  "profile"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "profile": {
+                    "type": "string"
+                  },
+                  "summary": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "failedRuleCount": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "reportTruncated": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "totalAssertions": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "failedCheckCount": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "failureReason": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "pdfCheck",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:81b3bfe0fd09c210d6509463a320eeb2b9b227d8a3a050d25ed9c0621afe9936"
+        },
+        {
+          "name": "get_findings",
+          "canonical_hash": "sha256:cf6c4e044adee841ae451cebfefd8723b0e2c5389a4ed2974e0441a02b42d830",
+          "description": "The findings for a scan started by scan_url — rule id, severity, help URL and the element selector. Works for both kinds of scan_url scan. A one-off scan returns the top-5 sample; a scan recorded against a registered site returns its full findings. For a full-site run from scan_site, use get_run_findings instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "scanId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "scanId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scanId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by scan_url."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "violations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "ruleId",
+                    "impact",
+                    "helpUrl",
+                    "targetSelector"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impact": {
+                      "type": "string"
+                    },
+                    "ruleId": {
+                      "type": "string"
+                    },
+                    "wcagSc": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "helpUrl": {
+                      "type": "string"
+                    },
+                    "htmlSnippet": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "failureSummary": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetSelector": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "recordedAgainstSite": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "violations",
+              "recordedAgainstSite"
+            ]
+          },
+          "description_hash": "sha256:c882b61abbc9d661d5deb0dbbd7f114fc009c8bdd7c0e295bd8d81a2b8612d9c"
+        },
+        {
+          "name": "get_fix_verification",
+          "canonical_hash": "sha256:788b30193449a14a58b8dbd6b416e8cb3040f76395267ee34778a8ef837f4061",
+          "description": "Polls a targeted fix verification and reports only what was detected on the selected pages checked. Pro+.",
+          "is_mutating": false,
+          "property_keys": [
+            "fixVerificationId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "fixVerificationId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fixVerificationId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by verify_fix."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "verification": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "remediationItemId",
+                  "siteId",
+                  "status",
+                  "source",
+                  "scopeGranularity",
+                  "pagesRequested",
+                  "pagesScanned",
+                  "pagesFailed",
+                  "pages",
+                  "startedAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "pages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "url",
+                        "status"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "nodesFound": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "siteId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "source": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "outcome": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "startedAt": {
+                    "type": "string"
+                  },
+                  "finishedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "nodesFound": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "pagesFailed": {
+                    "type": "number"
+                  },
+                  "pagesScanned": {
+                    "type": "number"
+                  },
+                  "rootCauseKey": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "pagesRequested": {
+                    "type": "number"
+                  },
+                  "ruleNodesFound": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "scopeGranularity": {
+                    "type": "string"
+                  },
+                  "failureReasonCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "remediationItemId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "verification",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:d9c1832bf700e0674c2237be5b2004efa990af3d97649176bdbbb447a5ddbb83"
+        },
+        {
+          "name": "get_fixes",
+          "canonical_hash": "sha256:2438a3c4834c1cd90994786c68d7f18e94b115c44f4050caa8d40e965aa3f73b",
+          "description": "Lists tracked remediation items for a registered site, including status and the scope of any automated verification proof. Pro+ (REMEDIATION_TRACKING).",
+          "is_mutating": false,
+          "property_keys": [
+            "siteHost"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "siteHost": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "siteHost": {
+                "type": "string",
+                "description": "The registered site's normalized host, as list_sites reports it."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "fixes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "siteId",
+                    "ruleId",
+                    "impact",
+                    "status",
+                    "verifiable"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "impact": {
+                      "type": "string"
+                    },
+                    "ruleId": {
+                      "type": "string"
+                    },
+                    "siteId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "verifiable": {
+                      "type": "boolean"
+                    },
+                    "verifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "rootCauseKey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "verifiedScope": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "componentLabel": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "verifiedPagesCount": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "nodesCountAtTracking": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "pagesCountAtTracking": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "fixes",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:a89c263c1aa932a22291532a57c2dcc1859c12da52babb711ff1599d732a8f89"
+        },
+        {
+          "name": "get_journey_run",
+          "canonical_hash": "sha256:1acdbec726909dd2762d1392e014a157a4ec1daa3edef8cd0cb0da29c4bcddb0",
+          "description": "Polls a run started by run_journey — per-step checkpoints and, once terminal, a failure reason if a step failed. Pro+.",
+          "is_mutating": false,
+          "property_keys": [
+            "runId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "runId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "runId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by run_journey."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "journeyId",
+                  "siteId",
+                  "status",
+                  "checkpoints",
+                  "createdAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "siteId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "journeyId": {
+                    "type": "string"
+                  },
+                  "startedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "finishedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "checkpoints": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "scanId",
+                        "label",
+                        "url",
+                        "status"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "scanId": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "failedStepIndex": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "failureReasonCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "failureReasonText": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "run",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:89d214ca09fa6ac39d17bb7c041b84fbe8421f211f9dad23d6988b83c83b269b"
+        },
+        {
+          "name": "get_pdf_check",
+          "canonical_hash": "sha256:5fb2cdd4ee6a5bf06a1466451112704379cc35ea423d75deaaeb92d3908262e9",
+          "description": "Polls a PDF check started by check_pdf — status, failed-rule and failed-check counts, and a failure reason if it did not complete.",
+          "is_mutating": false,
+          "property_keys": [
+            "checkId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "checkId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "checkId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by check_pdf."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "pdfCheck": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status",
+                  "profile"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "profile": {
+                    "type": "string"
+                  },
+                  "summary": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "failedRuleCount": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "reportTruncated": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "totalAssertions": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "failedCheckCount": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "failureReason": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "pdfCheck",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:db3cc276ae47bb23c492869c8d3dad4163d6f44676bdb8982e4de56b0c6dab92"
+        },
+        {
+          "name": "get_root_causes",
+          "canonical_hash": "sha256:079a8e49eb2f0c2ed04aabbdba570aff083d15482fe417a4629cf1970b4e6958",
+          "description": "Returns deterministic repeated DOM patterns and factual blast-radius counts for a full-site run. Grouping does not expand automated-test coverage and may not match the site's real component boundaries. Pro+.",
+          "is_mutating": false,
+          "property_keys": [
+            "runId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "runId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "runId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by scan_site."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rootCauses": {
+                "type": "object",
+                "required": [
+                  "scope",
+                  "status",
+                  "signatureVersion",
+                  "summary",
+                  "truncated",
+                  "clusters",
+                  "coverageDisclaimer"
+                ],
+                "properties": {
+                  "scope": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "summary": {
+                    "type": "object",
+                    "required": [
+                      "findingsTotal",
+                      "analyzedFindings",
+                      "clustersTotal",
+                      "clusteredFindings"
+                    ],
+                    "properties": {
+                      "pagesTotal": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "clustersTotal": {
+                        "type": "number"
+                      },
+                      "findingsTotal": {
+                        "type": "number"
+                      },
+                      "analyzedFindings": {
+                        "type": "number"
+                      },
+                      "clusteredFindings": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "clusters": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "ruleId",
+                        "impact",
+                        "wcagSc",
+                        "pattern",
+                        "selectorSignature",
+                        "nodesCount",
+                        "samplePages",
+                        "sampleSelectors",
+                        "helpUrl"
+                      ],
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "impact": {
+                          "type": "string"
+                        },
+                        "ruleId": {
+                          "type": "string"
+                        },
+                        "wcagSc": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "helpUrl": {
+                          "type": "string"
+                        },
+                        "pattern": {
+                          "type": "string"
+                        },
+                        "guidance": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "component": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "required": [
+                                "label",
+                                "source"
+                              ],
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                },
+                                "source": {
+                                  "type": "string"
+                                },
+                                "platform": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                }
+                              },
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "exampleFix": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "nodesCount": {
+                          "type": "number"
+                        },
+                        "pagesCount": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "samplePages": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "sampleSelectors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "selectorSignature": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "truncated": {
+                    "type": "boolean"
+                  },
+                  "signatureVersion": {
+                    "type": "string"
+                  },
+                  "coverageDisclaimer": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "rootCauses"
+            ]
+          },
+          "description_hash": "sha256:542c72a9a5e5509ed3b3f7009bff43046741108535b9f774d34332327658d335"
+        },
+        {
+          "name": "get_run",
+          "canonical_hash": "sha256:7c9678d4b710199209a8c7769fb903d0733f2547bb5de4ccea32421f589256d9",
+          "description": "Polls a full-site run started by scan_site — page progress, severity counts and, once terminal, a failure reason. Pro+. For a single-page scan from scan_url, use get_scan instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "runId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "runId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "runId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by scan_site."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "counts": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "critical",
+                          "serious",
+                          "moderate",
+                          "minor"
+                        ],
+                        "properties": {
+                          "minor": {
+                            "type": "number"
+                          },
+                          "serious": {
+                            "type": "number"
+                          },
+                          "critical": {
+                            "type": "number"
+                          },
+                          "moderate": {
+                            "type": "number"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "siteId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "pagesDone": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "pagesTotal": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "failureReason": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "totalViolations": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "run",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:3e9fbdd99c9e5cae5da20f3e450f198005916c5e6a1591cd6af5fca0d5e12e06"
+        },
+        {
+          "name": "get_run_findings",
+          "canonical_hash": "sha256:7319ce2ed904259a079b1b32dbfb07e3e67079f9c32931ae0d0e883d0e1eafec",
+          "description": "Run-level, rule-deduplicated findings for a scan_site run — one entry per rule, with the WCAG success criteria it maps to. Pro+. For a single-page scan from scan_url, use get_findings instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "runId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "runId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "runId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by scan_site."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "violations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "ruleId",
+                    "impact",
+                    "wcagSc",
+                    "helpUrl",
+                    "target",
+                    "htmlSnippet",
+                    "failureSummary"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impact": {
+                      "type": "string"
+                    },
+                    "ruleId": {
+                      "type": "string"
+                    },
+                    "target": {
+                      "type": "string"
+                    },
+                    "wcagSc": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "helpUrl": {
+                      "type": "string"
+                    },
+                    "htmlSnippet": {
+                      "type": "string"
+                    },
+                    "failureSummary": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "violations"
+            ]
+          },
+          "description_hash": "sha256:2eb4c51d3c9de8712edc4a87bf93039dc9b9e0d047f50d787cdc5093272c173e"
+        },
+        {
+          "name": "get_scan",
+          "canonical_hash": "sha256:927a30aba311d599823f7b7cbb4d90f8fd340092c9a2eb809dcd44016d757279",
+          "description": "Polls a scan started by scan_url — either kind, recorded against a registered site or one-off; this tool finds it either way. Returns severity counts, a finding sample, the coverage disclaimer, and (once terminal) a failure reason if the scan did not complete. For a full-site run from scan_site, use get_run instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "scanId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "scanId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scanId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The id returned by scan_url."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "scan": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "counts": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "critical",
+                          "serious",
+                          "moderate",
+                          "minor"
+                        ],
+                        "properties": {
+                          "minor": {
+                            "type": "number"
+                          },
+                          "serious": {
+                            "type": "number"
+                          },
+                          "critical": {
+                            "type": "number"
+                          },
+                          "moderate": {
+                            "type": "number"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "siteId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "QUEUED, RUNNING, DONE, PARTIAL or FAILED."
+                  },
+                  "passesCount": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "requestedUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "failureReason": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "topViolations": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "ruleId",
+                            "impact",
+                            "helpUrl",
+                            "targetSelector"
+                          ],
+                          "properties": {
+                            "url": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "impact": {
+                              "type": "string"
+                            },
+                            "ruleId": {
+                              "type": "string"
+                            },
+                            "wcagSc": {
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "helpUrl": {
+                              "type": "string"
+                            },
+                            "htmlSnippet": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "failureSummary": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "targetSelector": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "incompleteCount": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "totalViolations": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "pollWith": {
+                "type": "string",
+                "const": "get_scan",
+                "description": "The tool that reads this scan's progress and result."
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              },
+              "recordedAgainstSite": {
+                "type": "boolean",
+                "description": "True when the URL belongs to a registered site and the scan was kept against it (so it feeds history and trends); false for a one-off scan."
+              }
+            },
+            "required": [
+              "scan",
+              "recordedAgainstSite",
+              "pollWith",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:5e3d0d3be74e9b1fbc8ae0b2a6aa83a7dc39416ee77b2ffbcfab45701a560a97"
+        },
+        {
+          "name": "get_trends",
+          "canonical_hash": "sha256:d23adac9a522e4c508eb1452c5fa30ef0a92bc85b7e47c6c4c02023811c90dbd",
+          "description": "Chronological (oldest->newest) per-run point history for a registered site's completed full-site runs — counts by severity and, where a comparison exists, added/resolved markers. No score. Pro+ (TREND_HISTORY).",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "siteHost"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "siteHost": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Most recent N runs (default 30, max 100)."
+              },
+              "siteHost": {
+                "type": "string",
+                "description": "The registered site's normalized host, as list_sites reports it."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "trend": {
+                "type": "object",
+                "required": [
+                  "siteId",
+                  "points"
+                ],
+                "properties": {
+                  "points": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "scanRunId",
+                        "finishedAt",
+                        "status",
+                        "pagesScanned",
+                        "truncated",
+                        "totalViolations",
+                        "bySeverity"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string"
+                        },
+                        "scanRunId": {
+                          "type": "string"
+                        },
+                        "truncated": {
+                          "type": "boolean"
+                        },
+                        "addedCount": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "bySeverity": {
+                          "type": "object",
+                          "required": [
+                            "critical",
+                            "serious",
+                            "moderate",
+                            "minor"
+                          ],
+                          "properties": {
+                            "minor": {
+                              "type": "number"
+                            },
+                            "serious": {
+                              "type": "number"
+                            },
+                            "critical": {
+                              "type": "number"
+                            },
+                            "moderate": {
+                              "type": "number"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "finishedAt": {
+                          "type": "string"
+                        },
+                        "pagesScanned": {
+                          "type": "number"
+                        },
+                        "resolvedCount": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        },
+                        "totalViolations": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "siteId": {
+                    "type": "string"
+                  },
+                  "standard": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "trend",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:c7caab8a7e672bbfe6493bada3ddfdefe8f3d360d9ab1d4cd1ade783555bd3ba"
+        },
+        {
+          "name": "list_sites",
+          "canonical_hash": "sha256:9f0c2332809980e20781f25e13f98755f3e6b2599a5d6ed8ba1d13bc861829a8",
+          "description": "Lists this organization's registered sites — their normalized hosts are what every other Pro+ tool takes as siteHost. Pro+ (requires sites:read + API_ACCESS).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "sites": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "rootUrl",
+                    "normalizedHost",
+                    "verified"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "rootUrl": {
+                      "type": "string"
+                    },
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "normalizedHost": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sites"
+            ]
+          },
+          "description_hash": "sha256:96faf3672a33b4f3acb00912c50af745c73477454caf11d35f48881a81d076c7"
+        },
+        {
+          "name": "run_journey",
+          "canonical_hash": "sha256:36b394d89e319b0b7e945a81dd5e6cfb5cd591a5ee981407878b7e09dbb90156",
+          "description": "Replays a saved multi-step journey (e.g. \"add to cart -> checkout\") against its registered site and checkpoints accessibility at each step. Pro+ (JOURNEYS; also AUTHENTICATED_SCANS when the journey logs in). Steps and any login credential always come from the journey's own saved configuration — never accepted here. Saved click or fill steps can submit forms or trigger external actions, so run only a journey the user has reviewed. Queues the run and returns immediately with a runId — call get_journey_run to poll.",
+          "is_mutating": false,
+          "property_keys": [
+            "journeyName",
+            "siteHost"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "siteHost": "string",
+            "journeyName": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "siteHost": {
+                "type": "string",
+                "description": "The registered site's normalized host, as list_sites reports it."
+              },
+              "journeyName": {
+                "type": "string",
+                "description": "The saved journey's name, as configured in the app."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "journeyId",
+                  "siteId",
+                  "status",
+                  "checkpoints",
+                  "createdAt"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "siteId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "journeyId": {
+                    "type": "string"
+                  },
+                  "startedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "finishedAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "checkpoints": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "scanId",
+                        "label",
+                        "url",
+                        "status"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "scanId": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "failedStepIndex": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "failureReasonCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "failureReasonText": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "run",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:9d72cf0855ef5043d8fa0c3e99f1a65e892ad24d4e5c075dde4e0ee33b5420da"
+        },
+        {
+          "name": "scan_site",
+          "canonical_hash": "sha256:52e8371ee9478cfa60e016fa1a272b5543413035c60378601bda231a9d92dd10",
+          "description": "Crawls and scans every reachable page of a registered site. Pro+ (SCAN_FULL_SITE). Queues the run and returns immediately with a runId — call get_run to poll. Call list_sites first if you do not already know the exact registered host.",
+          "is_mutating": false,
+          "property_keys": [
+            "siteHost"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "siteHost": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "siteHost": {
+                "type": "string",
+                "description": "The registered site's normalized host, exactly as list_sites reports it — host only, no scheme and no path."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "counts": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "critical",
+                          "serious",
+                          "moderate",
+                          "minor"
+                        ],
+                        "properties": {
+                          "minor": {
+                            "type": "number"
+                          },
+                          "serious": {
+                            "type": "number"
+                          },
+                          "critical": {
+                            "type": "number"
+                          },
+                          "moderate": {
+                            "type": "number"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "siteId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "pagesDone": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "pagesTotal": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "failureReason": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "totalViolations": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "run",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:0ea01ca7bc32f398f15adbc9de4ebc58d2a37f80065b9bcb5139599017e96ca3"
+        },
+        {
+          "name": "scan_url",
+          "canonical_hash": "sha256:0aa3144398168c74b23e7c59485ffb10c495a51c09ecef7780cc765496b509c5",
+          "description": "Scans one http(s) URL for accessibility problems with axe-core — deterministic checks, not a language model's opinion. Pass the URL and nothing else. If it belongs to a site registered in the caller's account (and their plan allows), the scan is recorded against that site so it feeds history and trends; otherwise it runs as a one-off. Either way, poll it with get_scan. Returns immediately with an id — never a compliance score, because automated testing finds only a portion of accessibility barriers; see coverageDisclaimer in the result.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 2048,
+                "description": "The http(s) URL to scan."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "scan": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "host": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "counts": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "critical",
+                          "serious",
+                          "moderate",
+                          "minor"
+                        ],
+                        "properties": {
+                          "minor": {
+                            "type": "number"
+                          },
+                          "serious": {
+                            "type": "number"
+                          },
+                          "critical": {
+                            "type": "number"
+                          },
+                          "moderate": {
+                            "type": "number"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "siteId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "QUEUED, RUNNING, DONE, PARTIAL or FAILED."
+                  },
+                  "passesCount": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "requestedUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "failureReason": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "code"
+                        ],
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "topViolations": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "ruleId",
+                            "impact",
+                            "helpUrl",
+                            "targetSelector"
+                          ],
+                          "properties": {
+                            "url": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "impact": {
+                              "type": "string"
+                            },
+                            "ruleId": {
+                              "type": "string"
+                            },
+                            "wcagSc": {
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "helpUrl": {
+                              "type": "string"
+                            },
+                            "htmlSnippet": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "failureSummary": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "targetSelector": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "incompleteCount": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "totalViolations": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "pollWith": {
+                "type": "string",
+                "const": "get_scan",
+                "description": "The tool that reads this scan's progress and result."
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              },
+              "recordedAgainstSite": {
+                "type": "boolean",
+                "description": "True when the URL belongs to a registered site and the scan was kept against it (so it feeds history and trends); false for a one-off scan."
+              }
+            },
+            "required": [
+              "scan",
+              "recordedAgainstSite",
+              "pollWith",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:f7d0970d6d4701e63ac5a35a3595b878a22c061b1cd5829a7b963587424e85e4"
+        },
+        {
+          "name": "verify_fix",
+          "canonical_hash": "sha256:4bf414c3d10835c4b8e8f3bb1d049d2ed9c94fde14c2a5b513adf98af8e05979",
+          "description": "Queues a targeted automated re-check of representative pages for one tracked fix. This is not a full-site re-scan or a compliance guarantee. Pro+.",
+          "is_mutating": false,
+          "property_keys": [
+            "remediationItemId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "remediationItemId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "remediationItemId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "A fix id returned by get_fixes."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "pollWith": {
+                "type": "string",
+                "const": "get_fix_verification"
+              },
+              "standard": {
+                "type": "string",
+                "description": "The standard the checks were run against, e.g. \"WCAG 2.1 AA\"."
+              },
+              "verification": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "status"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "scoringGuidance": {
+                "type": "string",
+                "description": "Binding instruction for the assistant reading this result. Follow it literally."
+              },
+              "coverageDisclaimer": {
+                "type": "string",
+                "description": "Why this result is not a compliance verdict. Always relay it; never present a scan as proof of conformance."
+              }
+            },
+            "required": [
+              "verification",
+              "pollWith",
+              "coverageDisclaimer",
+              "scoringGuidance",
+              "standard"
+            ]
+          },
+          "description_hash": "sha256:e83fe9e463355f11774b49b61469002c897afcd627b0e08ca0c6f4d96e91dc9e"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

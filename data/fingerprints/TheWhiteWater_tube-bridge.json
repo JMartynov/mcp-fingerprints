@@ -4,20 +4,611 @@
   "purl": "pkg:generic/TheWhiteWater%2Ftube-bridge",
   "ecosystem": "generic",
   "display_name": "TheWhiteWater/tube-bridge",
-  "description": "YouTube MCP server for search, transcripts, frames, comments, channels, and local semantic corpora.",
-  "repository_url": "https://github.com/TheWhiteWater/tube-bridge",
+  "description": "Self-hosted YouTube research MCP with 17 tools for discovery, transcripts, frames, comments, and local semantic corpora.",
+  "repository_url": "https://smithery.ai/servers/TheWhiteWater/tube-bridge",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "TheWhiteWater/tube-bridge",
-    "tube-bridge"
+    "thewhitewater/tube-bridge"
   ],
   "sources_merged": [
-    "official_registry"
+    "github_readme",
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:0da840af23e1d93106be5c611a2b96204723979a0b62cb0c86311440e3b50ccc",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "543d1106-f1d0-4181-b922-dadef0973d40/f7e600f0-64bc-40c6-bc25-3f40bfb65c3f/server.mcpb",
+          "runtime": "python",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "YOUTUBE_API_KEY": {
+                "type": "string",
+                "title": "YouTube Data API key (optional)",
+                "x-order": 0,
+                "writeOnly": true,
+                "description": "Enables comments, channel search, channel details, and higher-quality Data API discovery."
+              },
+              "TUBE_BRIDGE_CACHE": {
+                "type": "string",
+                "title": "Local data directory",
+                "default": "${HOME}/.tube_bridge",
+                "x-order": 2,
+                "description": "Directory for the local response cache, corpus databases, vectors, and indexes."
+              },
+              "TUBE_BRIDGE_PROXY": {
+                "type": "string",
+                "title": "Proxy URL (optional)",
+                "x-order": 1,
+                "writeOnly": true,
+                "description": "HTTP(S) or SOCKS proxy URL for yt-dlp and transcript requests."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "documentation_extracted_tools": true,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "corpus_add",
+          "canonical_hash": "sha256:d86d474a1cfca2a09ee9f6703a5d7627bede37d05c17248de91a9fe9318be9ad",
+          "description": "Fetch a video's transcript, chunk it, and store local embeddings in an existing corpus. Use this after `corpus_create`; it skips an already-indexed video by default. `force_reembed=true` deletes and replaces that video's existing local chunks and vectors. This modifies local corpus data and may contact YouTube; returns indexing status and chunk count.",
+          "is_mutating": false,
+          "property_keys": [
+            "corpus_id",
+            "force_reembed",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "corpus_id": "string",
+            "force_reembed": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "YouTube video URL or ID"
+              },
+              "corpus_id": {
+                "type": "string",
+                "description": "Corpus ID to add to"
+              },
+              "force_reembed": {
+                "type": "boolean",
+                "default": false,
+                "description": "Re-embed even if already indexed"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c1038aea189eb5011e11f80983c8c03932ce11f2c454241cee2cc21f5a9e33c2"
+        },
+        {
+          "name": "corpus_create",
+          "canonical_hash": "sha256:33f955aaf6409f43d7fb65fc501a40540801472b96b3decbfb23fe051daec0dc",
+          "description": "Create a named corpus for semantic search over transcripts. Each corpus uses a fixed embedding model.",
+          "is_mutating": false,
+          "property_keys": [
+            "corpus_id",
+            "label"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "label": "string",
+            "corpus_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Human-readable label (optional)"
+              },
+              "corpus_id": {
+                "type": "string",
+                "description": "Unique corpus ID (e.g. 'iran-hormuz-2026')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d92101ab982f961625645fe06b0402f00e8d076612cd4e4dde90b0addb0e94fb"
+        },
+        {
+          "name": "corpus_delete",
+          "canonical_hash": "sha256:a0326aa870aac393d241e5673ccbfb36285e45f716389f30f33c74a411a28d55",
+          "description": "Delete a corpus and all its chunks/vectors permanently.",
+          "is_mutating": false,
+          "property_keys": [
+            "corpus_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "corpus_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "corpus_id": {
+                "type": "string",
+                "description": "Corpus ID to delete"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0953f781797ba2fad71f880f54ded945f2033f8b084804d052832aa701b9bd0c"
+        },
+        {
+          "name": "corpus_list",
+          "canonical_hash": "sha256:d658e74b90f92eaa262dcb47b027e0459c1ca5cf6a4959b830b75502ad8e5c0b",
+          "description": "List all available corpora with chunk and video counts.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8d3c96bbe7b8c1c986fa972256c19284ac89039e08c4a4086596b2a98df01939"
+        },
+        {
+          "name": "corpus_search",
+          "canonical_hash": "sha256:47ecb893a7adda40e7530fe281b42d0b808dc762f3c09bb2e9c386b1cf0dc1dc",
+          "description": "Semantic search within a corpus. Deduplicates overlapping windows, limits source domination, and returns titles plus timestamp URLs.",
+          "is_mutating": false,
+          "property_keys": [
+            "corpus_id",
+            "query",
+            "top_k"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "top_k": "integer",
+            "corpus_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Natural language search query"
+              },
+              "top_k": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1,
+                "description": "Max results (default 10, max 50)"
+              },
+              "corpus_id": {
+                "type": "string",
+                "description": "Corpus ID to search in"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:34c74b357dc2dff9b80c643d8994951b83f7e0d140ed00aa6543191d9c789501"
+        },
+        {
+          "name": "tube_bridge_help",
+          "canonical_hash": "sha256:b488104fe03cc8c097e3af224f87ae1b25e760369a28b51eaa608c0e446a7bd3",
+          "description": "Get tube-bridge documentation: available tools, architecture, known limitations, API key setup.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c00abba403e8a115001da014b64176bc72b43969d1ecdd4e07fa2a5c1e66dabb"
+        },
+        {
+          "name": "youtube_get_available_languages",
+          "canonical_hash": "sha256:59bac8beb51de2beacba6e6c7caf7c2672afbbeb78a70c976280ee0d77cd4f2a",
+          "description": "Available subtitle languages for a video. Shows manual vs auto-generated.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "YouTube video URL or ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7f308e6299c2d8b674633ceb4129a97f5b63760cae929a2d13a54512beeddcfb"
+        },
+        {
+          "name": "youtube_get_channel_info",
+          "canonical_hash": "sha256:21aba3f1dd76c2bd345bae660ed7f8062f978523ebb04b059453bdc62093020d",
+          "description": "Detailed channel metadata: subscribers, views, videos, country, keywords. Requires YOUTUBE_API_KEY.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "channel_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channel_id": {
+                "type": "string",
+                "description": "YouTube channel ID (starts with UC...)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b0da53334882d75b4b614bc9375af5d0a75198c8f2fd0c0d1ece3c5181ad00b5"
+        },
+        {
+          "name": "youtube_get_channel_videos",
+          "canonical_hash": "sha256:2d692d4b6871b45f961342dbb81bff4138461689e3e40221b20c5f24a1b8a66a",
+          "description": "List up to `limit` recent uploads from a known YouTube channel URL or @handle. Use this for channel browsing, not keyword search or channel metadata. Read-only and keyless; returns normalized channel metadata plus video records. Empty results include a warning when the channel is missing or has no uploads.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_url",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "channel_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max videos (default 10)"
+              },
+              "channel_url": {
+                "type": "string",
+                "description": "Channel URL or @handle"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e65eaee14f9596e4736540368f0e4751e5d9f4c38f0c8c278daf66aa9b0e4743"
+        },
+        {
+          "name": "youtube_get_comments",
+          "canonical_hash": "sha256:dc50712195bdface2b1218217acae093e841ba6f70877b64806ea607f096f67a",
+          "description": "Retrieve up to `max_results` top-level comments for a known YouTube video. Use this for audience reactions, not video metadata or transcripts. Read-only and requires `YOUTUBE_API_KEY`; returns structured comment records. Calls may fail when comments are disabled, the video is unavailable, or Data API quota is exhausted.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_results",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "max_results": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "YouTube video URL or ID"
+              },
+              "max_results": {
+                "type": "integer",
+                "default": 20,
+                "description": "Max comments (default 20)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:51a2a63e3f942355eb2971062f449b7b2f0ad6d851de6fdd51832e73012ea5a5"
+        },
+        {
+          "name": "youtube_get_frame",
+          "canonical_hash": "sha256:30cfa3b9d01f72b3012ed5f536f4d8ac14f884ad14c9649580a559a889083a6b",
+          "description": "Extract one ephemeral JPEG near an integer-millisecond timestamp. Returns metadata plus MCP ImageContent; accuracy is best-effort at a decoded frame boundary.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_width",
+            "timestamp_ms",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "max_width": "integer",
+            "timestamp_ms": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "YouTube video URL or ID"
+              },
+              "max_width": {
+                "type": "integer",
+                "default": 640,
+                "maximum": 1280,
+                "minimum": 64,
+                "description": "Maximum JPEG width in pixels (default 640)"
+              },
+              "timestamp_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Frame timestamp in integer milliseconds"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ba94891c5fc1920d519e6a34e0ce903a45bafda491ea05fcb4757f073d7f57e9"
+        },
+        {
+          "name": "youtube_get_playlist",
+          "canonical_hash": "sha256:7bd37ce34bd20073201a6e08a88d9b065aec084a84034f21daff8b26370015f3",
+          "description": "List up to `limit` videos from a known YouTube playlist URL in upstream order. Use this for playlist contents, not channel uploads or keyword search. Read-only and keyless; returns playlist metadata plus ordered video records. Results are bounded and may fail when the playlist is private, unavailable, or blocked upstream.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "playlist_url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "playlist_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "description": "Max videos (default 20)"
+              },
+              "playlist_url": {
+                "type": "string",
+                "description": "Playlist URL"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2f33784ab2b4b0cbd241df6c2798afb98faf44c08965477be7b1687f31bd3230"
+        },
+        {
+          "name": "youtube_get_transcript",
+          "canonical_hash": "sha256:830f3bdf4c819ade9eb8c1f9063b79270ce94bfb1338041b3ddbf76b3f963e2e",
+          "description": "Transcript/subtitles of a YouTube video. Uses the original/default language; manual > ASR within that language.",
+          "is_mutating": false,
+          "property_keys": [
+            "lang",
+            "url",
+            "with_timestamps"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "lang": "string",
+            "with_timestamps": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "YouTube video URL or ID"
+              },
+              "lang": {
+                "type": "string",
+                "description": "Language code (e.g. en, ru). Auto-detect if not specified."
+              },
+              "with_timestamps": {
+                "type": "boolean",
+                "default": false,
+                "description": "Include [MM:SS] timestamps (default: false)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a01b63332231bb4d1400ee52ef64ff6883eab38326f80413cade424839d238ee"
+        },
+        {
+          "name": "youtube_get_trending",
+          "canonical_hash": "sha256:9c1b81d50818b9763a783fe998bd858dcbd67a9654820c96e83d713f91aa0ef7",
+          "description": "List up to `limit` currently trending YouTube videos. Use this for broad discovery, not keyword search. Read-only; uses Data API v3 when `YOUTUBE_API_KEY` is set and otherwise a keyless yt-dlp fallback. Returns source metadata and video records; results can change over time and depend on upstream availability.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max results (default 10)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:902046d82a959eb831b5510a21fb32807d9b7a292bc5edf4116397c12e778a0b"
+        },
+        {
+          "name": "youtube_get_video_info",
+          "canonical_hash": "sha256:ef2a0d421866625976306f22a112b7753b073e1e29a75307754cd3f058875839",
+          "description": "Detailed metadata for a YouTube video: title, duration, views, channel, description, tags.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "YouTube video URL or ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:eaebfbdb61037dcbcf6fead407800abe9c114f979eadd4b9c5c2e534878ba315"
+        },
+        {
+          "name": "youtube_search",
+          "canonical_hash": "sha256:424aec98ff6ad7617314e304e59eb7fd357af698566ebdc0667be6388885ad97",
+          "description": "Search YouTube videos. Uses Data API v3 when YOUTUBE_API_KEY is set, falls back to yt-dlp. Filters: date range, channel, duration, order.",
+          "is_mutating": false,
+          "property_keys": [
+            "channel_id",
+            "limit",
+            "order",
+            "published_after",
+            "published_before",
+            "query",
+            "video_duration"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "order": "string",
+            "query": "string",
+            "channel_id": "string",
+            "video_duration": "string",
+            "published_after": "string",
+            "published_before": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max results (default 10, max 50)"
+              },
+              "order": {
+                "type": "string",
+                "description": "Sort: date, rating, relevance, viewCount, title (API only)"
+              },
+              "query": {
+                "type": "string",
+                "description": "Search query"
+              },
+              "channel_id": {
+                "type": "string",
+                "description": "Restrict to channel ID (API only)"
+              },
+              "video_duration": {
+                "type": "string",
+                "description": "short, medium, long (API only)"
+              },
+              "published_after": {
+                "type": "string",
+                "description": "ISO 8601 date filter (API only)"
+              },
+              "published_before": {
+                "type": "string",
+                "description": "ISO 8601 date filter (API only)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8f92e5130d3ac115b092f8b4233fa5dbd6582a73e868950aafee21026f04ad64"
+        },
+        {
+          "name": "youtube_search_channels",
+          "canonical_hash": "sha256:58b93bad61870ce67a2e7bdd50f971fa532e21d8a4b2f2411a379368360158b8",
+          "description": "Search YouTube channels by name/topic. Returns subscriber counts, video counts, country. Requires YOUTUBE_API_KEY.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "max_subscribers",
+            "min_subscribers",
+            "order",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "order": "string",
+            "query": "string",
+            "max_subscribers": "integer",
+            "min_subscribers": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max results (default 10)"
+              },
+              "order": {
+                "type": "string",
+                "description": "relevance, date"
+              },
+              "query": {
+                "type": "string",
+                "description": "Channel name or topic"
+              },
+              "max_subscribers": {
+                "type": "integer",
+                "description": "Maximum subscriber filter"
+              },
+              "min_subscribers": {
+                "type": "integer",
+                "description": "Minimum subscriber filter"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:047cccb4967eaea0a39ce88fde8734551c3e5deaff8a2263e4feb6d0dec62966"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.1.6",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

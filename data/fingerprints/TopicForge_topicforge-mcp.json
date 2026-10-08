@@ -4,31 +4,524 @@
   "purl": "pkg:generic/TopicForge%2Ftopicforge-mcp",
   "ecosystem": "generic",
   "display_name": "TopicForge/topicforge-mcp",
-  "description": "Generate programmatic SEO articles, topic clusters, FAQ schema, and batch jobs via TopicForge.",
-  "repository_url": "https://github.com/TopicForge/topicforge-mcp",
+  "description": "Agent-ready programmatic SEO\nTopicForge is batch-first and MCP-native — turn topics into publish-ready articles from Claude, Cursor, n8n, or Chrome's built-in agent. Pay per article, no subscription.\n\n",
+  "repository_url": "https://smithery.ai/servers/TopicForge/topicforge-mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "TopicForge/topicforge-mcp"
+    "TopicForge/topicforge-mcp",
+    "topicforge/topicforge-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:39ab0f4476c1bca00f31e5a6209365e126bc8de2b8fdce3522f4a48b6f592044",
       "release_date": null,
       "dependencies": {},
-      "connections": [],
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "13985758-8fcf-49d0-b174-11a1075b90d4/2096b3be-8c80-4954-88ff-0611dd13d913/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "TOPICFORGE_API_KEY": {
+                "type": "string",
+                "title": "TopicForge API Key",
+                "default": "",
+                "x-order": 0,
+                "description": "API key (tf_live_...) from https://topicforge.net/app/settings/api-keys. Leave blank to use the TOPICFORGE_API_KEY environment variable."
+              },
+              "CONTENT_API_BASE_URI": {
+                "type": "string",
+                "title": "API base URL",
+                "default": "https://api.topicforge.net",
+                "x-order": 1,
+                "description": "Optional API base URL override (default https://api.topicforge.net)"
+              }
+            }
+          }
+        }
+      ],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
-        "resources": false
+        "resources": false,
+        "verified_tools": true
       },
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "export_markdown",
+          "canonical_hash": "sha256:661f497fa3bc6fdb85a4e5d7f1b2755c0bbd9845dc379e9afee21cb6e26cfa1f",
+          "description": "Export a generated article as markdown for CMS import.",
+          "is_mutating": false,
+          "property_keys": [
+            "articleId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "articleId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "articleId": {
+                "type": "string",
+                "description": "Article ID to export"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "filename": {
+                "type": "string"
+              },
+              "markdown": {
+                "type": "string"
+              },
+              "articleId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "articleId",
+              "markdown",
+              "filename"
+            ]
+          },
+          "description_hash": "sha256:233f12e96f2c6f70801930481583257012538b88439f44dd6080c010f64bfbd9"
+        },
+        {
+          "name": "faq_schema",
+          "canonical_hash": "sha256:1be0a90a09faa5762d6a8b65ca6e33b7074de8ae5a16d0d12c616ab921defcff",
+          "description": "Turn a topic into FAQ questions and FAQPage JSON-LD for answer hub SEO.",
+          "is_mutating": false,
+          "property_keys": [
+            "context",
+            "email",
+            "topicTitle"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "email": "string",
+            "context": "string",
+            "topicTitle": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "description": "Optional email for follow-up"
+              },
+              "context": {
+                "type": "string",
+                "description": "Optional background context"
+              },
+              "topicTitle": {
+                "type": "string",
+                "description": "Topic or question for FAQ generation"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "faqs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "q",
+                    "a"
+                  ],
+                  "properties": {
+                    "a": {
+                      "type": "string"
+                    },
+                    "q": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "faqJsonLd": {
+                "type": "string"
+              },
+              "topicTitle": {
+                "type": "string"
+              },
+              "faqJsonLdString": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "topicTitle",
+              "faqs",
+              "faqJsonLd",
+              "faqJsonLdString"
+            ]
+          },
+          "description_hash": "sha256:4cc86fa29ee3e47bc9003956e3a5266edf94ff605acfa3a17e253a3253c033d0"
+        },
+        {
+          "name": "get_article",
+          "canonical_hash": "sha256:8946373b2952c071f7b0191c6927eda28bf2773ff7e9f6f4dfa3293b685458ef",
+          "description": "Fetch a generated article by ID including markdown body and metadata.",
+          "is_mutating": false,
+          "property_keys": [
+            "articleId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "articleId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "articleId": {
+                "type": "string",
+                "description": "Article ID"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "markdown": {
+                "type": "string"
+              },
+              "articleId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "articleId",
+              "title",
+              "markdown"
+            ]
+          },
+          "description_hash": "sha256:fcafdbf29f99c7c6f13907a23dbf8fa72570aa396334d4c2441a670abf22ee38"
+        },
+        {
+          "name": "get_batch_status",
+          "canonical_hash": "sha256:967c9eee41521568855067417b549ccc124c90924808b3758a4d657f556f2998",
+          "description": "Poll a batch job for per-item status and completed article previews.",
+          "is_mutating": false,
+          "property_keys": [
+            "jobId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "jobId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "jobId": {
+                "type": "string",
+                "description": "Batch job ID returned from run_batch"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "jobId": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "progress": {
+                "type": "object",
+                "required": [
+                  "total",
+                  "completed",
+                  "failed"
+                ],
+                "properties": {
+                  "total": {
+                    "type": "number"
+                  },
+                  "failed": {
+                    "type": "number"
+                  },
+                  "completed": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "jobId",
+              "status",
+              "progress"
+            ]
+          },
+          "description_hash": "sha256:952e43495e0c50aa25455213779bafe262bd236fecc01e67a02cddcdb046cbe7"
+        },
+        {
+          "name": "meta_description",
+          "canonical_hash": "sha256:c2ebe8f3d44149b37c78d46aa81dc5907dd26cb5fbe87a7897beef447d5e2987",
+          "description": "Generate a 150–160 character meta description from a title and optional snippet.",
+          "is_mutating": false,
+          "property_keys": [
+            "bodySnippet",
+            "email",
+            "title"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "email": "string",
+            "title": "string",
+            "bodySnippet": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "description": "Optional email for follow-up"
+              },
+              "title": {
+                "type": "string",
+                "description": "Page or article title"
+              },
+              "bodySnippet": {
+                "type": "string",
+                "description": "Optional body snippet for context"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "metaDescription": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "metaDescription"
+            ]
+          },
+          "description_hash": "sha256:72acd2934ab93e368c5268cb382e9a4aaeee9bc8cf9e17d5f0a36aa696263ed2"
+        },
+        {
+          "name": "run_batch",
+          "canonical_hash": "sha256:4a597a1af8acda490571735ce1d2c938f0a19bd7fecf8091a3755d94aa425427",
+          "description": "Launch a batch job to generate publish-ready articles for multiple topics. Debits workspace credits.",
+          "is_mutating": false,
+          "property_keys": [
+            "autoApprove",
+            "autoPublish",
+            "concurrency",
+            "name",
+            "topics",
+            "translateLocales"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "topics": "array",
+            "autoApprove": "boolean",
+            "autoPublish": "boolean",
+            "concurrency": "number",
+            "translateLocales": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Batch job name"
+              },
+              "topics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "title"
+                  ],
+                  "properties": {
+                    "icp": {
+                      "type": "string",
+                      "description": "Optional ideal customer profile for this topic"
+                    },
+                    "slug": {
+                      "type": "string",
+                      "description": "Optional URL slug override"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Article topic title"
+                    },
+                    "productAngle": {
+                      "type": "string",
+                      "description": "Optional product or offer angle to weave in"
+                    },
+                    "topicGuidance": {
+                      "type": "string",
+                      "description": "Optional writer guidance or constraints"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Topics to generate"
+              },
+              "autoApprove": {
+                "type": "boolean",
+                "description": "Auto-approve after generation (default true)"
+              },
+              "autoPublish": {
+                "type": "boolean",
+                "description": "Auto-publish after approve (default false)"
+              },
+              "concurrency": {
+                "type": "number",
+                "description": "Parallel article workers (default 3, max 10)"
+              },
+              "translateLocales": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "es",
+                    "fr",
+                    "de"
+                  ],
+                  "type": "string"
+                },
+                "description": "Locales to translate into after generation"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "jobId": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "jobId",
+              "status",
+              "name"
+            ]
+          },
+          "description_hash": "sha256:68aa05d965add30ecc9244104a41273683b1730c621ee95dc57b50a36c481cc5"
+        },
+        {
+          "name": "topic_cluster",
+          "canonical_hash": "sha256:5d37cada5a6c6fa44609be4257aef4857241c080cbde6b45ea9e02257c5b1b38",
+          "description": "Expand one seed topic into a configurable set of programmatic SEO article ideas with ICP, search intent, and guidance.",
+          "is_mutating": false,
+          "property_keys": [
+            "email",
+            "industry",
+            "seedTopic",
+            "topicCount"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "email": "string",
+            "industry": "string",
+            "seedTopic": "string",
+            "topicCount": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "description": "Optional email for follow-up"
+              },
+              "industry": {
+                "type": "string",
+                "description": "Optional industry or vertical"
+              },
+              "seedTopic": {
+                "type": "string",
+                "description": "Seed topic to expand into a cluster"
+              },
+              "topicCount": {
+                "type": "number",
+                "description": "Number of article topics to generate (default 20)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "topics": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "slugSuggestion",
+                    "icp",
+                    "searchIntent",
+                    "topicGuidance"
+                  ],
+                  "properties": {
+                    "icp": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "searchIntent": {
+                      "type": "string"
+                    },
+                    "topicGuidance": {
+                      "type": "string"
+                    },
+                    "slugSuggestion": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "seedTopic": {
+                "type": "string"
+              },
+              "clusterName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "seedTopic",
+              "clusterName",
+              "topics"
+            ]
+          },
+          "description_hash": "sha256:422cca9d7e98adc22c32cb21644b3e54759eb9fbac461320da8fee158cc6f727"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

@@ -4,17 +4,19 @@
   "purl": "pkg:generic/SidneyBissoli%2Fuis-mcp-server",
   "ecosystem": "generic",
   "display_name": "SidneyBissoli/uis-mcp-server",
-  "description": "UNESCO UIS statistics (education, science, culture) with full provenance and fixed releases.",
-  "repository_url": "https://github.com/SidneyBissoli/uis-mcp-server",
+  "description": "UNESCO Institute for Statistics (UIS) with full provenance on every response: search ~5,000 indicators on education (enrolment, completion, literacy, out-of-school, expenditure), science and R&D (SDG 9.5), culture (SDG 11.4) and communication, and retrieve them by country, region and year — with source URL, data release, retrieval timestamp, licence and UIS citation. Everyday and US wording (enrollment, spending, preschool, university) is resolved to the UIS's own terms. Remote (Streamable HTTP, no auth) or local stdio.",
+  "repository_url": "https://uis-mcp-server--sidneybissoli.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "SidneyBissoli/uis-mcp-server",
-    "UNESCO UIS — Education, Science & Culture Statistics (provenance-first)"
+    "sidneybissoli/uis-mcp-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "github_readme",
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -38,6 +40,572 @@
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:0909b43dc6a41a8994f09811a7a90c571144ffa2782e61fea652063a16e91152",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://uis-mcp-server--sidneybissoli.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": true,
+        "documentation_extracted_tools": true,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "fetch",
+          "canonical_hash": "sha256:6f2c5ee2f0dd44a6f383410a1ea9caff3bff596302295e3f96d98bca47975918",
+          "description": "Returns the full document for an id obtained from `search`, as { id, title, text, url, metadata }: `text` is the readable content (Markdown) and `url` the canonical public page to cite.\n\nCompanion of `search` in the OpenAI Deep Research contract, over the UNESCO UIS statistics (≈5,000 indicators: education — enrolment, completion, literacy, teachers, spending, SDG 4 —, science/R&D (SDG 9.5), culture (SDG 11.4) and demographic context) catalog. Only ids returned by `search` are valid; an unknown id returns an error.\nThe `uis_*` tools remain the tools for data queries.\n\nBehavior: read-only and idempotent — a live GET against the public source when the document needs it.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Identifier of a document returned by `search`"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Unique identifier of the document on this server; what `fetch` takes"
+              },
+              "url": {
+                "type": "string",
+                "description": "Canonical public URL of the document — ChatGPT's citation depends on it"
+              },
+              "text": {
+                "type": "string",
+                "description": "Full readable content of the document (Markdown)"
+              },
+              "title": {
+                "type": "string",
+                "description": "Human-readable title of the document"
+              },
+              "metadata": {
+                "type": "object",
+                "description": "Additional key/value pairs about the document (kind, source, period…)",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              "provenance": {},
+              "attribution": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "text",
+              "url",
+              "provenance",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:e9c1a88b489e2d70a0cf9d6b1054e3a68037cc3ae869b467cfc9ed52f963700d"
+        },
+        {
+          "name": "search",
+          "canonical_hash": "sha256:d257b3a647ec2c49c2bedb556064152027bf64511100f8eeb17d91c2fdba0189",
+          "description": "Searches the UNESCO UIS statistics (≈5,000 indicators: education — enrolment, completion, literacy, teachers, spending, SDG 4 —, science/R&D (SDG 9.5), culture (SDG 11.4) and demographic context) catalog and returns up to 10 matching documents as { id, title, url }, ordered by relevance (an empty list means nothing matched).\n\nThis tool exists for the OpenAI Deep Research contract: ChatGPT deep research, company knowledge and research workflows over the Responses API require exactly the tools `search` and `fetch`. Pass one of the returned ids to `fetch` to read the document.\nFor direct questions and for data (values, series, rankings) prefer the `uis_*` tools, which return the actual data with provenance — this is a catalog index, not a data query.\n\nQuery: natural language or keywords, Portuguese or English; accents and case are ignored.\n\nBehavior: read-only and idempotent — the catalog comes from the public source and is cached in memory.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search terms, natural language or keywords (accents and case are ignored)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "title",
+                    "url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Unique identifier of the document on this server; what `fetch` takes"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "Canonical public URL of the document — ChatGPT's citation depends on it"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Human-readable title of the document"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Matching documents, in relevance order"
+              },
+              "provenance": {},
+              "attribution": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "results",
+              "provenance",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:96fca5ddd1bb860def479b876808d35486d9668352d141d4a30a08354cdc352b"
+        },
+        {
+          "name": "uis_get_data",
+          "canonical_hash": "sha256:036b9aca66c8406b7fdf98dc14af748e8d302af822c921d6f7aa02a7b2814925",
+          "description": "Statistical records from the UNESCO Institute for Statistics Data API, filtered by indicator codes (from uis_search_indicators, up to 25), geo unit codes (from uis_list_geo_units) and year range. Set include_footnotes for per-record source notes. Returns raw UIS records only — it does not aggregate, convert or otherwise transform values; ILO labour statistics live in the sibling ILOSTAT MCP server. Broad queries are rejected with the record count — narrow by geo unit or years.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_year",
+            "geo_units",
+            "include_footnotes",
+            "indicators",
+            "provenance_mode",
+            "start_year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "end_year": "integer",
+            "geo_units": "array",
+            "indicators": "array",
+            "start_year": "integer",
+            "provenance_mode": "string",
+            "include_footnotes": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "end_year": {
+                "type": "integer",
+                "maximum": 2100,
+                "minimum": 1900,
+                "description": "Last year, e.g. 2024"
+              },
+              "geo_units": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Geo unit codes from uis_list_geo_units (e.g. [\"BRA\",\"ARG\"]); omit for all"
+              },
+              "indicators": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 25,
+                "minItems": 1,
+                "description": "Indicator codes from uis_search_indicators (e.g. [\"CR.1\"])"
+              },
+              "start_year": {
+                "type": "integer",
+                "maximum": 2100,
+                "minimum": 1900,
+                "description": "First year, e.g. 2015"
+              },
+              "provenance_mode": {
+                "enum": [
+                  "concise",
+                  "detailed"
+                ],
+                "type": "string",
+                "description": "Provenance verbosity: 'concise' (default — source, url, vintage, retrieval date, citation, license) or 'detailed' (full canonical block with dataset, dimension key and notices)"
+              },
+              "include_footnotes": {
+                "type": "boolean",
+                "description": "Include per-record footnotes (source notes); default false"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "provenance": {},
+              "rows_count": {
+                "type": "number"
+              },
+              "attribution": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "columns",
+              "rows_count",
+              "rows",
+              "provenance",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:d426c2c3045c22188d4190c937952ca020008a1fbf0df418d927b4cad0f5250b"
+        },
+        {
+          "name": "uis_list_geo_units",
+          "canonical_hash": "sha256:d8ebe654718689d8137c0106fa8ae72bd96537225f91e83475b8b7b3eb5e61ad",
+          "description": "Valid geographic codes for uis_get_data: 462 geo units — countries (NATIONAL, ISO alpha-3 codes like BRA) and regional aggregates (REGIONAL). Filter by name/code and type. Does not return statistical values; these codes apply only to uis_get_data, not to other statistical servers.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "offset",
+            "provenance_mode",
+            "search",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "type": "string",
+            "limit": "integer",
+            "offset": "integer",
+            "search": "string",
+            "provenance_mode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "NATIONAL",
+                  "REGIONAL"
+                ],
+                "type": "string",
+                "description": "Only countries (NATIONAL) or only regional aggregates"
+              },
+              "limit": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Maximum results (default 100)"
+              },
+              "offset": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Results to skip, for pagination (default 0)"
+              },
+              "search": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Case-insensitive filter on name, or exact code (e.g. \"BRA\")"
+              },
+              "provenance_mode": {
+                "enum": [
+                  "concise",
+                  "detailed"
+                ],
+                "type": "string",
+                "description": "Provenance verbosity: 'concise' (default — source, url, vintage, retrieval date, citation, license) or 'detailed' (full canonical block with dataset, dimension key and notices)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "number"
+              },
+              "showing": {
+                "type": "number"
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "geo_units": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "provenance": {},
+              "attribution": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "next_offset": {
+                "type": "number"
+              },
+              "total_matches": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "total_matches",
+              "showing",
+              "offset",
+              "has_more",
+              "geo_units",
+              "provenance",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:d866f3bc62f97a95b6cd14a97f24533392442d5511b86cd6042d7a4ce88ec6d0"
+        },
+        {
+          "name": "uis_search_indicators",
+          "canonical_hash": "sha256:4765befa9773501e8551af15b9cecd6ceb90aac8f63556d3162a89faf9c19245",
+          "description": "Search the UNESCO Institute for Statistics catalogue of ~5,000 indicators — education, science/R&D, culture and communication — by keywords in the name or code, optionally filtered by theme. All terms must match (AND, case-insensitive), so start with 2–3 words and drop terms if you get 0 results. Everyday and US wording is resolved to the UIS's own (enrollment→enrolment, spending→expenditure, preschool→pre-primary, university→tertiary, graduation→completion, girls/boys→female/male); when that happens the response says so in vocabulary_notes. Returns indicator codes to use with uis_get_data, plus each indicator's data availability (years, record count). Searches the catalogue only — it does not return statistical values (use uis_get_data); ILO labour statistics live in the sibling ILOSTAT MCP server.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "offset",
+            "provenance_mode",
+            "query",
+            "theme"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "theme": "string",
+            "offset": "integer",
+            "provenance_mode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Maximum results (default 20)"
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Keywords, matched against indicator name and code, AND between terms (e.g. \"literacy rate youth\")"
+              },
+              "theme": {
+                "enum": [
+                  "EDUCATION",
+                  "SCIENCE_TECHNOLOGY_INNOVATION",
+                  "CULTURE",
+                  "DEMOGRAPHIC_SOCIOECONOMIC"
+                ],
+                "type": "string",
+                "description": "Restrict to one UIS theme"
+              },
+              "offset": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Results to skip, for pagination (default 0)"
+              },
+              "provenance_mode": {
+                "enum": [
+                  "concise",
+                  "detailed"
+                ],
+                "type": "string",
+                "description": "Provenance verbosity: 'concise' (default — source, url, vintage, retrieval date, citation, license) or 'detailed' (full canonical block with dataset, dimension key and notices)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hint": {
+                "type": "string"
+              },
+              "offset": {
+                "type": "number"
+              },
+              "showing": {
+                "type": "number"
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "indicators": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "code",
+                    "name",
+                    "theme",
+                    "last_data_update",
+                    "records",
+                    "years",
+                    "geo_types"
+                  ],
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "theme": {
+                      "type": "string"
+                    },
+                    "years": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "records": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "geo_types": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "last_data_update": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "provenance": {},
+              "attribution": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "next_offset": {
+                "type": "number"
+              },
+              "total_matches": {
+                "type": "number"
+              },
+              "vocabulary_notes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "total_matches",
+              "showing",
+              "offset",
+              "has_more",
+              "indicators",
+              "provenance",
+              "attribution"
+            ]
+          },
+          "description_hash": "sha256:9477e18a5df7954b1e5c3ba1941cd2956557bf5acd3b1cddcd55fdc6b7942301"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": [
+        {
+          "uri_template": "uis://guide",
+          "name": "uis-guide",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "uis://reference/key-indicators",
+          "name": "uis-key-indicators",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "uis://reference/provenance",
+          "name": "uis-provenance",
+          "description": "",
+          "mime_type": "text/markdown"
+        }
+      ]
     }
   ],
   "security_profile": {}

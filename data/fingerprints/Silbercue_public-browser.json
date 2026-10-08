@@ -4,20 +4,1267 @@
   "purl": "pkg:generic/Silbercue%2Fpublic-browser",
   "ecosystem": "generic",
   "display_name": "Silbercue/public-browser",
-  "description": "Browse your real profile: -30% tokens, -25% cost, -41% tool calls, -34% tool defs, +40% faster",
-  "repository_url": "https://github.com/Silbercue/public-browser",
+  "description": "Provides Chrome browser automation over CDP with your real profile, stable accessibility-tree refs and multi-tab.",
+  "repository_url": "https://smithery.ai/servers/Silbercue/public-browser",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "Public Browser",
-    "Silbercue/public-browser"
+    "Silbercue/public-browser",
+    "silbercue/public-browser"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:5d86a03979e9e11a0a5a8ec28d1c28ecbf73bf6dd81a701a2ac6753d11552bee",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "974d7821-30fa-4f57-818e-091551b90360/00f7b263-b5e8-44db-8e98-ad10630f1472/server.mcpb",
+          "runtime": "node",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "batch_evaluate",
+          "canonical_hash": "sha256:9719dc33865cb315e10b15799bc8f01dc42cbe8d2f9180a5505ce2159d6ccdba",
+          "description": "Visit several URLs in sequence and run the same JS expression on each. For controlled checks across known pages where view_page/run_plan would be too chatty; not for normal reading, clicking or form work.",
+          "is_mutating": false,
+          "property_keys": [
+            "continue_on_error",
+            "evaluate_per_page",
+            "settle_ms",
+            "timeout_per_page_ms",
+            "urls"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "urls": "array",
+            "settle_ms": "number",
+            "continue_on_error": "boolean",
+            "evaluate_per_page": "string",
+            "timeout_per_page_ms": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "URLs to visit in order"
+              },
+              "settle_ms": {
+                "type": "number",
+                "default": 2000,
+                "description": "Wait in ms after each page load before evaluating"
+              },
+              "continue_on_error": {
+                "type": "boolean",
+                "default": true,
+                "description": "Continue with the remaining URLs if one fails"
+              },
+              "evaluate_per_page": {
+                "type": "string",
+                "description": "JS expression evaluated on each page"
+              },
+              "timeout_per_page_ms": {
+                "type": "number",
+                "default": 30000,
+                "description": "Timeout per page in ms (navigate+settle+evaluate)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3919192c25eaca49dd36b3d10465906972e90c0db65a640ef590307b7b0c7fdf"
+        },
+        {
+          "name": "capture_image",
+          "canonical_hash": "sha256:80f7721fb7a549dae05c62047a5049907f65ffce22852e67c7e8092f44639407",
+          "description": "Pixel-level screenshot (WebP, max 800px, <100KB). Only for canvas or chart content without DOM text, pixel-level rendering or animation checks, or when the user explicitly asks for a screenshot. Returns no refs and reads no text — that is view_page.",
+          "is_mutating": false,
+          "property_keys": [
+            "full_page",
+            "som"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "som": "boolean",
+            "full_page": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "som": {
+                "type": "boolean",
+                "default": false,
+                "description": "Overlay numbered labels matching view_page refs (Set-of-Mark)"
+              },
+              "full_page": {
+                "type": "boolean",
+                "default": false,
+                "description": "Capture the full scrollable page, not just the viewport"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b3991a3f664710be0f70208078ec85ac43ff0c7fa348212a3efba47332fcb501"
+        },
+        {
+          "name": "click",
+          "canonical_hash": "sha256:0cef37863c43047d5d997854c7e99abe70ad0d190c2c4f20a0c6b8c5b1dfe487",
+          "description": "Click an element by ref, CSS selector, visible text, or viewport x/y (canvas, pixel-precise targets). Dispatches real CDP mouse events. A click that opens a new tab is reported in the response. The DOM diff (NEW/REMOVED/CHANGED) arrives with the next page action, or here with wait_for_diff: true.",
+          "is_mutating": false,
+          "property_keys": [
+            "ref",
+            "selector",
+            "text",
+            "wait_for_diff",
+            "x",
+            "y"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "x": "number",
+            "y": "number",
+            "ref": "string",
+            "text": "string",
+            "selector": "string",
+            "wait_for_diff": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "Viewport X in px; with y, not ref/selector"
+              },
+              "y": {
+                "type": "number",
+                "description": "Viewport Y in px; use with x"
+              },
+              "ref": {
+                "type": "string",
+                "description": "Element ref (preferred)"
+              },
+              "text": {
+                "type": "string",
+                "description": "Visible text (a11y name); no view_page needed, prefers interactive"
+              },
+              "selector": {
+                "type": "string",
+                "description": "CSS selector (fallback)"
+              },
+              "wait_for_diff": {
+                "type": "boolean",
+                "description": "Wait for the DOM diff before returning (default false, slower)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:32d441217fe5e2f6fff3344ac4e1298f3d3ac5ae903e966f2349f446395644bf"
+        },
+        {
+          "name": "configure_session",
+          "canonical_hash": "sha256:524b136837985af212c857edc182372730c01fb3cc9bd149b66de2e4c75e7114",
+          "description": "View or set session defaults for recurring parameters (tab, timeout, …). Without params: show current defaults and auto-promote suggestions; autoPromote: true applies them. Set profile BEFORE any browser interaction to launch Chrome with a named profile.",
+          "is_mutating": false,
+          "property_keys": [
+            "autoPromote",
+            "defaults",
+            "profile",
+            "restart"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "profile": "string",
+            "restart": "boolean",
+            "defaults": "object",
+            "autoPromote": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "type": "string",
+                "description": "Chrome profile name (list them with: public-browser profiles); restart: true switches mid-session"
+              },
+              "restart": {
+                "type": "boolean",
+                "description": "Restart Chrome with the new profile even if running; closes all tabs"
+              },
+              "defaults": {
+                "type": "object",
+                "description": "Param name → default value; null removes a default",
+                "additionalProperties": {}
+              },
+              "autoPromote": {
+                "type": "boolean",
+                "description": "Apply all current auto-promote suggestions"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8fecd116067d82d02ee3e3c8d45a9e6cbf5f25695c9ebc2caf9e712e9cdf7360"
+        },
+        {
+          "name": "console_logs",
+          "canonical_hash": "sha256:3ed693a5522e8d07afe85b8774e9a341f83d51d00c007c6b72baf31f035f5e60",
+          "description": "Read collected browser console logs; filter by level (info/warning/error/debug) and/or regex; optionally clear the buffer after reading.",
+          "is_mutating": false,
+          "property_keys": [
+            "clear",
+            "level",
+            "pattern"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "clear": "boolean",
+            "level": "string",
+            "pattern": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "clear": {
+                "type": "boolean",
+                "default": false,
+                "description": "Clear the buffer after reading"
+              },
+              "level": {
+                "enum": [
+                  "info",
+                  "warning",
+                  "error",
+                  "debug"
+                ],
+                "type": "string",
+                "description": "Filter by log level"
+              },
+              "pattern": {
+                "type": "string",
+                "description": "Regex matched against log text"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:758e5212fedc4c1949a5b87539b859b3f2e77204e1bbc34542f6496b22b9246f"
+        },
+        {
+          "name": "dom_snapshot",
+          "canonical_hash": "sha256:d6b325a7242999a1b4e173452cdfe7b46214a36a2e9df9cbf4a3a93be67818ec",
+          "description": "Structured layout data: bounding boxes, computed styles, paint order, colors; refs match view_page. Only for spatial questions view_page cannot answer (is A above B? what color?).",
+          "is_mutating": false,
+          "property_keys": [
+            "ref"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ref": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "description": "Element ref for a subtree snapshot"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f932ab5f10f7de57608154c2741252e9fdca652f9b5f58fabc1e54949c67e38f"
+        },
+        {
+          "name": "download",
+          "canonical_hash": "sha256:9c3d2c7408b5be47435c60780d4858c2576e45242980a282bfa5bce21478cafa",
+          "description": "Wait for pending downloads or list this session's downloaded files. Downloads start by themselves when you click a download link or open a file URL (PDF, CSV, …); this tool never triggers them. download() waits for a pending download to finish; download({ action: 'list' }) returns at once.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "settle",
+            "timeout"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "action": "string",
+            "settle": "number",
+            "timeout": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "enum": [
+                  "status",
+                  "list"
+                ],
+                "type": "string",
+                "default": "status",
+                "description": "status waits for pending downloads; list: history, never waits (use for polling)"
+              },
+              "settle": {
+                "type": "number",
+                "default": 250,
+                "description": "Ms to wait for a download to START before reporting none — Chrome fires downloadWillBegin a few ms after the click; 0 = instant"
+              },
+              "timeout": {
+                "type": "number",
+                "default": 30000,
+                "description": "Max wait in ms for pending downloads"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:57f321fc6de22cdf9b8de4cf20fe1bee6e6fee13ea009b043a6031fa1f8d7c8f"
+        },
+        {
+          "name": "drag",
+          "canonical_hash": "sha256:d20cb0ece454f44b9dcfff97b2aea49bdbb97b7baf141713698730f01db7101e",
+          "description": "Drag a source onto a target: HTML5 drag-and-drop (draggable lists, SortableJS, React DnD) and mouse drags (sliders, canvas, resize handles). Scrolls the source into view; says when no page reaction was detected. Source: from_ref/from_selector or from_x+from_y; target: to_ref/to_selector or to_x+to_y.",
+          "is_mutating": false,
+          "property_keys": [
+            "from_ref",
+            "from_selector",
+            "from_x",
+            "from_y",
+            "steps",
+            "to_ref",
+            "to_selector",
+            "to_x",
+            "to_y"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "to_x": "number",
+            "to_y": "number",
+            "steps": "integer",
+            "from_x": "number",
+            "from_y": "number",
+            "to_ref": "string",
+            "from_ref": "string",
+            "to_selector": "string",
+            "from_selector": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to_x": {
+                "type": "number",
+                "description": "Target viewport X in px (with to_y)"
+              },
+              "to_y": {
+                "type": "number",
+                "description": "Target viewport Y in px"
+              },
+              "steps": {
+                "type": "integer",
+                "default": 10,
+                "minimum": 5,
+                "description": "Native mouseMoved events between press and release; minimum 5"
+              },
+              "from_x": {
+                "type": "number",
+                "description": "Source viewport X in px (with from_y)"
+              },
+              "from_y": {
+                "type": "number",
+                "description": "Source viewport Y in px"
+              },
+              "to_ref": {
+                "type": "string",
+                "description": "Target element ref"
+              },
+              "from_ref": {
+                "type": "string",
+                "description": "Source element ref"
+              },
+              "to_selector": {
+                "type": "string",
+                "description": "Target CSS selector"
+              },
+              "from_selector": {
+                "type": "string",
+                "description": "Source CSS selector"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9f7a6b3d5cff27cbc3338a66a8d9dbc55dc7b18b8e53338f180a82bfb2f4c9a9"
+        },
+        {
+          "name": "evaluate",
+          "canonical_hash": "sha256:605ced4d81d67259e6fe122365f38921196b17c279c6963439a880de2f257be5",
+          "description": "Run JavaScript in the page. Good uses: computation, style mutations (.style.X = ..., classList), shadow-root traversal, in-page fetch(), app-specific side effects no dedicated tool covers. Scope is shared between calls; top-level const/let/class are wrapped in an IIFE. If/else blocks may return undefined — use a ternary or an explicit return.",
+          "is_mutating": false,
+          "property_keys": [
+            "await_promise",
+            "expression"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "expression": "string",
+            "await_promise": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "expression": {
+                "type": "string",
+                "description": "JavaScript code to execute in the page context"
+              },
+              "await_promise": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to await Promise results"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:00cb5c6bbf1ffc9bbdc3d5985f3ee4158c1602a5176def7525b603ae3db7ea52"
+        },
+        {
+          "name": "file_upload",
+          "canonical_hash": "sha256:9e0b53072320d0ce9802c509ea423a63ef3f4349696ffbd5a1f100ad67a5c0d1",
+          "description": "Upload file(s) to an <input type='file'> identified by ref or CSS selector; file paths must be absolute.",
+          "is_mutating": false,
+          "property_keys": [
+            "path",
+            "ref",
+            "selector"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ref": "string",
+            "selector": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "description": "Element ref of the file input"
+              },
+              "path": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                ],
+                "description": "Absolute path(s) of the file(s) to upload"
+              },
+              "selector": {
+                "type": "string",
+                "description": "CSS selector of the file input; needed for hidden inputs (display:none, off-screen), which have no ref"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5b4b66c408bfd44e471ca9ea8c43dcadbb6737ae0eaa7cdd3c0023b7075fe3b7"
+        },
+        {
+          "name": "fill_form",
+          "canonical_hash": "sha256:938199b456b2403c272b312d78e3753bc3786e095c1c79eb3aacf527bd382140",
+          "description": "Fill a whole form in one call: text inputs, <select> (by value or visible label), checkboxes (boolean) and radio buttons. One round-trip; partial errors do not abort and each field reports its own status. On per-field errors call view_page and retry the failing fields.",
+          "is_mutating": false,
+          "property_keys": [
+            "fields"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "fields": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "value"
+                  ],
+                  "properties": {
+                    "ref": {
+                      "type": "string",
+                      "description": "Element ref (preferred)"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "boolean",
+                        "number"
+                      ],
+                      "description": "string for text/select, boolean for checkbox/radio; number → string"
+                    },
+                    "selector": {
+                      "type": "string",
+                      "description": "CSS selector (fallback)"
+                    }
+                  }
+                },
+                "minItems": 1,
+                "description": "Each needs ref or selector plus value"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4a3f582b59a74e1e27a6071020d38a23f9c715d78a62ad13f0b588f0b59d54c3"
+        },
+        {
+          "name": "handle_dialog",
+          "canonical_hash": "sha256:937648993c7a266fce1832c0bf3d9cf5b8624d6fda455fef7bca4987a6f2fab1",
+          "description": "Configure handling of alerts, confirms and prompts. Set it BEFORE triggering the action that opens the dialog. Uses CDP Page.javascriptDialogOpening, so it works even while the dialog blocks all JS.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Text entered into prompt dialogs (with action accept)"
+              },
+              "action": {
+                "enum": [
+                  "accept",
+                  "dismiss",
+                  "get_status"
+                ],
+                "type": "string",
+                "description": "accept or dismiss the next dialog; get_status: pending ones"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f5e1b7b232a9999daf63b62d0e34ff02f10ff33ab9e9170abec6585e27974adc"
+        },
+        {
+          "name": "navigate",
+          "canonical_hash": "sha256:2f55e78f2856578d424c45ca69c1903c044b1d7ba4162c6036aa5e03cf70b447",
+          "description": "Navigate the active tab to a URL, or action 'back' / 'reload' (all refs become stale after reload). Waits for settle. Overwrites the user's active tab — check virtual_desk first; the first call per session is redirected to virtual_desk.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "settle_ms",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "action": "string",
+            "settle_ms": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "URL to open (required for goto)"
+              },
+              "action": {
+                "enum": [
+                  "goto",
+                  "back",
+                  "reload"
+                ],
+                "type": "string",
+                "default": "goto",
+                "description": "goto (default) | back | reload"
+              },
+              "settle_ms": {
+                "type": "number",
+                "description": "Extra wait in ms after load (default 500)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:089bb0a711f1bfdcda7a8fc7b3fffcb6f805740c902e8bb299b2702f5f9e6a7b"
+        },
+        {
+          "name": "network_monitor",
+          "canonical_hash": "sha256:6d5daed19729e6b1c72bb69adbb6b7420382f2546a896d3f5941a2d7f148a6f6",
+          "description": "Capture network requests via CDP, including those the page issues itself. Workflow: start → trigger the action → get(pattern: 'api').",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "filter",
+            "pattern"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "action": "string",
+            "filter": "string",
+            "pattern": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "enum": [
+                  "start",
+                  "get",
+                  "stop"
+                ],
+                "type": "string",
+                "description": "start recording | get results | stop: return and clear"
+              },
+              "filter": {
+                "enum": [
+                  "failed"
+                ],
+                "type": "string",
+                "description": "'failed': only HTTP >= 400 or network errors"
+              },
+              "pattern": {
+                "type": "string",
+                "description": "Regex for request URLs"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:49f762bde239b31c7ab988660758da26121bce13af8fa740034ab791a104627e"
+        },
+        {
+          "name": "observe",
+          "canonical_hash": "sha256:e9e23904b2f320c6a57d34883b311a4784a906c4ecbfaa99de82b8526dd50550",
+          "description": "Watch an element for changes instead of polling with MutationObserver/setInterval code in evaluate. collect: record text/attribute changes for 'duration' ms. until: wait for a condition, then optionally click at once (then_click). click_first fires the triggering action after the observer is armed, so nothing is missed.",
+          "is_mutating": false,
+          "property_keys": [
+            "click_first",
+            "collect",
+            "duration",
+            "interval",
+            "selector",
+            "then_click",
+            "timeout",
+            "until"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "until": "string",
+            "collect": "string",
+            "timeout": "number",
+            "duration": "number",
+            "interval": "number",
+            "selector": "string",
+            "then_click": "string",
+            "click_first": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "until": {
+                "type": "string",
+                "description": "JS expression checked on each change, 'el' is the element, e.g. el.textContent === '8'"
+              },
+              "collect": {
+                "enum": [
+                  "text",
+                  "attributes",
+                  "all"
+                ],
+                "type": "string",
+                "default": "text",
+                "description": "text (textContent) | attributes | all"
+              },
+              "timeout": {
+                "type": "number",
+                "default": 10000,
+                "description": "Max observation time in ms (max 25000)"
+              },
+              "duration": {
+                "type": "number",
+                "description": "Collect window in ms (default 5000); exclusive with until"
+              },
+              "interval": {
+                "type": "number",
+                "default": 100,
+                "description": "Polling fallback interval in ms"
+              },
+              "selector": {
+                "type": "string",
+                "description": "CSS selector or ref of the element to observe"
+              },
+              "then_click": {
+                "type": "string",
+                "description": "Selector or ref to click immediately when until holds"
+              },
+              "click_first": {
+                "type": "string",
+                "description": "Selector or ref to click once the observer is armed"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d3570e7a82d032f16810615b8adce1989450fcafdb4b451e9b3d1904bb23e410"
+        },
+        {
+          "name": "press_key",
+          "canonical_hash": "sha256:97baab850067c91184092f0495d36b445b7c3a5cf430c51659883b9196eb58f2",
+          "description": "Press a key or shortcut (Enter, Escape, Tab, arrows, Ctrl+K). Optionally focus an element first via ref or selector.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "modifiers",
+            "ref",
+            "selector"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "ref": "string",
+            "selector": "string",
+            "modifiers": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Key to press, e.g. 'Enter'; printable chars as-is"
+              },
+              "ref": {
+                "type": "string",
+                "description": "Element ref to focus first"
+              },
+              "selector": {
+                "type": "string",
+                "description": "CSS selector to focus first"
+              },
+              "modifiers": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "ctrl",
+                    "shift",
+                    "alt",
+                    "meta"
+                  ],
+                  "type": "string"
+                },
+                "description": "Modifier keys held during the press"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fe828dddf6b7d1a660e1f3e2029efaedcf45fc4599128856c1cb00243e556601"
+        },
+        {
+          "name": "run_plan",
+          "canonical_hash": "sha256:62fe9929fcfe9a0b52733874e44ad41fe01967d3a569b4be47348a325746ab32",
+          "description": "Batch the next 2+ known actions (click, type, scroll, view_page chains) here instead of N separate calls: a sequence of tool steps, executed server-side in one call. Variables via vars and saveAs ($name), conditions (if), suspend/resume to ask the agent mid-plan, and errorStrategy abort | continue | capture_image.",
+          "is_mutating": false,
+          "property_keys": [
+            "errorStrategy",
+            "resume",
+            "steps",
+            "vars"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "vars": "object",
+            "steps": "array",
+            "resume": "object",
+            "errorStrategy": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "vars": {
+                "type": "object",
+                "description": "Initial variables, available as $name",
+                "additionalProperties": {}
+              },
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "tool"
+                  ],
+                  "properties": {
+                    "if": {
+                      "type": "string",
+                      "description": "Run the step only if this expression is true, e.g. \"$pageTitle === 'Login'\""
+                    },
+                    "tool": {
+                      "type": "string",
+                      "description": "Tool name"
+                    },
+                    "params": {
+                      "type": "object",
+                      "description": "Tool parameters; $name substitutes a variable",
+                      "additionalProperties": {}
+                    },
+                    "saveAs": {
+                      "type": "string",
+                      "description": "Save the result as $name for later steps"
+                    },
+                    "suspend": {
+                      "type": "object",
+                      "properties": {
+                        "context": {
+                          "enum": [
+                            "capture_image"
+                          ],
+                          "type": "string",
+                          "description": "capture_image: attach a screenshot"
+                        },
+                        "question": {
+                          "type": "string",
+                          "description": "Question for the agent"
+                        },
+                        "condition": {
+                          "type": "string",
+                          "description": "Suspend after the step if this $-expression is true"
+                        }
+                      },
+                      "description": "Pause here to ask the agent a question"
+                    }
+                  }
+                },
+                "description": "Tool steps to run in order"
+              },
+              "resume": {
+                "type": "object",
+                "required": [
+                  "planId",
+                  "answer"
+                ],
+                "properties": {
+                  "answer": {
+                    "type": "string",
+                    "description": "Answer to the suspend question"
+                  },
+                  "planId": {
+                    "type": "string",
+                    "description": "ID of the suspended plan"
+                  }
+                },
+                "description": "Resume a suspended plan"
+              },
+              "errorStrategy": {
+                "enum": [
+                  "abort",
+                  "continue",
+                  "capture_image"
+                ],
+                "type": "string",
+                "default": "abort",
+                "description": "abort stops at the first error; continue runs all steps; capture_image screenshots, then aborts"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:887932986959a2117762431c60f71fd07dd4a50e5d86a748911a140180776058"
+        },
+        {
+          "name": "scroll",
+          "canonical_hash": "sha256:fb227a241b31ad3b3af8b2b0ad2ac2a6850818fab6b48f9569b872fe4e276a1b",
+          "description": "Scroll the page, a container, or an element into view. Reports the position and content growth (scrollHeight delta — detects lazy-loaded content) and handles settle timing. Use container_ref/container_selector plus direction to scroll inside a container.",
+          "is_mutating": false,
+          "property_keys": [
+            "amount",
+            "container_ref",
+            "container_selector",
+            "direction",
+            "ref",
+            "selector"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ref": "string",
+            "amount": "number",
+            "selector": "string",
+            "direction": "string",
+            "container_ref": "string",
+            "container_selector": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "description": "Element ref to scroll into view"
+              },
+              "amount": {
+                "type": "number",
+                "description": "Pixels per scroll (default 500); only with direction"
+              },
+              "selector": {
+                "type": "string",
+                "description": "CSS selector to scroll into view"
+              },
+              "direction": {
+                "enum": [
+                  "up",
+                  "down"
+                ],
+                "type": "string",
+                "description": "up or down (default down); used when no ref/selector"
+              },
+              "container_ref": {
+                "type": "string",
+                "description": "Scrollable container ref (scrolls it, not the page)"
+              },
+              "container_selector": {
+                "type": "string",
+                "description": "Scrollable container CSS selector"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aa37e9bf794ebe923953f826274ee4c256cb67c5db867228153084010c45c0db"
+        },
+        {
+          "name": "set_page_data",
+          "canonical_hash": "sha256:3990544c10ca8f0c5edbc5f7f5e96356ce3c64ebab6722740279cd6aaf890bab",
+          "description": "Write a payload larger than 1 MB into window.__pb_data[key], chunked past the CDP 1 MB message limit. Source: inline (`data`) or file (absolute `path`, read as binary). The page reads window.__pb_data[key] (string or ArrayBuffer per encoding) and window.__pb_data[key + '__complete'] === true. Never write one key from parallel calls — they race. Under ~200 KB use evaluate; for a real <input type=file> use file_upload.",
+          "is_mutating": false,
+          "property_keys": [
+            "chunkSize",
+            "encoding",
+            "key",
+            "source"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "encoding": "string",
+            "chunkSize": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+                "description": "Property name under window.__pb_data (JS identifier, see pattern)"
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "data"
+                    ],
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "description": "Payload string (base64 or utf-8)"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "inline"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "path"
+                    ],
+                    "properties": {
+                      "path": {
+                        "type": "string",
+                        "description": "Absolute file path"
+                      },
+                      "type": {
+                        "type": "string",
+                        "const": "file"
+                      }
+                    }
+                  }
+                ],
+                "description": "inline: pass data. file: pass an absolute path, read as binary"
+              },
+              "encoding": {
+                "enum": [
+                  "base64",
+                  "utf8",
+                  "binary"
+                ],
+                "type": "string",
+                "description": "utf8 (inline default) keeps a string; binary (file default) gives an ArrayBuffer for FileReader/Blob/fetch; base64 keeps the base64 string"
+              },
+              "chunkSize": {
+                "type": "integer",
+                "description": "Raw bytes per chunk before base64 (default 500000; max 700000)",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d1f20443f1b20c07523fbaed88caed60498f2c4a627ae12383e2f893d09149f3"
+        },
+        {
+          "name": "switch_tab",
+          "canonical_hash": "sha256:e82dbeeff47995478610d4bb384b7abec6f280d562202a028e027a960beb7809",
+          "description": "Open a new tab, switch to a tab by ID (from virtual_desk), or close one. Prefer 'open' over navigate when the user's active tab must stay untouched. Refs from the previous tab are invalid afterwards — call view_page before acting.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "tab",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tab": "string",
+            "url": "string",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tab": {
+                "type": "string",
+                "description": "Tab ID or 1-based number (switch/close; close: active tab)"
+              },
+              "url": {
+                "type": "string",
+                "description": "URL for a new tab (open); default about:blank"
+              },
+              "action": {
+                "enum": [
+                  "open",
+                  "switch",
+                  "close"
+                ],
+                "type": "string",
+                "default": "switch",
+                "description": "open | switch | close"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:33ec7462815f2637e5ee53afaed4b5d1c63d4c3133ea35501edc147a73009308"
+        },
+        {
+          "name": "tab_status",
+          "canonical_hash": "sha256:ed608f4bc2002c9aacd809999f5129604e1fb149351e67fb3155087ec988ac64",
+          "description": "Active tab's cached URL, title, ready state and errors — a cheap mid-workflow sanity check ('did my click navigate?'). Not for tab discovery or page content.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dd29c47eb30c6820ba1789fa5fef2e82bbc3ba8b2498270df80cbea342f3b53d"
+        },
+        {
+          "name": "type",
+          "canonical_hash": "sha256:aa93c74a4e153a95e19d62a9b83b3f2b4810e399997bf7633e8b65d5a937ae2f",
+          "description": "Type text into an input identified by ref or CSS selector. For 2+ fields use fill_form; for special keys (Enter, Escape, Tab, arrows) or shortcuts (Ctrl+K) use press_key.",
+          "is_mutating": false,
+          "property_keys": [
+            "clear",
+            "ref",
+            "selector",
+            "text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ref": "string",
+            "text": "string",
+            "clear": "boolean",
+            "selector": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "description": "Element ref (preferred)"
+              },
+              "text": {
+                "type": "string",
+                "description": "Text to type"
+              },
+              "clear": {
+                "type": "boolean",
+                "default": false,
+                "description": "Clear the field first"
+              },
+              "selector": {
+                "type": "string",
+                "description": "CSS selector (fallback)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1a569729857a98024c84772295ff2d85273d313047cf8a495a54ffc51355ca17"
+        },
+        {
+          "name": "view_page",
+          "canonical_hash": "sha256:c7f69dd086ebae4582fc5565a97b3624e1682fc37fcc6970d10bf0e706a2a5a9",
+          "description": "See what is on the page: text plus stable element refs for click/type/fill_form. Default filter 'interactive' lists actionable elements; for paragraphs or table cells call view_page(ref, filter: 'all'). Collapsed containers show as [eXX role, N items] — expand with view_page(ref: 'eXX', filter: 'all').",
+          "is_mutating": false,
+          "property_keys": [
+            "depth",
+            "filter",
+            "max_tokens",
+            "ref"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "ref": "string",
+            "depth": "number",
+            "filter": "string",
+            "max_tokens": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "type": "string",
+                "description": "Element ref for a subtree"
+              },
+              "depth": {
+                "type": "number",
+                "default": 3,
+                "description": "Tree levels shown; indentation only, hidden sections need a click"
+              },
+              "filter": {
+                "enum": [
+                  "interactive",
+                  "all",
+                  "landmark",
+                  "visual"
+                ],
+                "type": "string",
+                "default": "interactive",
+                "description": "interactive | all | landmark | visual (bounds, click point, visibility)"
+              },
+              "max_tokens": {
+                "type": "integer",
+                "description": "Token budget; content downsampled. Omit for full output"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d9a68614b67679e827a567a270c6cc54f7c6cf32ac2c55f1193fecca3239b004"
+        },
+        {
+          "name": "virtual_desk",
+          "canonical_hash": "sha256:f0891eab6888b925bde2df475efbd5cf7ae426c8d465c37059f40922a296b3b0",
+          "description": "List all open tabs with IDs, URLs and state. Call it first in every session, after a reconnect, or when unsure; reuse a listed tab ID instead of opening duplicates. Cheap, call liberally.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9398b0ece26c87bc65b824405fa7c24d612207372b8de75e0d85372f782b627b"
+        },
+        {
+          "name": "wait_for",
+          "canonical_hash": "sha256:f9479243471576d507b6876a2a9176cc4c3242dd5c119cefed5678142f7a2712",
+          "description": "Wait until a condition holds: element visible, page text present, URL match, network idle, or a JS expression true. Prefer condition 'text' over a JS expression for 'has the page said X yet'. assert: true checks once and fails instead of waiting.",
+          "is_mutating": false,
+          "property_keys": [
+            "assert",
+            "condition",
+            "expression",
+            "selector",
+            "text",
+            "timeout",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "text": "string",
+            "assert": "boolean",
+            "timeout": "number",
+            "selector": "string",
+            "condition": "string",
+            "expression": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "Substring of the page URL; required for condition 'url'"
+              },
+              "text": {
+                "type": "string",
+                "description": "Substring of document.body.innerText, case-sensitive; required for condition 'text'"
+              },
+              "assert": {
+                "type": "boolean",
+                "default": false,
+                "description": "Check once, fail if it does not hold; timeout 0, _meta.code 'assertion_failed'"
+              },
+              "timeout": {
+                "type": "number",
+                "description": "Max wait in ms (default 10000; 0 when assert is true)"
+              },
+              "selector": {
+                "type": "string",
+                "description": "CSS selector or ref; required for condition 'element'"
+              },
+              "condition": {
+                "enum": [
+                  "element",
+                  "text",
+                  "url",
+                  "network_idle",
+                  "js"
+                ],
+                "type": "string",
+                "description": "element | text | url | network_idle | js"
+              },
+              "expression": {
+                "type": "string",
+                "description": "Expression that should become true; required for condition 'js'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45b1b0bac8c7d830fb5f7929376bfa8d483860d14d9e6c4239180dc822034e30"
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "2.10.5",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
