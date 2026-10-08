@@ -116,7 +116,7 @@ class PassportSynchronizer:
             url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0", "Accept": "application/json"}
         )
         try:
-            with urllib.request.urlopen(req, timeout=3.0) as response:
+            with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=3.0) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except Exception as e:
             logger.warning(f"Error fetching PyPI metadata for {package_name}: {e}")
@@ -147,7 +147,7 @@ class PassportSynchronizer:
 
         req = urllib.request.Request(target_url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"})
         try:
-            with urllib.request.urlopen(req, timeout=3.0) as response:
+            with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=3.0) as response:
                 archive_data = bytearray()
                 MAX_SIZE = 10 * 1024 * 1024
                 while True:
