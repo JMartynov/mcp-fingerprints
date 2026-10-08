@@ -73,6 +73,9 @@ def main() -> None:
     sync_p.add_argument("--report", action="store_true", help="Run and print the ecosystem health report after sync")
     sync_p.add_argument("--all", action="store_true", help="Run both update and discovery")
     sync_p.add_argument("--snapshot", action="store_true", default=True, help="Compile snapshot after sync")
+    sync_p.add_argument("--probe-runtime", action="store_true", help="Probe safe servers via sandboxed stdio runtime handshake")
+    sync_p.add_argument("--runtime-timeout", type=float, default=5.0, help="Per-server timeout in seconds for runtime handshake (default: 5.0)")
+    sync_p.add_argument("--runtime-limit", type=int, default=50, help="Maximum servers to probe in runtime handshake (default: 50)")
 
     # Match
     match_p = subparsers.add_parser("match", help="Match observed runtime tools against the fingerprint knowledge base")
@@ -155,6 +158,11 @@ def main() -> None:
                 sync.enrich_zero_tool_passports(limit=args.limit, max_workers=args.workers)
             if args.discover_new:
                 sync.discover_new_mcps()
+
+        if getattr(args, "probe_runtime", False):
+            logger.info("Probing runtime handshakes for up to %d safe servers...", args.runtime_limit)
+            probed = sync.probe_runtime_passports(limit=args.runtime_limit, timeout=args.runtime_timeout)
+            logger.info("Successfully runtime-verified %d servers.", probed)
 
         if args.snapshot:
             logger.info("Compiling consolidated snapshot...")

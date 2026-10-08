@@ -27,6 +27,7 @@ from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
+from mcp_fingerprints.runtime_sandbox import probe_mcp_server_stdio
 from mcp_fingerprints.crawler import FingerprintGenerator
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
 from mcp_fingerprints.validator import McpServerValidator
@@ -1737,6 +1738,135 @@ class PassportSynchronizer:
 
         self._save_state()
         return discovered_count
+
+    def probe_runtime_passports(
+        self,
+        limit: int = 50,
+        timeout: float = 5.0,
+        safe_only: bool = True,
+    ) -> int:
+        """
+        Probe live MCP servers using sandboxed stdio runtime handshake to verify tools and capabilities.
+        """
+        candidates: list[tuple[Path, ServerPackageSpec, list[str], dict[str, str]]] = []
+        safe_commands = ("npx", "uvx", "node", "python", "python3")
+
+        for j_file in sorted(self.output_dir.rglob("*.json")):
+            if j_file.name in ("sync_state.json", "index.json", ".passport_index.pickle"):
+                continue
+            try:
+                spec = ServerPackageSpec.from_dict(json.loads(j_file.read_text(encoding="utf-8")))
+                if not spec.versions:
+                    continue
+                latest_v = spec.versions[0]
+                if latest_v.capabilities.get("runtime_verified"):
+                    continue
+
+                # Determine command and env
+                cmd: list[str] = []
+                env: dict[str, str] = {}
+
+                for conn in latest_v.connections:
+                    if conn.get("type") == "stdio" and conn.get("command"):
+                        cmd = [conn["command"]] + conn.get("args", [])
+                        env = conn.get("env", {})
+                        break
+
+                if not cmd:
+                    if spec.ecosystem == "npm":
+                        cmd = ["npx", "-y", spec.package_name]
+                    elif spec.ecosystem in ("pypi", "python"):
+                        cmd = ["uvx", spec.package_name]
+
+                if not cmd:
+                    continue
+
+                if safe_only:
+                    executable = Path(cmd[0]).name
+                    if executable not in safe_commands:
+                        continue
+
+                candidates.append((j_file, spec, cmd, env))
+                if len(candidates) >= limit:
+                    break
+            except Exception:
+                continue
+
+        verified_count = 0
+        for j_file, spec, cmd, env in candidates:
+            try:
+                tools = probe_mcp_server_stdio(cmd, env=env, timeout_seconds=timeout)
+                if not tools:
+                    continue
+
+                latest_v = spec.versions[0]
+                caps = dict(latest_v.capabilities)
+                caps["runtime_verified"] = True
+                caps["tools"] = True
+                caps["verified_tools"] = True
+
+                clean_tools = [
+                    {
+                        "name": t["name"],
+                        "description": t.get("description", ""),
+                        "inputSchema": t.get("inputSchema", {}),
+                    }
+                    for t in tools
+                ]
+
+                prompt_dicts = [p.to_dict() for p in latest_v.prompt_signatures] if latest_v.prompt_signatures else []
+                resource_dicts = [r.to_dict() for r in latest_v.resource_signatures] if latest_v.resource_signatures else []
+
+                updated_v = build_version_fingerprint(
+                    version=latest_v.version,
+                    tools=clean_tools,
+                    prompts=prompt_dicts,
+                    resources=resource_dicts,
+                    capabilities=caps,
+                )
+
+                # Preserve connections and release date from latest_v
+                updated_v = VersionFingerprint(
+                    version=latest_v.version,
+                    toolset_canonical_hash=updated_v.toolset_canonical_hash,
+                    tool_signatures=updated_v.tool_signatures,
+                    prompt_signatures=latest_v.prompt_signatures,
+                    resource_signatures=latest_v.resource_signatures,
+                    release_date=latest_v.release_date,
+                    dependencies=latest_v.dependencies,
+                    connections=latest_v.connections,
+                    capabilities=caps,
+                )
+
+                new_versions = (updated_v,) + tuple(v for v in spec.versions[1:])
+                sources = list(spec.sources_merged)
+                if "runtime_sandbox" not in sources:
+                    sources.append("runtime_sandbox")
+
+                updated_spec = ServerPackageSpec(
+                    package_name=spec.package_name,
+                    purl=spec.purl,
+                    ecosystem=spec.ecosystem,
+                    display_name=spec.display_name,
+                    description=spec.description,
+                    repository_url=spec.repository_url,
+                    homepage_url=spec.homepage_url,
+                    license=spec.license,
+                    keywords=spec.keywords,
+                    aliases=spec.aliases,
+                    versions=new_versions,
+                    sources_merged=tuple(sources),
+                )
+
+                j_file.write_text(json.dumps(updated_spec.to_dict(), indent=2), encoding="utf-8")
+                verified_count += 1
+                logger.info("Runtime verified %s with %d tools.", spec.package_name, len(tools))
+            except Exception as e:
+                logger.debug("Runtime probe failed for %s: %s", spec.package_name, e)
+                continue
+
+        return verified_count
+
 
 
 def main() -> None:
