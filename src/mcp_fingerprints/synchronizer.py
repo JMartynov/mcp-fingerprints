@@ -450,6 +450,9 @@ class PassportSynchronizer:
                             "server.py", "main.py", "app.py", "index.ts", "server.ts", "index.js",
                             "cli.ts", "mcp.py", "tools.ts", "tools.py", "tool.ts", "tool.py",
                             "main.go", "server.go", "mcp.go", "main.rs", "lib.rs", "server.rs",
+                            "Program.cs", "Server.cs", "Tools.cs", "McpServer.cs",
+                            "McpTools.java", "Server.java", "Tools.java", "App.java",
+                            "Server.kt", "Tools.kt", "Main.kt",
                             "openapi.json", "swagger.json", "openapi.yaml", "openapi.yml", "swagger.yaml", "swagger.yml"
                         }
                         candidate_files = []
@@ -460,10 +463,10 @@ class PassportSynchronizer:
                                 if len(parts) > 4:
                                     continue
                                 filename = parts[-1]
-                                match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py|go|rs)$', p)
-                                match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js|go|rs)$', p)
-                                match3 = re.search(r'^src/handlers/.*\.(ts|js|go|rs)$', p)
-                                match4 = re.search(r'.*tool.*\.py$', filename, re.IGNORECASE)
+                                match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py|go|rs|java|kt|cs)$', p)
+                                match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js|go|rs|java|kt|cs)$', p)
+                                match3 = re.search(r'^src/handlers/.*\.(ts|js|go|rs|java|kt|cs)$', p)
+                                match4 = re.search(r'.*tool.*\.(py|java|kt|cs)$', filename, re.IGNORECASE)
                                 match5 = re.search(r'(openapi|swagger).*\.(json|yaml|yml)$', filename, re.IGNORECASE)
                                 if filename in target_filenames or match1 or match2 or match3 or match4 or match5:
                                     score = 10
@@ -593,6 +596,12 @@ class PassportSynchronizer:
                 ("mcp.go", "go"),
                 ("src/main.rs", "rs"),
                 ("src/lib.rs", "rs"),
+                ("Program.cs", "cs"),
+                ("src/Program.cs", "cs"),
+                ("Server.cs", "cs"),
+                ("src/Server.cs", "cs"),
+                ("src/main/java/Server.java", "java"),
+                ("src/main/kotlin/Server.kt", "kt"),
                 ("openapi.json", "json"),
                 ("swagger.json", "json"),
                 ("openapi.yaml", "yaml"),
