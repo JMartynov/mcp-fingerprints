@@ -207,12 +207,13 @@ class PassportSynchronizer:
         self, package_name: str, dist_tarball_url: str | None = None
     ) -> list[dict[str, Any]]:
         if not dist_tarball_url:
-            url = f"https://registry.npmjs.org/{package_name}"
+            encoded_pkg = package_name.replace("/", "%2F")
+            url = f"https://registry.npmjs.org/{encoded_pkg}"
             req = urllib.request.Request(
                 url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0", "Accept": "application/json"}
             )
             try:
-                with urllib.request.urlopen(req, timeout=5.0) as response:
+                with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=5.0) as response:
                     data = json.loads(response.read().decode("utf-8"))
                     latest_version = data.get("dist-tags", {}).get("latest")
                     dist_tarball_url = data.get("versions", {}).get(latest_version, {}).get("dist", {}).get("tarball")
@@ -225,7 +226,7 @@ class PassportSynchronizer:
 
         req = urllib.request.Request(dist_tarball_url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"})
         try:
-            with urllib.request.urlopen(req, timeout=2.5) as response:
+            with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=2.5) as response:
                 tarball_data = bytearray()
                 # Enforce 10MB limit
                 MAX_SIZE = 10 * 1024 * 1024
