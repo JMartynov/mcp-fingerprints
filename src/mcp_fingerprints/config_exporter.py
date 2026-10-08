@@ -3,9 +3,12 @@
 from typing import Any
 
 
+SUPPORTED_CLIENTS = ("claude", "cursor", "cline", "zed", "windsurf", "docker")
+
+
 def export_client_config(passport: dict[str, Any], client: str = "claude") -> dict[str, Any]:
     """
-    Format client configuration for 'claude' (claude_desktop_config.json) or 'cursor' (mcpServers).
+    Format client configuration for 'claude', 'cursor', 'cline', 'zed', 'windsurf', or 'docker'.
     
     Inspects connections and ecosystem in the latest version:
       - If stdio: extracts command, args, and env.
@@ -13,8 +16,8 @@ def export_client_config(passport: dict[str, Any], client: str = "claude") -> di
       - If pypi: default command `uvx <package_name>` or `python -m <module>`.
       - If sse: extracts url.
     """
-    if client not in ("claude", "cursor"):
-        raise ValueError("Unsupported client. Must be 'claude' or 'cursor'.")
+    if client not in SUPPORTED_CLIENTS:
+        raise ValueError(f"Unsupported client: {client}. Must be one of {SUPPORTED_CLIENTS}.")
         
     package_name = passport.get("package_name", "unknown")
     ecosystem = passport.get("ecosystem", "unknown")
@@ -42,61 +45,136 @@ def export_client_config(passport: dict[str, Any], client: str = "claude") -> di
         if not conn:
             conn = connections[0]
             
-    server_config = {}
-    
-    # Extract command, args, env, or url
+    safe_name = package_name.replace("@", "").replace("/", "-").replace("_", "-")
+
+    # Handle SSE connections
     if conn and conn.get("type") == "sse":
-        if client == "claude":
-            server_config = {
-                "type": "sse",
-                "url": conn.get("url") or conn.get("deploymentUrl") or ""
+        url = conn.get("url") or conn.get("deploymentUrl") or ""
+        if client in ("claude", "cursor", "windsurf"):
+            return {
+                "mcpServers": {
+                    safe_name: {
+                        "type": "sse",
+                        "url": url,
+                    }
+                }
             }
-        else: # cursor
-            server_config = {
-                "type": "sse",
-                "url": conn.get("url") or conn.get("deploymentUrl") or ""
+        elif client == "cline":
+            return {
+                "mcpServers": {
+                    safe_name: {
+                        "type": "sse",
+                        "url": url,
+                        "disabled": False,
+                        "autoApprove": [],
+                    }
+                }
             }
-    else: # stdio or fallback
-        command = ""
-        args = []
-        env = {}
+        elif client == "zed":
+            return {
+                "context_servers": {
+                    safe_name: {
+                        "url": url,
+                    }
+                }
+            }
+        elif client == "docker":
+            return {
+                "sseUrl": url,
+                "note": "SSE connection does not require local container execution.",
+            }
+
+    # Stdio or fallback command extraction
+    command = ""
+    args = []
+    env = {}
+    
+    if conn and conn.get("type") == "stdio":
+        command = conn.get("command", "")
+        args = conn.get("args", [])
+        env = conn.get("env", {})
         
-        if conn and conn.get("type") == "stdio":
-            command = conn.get("command", "")
-            args = conn.get("args", [])
-            env = conn.get("env", {})
-            
-        # Fallback defaults if command is missing
-        if not command:
-            if ecosystem == "npm":
-                command = "npx"
-                args = ["-y", package_name] + args
-            elif ecosystem == "pypi":
-                command = "uvx"
-                args = [package_name] + args
-            else:
-                command = package_name
-                
-        server_config = {
+    # Fallback defaults if command is missing
+    if not command:
+        if ecosystem == "npm":
+            command = "npx"
+            args = ["-y", package_name] + args
+        elif ecosystem == "pypi":
+            command = "uvx"
+            args = [package_name] + args
+        else:
+            command = package_name
+
+    # Client-specific formatting
+    if client in ("claude", "cursor", "windsurf"):
+        server_conf: dict[str, Any] = {
             "command": command,
-            "args": args
+            "args": args,
         }
         if env:
-            server_config["env"] = env
-            
-    # Format according to client
-    # Clean the package name for the server key (e.g., '@namespace/pkg' -> 'namespace-pkg')
-    safe_name = package_name.replace("@", "").replace("/", "-").replace("_", "-")
-    
-    if client == "claude":
+            server_conf["env"] = env
         return {
             "mcpServers": {
-                safe_name: server_config
+                safe_name: server_conf
             }
         }
-    else: # cursor
+    elif client == "cline":
+        cline_conf: dict[str, Any] = {
+            "command": command,
+            "args": args,
+            "disabled": False,
+            "autoApprove": [],
+        }
+        if env:
+            cline_conf["env"] = env
         return {
             "mcpServers": {
-                safe_name: server_config
+                safe_name: cline_conf
             }
         }
+    elif client == "zed":
+        cmd_obj: dict[str, Any] = {
+            "path": command,
+            "args": args,
+        }
+        if env:
+            cmd_obj["env"] = env
+        return {
+            "context_servers": {
+                safe_name: {
+                    "command": cmd_obj
+                }
+            }
+        }
+    elif client == "docker":
+        if ecosystem == "npm":
+            image = "node:22-alpine"
+        elif ecosystem == "pypi":
+            image = "python:3.12-slim"
+        else:
+            image = "alpine:latest"
+
+        cmd_parts = ["docker", "run", "-i", "--rm"]
+        for k, v in env.items():
+            cmd_parts.extend(["-e", f"{k}={v}"])
+        cmd_parts.append(image)
+        cmd_parts.append(command)
+        cmd_parts.extend(args)
+
+        return {
+            "dockerCommand": " ".join(cmd_parts),
+            "container": {
+                "image": image,
+                "command": command,
+                "args": args,
+                "env": env,
+            }
+        }
+
+    return {}
+
+
+def export_all_client_configs(passport: dict[str, Any]) -> dict[str, Any]:
+    """Export client configurations across all supported clients."""
+    return {c: export_client_config(passport, client=c) for c in SUPPORTED_CLIENTS}
+

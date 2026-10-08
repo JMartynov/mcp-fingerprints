@@ -17,7 +17,7 @@ from mcp_fingerprints.synchronizer import PassportSynchronizer
 from collections import Counter
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.search import search_passports, format_search_results
-from mcp_fingerprints.config_exporter import export_client_config
+from mcp_fingerprints.config_exporter import export_client_config, export_all_client_configs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("mcp_fingerprints.cli")
@@ -112,10 +112,16 @@ def main() -> None:
     search_p.add_argument("--limit", type=int, default=10, help="Maximum results to return")
 
     # Export Config
-    export_p = subparsers.add_parser("export-config", help="Export client configuration (Claude/Cursor)")
+    export_p = subparsers.add_parser("export-config", help="Export client configuration (Claude/Cursor/Cline/Zed/Windsurf/Docker)")
     export_p.add_argument("package", help="Package name to export configuration for")
     export_p.add_argument("--dir", default="data/fingerprints", help="Passport data directory")
-    export_p.add_argument("--client", choices=["claude", "cursor"], default="claude", help="Client type (claude/cursor)")
+    export_p.add_argument(
+        "--client",
+        choices=["claude", "cursor", "cline", "zed", "windsurf", "docker"],
+        default="claude",
+        help="Client type (claude, cursor, cline, zed, windsurf, docker)",
+    )
+    export_p.add_argument("--all-clients", action="store_true", help="Export configuration for all supported clients")
 
     args = parser.parse_args()
 
@@ -289,8 +295,12 @@ def main() -> None:
             try:
                 content = json.loads(j_file.read_text(encoding="utf-8"))
                 if content.get("package_name") == args.package:
-                    config = export_client_config(content, client=args.client)
-                    print(json.dumps(config, indent=2))
+                    if args.all_clients:
+                        configs = export_all_client_configs(content)
+                        print(json.dumps(configs, indent=2))
+                    else:
+                        config = export_client_config(content, client=args.client)
+                        print(json.dumps(config, indent=2))
                     found = True
                     break
             except Exception:
