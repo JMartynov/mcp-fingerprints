@@ -23,10 +23,10 @@ The repository includes a static web catalog (`web/index.html` + `web/catalog.js
    - Confirm search, filtering, and copy snippets function properly in production.
 
 ### Acceptance Criteria
-- [ ] GitHub Pages source is configured to GitHub Actions for `JMartynov/mcp-fingerprints`.
-- [ ] Workflow `.github/workflows/deploy_pages.yml` completes with green status on GitHub Actions.
-- [ ] `https://jmartynov.github.io/mcp-fingerprints/` returns HTTP 200 with 5,031+ searchable MCP servers.
-- [ ] `deploy_pages.yml` triggers automatically after daily sync updates.
+- [x] GitHub Pages source is configured to GitHub Actions for `JMartynov/mcp-fingerprints`.
+- [x] Workflow `.github/workflows/deploy_pages.yml` completes with green status on GitHub Actions.
+- [x] `https://jmartynov.github.io/mcp-fingerprints/` returns HTTP 200 with 5,031+ searchable MCP servers.
+- [x] `deploy_pages.yml` triggers automatically after daily sync updates.
 
 ---
 
@@ -51,8 +51,8 @@ The repository includes a static web catalog (`web/index.html` + `web/catalog.js
    - Monitor `.github/workflows/release.yml` execution and verify package availability on `https://pypi.org/project/mcp-fingerprints/`.
 
 ### Acceptance Criteria
-- [ ] `python -m build` builds clean sdist (`.tar.gz`) and wheel (`.whl`) without errors.
-- [ ] `twine check dist/*` passes with `PASSED`.
+- [x] `python -m build` builds clean sdist (`.tar.gz`) and wheel (`.whl`) without errors.
+- [x] `twine check dist/*` passes with `PASSED`.
 - [ ] `.github/workflows/release.yml` finishes successfully via OIDC trusted publishing.
 - [ ] `pip install mcp-fingerprints==1.0.0` installs successfully in a clean virtual environment.
 - [ ] `mcp-fingerprints --version` and CLI entry points execute properly.
