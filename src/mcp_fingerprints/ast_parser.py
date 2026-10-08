@@ -350,7 +350,7 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
 
     # Pattern 1: server.tool("name", "desc", { schema }, handler) or server.tool("name", { schema }, handler)
     tool_call_regex = re.compile(
-        r'(?:server|mcp|app)\.tool\s*\(\s*["\']([^"\']+)["\']\s*,\s*(?:["\']([^"\']+)["\']\s*,\s*)?(?:z\.object\s*\(\s*\{([^}]*)\}\s*\)|\{([^}]*)\})',
+        r'(?:server|mcp|app)\.tool\s*\(\s*["\']([^"\']+)["\']\s*,\s*(?:["\'`]([^"\'`]+)["\'`]\s*,\s*)?(?:z\.object\s*\(\s*\{([^}]*)\}\s*\)|\{([^}]*)\})',
         re.DOTALL | re.MULTILINE,
     )
 
@@ -396,17 +396,13 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
             continue
         start_idx = m.end() - 1
         chunk = code[start_idx : start_idx + 1500]
-        desc_m = re.search(r'description\s*:\s*["\']([^"\']+)["\']', chunk)
+        desc_m = re.search(r'description\s*:\s*["\'`]([^"\'`]+)["\'`]', chunk)
         t_desc = desc_m.group(1) if desc_m else t_name
         properties = {}
         required = []
-        # We need a safe boundary for inputSchema properties, usually ending at the next `}` or `},` or `});`
-        # Using a reluctant quantifier up to the next structural brace or end of object literal.
-        # Alternatively, search only within `inputSchema: { ... }` where `...` doesn't contain the start of the next tool or closing of the current registerTool.
         schema_m = re.search(r'inputSchema\s*:\s*\{([^{}]*?(?:\{[^{}]*\}[^{}]*?)*)\}', chunk, re.DOTALL)
         if schema_m:
             schema_chunk = schema_m.group(1)
-            # Find zod definitions like `repo_name: z.string()`
             for pm in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', schema_chunk):
                 pname = pm.group(1)
                 ptype = pm.group(2).lower()
@@ -423,8 +419,6 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
                     
                 properties[pname] = {"type": stype}
                 
-                # Check if it has .optional() following it on the same line or before next property
-                # simple heuristic: just check the line containing the match
                 line_match = re.search(rf'{pname}\s*:\s*z\.[^,]+', schema_chunk)
                 if line_match and "optional" not in line_match.group(0):
                     required.append(pname)
@@ -433,38 +427,50 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
 
     # Pattern 3: Object literal array declaration [{ name: "...", description: "...", inputSchema: ... }]
     # E.g. tools = [{ name: "read_file", ... }]
-    obj_literal_regex = re.compile(
-        r'\{\s*(?:[^{}]*?\bname\s*:\s*[\'"]([a-zA-Z0-9_\-]+)[\'"][^{}]*?\bdescription\s*:\s*([\'"][^,;\}]+[\'"])|[^{}]*?\bdescription\s*:\s*([\'"][^,;\}]+[\'"][^{}]*?\bname\s*:\s*[\'"]([a-zA-Z0-9_\-]+)[\'"]))',
-        re.MULTILINE,
-    )
-    for match in obj_literal_regex.finditer(code):
-        t_name = match.group(1) or match.group(4)
-        raw_desc = match.group(2) or match.group(3) or ""
-        cleaned_desc = re.sub(r'[\'"]\s*\+\s*[\'"]', '', raw_desc)
-        t_desc = re.sub(r'\s+', ' ', cleaned_desc).strip('\'" \n') or t_name
+    for match in re.finditer(r'(?:\{|,)\s*name\s*:\s*["\']([a-zA-Z0-9_\-]+)["\']', code):
+        t_name = match.group(1)
+        if t_name in seen_names or t_name.startswith("$"):
+            continue
+            
+        pre_code = code[max(0, match.start() - 40) : match.start()]
+        if "new Server" in pre_code or "new McpServer" in pre_code:
+            continue
+
+        start_idx = match.start()
+        chunk = code[start_idx : start_idx + 2500]
         
-        # Look ahead for inputSchema to get properties and required
-        chunk = code[match.start():match.start() + 1500]
+        # Isolate this object up to next tool definition if possible
+        next_tool_match = re.search(r'(?:\{|,)\s*name\s*:\s*["\']', chunk[10:])
+        if next_tool_match:
+            chunk = chunk[:next_tool_match.start() + 10]
+            
+        desc_m = re.search(
+            r'description\s*:\s*([\'"`].*?[\'"`](?:\s*\+\s*[\'"`].*?[\'"`])*)',
+            chunk,
+            re.DOTALL,
+        )
+        schema_m = re.search(r'(?:inputSchema|parameters)\s*:\s*\{', chunk)
+        
+        # Must have either description or inputSchema/parameters to be a tool definition
+        if not desc_m and not schema_m:
+            continue
+            
+        # Ignore server metadata objects ({ name: "server", version: "1.0.0" })
+        if re.search(r'\bversion\s*:\s*["\']', chunk) and not schema_m:
+            continue
+
+        if desc_m:
+            raw_desc = desc_m.group(1)
+            cleaned_desc = re.sub(r'[\'"`]\s*\+\s*[\'"`]', '', raw_desc)
+            t_desc = re.sub(r'\s+', ' ', cleaned_desc).strip('\'"` \n') or t_name
+        else:
+            t_desc = t_name
+            
         properties = {}
         required = []
         
-        # Simple extraction of properties and required fields within the chunk
-        # We need a safe boundary for properties block to avoid consuming other tools' schemas.
-        # Find the start of the `properties:` block for this tool. 
-        # By searching only the first properties block within the object literal representing the tool.
-        # Let's extract up to the end of properties block by matching nested structures up to depth 1 or looking for next keyword like required
-        
-        # Limit chunk to just this tool by stopping at the next 'name:' or next array element boundary
-        schema_m = re.search(r'inputSchema\s*:\s*\{(.*)', chunk, re.DOTALL)
         if schema_m:
-            schema_chunk = schema_m.group(1)
-            
-            # Prevent greediness by cutting off at the start of the next tool (usually "name:")
-            next_name_idx = schema_chunk.find('name:')
-            if next_name_idx != -1:
-                schema_chunk = schema_chunk[:next_name_idx]
-            
-            # Find innermost { ... } blocks that contain type: "..." within schema chunk
+            schema_chunk = chunk[schema_m.end() - 1 :]
             for p_match in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*\{([^{}]+)\}', schema_chunk, re.DOTALL):
                 p_name = p_match.group(1)
                 p_body = p_match.group(2)
@@ -472,7 +478,21 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
                 if t_match:
                     properties[p_name] = {"type": t_match.group(1)}
             
-            # Extract required array from schema chunk
+            for z_match in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', schema_chunk):
+                p_name = z_match.group(1)
+                p_ztype = z_match.group(2).lower()
+                stype = "string"
+                if p_ztype in ("number", "int", "float"):
+                    stype = "number"
+                elif p_ztype in ("boolean", "bool"):
+                    stype = "boolean"
+                elif p_ztype in ("array", "list"):
+                    stype = "array"
+                elif p_ztype in ("object", "record"):
+                    stype = "object"
+                if p_name not in properties:
+                    properties[p_name] = {"type": stype}
+
             req_match = re.search(r'required\s*:\s*\[([^\]]*?)\]', schema_chunk, re.DOTALL)
             if req_match:
                 req_str = req_match.group(1)
@@ -480,8 +500,32 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
                     req_item_clean = req_item.strip().strip('"\' \n\t')
                     if req_item_clean:
                         required.append(req_item_clean)
-            
+
         add_tool(t_name, t_desc, properties, required)
+
+    # Pattern 4: Standalone / helper function tool declarations:
+    helper_tool_regex = re.compile(
+        r'(?<!\.)\b(?:tool|createTool|defineTool)\s*\(\s*["\']([a-zA-Z0-9_\-]+)["\']\s*(?:,\s*(?:["\'`]([^"\'`]+)["\'`]|z\.object|\{))?',
+        re.MULTILINE,
+    )
+    for m in helper_tool_regex.finditer(code):
+        t_name = m.group(1)
+        t_desc = m.group(2) or t_name
+        if t_name not in seen_names and not t_name.startswith("$"):
+            add_tool(t_name, t_desc, {}, [])
+
+    # Pattern 5: CallToolRequest router switch/if dispatch table
+    if any(k in code for k in ("CallToolRequest", "request.params.name", "tools/call", "setRequestHandler")):
+        ignored_names = {"initialize", "initialized", "ping", "error", "cancelled", "cancel", "list", "schema", "default"}
+        for cm in re.finditer(r'case\s+["\']([a-zA-Z0-9_\-]+)["\']\s*:', code):
+            c_name = cm.group(1)
+            if c_name not in seen_names and c_name.lower() not in ignored_names:
+                add_tool(c_name, f"Execute {c_name}", {}, [])
+                
+        for im in re.finditer(r'(?:request\.params\.name|params\.name|\bname)\s*===\s*["\']([a-zA-Z0-9_\-]+)["\']', code):
+            i_name = im.group(1)
+            if i_name not in seen_names and i_name.lower() not in ignored_names:
+                add_tool(i_name, f"Execute {i_name}", {}, [])
 
     return extracted
 
