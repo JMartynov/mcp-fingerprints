@@ -14,6 +14,7 @@ import urllib.error
 import urllib.request
 import io
 import tarfile
+import time
 
 from pathlib import Path
 from typing import Any
@@ -78,6 +79,43 @@ class ArchiveNotFoundError(Exception):
 
 class PassportSynchronizer:
     """Synchronizes, discovers, and updates full-fidelity MCP Server Passports."""
+
+    def _fetch_github_api_with_retry(self, url: str, timeout: float = 3.0, max_retries: int = 5) -> urllib.response.addinfourl:
+        """Fetch from GitHub API with exponential backoff on HTTP 403 and 429."""
+        backoff = 2.0
+        for attempt in range(max_retries):
+            try:
+                req = urllib.request.Request(
+                    url,
+                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                )
+                resp = urllib.request.urlopen(req, context=_create_ssl_context(), timeout=timeout)
+                return resp
+            except urllib.error.HTTPError as he:
+                if he.code in (403, 429) and attempt < max_retries - 1:
+                    reset_time_str = he.headers.get("x-ratelimit-reset")
+                    if reset_time_str:
+                        try:
+                            reset_time = int(reset_time_str)
+                            sleep_duration = max(1.0, reset_time - time.time() + 1.0)
+                        except ValueError:
+                            sleep_duration = backoff
+                    else:
+                        sleep_duration = backoff
+                    
+                    logger.warning("GitHub API rate limit hit (%d) for %s. Sleeping %.1f seconds...", he.code, url, sleep_duration)
+                    time.sleep(sleep_duration)
+                    backoff *= 2.0
+                else:
+                    raise
+            except urllib.error.URLError as ue:
+                if attempt < max_retries - 1:
+                    logger.debug("URL Error %s for %s. Retrying in %.1fs...", ue.reason, url, backoff)
+                    time.sleep(backoff)
+                    backoff *= 2.0
+                else:
+                    raise
+        raise urllib.error.URLError("Max retries exceeded")
 
     def __init__(
         self,
@@ -452,11 +490,7 @@ class PassportSynchronizer:
 
             tree_url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
             try:
-                req = urllib.request.Request(
-                    tree_url,
-                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
-                )
-                with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=3.0) as resp:
+                with self._fetch_github_api_with_retry(tree_url) as resp:
                     if resp.status == 200:
                         import json
                         tree_data = json.loads(resp.read().decode("utf-8", errors="ignore"))
@@ -661,11 +695,7 @@ class PassportSynchronizer:
         # If zero tools were found, check if repository itself is 404 / deleted / inaccessible
         repo_api_url = f"https://api.github.com/repos/{owner}/{repo}"
         try:
-            req_check = urllib.request.Request(
-                repo_api_url,
-                headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
-            )
-            with urllib.request.urlopen(req_check, context=_create_ssl_context(), timeout=3.0) as resp:
+            with self._fetch_github_api_with_retry(repo_api_url) as resp:
                 pass
         except urllib.error.HTTPError as he:
             if he.code in (404, 410):
@@ -1344,17 +1374,27 @@ class PassportSynchronizer:
                         self.state["ast_probed_repos"] = list(ast_probed_repos)
             return False
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(_process_candidate, c) for c in candidates_to_probe]
-            for future in concurrent.futures.as_completed(futures):
-                if future.result():
-                    enriched_count += 1
-                if enriched_count >= limit:
-                    break
-
-        logger.info("Enriched %d passports with static AST tools", enriched_count)
-        self._save_state()
-        return enriched_count
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [executor.submit(_process_candidate, c) for c in candidates_to_probe]
+                probed_count = 0
+                for future in concurrent.futures.as_completed(futures):
+                    probed_count += 1
+                    if future.result():
+                        enriched_count += 1
+                        
+                    # Ensure we save state periodically based on probes
+                    if probed_count % 50 == 0:
+                        self._save_state()
+                        
+                    if enriched_count >= limit:
+                        break
+        except KeyboardInterrupt:
+            logger.info("Interrupted. Saving state...")
+        finally:
+            logger.info("Enriched %d passports with static AST tools", enriched_count)
+            self._save_state()
+            return enriched_count
 
     def discover_new_mcps(self, limit: int = 500) -> int:
         """Query search feeds, full Smithery directory, PyPI registry, and awesome-mcp-servers."""

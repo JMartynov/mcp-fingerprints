@@ -14,9 +14,44 @@ from mcp_fingerprints.prober import McpStdioProber
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
 from mcp_fingerprints.snapshot import build_snapshot
 from mcp_fingerprints.synchronizer import PassportSynchronizer
+from collections import Counter
+from mcp_fingerprints.models import ServerPackageSpec
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("mcp_fingerprints.cli")
+
+
+def print_ecosystem_health_report(data_dir: str | Path) -> None:
+    passports = 0
+    tools = 0
+    ecosystems = Counter()
+    
+    dir_path = Path(data_dir)
+    for j_file in sorted(dir_path.rglob("*.json")):
+        if j_file.name in ("sync_state.json", "index.json", ".passport_index.pickle"):
+            continue
+        try:
+            content = json.loads(j_file.read_text(encoding="utf-8"))
+            if isinstance(content, dict) and "package_name" in content:
+                passports += 1
+                ecosystems[content.get("ecosystem", "unknown")] += 1
+                
+                spec = ServerPackageSpec.from_dict(content)
+                for v in spec.versions:
+                    if v.tool_signatures:
+                        tools += len(v.tool_signatures)
+        except Exception:
+            pass
+
+    print("==================================================")
+    print("         ECOSYSTEM HEALTH REPORT                  ")
+    print("==================================================")
+    print(f"Total Passports:    {passports}")
+    print(f"Total Tools:        {tools}")
+    print("Ecosystem Breakdown:")
+    for eco, count in ecosystems.most_common():
+        print(f"  - {eco}: {count}")
+    print("==================================================")
 
 
 def main() -> None:
@@ -28,7 +63,10 @@ def main() -> None:
     sync_p.add_argument("--output", default="data/fingerprints", help="Output directory")
     sync_p.add_argument("--update-existing", action="store_true", help="Check and update existing MCP versions")
     sync_p.add_argument("--discover-new", action="store_true", help="Discover and pull new MCP servers")
-    sync_p.add_argument("--enrich-ast", type=int, nargs="?", const=500, default=False, help="Extract tool contracts via static AST parsing for zero-tool repositories (optional limit, default 500)")
+    sync_p.add_argument("--enrich-ast", action="store_true", help="Extract tool contracts via static AST parsing for zero-tool repositories")
+    sync_p.add_argument("--limit", type=int, default=500, help="Max passports to probe")
+    sync_p.add_argument("--workers", type=int, default=8, help="Concurrency worker threads")
+    sync_p.add_argument("--report", action="store_true", help="Run and print the ecosystem health report after sync")
     sync_p.add_argument("--all", action="store_true", help="Run both update and discovery")
     sync_p.add_argument("--snapshot", action="store_true", default=True, help="Compile snapshot after sync")
 
@@ -69,23 +107,25 @@ def main() -> None:
 
     if args.command == "sync":
         sync = PassportSynchronizer(output_dir=args.output)
-        if args.all or (not args.update_existing and not args.discover_new and args.enrich_ast is False):
+        if args.all or (not args.update_existing and not args.discover_new and not args.enrich_ast):
             logger.info("Running full multi-source passport synchronization...")
             sync.update_existing_passports()
-            sync.enrich_zero_tool_passports(limit=500)
+            sync.enrich_zero_tool_passports(limit=args.limit, max_workers=args.workers)
             sync.discover_new_mcps()
         else:
             if args.update_existing:
                 sync.update_existing_passports()
-            if args.enrich_ast is not False:
-                limit = args.enrich_ast if isinstance(args.enrich_ast, int) else 500
-                sync.enrich_zero_tool_passports(limit=limit)
+            if args.enrich_ast:
+                sync.enrich_zero_tool_passports(limit=args.limit, max_workers=args.workers)
             if args.discover_new:
                 sync.discover_new_mcps()
 
         if args.snapshot:
             logger.info("Compiling consolidated snapshot...")
             build_snapshot(data_dir=args.output, output_gz=f"{Path(args.output).parent}/passports.json.gz" if args.output != "data/fingerprints" else "passports.json.gz")
+
+        if getattr(args, "report", False):
+            print_ecosystem_health_report(args.output)
 
     elif args.command == "validate":
         valid, invalid, errors = PassportSchemaValidator.validate_directory(args.dir)
