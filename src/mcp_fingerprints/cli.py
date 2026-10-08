@@ -19,6 +19,7 @@ from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.search import search_passports, format_search_results
 from mcp_fingerprints.config_exporter import export_client_config, export_all_client_configs
 from mcp_fingerprints.conflict_detector import audit_client_config, format_audit_report
+from mcp_fingerprints.drift_detector import compare_passports_for_drift, format_drift_report, dispatch_drift_webhook
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("mcp_fingerprints.cli")
@@ -129,6 +130,14 @@ def main() -> None:
     audit_p.add_argument("config_file", help="Path to client config file (e.g. claude_desktop_config.json, settings.json)")
     audit_p.add_argument("--dir", default="data/fingerprints", help="Passport data directory")
     audit_p.add_argument("--json", action="store_true", help="Output audit report as JSON")
+
+    # Detect Drift
+    drift_p = subparsers.add_parser("detect-drift", help="Detect supply-chain tampering and hash drift between passport states")
+    drift_p.add_argument("--old", required=True, help="Baseline passport directory, snapshot gz, or json file")
+    drift_p.add_argument("--new", required=True, help="New passport directory, snapshot gz, or json file")
+    drift_p.add_argument("--webhook-url", help="Webhook URL to notify upon drift or tamper")
+    drift_p.add_argument("--fail-on-tamper", action="store_true", help="Exit with code 1 if tamper incidents are detected")
+    drift_p.add_argument("--json", action="store_true", help="Output audit report as JSON")
 
     args = parser.parse_args()
 
@@ -331,6 +340,25 @@ def main() -> None:
             print(format_audit_report(report))
 
         if report.has_critical_conflicts:
+            sys.exit(1)
+
+    elif args.command == "detect-drift":
+        try:
+            report = compare_passports_for_drift(args.old, args.new)
+        except Exception as e:
+            logger.error("Failed to compare passports for drift: %s", e)
+            print(f"ERROR: {e}")
+            sys.exit(1)
+
+        if args.webhook_url:
+            dispatch_drift_webhook(report, webhook_url=args.webhook_url)
+
+        if args.json:
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            print(format_drift_report(report))
+
+        if args.fail_on_tamper and report.has_tamper_incidents:
             sys.exit(1)
 
 
