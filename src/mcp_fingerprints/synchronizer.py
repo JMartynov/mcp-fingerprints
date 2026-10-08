@@ -18,7 +18,7 @@ import tarfile
 from pathlib import Path
 from typing import Any
 
-from mcp_fingerprints.ast_parser import parse_mcp_source_code, parse_typescript_mcp_ast
+from mcp_fingerprints.ast_parser import parse_mcp_source_code, parse_typescript_mcp_ast, parse_python_mcp_ast
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
@@ -108,6 +108,100 @@ class PassportSynchronizer:
             encoding="utf-8",
         )
 
+
+
+    def _extract_tools_from_pypi_package(self, package_name: str) -> list[dict[str, Any]]:
+        url = f"https://pypi.org/pypi/{package_name}/json"
+        req = urllib.request.Request(
+            url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0", "Accept": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=3.0) as response:
+                data = json.loads(response.read().decode("utf-8"))
+        except Exception as e:
+            logger.warning(f"Error fetching PyPI metadata for {package_name}: {e}")
+            return []
+
+        urls = data.get("urls", [])
+        if not urls:
+            return []
+
+        # Prioritize wheel over sdist
+        target_url = None
+        target_type = None
+        for u in urls:
+            if u.get("packagetype") == "bdist_wheel":
+                target_url = u.get("url")
+                target_type = "wheel"
+                break
+        
+        if not target_url:
+            for u in urls:
+                if u.get("packagetype") == "sdist":
+                    target_url = u.get("url")
+                    target_type = "sdist"
+                    break
+
+        if not target_url:
+            return []
+
+        req = urllib.request.Request(target_url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=3.0) as response:
+                archive_data = bytearray()
+                MAX_SIZE = 10 * 1024 * 1024
+                while True:
+                    chunk = response.read(65536)
+                    if not chunk:
+                        break
+                    archive_data.extend(chunk)
+                    if len(archive_data) > MAX_SIZE:
+                        logger.warning(f"Archive for {package_name} exceeded 10MB limit, skipping.")
+                        return []
+        except Exception as e:
+            logger.warning(f"Error downloading archive for {package_name}: {e}")
+            return []
+
+        buf = io.BytesIO(archive_data)
+        extracted_tools = []
+        seen_tool_names = set()
+
+        if target_type == "wheel":
+            import zipfile
+            try:
+                with zipfile.ZipFile(buf, "r") as zf:
+                    for name in zf.namelist():
+                        if name.endswith(".py") and not name.split("/")[-1].startswith("test"):
+                            code = zf.read(name).decode("utf-8", errors="ignore")
+                            tools = parse_python_mcp_ast(code)
+                            for t in tools:
+                                if t.get("name") not in seen_tool_names:
+                                    seen_tool_names.add(t.get("name"))
+                                    extracted_tools.append(t)
+            except zipfile.BadZipFile as e:
+                logger.warning(f"Zip error extracting {package_name}: {e}")
+        elif target_type == "sdist":
+            import tarfile
+            try:
+                buf.seek(0)
+                with tarfile.open(fileobj=buf, mode="r:gz") as tar:
+                    for member in tar.getmembers():
+                        if not member.isfile():
+                            continue
+                        name = member.name
+                        if name.endswith(".py") and not name.split("/")[-1].startswith("test"):
+                            f_obj = tar.extractfile(member)
+                            if f_obj:
+                                code = f_obj.read().decode("utf-8", errors="ignore")
+                                tools = parse_python_mcp_ast(code)
+                                for t in tools:
+                                    if t.get("name") not in seen_tool_names:
+                                        seen_tool_names.add(t.get("name"))
+                                        extracted_tools.append(t)
+            except tarfile.TarError as e:
+                logger.warning(f"Tar error extracting {package_name}: {e}")
+
+        return extracted_tools
 
     def _extract_tools_from_npm_tarball(
         self, package_name: str, dist_tarball_url: str | None = None
@@ -820,10 +914,16 @@ class PassportSynchronizer:
         ast_probed_repos = set(cleaned_ast_probed_repos)
         self.state["ast_probed_repos"] = list(ast_probed_repos)
         
+
         npm_probed_packages = set(self.state.get("npm_probed_packages", []))
+        pypi_probed_packages = set(self.state.get("pypi_probed_packages", []))
+
         
+
         npm_candidates = []
         github_candidates = []
+        pypi_candidates = []
+
         
         for j_file in sorted(self.output_dir.rglob("*.json")):
             if j_file.name in ("sync_state.json", "index.json"):
@@ -839,13 +939,19 @@ class PassportSynchronizer:
                 if spec.ecosystem == "npm" or "npm_registry" in spec.sources_merged:
                     if spec.package_name not in npm_probed_packages:
                         npm_candidates.append((j_file, spec, check_repo, "npm"))
+                elif spec.ecosystem in ("pypi", "python") or "pypi" in spec.sources_merged:
+                    if spec.package_name not in pypi_probed_packages:
+                        pypi_candidates.append((j_file, spec, check_repo, "pypi"))
                 elif check_repo and "github.com" in check_repo:
+
                     if check_repo not in ast_probed_repos:
                         github_candidates.append((j_file, spec, check_repo, "github"))
             except Exception as exc:
                 logger.debug("Error loading potential AST candidate %s: %s", j_file.name, exc)
 
-        candidates_to_probe = npm_candidates + github_candidates
+
+        candidates_to_probe = npm_candidates + pypi_candidates + github_candidates
+
         if not candidates_to_probe:
             return 0
         
@@ -861,7 +967,13 @@ class PassportSynchronizer:
                     with state_lock:
                         npm_probed_packages.add(spec.package_name)
                         self.state["npm_probed_packages"] = list(npm_probed_packages)
+                elif strategy == "pypi":
+                    tools = self._extract_tools_from_pypi_package(spec.package_name)
+                    with state_lock:
+                        pypi_probed_packages.add(spec.package_name)
+                        self.state["pypi_probed_packages"] = list(pypi_probed_packages)
                 elif strategy == "github":
+
                     tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
                     with state_lock:
                         ast_probed_repos.add(check_repo)
@@ -889,7 +1001,11 @@ class PassportSynchronizer:
                     if strategy == "npm":
                         npm_probed_packages.add(spec.package_name)
                         self.state["npm_probed_packages"] = list(npm_probed_packages)
+                    elif strategy == "pypi":
+                        pypi_probed_packages.add(spec.package_name)
+                        self.state["pypi_probed_packages"] = list(pypi_probed_packages)
                     elif strategy == "github" and check_repo:
+
                         ast_probed_repos.add(check_repo)
                         self.state["ast_probed_repos"] = list(ast_probed_repos)
             return False

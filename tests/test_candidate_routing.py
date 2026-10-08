@@ -24,7 +24,7 @@ def test_candidate_routing_npm_vs_github(tmp_path: Path):
     github_spec = ServerPackageSpec(
         package_name="test-github-pkg",
         purl="pkg:pypi/test-github-pkg",
-        ecosystem="python",
+        ecosystem="github",
         repository_url="https://github.com/user/test-github-pkg",
         sources_merged=["github"],
         versions=[]
