@@ -305,18 +305,34 @@ class PassportSynchronizer:
                         tree_data = json.loads(resp.read().decode("utf-8", errors="ignore"))
                         tree_api_success = True
                         
+                        target_filenames = {
+                            "server.py", "main.py", "app.py", "index.ts", "server.ts", "index.js",
+                            "cli.ts", "mcp.py", "tools.ts", "tools.py", "tool.ts", "tool.py"
+                        }
                         candidate_files = []
                         for entry in tree_data.get("tree", []):
                             if entry.get("type") == "blob":
                                 p = entry.get("path", "")
+                                parts = p.split("/")
+                                if len(parts) > 4:
+                                    continue
+                                filename = parts[-1]
                                 match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py)$', p)
                                 match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js)$', p)
                                 match3 = re.search(r'^src/handlers/.*\.(ts|js)$', p)
-                                if match1 or match2 or match3:
-                                    candidate_files.append(p)
+                                if filename in target_filenames or match1 or match2 or match3:
+                                    score = 10
+                                    if "packages/" in p or "servers/" in p or "src/" in p:
+                                        score -= 2
+                                    pkg_last_part = package_name.split("/")[-1]
+                                    if pkg_last_part and pkg_last_part in p:
+                                        score -= 3
+                                    if "/tools/" in f"/{p}":
+                                        score -= 2
+                                    candidate_files.append((score, p))
                                     
-                        # Prioritize files with tools/ in path
-                        candidate_files.sort(key=lambda x: 0 if '/tools/' in f'/{x}' else 1)
+                        candidate_files.sort(key=lambda x: x[0])
+                        candidate_files = [p for _, p in candidate_files]
                         candidate_files = candidate_files[:5]
                         
                         for p in candidate_files:
@@ -328,7 +344,7 @@ class PassportSynchronizer:
                                 )
                                 with urllib.request.urlopen(req_raw, context=_create_ssl_context(), timeout=3.0) as raw_resp:
                                     if raw_resp.status == 200:
-                                        code = raw_resp.read().decode("utf-8", errors="ignore")
+                                        code = raw_resp.read(500 * 1024).decode("utf-8", errors="ignore")
                                         lang = p.split('.')[-1]
                                         if lang == "mjs": lang = "js"
                                         extracted = parse_mcp_source_code(code, language=lang)
