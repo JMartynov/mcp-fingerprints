@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP Passports & Server Directory</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --tag-bg: #334155;
+      --risk-low: #22c55e;
+      --risk-med: #eab308;
+      --risk-high: #f97316;
+      --risk-crit: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 2rem; }
+    h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text); }
+    h1 span { color: var(--accent); }
+    .subtitle { color: var(--text-muted); font-size: 1.1rem; }
+    
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: var(--card-bg);
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--text);
+      outline: none;
+    }
+    .search-bar input:focus { border-color: var(--accent); }
+    .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .filter-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+    .metrics { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .card-title { font-size: 1.15rem; font-weight: 700; word-break: break-all; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-eco { background: #334155; color: var(--text); }
+    .badge-low { background: rgba(34, 197, 94, 0.2); color: var(--risk-low); border: 1px solid var(--risk-low); }
+    .badge-medium { background: rgba(234, 179, 8, 0.2); color: var(--risk-med); border: 1px solid var(--risk-med); }
+    .badge-high { background: rgba(249, 115, 22, 0.2); color: var(--risk-high); border: 1px solid var(--risk-high); }
+    .badge-critical { background: rgba(239, 68, 68, 0.2); color: var(--risk-crit); border: 1px solid var(--risk-crit); }
+    .card-desc { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4; }
+
+    .tools-section { margin-bottom: 1rem; }
+    .tools-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; }
+    .tool-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tool-tag {
+      font-size: 0.75rem;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      color: var(--text);
+    }
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .btn-copy {
+      flex: 1;
+      padding: 0.4rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s;
+      text-align: center;
+    }
+    .btn-copy:hover { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+    .copied { background: #22c55e !important; color: #0f172a !important; }
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #22c55e;
+      color: #0f172a;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MCP <span>Server Passports</span> Directory</h1>
+      <p class="subtitle">Search 5,000+ verified Model Context Protocol servers, tools, and configurations</p>
+    </header>
+
+    <div class="controls">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search servers, tools (e.g. read_file, query_sql), or keywords..." autofocus />
+      </div>
+      <div class="filters">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-right: 0.5rem;">Ecosystem:</span>
+        <button class="filter-btn active" data-filter="eco" data-val="all">All</button>
+        <button class="filter-btn" data-filter="eco" data-val="npm">NPM</button>
+        <button class="filter-btn" data-filter="eco" data-val="pypi">PyPI</button>
+        <button class="filter-btn" data-filter="eco" data-val="github">GitHub</button>
+        <button class="filter-btn" data-filter="eco" data-val="golang">Go</button>
+        <button class="filter-btn" data-filter="eco" data-val="generic">Generic</button>
+      </div>
+      <div class="metrics" id="metricsDisplay">Loading passports catalog...</div>
+    </div>
+
+    <div class="grid" id="serverGrid"></div>
+  </div>
+
+  <div id="toast">Copied configuration to clipboard!</div>
+
+  <script>
+    let catalog = [];
+    let activeEco = "all";
+    let activeQuery = "";
+
+    async function loadCatalog() {
+      try {
+        const resp = await fetch("catalog.json");
+        if (!resp.ok) throw new Error("Catalog file not found");
+        catalog = await resp.json();
+      } catch (err) {
+        console.warn("Could not load catalog.json, using fallback sample data:", err);
+        catalog = [
+          {
+            name: "@modelcontextprotocol/server-filesystem",
+            ecosystem: "npm",
+            version: "1.0.0",
+            description: "Direct local filesystem reader and writer toolset for Claude and Cursor.",
+            tool_count: 5,
+            tools: [{name: "read_file"}, {name: "write_file"}, {name: "list_directory"}],
+            risk_tier: "low",
+            command: "npx -y @modelcontextprotocol/server-filesystem"
+          },
+          {
+            name: "postgres-mcp-server",
+            ecosystem: "pypi",
+            version: "1.2.0",
+            description: "Execute read and write SQL statements against PostgreSQL databases.",
+            tool_count: 4,
+            tools: [{name: "execute_query"}, {name: "list_tables"}],
+            risk_tier: "high",
+            command: "uvx postgres-mcp-server"
+          }
+        ];
+      }
+      render();
+    }
+
+    function render() {
+      const q = activeQuery.toLowerCase().trim();
+      const filtered = catalog.filter(item => {
+        if (activeEco !== "all" && item.ecosystem.toLowerCase() !== activeEco) return false;
+        if (!q) return true;
+        if (item.name.toLowerCase().includes(q)) return true;
+        if (item.description.toLowerCase().includes(q)) return true;
+        return item.tools.some(t => t.name.toLowerCase().includes(q));
+      });
+
+      document.getElementById("metricsDisplay").innerText = 
+        `Showing ${filtered.length.toLocaleString()} of ${catalog.length.toLocaleString()} MCP servers`;
+
+      const grid = document.getElementById("serverGrid");
+      grid.innerHTML = "";
+
+      filtered.slice(0, 100).forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const safeKey = item.name.replace(/[@/_]/g, "-");
+        const displayedTools = item.tools.slice(0, 6);
+
+        card.innerHTML = `
+          <div>
+            <div class="card-header">
+              <div class="card-title">${item.name}</div>
+              <div style="display: flex; gap: 0.35rem;">
+                <span class="badge badge-eco">${item.ecosystem}</span>
+                <span class="badge badge-${item.risk_tier}">${item.risk_tier}</span>
+              </div>
+            </div>
+            <div class="card-desc">${item.description || "No description provided."}</div>
+            
+            ${item.tool_count > 0 ? `
+              <div class="tools-section">
+                <div class="tools-label">Tools (${item.tool_count})</div>
+                <div class="tool-tags">
+                  ${displayedTools.map(t => `<span class="tool-tag">${t.name}</span>`).join("")}
+                  ${item.tool_count > 6 ? `<span class="tool-tag">+${item.tool_count - 6} more</span>` : ""}
+                </div>
+              </div>
+            ` : `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 0.5rem;">Zero static tools recorded</div>`}
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'claude', this)">Claude</button>
+            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cursor', this)">Cursor</button>
+            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cline', this)">Cline</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function copyConfig(name, eco, cmd, client, btn) {
+      const safeKey = name.replace(/[@/_]/g, "-");
+      const parts = cmd.split(" ");
+      const command = parts[0] || (eco === "pypi" ? "uvx" : "npx");
+      const args = parts.slice(1);
+
+      let payload = {};
+      if (client === "claude" || client === "cursor") {
+        payload = {
+          mcpServers: {
+            [safeKey]: { command, args }
+          }
+        };
+      } else if (client === "cline") {
+        payload = {
+          mcpServers: {
+            [safeKey]: { command, args, disabled: false, autoApprove: [] }
+          }
+        };
+      }
+
+      navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
+        showToast();
+        btn.classList.add("copied");
+        setTimeout(() => btn.classList.remove("copied"), 1500);
+      });
+    }
+
+    function showToast() {
+      const t = document.getElementById("toast");
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", e => {
+      activeQuery = e.target.value;
+      render();
+    });
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        activeEco = e.target.getAttribute("data-val");
+        render();
+      });
+    });
+
+    loadCatalog();
+  </script>
+</body>
+</html>
