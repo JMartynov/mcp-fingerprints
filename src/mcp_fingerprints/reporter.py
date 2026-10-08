@@ -12,8 +12,13 @@ def iter_passports(fingerprints_dir: Path | str) -> Iterator[dict[str, Any]]:
             yield from data.get("passports", [])
     elif path.is_dir():
         for file_path in path.rglob("*.json"):
+            if file_path.name in ("sync_state.json", "index.json"):
+                continue
             with open(file_path, "r", encoding="utf-8") as f:
-                yield json.load(f)
+                try:
+                    yield json.load(f)
+                except Exception:
+                    continue
     else:
         raise ValueError(f"Invalid path: {fingerprints_dir}")
 
