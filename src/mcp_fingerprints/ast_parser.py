@@ -619,8 +619,17 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
             return parse_golang_mcp_code(code)
         elif lang in ("rust", "rs"):
             return parse_rust_mcp_code(code)
+        elif lang in ("openapi", "swagger", "json", "yaml", "yml"):
+            from mcp_fingerprints.openapi_parser import parse_openapi_spec
+            return parse_openapi_spec(code)
             
     # Heuristics if language is unknown or not matched
+    if "openapi" in code or "swagger" in code or "paths:" in code:
+        from mcp_fingerprints.openapi_parser import parse_openapi_spec
+        oa_res = parse_openapi_spec(code)
+        if oa_res:
+            return oa_res
+
     if code.startswith("package ") or "mcp.NewTool" in code:
         res = parse_golang_mcp_code(code)
         if res: return res

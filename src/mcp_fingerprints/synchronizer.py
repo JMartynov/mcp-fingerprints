@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from mcp_fingerprints.ast_parser import parse_mcp_source_code, parse_typescript_mcp_ast, parse_python_mcp_ast
+from mcp_fingerprints.openapi_parser import parse_openapi_spec
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
@@ -379,6 +380,25 @@ class PassportSynchronizer:
                                         extracted_tools.append(t)
                                 if extracted_tools:
                                     return extracted_tools
+
+                if not extracted_tools:
+                    spec_suffixes = (
+                        "openapi.json", "swagger.json", "openapi.yaml", "openapi.yml", "swagger.yaml", "swagger.yml"
+                    )
+                    for member in members:
+                        lower_name = member.name.lower()
+                        if any(lower_name.endswith(suffix) for suffix in spec_suffixes):
+                            f_obj = tar.extractfile(member)
+                            if f_obj:
+                                spec_content = f_obj.read(1024 * 1024).decode("utf-8", errors="ignore")
+                                tools = parse_openapi_spec(spec_content)
+                                for t in tools:
+                                    t_name = t.get("name")
+                                    if t_name not in seen_tool_names:
+                                        seen_tool_names.add(t_name)
+                                        extracted_tools.append(t)
+                                if extracted_tools:
+                                    return extracted_tools
         except tarfile.TarError as e:
             logger.warning(f"Tar error extracting {package_name}: {e}")
             return []
@@ -428,7 +448,8 @@ class PassportSynchronizer:
                         target_filenames = {
                             "server.py", "main.py", "app.py", "index.ts", "server.ts", "index.js",
                             "cli.ts", "mcp.py", "tools.ts", "tools.py", "tool.ts", "tool.py",
-                            "main.go", "server.go", "mcp.go", "main.rs", "lib.rs", "server.rs"
+                            "main.go", "server.go", "mcp.go", "main.rs", "lib.rs", "server.rs",
+                            "openapi.json", "swagger.json", "openapi.yaml", "openapi.yml", "swagger.yaml", "swagger.yml"
                         }
                         candidate_files = []
                         for entry in tree_data.get("tree", []):
@@ -442,7 +463,8 @@ class PassportSynchronizer:
                                 match2 = re.search(r'(^|/)mcp/.*\.(py|ts|js|go|rs)$', p)
                                 match3 = re.search(r'^src/handlers/.*\.(ts|js|go|rs)$', p)
                                 match4 = re.search(r'.*tool.*\.py$', filename, re.IGNORECASE)
-                                if filename in target_filenames or match1 or match2 or match3 or match4:
+                                match5 = re.search(r'(openapi|swagger).*\.(json|yaml|yml)$', filename, re.IGNORECASE)
+                                if filename in target_filenames or match1 or match2 or match3 or match4 or match5:
                                     score = 10
                                     if "packages/" in p or "servers/" in p or "src/" in p:
                                         score -= 2
@@ -467,9 +489,12 @@ class PassportSynchronizer:
                                 with urllib.request.urlopen(req_raw, context=_create_ssl_context(), timeout=3.0) as raw_resp:
                                     if raw_resp.status == 200:
                                         code = raw_resp.read(500 * 1024).decode("utf-8", errors="ignore")
-                                        lang = p.split('.')[-1]
-                                        if lang == "mjs": lang = "js"
-                                        extracted = parse_mcp_source_code(code, language=lang)
+                                        if p.endswith((".json", ".yaml", ".yml")):
+                                            extracted = parse_openapi_spec(code)
+                                        else:
+                                            lang = p.split('.')[-1]
+                                            if lang == "mjs": lang = "js"
+                                            extracted = parse_mcp_source_code(code, language=lang)
                                         for tool in extracted:
                                             if tool.get("name") not in seen_tool_names:
                                                 seen_tool_names.add(tool.get("name"))
@@ -567,6 +592,10 @@ class PassportSynchronizer:
                 ("mcp.go", "go"),
                 ("src/main.rs", "rs"),
                 ("src/lib.rs", "rs"),
+                ("openapi.json", "json"),
+                ("swagger.json", "json"),
+                ("openapi.yaml", "yaml"),
+                ("swagger.yaml", "yaml"),
             ])
 
             # Deduplicate preserving order
