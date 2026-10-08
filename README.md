@@ -1,7 +1,10 @@
 # MCP Fingerprints & Passport Knowledge Base
 
 [![Daily MCP Fingerprint & Passport Sync](https://github.com/JMartynov/mcp-fingerprints/actions/workflows/daily_sync.yml/badge.svg)](https://github.com/JMartynov/mcp-fingerprints/actions/workflows/daily_sync.yml)
-[![Passports Count](https://img.shields.io/badge/passports-3%2C900%2B-blue.svg)](data/fingerprints)
+[![Passports Count](https://img.shields.io/badge/passports-5049-blue.svg)](data/fingerprints)
+[![Tools Provided](https://img.shields.io/badge/with_tools-710-green.svg)](data/fingerprints)
+[![Tombstoned Servers](https://img.shields.io/badge/tombstoned-150-inactive.svg)](data/fingerprints)
+[![Test Suite](https://img.shields.io/badge/tests-144_passing-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 An open-source, automated database and knowledge base of **Model Context Protocol (MCP)** server passports, version signatures, and tool contract fingerprints.
@@ -10,6 +13,33 @@ An open-source, automated database and knowledge base of **Model Context Protoco
 - **3,900+ Indexed Passports**: Cross-indexed across Smithery, npm, and PyPI registries.
 - **Automated Daily Sync**: Continuously crawls, extracts tool signatures, canonicalizes hash fingerprints, and tracks historical schema drift.
 - **Consolidated Snapshot**: Pre-compiled `passports.json.gz` for rapid HTTP consumption (< 50ms startup time).
+
+## Quickstart: Search & Client Export
+
+Search for available MCP servers:
+```bash
+python3 -m mcp_fingerprints.cli search "postgres"
+```
+
+Export an MCP server configuration for Claude Desktop:
+```bash
+python3 -m mcp_fingerprints.cli export-config @modelcontextprotocol/server-postgres --client claude
+```
+
+Export an MCP server configuration for Cursor:
+```bash
+python3 -m mcp_fingerprints.cli export-config @modelcontextprotocol/server-postgres --client cursor
+```
+
+## Security Auditing & Risk Scoring
+
+MCP Fingerprints assigns risk scores based on tool definitions and parameter signatures to help identify potentially dangerous capabilities:
+* **Critical**: Tools allowing arbitrary system command execution, unchecked filesystem writes, or broad remote code execution.
+* **High**: Tools with broad database access (e.g., arbitrary SQL execution), potential server-side request forgery (SSRF) parameters, or sensitive environment variable manipulation.
+* **Medium**: Tools with limited file reads/writes, scoped data extraction, or network requests to constrained domains.
+* **Low**: Read-only operations, safe calculations, or well-constrained API integrations.
+
+We employ robust parameter injection defenses and sandbox methodologies to ensure runtime safety during server auditing. For a full breakdown, read our [Security Audit Documentation](docs/SECURITY_AUDIT.md).
 
 ## Fast Consumption
 
