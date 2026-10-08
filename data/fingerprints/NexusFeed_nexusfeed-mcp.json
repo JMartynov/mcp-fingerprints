@@ -4,8 +4,8 @@
   "purl": "pkg:pypi/nexusfeed-mcp",
   "ecosystem": "pypi",
   "display_name": "nexusfeed-mcp",
-  "description": "MCP server for NexusFeed — real-time B2B data (LTL fuel surcharges, ABC license compliance) for AI agents",
-  "repository_url": "https://pypi.org/project/nexusfeed-mcp/",
+  "description": "",
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -19,16 +19,216 @@
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:d4ee05db36a38dc00c092659c957eb4df51a4f4c76f1979ead385c4a4889dd0f",
       "release_date": "2026-04-06T18:21:42.421408Z",
       "dependencies": {},
       "connections": [],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
-        "resources": false
+        "resources": false,
+        "verified_tools": true
       },
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "abc_list_states",
+          "canonical_hash": "sha256:dbea37ad8c5ffd8441ab5e8ac255f886e69998c4da2965ebd867cdf4a33e0df7",
+          "description": "Returns metadata for all US states currently supported by the ABC License API, including the agency name, data freshness SLA, extraction method, and whether CAPTCHA is present. Use this first when building a multi-state compliance workflow to understand coverage.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2f2a58ad827d730591e86f6eda6b97c4d1d5d7c587ccbadffb847df0493982f4"
+        },
+        {
+          "name": "abc_lookup_license",
+          "canonical_hash": "sha256:cc782a55dd5cddbc0e3278adba500fe8e48e16bbef3549007e8080de299c9f14",
+          "description": "Looks up a specific liquor license by its state-issued license number and returns the full current record including status, expiration, address, conditions, and suspension history. Faster and more precise than abc_search_licenses when you already have the license number. Use this for point-in-time verification (e.g., 'Is license CA-20-621547 currently ACTIVE?'). The _verifiability block contains the exact source URL — agents can independently verify the result by fetching that URL.",
+          "is_mutating": false,
+          "property_keys": [
+            "license_number",
+            "state"
+          ],
+          "required_keys": [
+            "license_number",
+            "state"
+          ],
+          "parameter_types": {
+            "license_number": "string",
+            "state": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "license_number": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "license_number",
+              "state"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:28532f6a43af48292fa381ff2c803b9cbf7e2f6ebfe5ee8145989066928310f0"
+        },
+        {
+          "name": "abc_search_licenses",
+          "canonical_hash": "sha256:b64cda351ce75377a5132eeceab766b18d1ceaa2cd9d205f7e963dd860cc117b",
+          "description": "Searches a US state ABC (Alcoholic Beverage Control) board database for liquor licenses matching a business name, owner name, or address. Returns license type, current status (ACTIVE / SUSPENDED / EXPIRED / REVOKED), expiration date, and any suspension history. Use this before approving a distributor order, binding an insurance policy, or onboarding a merchant to verify they hold a valid liquor license. Supports CA, TX, NY, and FL (TX requires TWOCAPTCHA_API_KEY configured server-side; NY uses NY Open Data API — active licenses only; FL searches the DBPR licensing portal across all board types). Always check the _verifiability block: extraction_confidence >= 0.90 and source_timestamp within data_freshness_ttl_seconds are required for compliance decisions. Note: city, county, zip, and license_status filters are accepted but not yet applied server-side — results may need post-filtering.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "city",
+            "county",
+            "include_inactive",
+            "license_status",
+            "owner_name",
+            "state",
+            "trade_name",
+            "zip"
+          ],
+          "required_keys": [
+            "state"
+          ],
+          "parameter_types": {
+            "state": "string",
+            "trade_name": "string",
+            "owner_name": "string",
+            "address": "string",
+            "city": "string",
+            "county": "string",
+            "zip": "string",
+            "license_status": "string",
+            "include_inactive": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string"
+              },
+              "trade_name": {
+                "type": "string"
+              },
+              "owner_name": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "county": {
+                "type": "string"
+              },
+              "zip": {
+                "type": "string"
+              },
+              "license_status": {
+                "type": "string"
+              },
+              "include_inactive": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3eaba0456f7bb55a0cc6e4938cbd83015d8d47d915099628daed4ddcaef2954f"
+        },
+        {
+          "name": "ltl_get_accessorials",
+          "canonical_hash": "sha256:b8cc7243df3e5b0317974dbee1795f08d0de20afdb91d90bc6215217e00ad619",
+          "description": "[COMING SOON] Returns the current accessorial fee schedule for LTL carriers — liftgate, residential delivery, re-delivery, inside delivery, limited access, notification, appointment fees, and more. This tool is not yet available and will return an unavailability message. Use ltl_get_fuel_surcharge for current carrier data.",
+          "is_mutating": false,
+          "property_keys": [
+            "carriers",
+            "fee_types"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "carriers": "string",
+            "fee_types": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "carriers": {
+                "type": "string"
+              },
+              "fee_types": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ee68eb018d6d3a572136db13fe75dbce1c97c8db5f25a45f9b3cb3dc292956c2"
+        },
+        {
+          "name": "ltl_get_fuel_surcharge",
+          "canonical_hash": "sha256:04e16bac0c8a2c38f1eb7046da34f8baabfd623f7acebeaf6a9d867f1b29f597",
+          "description": "Returns current LTL carrier fuel surcharge percentages and the DOE diesel price that triggered each rate. Data is extracted weekly from carrier tariff pages and cached — response time <500ms. Use this instead of browsing carrier websites: those pages are JS-rendered, PDFs, or require session state that makes raw browsing unreliable. Covers ODFL and SAIA (Sprint 1-2); Estes, ABF, R+L, TForce arriving in Sprint 4. Each response includes a _verifiability block with extraction timestamp and confidence score — check this before using the data in a freight cost calculation or invoice audit.",
+          "is_mutating": false,
+          "property_keys": [
+            "carriers",
+            "include_doe_price",
+            "weeks"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "carriers": "string",
+            "weeks": "integer",
+            "include_doe_price": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "carriers": {
+                "type": "string"
+              },
+              "weeks": {
+                "type": "integer"
+              },
+              "include_doe_price": {
+                "type": "boolean"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c8f4e75dd8ebe1639741bc6dc4de719a8edb145159d91613033ed6e34809077f"
+        },
+        {
+          "name": "ltl_list_carriers",
+          "canonical_hash": "sha256:eb6b7f7d79c67a767f041c793fc2248343705129f33319c4c0cc221dcfe1f8bc",
+          "description": "Returns metadata for all LTL carriers supported by this API, including their SCAC code, which data products are available, fuel surcharge update day, and extraction method. Use this to discover coverage before building a carrier comparison workflow.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:657319ef4f9d3c60f0b69bffd3862a334bef9dd395dcca009c414b0e812387a8"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     },
