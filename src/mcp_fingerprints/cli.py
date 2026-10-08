@@ -18,6 +18,7 @@ from collections import Counter
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.search import search_passports, format_search_results
 from mcp_fingerprints.config_exporter import export_client_config, export_all_client_configs
+from mcp_fingerprints.conflict_detector import audit_client_config, format_audit_report
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("mcp_fingerprints.cli")
@@ -122,6 +123,12 @@ def main() -> None:
         help="Client type (claude, cursor, cline, zed, windsurf, docker)",
     )
     export_p.add_argument("--all-clients", action="store_true", help="Export configuration for all supported clients")
+
+    # Audit Config
+    audit_p = subparsers.add_parser("audit-config", help="Audit MCP client configuration for tool collisions and security shadowing")
+    audit_p.add_argument("config_file", help="Path to client config file (e.g. claude_desktop_config.json, settings.json)")
+    audit_p.add_argument("--dir", default="data/fingerprints", help="Passport data directory")
+    audit_p.add_argument("--json", action="store_true", help="Output audit report as JSON")
 
     args = parser.parse_args()
 
@@ -308,6 +315,22 @@ def main() -> None:
                 
         if not found:
             print(f"ERROR: Package '{args.package}' not found in passports.")
+            sys.exit(1)
+
+    elif args.command == "audit-config":
+        try:
+            report = audit_client_config(args.config_file, passports_dir=args.dir)
+        except Exception as e:
+            logger.error("Failed to audit configuration: %s", e)
+            print(f"ERROR: {e}")
+            sys.exit(1)
+
+        if args.json:
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            print(format_audit_report(report))
+
+        if report.has_critical_conflicts:
             sys.exit(1)
 
 
