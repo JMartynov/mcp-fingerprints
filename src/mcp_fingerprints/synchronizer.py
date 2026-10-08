@@ -70,6 +70,11 @@ def fetch_json(
         return None, None
 
 
+class ArchiveNotFoundError(Exception):
+    """Raised when a repository or package returns 404 / Not Found."""
+    pass
+
+
 class PassportSynchronizer:
     """Synchronizes, discovers, and updates full-fidelity MCP Server Passports."""
 
@@ -211,6 +216,11 @@ class PassportSynchronizer:
         try:
             with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=3.0) as response:
                 data = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as he:
+            if he.code in (404, 410):
+                raise ArchiveNotFoundError(f"PyPI package {package_name} not found ({he.code})")
+            logger.warning(f"Error fetching PyPI metadata for {package_name}: {he}")
+            return []
         except Exception as e:
             logger.warning(f"Error fetching PyPI metadata for {package_name}: {e}")
             return []
@@ -310,6 +320,11 @@ class PassportSynchronizer:
                     data = json.loads(response.read().decode("utf-8"))
                     latest_version = data.get("dist-tags", {}).get("latest")
                     dist_tarball_url = data.get("versions", {}).get(latest_version, {}).get("dist", {}).get("tarball")
+            except urllib.error.HTTPError as he:
+                if he.code in (404, 410):
+                    raise ArchiveNotFoundError(f"npm package {package_name} not found ({he.code})")
+                logger.warning(f"Error fetching npm metadata for {package_name}: {he}")
+                return []
             except Exception as e:
                 logger.warning(f"Error fetching npm metadata for {package_name}: {e}")
                 return []
@@ -631,6 +646,22 @@ class PassportSynchronizer:
                                 return extracted
                 except Exception:
                     continue
+
+        # If zero tools were found, check if repository itself is 404 / deleted / inaccessible
+        repo_api_url = f"https://api.github.com/repos/{owner}/{repo}"
+        try:
+            req_check = urllib.request.Request(
+                repo_api_url,
+                headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+            )
+            with urllib.request.urlopen(req_check, context=_create_ssl_context(), timeout=3.0) as resp:
+                pass
+        except urllib.error.HTTPError as he:
+            if he.code in (404, 410):
+                raise ArchiveNotFoundError(f"GitHub repository {owner}/{repo} not found ({he.code})")
+        except Exception:
+            pass
+
         return []
 
     def _extract_tools_from_github_readme(
@@ -872,11 +903,16 @@ class PassportSynchronizer:
         # Auto cross-resolve runtime tool contracts from GitHub AST if Smithery yielded no tools
         if not tools and auto_cross_resolve:
             check_repo = repo_url or (existing_spec.repository_url if existing_spec else None)
-            ast_tools = self._extract_ast_tools_from_github(package_name, check_repo)
-            if ast_tools:
-                tools = ast_tools
-                if "github_ast" not in sources:
-                    sources.append("github_ast")
+            try:
+                ast_tools = self._extract_ast_tools_from_github(package_name, check_repo)
+                if ast_tools:
+                    tools = ast_tools
+                    if "github_ast" not in sources:
+                        sources.append("github_ast")
+            except ArchiveNotFoundError:
+                extra_capabilities["is_archived"] = True
+                extra_capabilities["http_status"] = 404
+                extra_capabilities["archival_reason"] = "Repository or package returned HTTP 404/Not Found"
 
         if official_registry_data:
             srv = official_registry_data.get("server", {})
@@ -925,16 +961,20 @@ class PassportSynchronizer:
                 v_fp_dict = ver_fp.to_dict()
                 v_fp_dict["connections"] = connections
                 all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
-            elif (tools or connections) and (not existing_target.tool_signatures and not existing_target.connections):
-                # Target version exists but had no tools/connections, hydrate with new tools/connections
+            elif (tools or connections or extra_capabilities) and (
+                (not existing_target.tool_signatures and not existing_target.connections)
+                or extra_capabilities
+            ):
+                # Target version exists, hydrate with new tools/connections/capabilities
                 all_versions.remove(existing_target)
                 v_caps = dict(existing_target.capabilities)
-                v_caps["tools"] = bool(tools)
-                v_caps["verified_tools"] = not is_simulated
+                if tools:
+                    v_caps["tools"] = bool(tools)
+                    v_caps["verified_tools"] = not is_simulated
                 v_caps.update(extra_capabilities)
                 ver_fp = build_version_fingerprint(
                     version=s_ver,
-                    tools=tools,
+                    tools=tools or [t.to_dict() for t in existing_target.tool_signatures],
                     prompts=prompts or [p.to_dict() for p in existing_target.prompt_signatures],
                     resources=resources or [r.to_dict() for r in existing_target.resource_signatures],
                     release_date=existing_target.release_date,
@@ -945,10 +985,11 @@ class PassportSynchronizer:
                 v_fp_dict["dependencies"] = existing_target.dependencies
                 all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
 
-        # Hydrate existing versions if tools/connections were newly discovered and existing versions lacked them
-        if (tools or connections) and all_versions and (
+        # Hydrate existing versions if tools/connections/capabilities were newly discovered and existing versions lacked them
+        if (tools or connections or extra_capabilities) and all_versions and (
             (tools and not any(bool(v.tool_signatures) for v in all_versions))
             or (connections and not any(bool(v.connections) for v in all_versions))
+            or bool(extra_capabilities)
         ):
             latest_idx = len(all_versions) - 1
             if dist_tags.get("latest"):
@@ -1172,7 +1213,8 @@ class PassportSynchronizer:
             try:
                 spec = ServerPackageSpec.from_dict(json.loads(j_file.read_text(encoding="utf-8")))
                 has_tools = any(bool(v.tool_signatures) for v in spec.versions)
-                if has_tools:
+                is_dead = any(v.capabilities.get("is_archived") or v.capabilities.get("is_unpublished") for v in spec.versions)
+                if has_tools or is_dead:
                     continue
                 
                 check_repo = spec.repository_url
@@ -1205,20 +1247,38 @@ class PassportSynchronizer:
             gateway_conns, gateway_caps = [], {}
             try:
                 if strategy == "npm":
-                    tools = self._extract_tools_from_npm_tarball(spec.package_name)
-                    if not tools:
+                    try:
+                        tools = self._extract_tools_from_npm_tarball(spec.package_name)
+                    except ArchiveNotFoundError:
+                        gateway_caps["is_unpublished"] = True
+                        gateway_caps["http_status"] = 404
+                        gateway_caps["archival_reason"] = "Repository or package returned HTTP 404/Not Found"
+                        tools = []
+                    if not tools and not gateway_caps.get("is_unpublished"):
                         gateway_conns, gateway_caps = self._detect_remote_gateway_from_npm_tarball(spec.package_name)
                     with state_lock:
                         npm_probed_packages.add(spec.package_name)
                         self.state["npm_probed_packages"] = list(npm_probed_packages)
                 elif strategy == "pypi":
-                    tools = self._extract_tools_from_pypi_package(spec.package_name)
+                    try:
+                        tools = self._extract_tools_from_pypi_package(spec.package_name)
+                    except ArchiveNotFoundError:
+                        gateway_caps["is_unpublished"] = True
+                        gateway_caps["http_status"] = 404
+                        gateway_caps["archival_reason"] = "Repository or package returned HTTP 404/Not Found"
+                        tools = []
                     with state_lock:
                         pypi_probed_packages.add(spec.package_name)
                         self.state["pypi_probed_packages"] = list(pypi_probed_packages)
                 elif strategy == "github":
-                    tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
-                    if not tools:
+                    try:
+                        tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
+                    except ArchiveNotFoundError:
+                        gateway_caps["is_archived"] = True
+                        gateway_caps["http_status"] = 404
+                        gateway_caps["archival_reason"] = "Repository or package returned HTTP 404/Not Found"
+                        tools = []
+                    if not tools and not gateway_caps.get("is_archived"):
                         tools = self._extract_tools_from_github_readme(spec.package_name, check_repo)
                         if tools:
                             gateway_caps["documentation_extracted_tools"] = True
@@ -1226,7 +1286,7 @@ class PassportSynchronizer:
                         ast_probed_repos.add(check_repo)
                         self.state["ast_probed_repos"] = list(ast_probed_repos)
 
-                if tools or gateway_conns:
+                if tools or gateway_conns or gateway_caps.get("is_archived") or gateway_caps.get("is_unpublished"):
                     kwargs: dict[str, Any] = {
                         "package_name": spec.package_name,
                         "ecosystem": spec.ecosystem,
@@ -1245,15 +1305,17 @@ class PassportSynchronizer:
                     if merged_spec and (
                         any(bool(v.tool_signatures) for v in merged_spec.versions)
                         or any(bool(v.connections) for v in merged_spec.versions)
+                        or any(v.capabilities.get("is_archived") or v.capabilities.get("is_unpublished") for v in merged_spec.versions)
                     ):
                         with state_lock:
                             FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
                         logger.info(
-                            "Enriched zero-tool passport with %s: %s (%d tools, %d conns)",
+                            "Enriched zero-tool passport with %s: %s (%d tools, %d conns, archived=%s)",
                             strategy,
                             spec.package_name,
                             len(tools),
                             len(gateway_conns),
+                            bool(gateway_caps.get("is_archived") or gateway_caps.get("is_unpublished")),
                         )
                         return True
             except Exception as exc:
