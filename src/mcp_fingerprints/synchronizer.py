@@ -13,6 +13,7 @@ import threading
 import urllib.error
 import urllib.request
 import io
+import os
 import tarfile
 import time
 
@@ -80,14 +81,28 @@ class ArchiveNotFoundError(Exception):
 class PassportSynchronizer:
     """Synchronizes, discovers, and updates full-fidelity MCP Server Passports."""
 
+    @staticmethod
+    def _get_github_headers(raw: bool = False) -> dict[str, str]:
+        """Build request headers for GitHub, attaching GITHUB_TOKEN or GH_TOKEN if available."""
+        headers = {
+            "User-Agent": "VerityRedTeam-MCPPassportSync/1.0",
+        }
+        if not raw:
+            headers["Accept"] = "application/vnd.github.v3+json"
+        token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        return headers
+
     def _fetch_github_api_with_retry(self, url: str, timeout: float = 3.0, max_retries: int = 5) -> urllib.response.addinfourl:
-        """Fetch from GitHub API with exponential backoff on HTTP 403 and 429."""
+        """Fetch from GitHub API with exponential backoff on HTTP 403 and 429, supporting GITHUB_TOKEN."""
         backoff = 2.0
         for attempt in range(max_retries):
             try:
+                headers = self._get_github_headers()
                 req = urllib.request.Request(
                     url,
-                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                    headers=headers,
                 )
                 resp = urllib.request.urlopen(req, context=_create_ssl_context(), timeout=timeout)
                 return resp
@@ -102,6 +117,15 @@ class PassportSynchronizer:
                             sleep_duration = backoff
                     else:
                         sleep_duration = backoff
+                    
+                    if sleep_duration > 60.0:
+                        logger.warning(
+                            "GitHub API rate limit hit (%d) for %s, but reset time is %.1fs away (>60s). Aborting retries.",
+                            he.code,
+                            url,
+                            sleep_duration,
+                        )
+                        raise
                     
                     logger.warning("GitHub API rate limit hit (%d) for %s. Sleeping %.1f seconds...", he.code, url, sleep_duration)
                     time.sleep(sleep_duration)
@@ -548,7 +572,7 @@ class PassportSynchronizer:
                             try:
                                 req_raw = urllib.request.Request(
                                     raw_url,
-                                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                                    headers=self._get_github_headers(raw=True),
                                 )
                                 with urllib.request.urlopen(req_raw, context=_create_ssl_context(), timeout=3.0) as raw_resp:
                                     if raw_resp.status == 200:
@@ -585,7 +609,7 @@ class PassportSynchronizer:
             try:
                 req = urllib.request.Request(
                     pkg_json_url,
-                    headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                    headers=self._get_github_headers(raw=True),
                 )
                 with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=2.5) as resp:
                     if resp.status == 200:
@@ -681,7 +705,7 @@ class PassportSynchronizer:
                 try:
                     req = urllib.request.Request(
                         raw_url,
-                        headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                        headers=self._get_github_headers(raw=True),
                     )
                     with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=2.5) as resp:
                         if resp.status == 200:
@@ -734,7 +758,7 @@ class PassportSynchronizer:
                 try:
                     req = urllib.request.Request(
                         raw_url,
-                        headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"},
+                        headers=self._get_github_headers(raw=True),
                     )
                     with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=3.0) as resp:
                         if resp.status == 200:

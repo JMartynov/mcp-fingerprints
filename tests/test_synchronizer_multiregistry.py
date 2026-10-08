@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -197,6 +198,25 @@ server.tool(
                 v0.toolset_canonical_hash,
                 "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             )
+
+    def test_github_token_header_injection(self) -> None:
+        """Verify GITHUB_TOKEN or GH_TOKEN adds Authorization Bearer header."""
+        with patch.dict(os.environ, {"GITHUB_TOKEN": "ghp_test_secret_token_123"}, clear=True):
+            headers = PassportSynchronizer._get_github_headers()
+            self.assertEqual(headers.get("Authorization"), "Bearer ghp_test_secret_token_123")
+            self.assertEqual(headers.get("Accept"), "application/vnd.github.v3+json")
+
+            raw_headers = PassportSynchronizer._get_github_headers(raw=True)
+            self.assertEqual(raw_headers.get("Authorization"), "Bearer ghp_test_secret_token_123")
+            self.assertNotIn("Accept", raw_headers)
+
+        with patch.dict(os.environ, {"GH_TOKEN": "ghp_alt_token_456"}, clear=True):
+            headers = PassportSynchronizer._get_github_headers()
+            self.assertEqual(headers.get("Authorization"), "Bearer ghp_alt_token_456")
+
+        with patch.dict(os.environ, {}, clear=True):
+            headers = PassportSynchronizer._get_github_headers()
+            self.assertNotIn("Authorization", headers)
 
 
 if __name__ == "__main__":
