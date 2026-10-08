@@ -28,11 +28,13 @@ jobs:
 
       - name: Run Multi-Source Passport Synchronizer
         run: |
-          python -m mcp_fingerprints.cli sync --all
+          python -m mcp_fingerprints.cli sync --all --enrich-ast --report
+          python -c "import sys; from mcp_fingerprints.reporter import generate_ecosystem_report, format_markdown_report; print(format_markdown_report(generate_ecosystem_report('data/fingerprints')))" > $GITHUB_STEP_SUMMARY
 
       - name: Validate All Passports Against Schema Invariants
         run: |
           python -m mcp_fingerprints.cli validate --dir data/fingerprints
+          PYTHONPATH=src python scripts/validate_passports.py
 
       - name: Run Test Suite
         run: |
