@@ -1,0 +1,44 @@
+name: 'Audit MCP Client Configuration'
+description: 'Audit MCP client configurations (Claude, Cursor, Cline, Zed) for tool collisions and security shadowing.'
+
+inputs:
+  config-file:
+    description: 'Path to the client config file'
+    required: true
+  passports-dir:
+    description: 'Path to passport data directory'
+    required: false
+    default: 'data/fingerprints'
+  fail-on-critical:
+    description: 'Whether to fail the workflow if critical collisions are found'
+    required: false
+    default: 'true'
+  json-output:
+    description: 'Whether to output results as JSON'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run MCP Audit Config
+      shell: bash
+      run: |
+        set +e
+        
+        if [ "${{ inputs.json-output }}" = "true" ]; then
+          python -m mcp_fingerprints.cli audit-config "${{ inputs.config-file }}" --dir "${{ inputs.passports-dir }}" --json
+        else
+          python -m mcp_fingerprints.cli audit-config "${{ inputs.config-file }}" --dir "${{ inputs.passports-dir }}"
+        fi
+        
+        EXIT_CODE=$?
+        set -e
+        
+        if [ $EXIT_CODE -ne 0 ] && [ "${{ inputs.fail-on-critical }}" = "true" ]; then
+          echo "Audit completed with conflicts, and fail-on-critical is set to true."
+          exit $EXIT_CODE
+        elif [ $EXIT_CODE -ne 0 ]; then
+          echo "Audit completed with conflicts, but fail-on-critical is set to false. Ignoring exit code."
+          exit 0
+        fi

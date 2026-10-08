@@ -6,6 +6,7 @@
 [![Tombstoned Servers](https://img.shields.io/badge/tombstoned-150-inactive.svg)](data/fingerprints)
 [![Test Suite](https://img.shields.io/badge/tests-144_passing-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Web Directory](https://img.shields.io/badge/Web_Directory-Live_Catalog-38bdf8?style=flat-square&logo=googlechrome)](https://jmartynov.github.io/mcp-fingerprints/)
 
 An open-source, automated database and knowledge base of **Model Context Protocol (MCP)** server passports, version signatures, and tool contract fingerprints.
 
