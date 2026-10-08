@@ -244,21 +244,46 @@ class PassportSynchronizer:
         buf = io.BytesIO(tarball_data)
         try:
             with tarfile.open(fileobj=buf, mode="r:gz") as tar:
-                for member in tar.getmembers():
-                    if not member.isfile():
-                        continue
+                members = [m for m in tar.getmembers() if m.isfile()]
+
+                priority_suffixes = [
+                    "package/index.js", "package/index.ts", "package/index.mjs",
+                    "package/dist/index.js", "package/dist/index.ts", "package/dist/index.mjs",
+                    "package/build/index.js", "package/build/index.ts", "package/build/index.mjs",
+                    "package/lib/index.js", "package/lib/index.ts", "package/lib/index.mjs",
+                    "package/bin/index.js", "package/bin/index.ts", "package/bin/index.mjs",
+                    "package/server.js", "package/server.ts", "package/server.mjs",
+                    "package/dist/server.js", "package/dist/server.ts", "package/dist/server.mjs"
+                ]
+                
+                def member_priority(m: tarfile.TarInfo) -> tuple[int, int]:
+                    if m.name in priority_suffixes:
+                        return (0, priority_suffixes.index(m.name))
+                    return (1, 0)
+
+                members.sort(key=member_priority)
+                
+                extracted_tools = []
+                seen_tool_names = set()
+
+                for member in members:
                     name = member.name
                     if not name.endswith((".js", ".mjs", ".ts")):
                         continue
                     parts = name.split("/")
                     if len(parts) >= 2 and parts[0] == "package":
-                        if parts[1] in ("dist", "build", "src") or len(parts) == 2:
+                        if parts[1] in ("dist", "build", "src", "lib", "bin") or len(parts) == 2:
                             f_obj = tar.extractfile(member)
                             if f_obj:
-                                code = f_obj.read().decode("utf-8", errors="ignore")
+                                code = f_obj.read(500 * 1024).decode("utf-8", errors="ignore")
                                 tools = parse_typescript_mcp_ast(code)
-                                if tools:
-                                    return tools
+                                for t in tools:
+                                    t_name = t.get("name")
+                                    if t_name not in seen_tool_names:
+                                        seen_tool_names.add(t_name)
+                                        extracted_tools.append(t)
+                                if extracted_tools:
+                                    return extracted_tools
         except tarfile.TarError as e:
             logger.warning(f"Tar error extracting {package_name}: {e}")
             return []
