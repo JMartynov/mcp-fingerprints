@@ -1394,7 +1394,7 @@ class PassportSynchronizer:
         finally:
             logger.info("Enriched %d passports with static AST tools", enriched_count)
             self._save_state()
-            return enriched_count
+        return enriched_count
 
     def discover_new_mcps(self, limit: int = 500) -> int:
         """Query search feeds, full Smithery directory, PyPI registry, and awesome-mcp-servers."""
