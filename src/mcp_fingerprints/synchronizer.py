@@ -80,6 +80,7 @@ class PassportSynchronizer:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.state_file = Path(state_file) if state_file else self.output_dir / "sync_state.json"
         self.state: dict[str, Any] = self._load_state()
+        self._last_detected_gateway: dict[str, tuple[list[dict[str, Any]], dict[str, bool]]] = {}
 
     def _load_state(self) -> dict[str, Any]:
         if self.state_file.is_file():
@@ -109,6 +110,96 @@ class PassportSynchronizer:
         )
 
 
+
+    def _detect_remote_gateway(self, code: str) -> tuple[list[dict[str, Any]], dict[str, bool]]:
+        """Detect remote streamable-HTTP or SSE MCP gateway endpoints in JavaScript/TypeScript code."""
+        conns: list[dict[str, Any]] = []
+        caps: dict[str, bool] = {}
+        if not code:
+            return conns, caps
+
+        # Pattern 1: Direct MCP/SSE endpoint URLs
+        m1 = re.search(r'https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?::[0-9]+)?/(?:mcp|sse|v1/mcp)', code)
+        # Pattern 2: Process.env fallbacks (e.g. process.env.MCP_URL || 'https://...')
+        m2 = re.search(r'process\.env\.[a-zA-Z0-9_]*URL\s*\|\|\s*[\'"](https?://[^\'"]+)[\'"]', code)
+
+        url = None
+        if m1:
+            url = m1.group(0)
+        elif m2:
+            url = m2.group(1)
+
+        if url:
+            conns.append({
+                "type": "streamable-http",
+                "deploymentUrl": url,
+                "configSchema": {},
+            })
+            caps["proxy_gateway"] = True
+            caps["remote_endpoint"] = True
+
+        return conns, caps
+
+    def _detect_remote_gateway_from_npm_tarball(
+        self, package_name: str, dist_tarball_url: str | None = None
+    ) -> tuple[list[dict[str, Any]], dict[str, bool]]:
+        """Inspect JS/TS source code inside npm tarball to detect remote streamable-HTTP or SSE MCP endpoints."""
+        if package_name in self._last_detected_gateway:
+            return self._last_detected_gateway[package_name]
+
+        if not dist_tarball_url:
+            encoded_pkg = package_name.replace("/", "%2F")
+            url = f"https://registry.npmjs.org/{encoded_pkg}"
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0", "Accept": "application/json"}
+            )
+            try:
+                with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=5.0) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+                    latest_version = data.get("dist-tags", {}).get("latest")
+                    dist_tarball_url = data.get("versions", {}).get(latest_version, {}).get("dist", {}).get("tarball")
+            except Exception as e:
+                logger.warning(f"Error fetching npm metadata for gateway probe of {package_name}: {e}")
+                return [], {}
+
+        if not dist_tarball_url:
+            return [], {}
+
+        req = urllib.request.Request(dist_tarball_url, headers={"User-Agent": "VerityRedTeam-MCPPassportSync/1.0"})
+        try:
+            with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=2.5) as response:
+                tarball_data = bytearray()
+                MAX_SIZE = 10 * 1024 * 1024
+                while True:
+                    chunk = response.read(65536)
+                    if not chunk:
+                        break
+                    tarball_data.extend(chunk)
+                    if len(tarball_data) > MAX_SIZE:
+                        return [], {}
+        except Exception as e:
+            logger.warning(f"Error downloading tarball for gateway probe of {package_name}: {e}")
+            return [], {}
+
+        buf = io.BytesIO(tarball_data)
+        try:
+            with tarfile.open(fileobj=buf, mode="r:gz") as tar:
+                members = [m for m in tar.getmembers() if m.isfile()]
+                for member in members:
+                    if not member.name.endswith((".js", ".mjs", ".ts", ".cjs")):
+                        continue
+                    f_obj = tar.extractfile(member)
+                    if f_obj:
+                        code = f_obj.read(500 * 1024).decode("utf-8", errors="ignore")
+                        conns, caps = self._detect_remote_gateway(code)
+                        if conns:
+                            self._last_detected_gateway[package_name] = (conns, caps)
+                            return conns, caps
+        except Exception as e:
+            logger.warning(f"Tar error inspecting gateway in {package_name}: {e}")
+            return [], {}
+
+        return [], {}
 
     def _extract_tools_from_pypi_package(self, package_name: str) -> list[dict[str, Any]]:
         url = f"https://pypi.org/pypi/{package_name}/json"
@@ -277,6 +368,9 @@ class PassportSynchronizer:
                             f_obj = tar.extractfile(member)
                             if f_obj:
                                 code = f_obj.read(500 * 1024).decode("utf-8", errors="ignore")
+                                g_conns, g_caps = self._detect_remote_gateway(code)
+                                if g_conns and package_name not in self._last_detected_gateway:
+                                    self._last_detected_gateway[package_name] = (g_conns, g_caps)
                                 tools = parse_typescript_mcp_ast(code)
                                 for t in tools:
                                     t_name = t.get("name")
@@ -504,9 +598,15 @@ class PassportSynchronizer:
         existing_spec: ServerPackageSpec | None = None,
         is_curated_source: bool = False,
         auto_cross_resolve: bool = True,
+        pre_extracted_tools: list[dict[str, Any]] | None = None,
+        pre_extracted_connections: list[dict[str, Any]] | None = None,
+        pre_extracted_capabilities: dict[str, bool] | None = None,
+        pre_extracted_source: str | None = None,
     ) -> ServerPackageSpec | None:
         """Merge complementary metadata from Smithery, npm, and PyPI into one Passport."""
-        sources: list[str] = []
+        sources: list[str] = list(existing_spec.sources_merged) if existing_spec else []
+        if pre_extracted_source and pre_extracted_source not in sources:
+            sources.append(pre_extracted_source)
 
         # Auto cross-resolve runtime tool contracts from Smithery if not provided
         if not smithery_data and auto_cross_resolve:
@@ -518,10 +618,11 @@ class PassportSynchronizer:
                 if s_detail and isinstance(s_detail, dict) and "tools" in s_detail:
                     smithery_data = s_detail
                     break
-        tools: list[dict[str, Any]] = []
+        tools: list[dict[str, Any]] = list(pre_extracted_tools or [])
         prompts: list[dict[str, Any]] = []
         resources: list[dict[str, Any]] = []
-        connections: list[dict[str, Any]] = []
+        connections: list[dict[str, Any]] = list(pre_extracted_connections or [])
+        extra_capabilities: dict[str, bool] = dict(pre_extracted_capabilities or {})
         desc = ""
         repo_url = None
         license_str = None
@@ -543,12 +644,14 @@ class PassportSynchronizer:
                 sources.append("smithery")
             else:
                 is_simulated = True
-            tools = [t for t in (smithery_data.get("tools") or []) if isinstance(t, dict)]
+            if smithery_data.get("tools"):
+                tools = [t for t in (smithery_data.get("tools") or []) if isinstance(t, dict)]
             prompts = [p for p in (smithery_data.get("prompts") or []) if isinstance(p, dict)]
             resources = [r for r in (smithery_data.get("resources") or []) if isinstance(r, dict)]
-            connections = [
-                c for c in (smithery_data.get("connections") or []) if isinstance(c, dict)
-            ]
+            if smithery_data.get("connections"):
+                connections = [
+                    c for c in (smithery_data.get("connections") or []) if isinstance(c, dict)
+                ]
             desc = smithery_data.get("description") or smithery_data.get("displayName") or ""
             repo_url = (
                 smithery_data.get("deploymentUrl") or f"https://smithery.ai/servers/{package_name}"
@@ -590,6 +693,7 @@ class PassportSynchronizer:
                     "tools": bool(v_tools),
                     "prompts": bool(prompts),
                     "resources": bool(resources),
+                    **extra_capabilities,
                 }
                 if v_tools and is_simulated:
                     v_caps["inherited_tools"] = True
@@ -606,7 +710,7 @@ class PassportSynchronizer:
                 )
                 v_fp_dict = v_fp.to_dict()
                 v_fp_dict["dependencies"] = v_deps
-                v_fp_dict["connections"] = connections if v_tools else []
+                v_fp_dict["connections"] = connections if (v_tools or extra_capabilities.get("proxy_gateway")) else []
                 all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
 
         # 3. Ingest PyPI timeline & dependencies
@@ -700,6 +804,7 @@ class PassportSynchronizer:
                         "tools": bool(tools),
                         "prompts": bool(prompts),
                         "resources": bool(resources),
+                        **extra_capabilities,
                     },
                 )
                 v_fp_dict = v_fp.to_dict()
@@ -717,6 +822,7 @@ class PassportSynchronizer:
                     "tools": bool(tools),
                     "prompts": bool(prompts),
                     "resources": bool(resources),
+                    **extra_capabilities,
                 }
                 if tools:
                     v_caps["verified_tools"] = not is_simulated
@@ -732,12 +838,13 @@ class PassportSynchronizer:
                 v_fp_dict = ver_fp.to_dict()
                 v_fp_dict["connections"] = connections
                 all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
-            elif tools and not existing_target.tool_signatures:
-                # Target version exists but had no tools, hydrate with new tools
+            elif (tools or connections) and (not existing_target.tool_signatures and not existing_target.connections):
+                # Target version exists but had no tools/connections, hydrate with new tools/connections
                 all_versions.remove(existing_target)
                 v_caps = dict(existing_target.capabilities)
                 v_caps["tools"] = bool(tools)
                 v_caps["verified_tools"] = not is_simulated
+                v_caps.update(extra_capabilities)
                 ver_fp = build_version_fingerprint(
                     version=s_ver,
                     tools=tools,
@@ -751,8 +858,11 @@ class PassportSynchronizer:
                 v_fp_dict["dependencies"] = existing_target.dependencies
                 all_versions.append(VersionFingerprint.from_dict(v_fp_dict))
 
-        # Hydrate existing versions if tools were newly discovered and existing versions lacked them
-        if tools and all_versions and not any(bool(v.tool_signatures) for v in all_versions):
+        # Hydrate existing versions if tools/connections were newly discovered and existing versions lacked them
+        if (tools or connections) and all_versions and (
+            (tools and not any(bool(v.tool_signatures) for v in all_versions))
+            or (connections and not any(bool(v.connections) for v in all_versions))
+        ):
             latest_idx = len(all_versions) - 1
             if dist_tags.get("latest"):
                 for idx, v in enumerate(all_versions):
@@ -761,18 +871,20 @@ class PassportSynchronizer:
                         break
             old_target = all_versions[latest_idx]
             v_caps = dict(old_target.capabilities)
-            v_caps["tools"] = True
-            v_caps["verified_tools"] = not is_simulated
+            if tools:
+                v_caps["tools"] = True
+                v_caps["verified_tools"] = not is_simulated
+            v_caps.update(extra_capabilities)
             hydrated_fp = build_version_fingerprint(
                 version=old_target.version,
-                tools=tools,
+                tools=tools or [t.to_dict() for t in old_target.tool_signatures],
                 prompts=prompts or [p.to_dict() for p in old_target.prompt_signatures],
                 resources=resources or [r.to_dict() for r in old_target.resource_signatures],
                 release_date=old_target.release_date,
                 capabilities=v_caps,
             )
             h_dict = hydrated_fp.to_dict()
-            h_dict["connections"] = old_target.connections
+            h_dict["connections"] = connections or old_target.connections
             h_dict["dependencies"] = old_target.dependencies
             all_versions[latest_idx] = VersionFingerprint.from_dict(h_dict)
 
@@ -789,7 +901,7 @@ class PassportSynchronizer:
             dependencies=all_deps if all_deps else None,
             keywords=keywords,
             description=desc,
-            has_tools_declared=bool(tools) or any(bool(v.tool_signatures) for v in all_versions),
+            has_tools_declared=bool(tools) or any(bool(v.tool_signatures) for v in all_versions) or bool(connections) or any(bool(v.connections) for v in all_versions) or bool(existing_spec),
             is_curated_source=is_curated_source,
         )
         if not is_valid:
@@ -1003,9 +1115,12 @@ class PassportSynchronizer:
         def _process_candidate(item: tuple[Path, ServerPackageSpec, str | None, str]) -> bool:
             j_file, spec, check_repo, strategy = item
             tools = []
+            gateway_conns, gateway_caps = [], {}
             try:
                 if strategy == "npm":
                     tools = self._extract_tools_from_npm_tarball(spec.package_name)
+                    if not tools:
+                        gateway_conns, gateway_caps = self._detect_remote_gateway_from_npm_tarball(spec.package_name)
                     with state_lock:
                         npm_probed_packages.add(spec.package_name)
                         self.state["npm_probed_packages"] = list(npm_probed_packages)
@@ -1020,21 +1135,32 @@ class PassportSynchronizer:
                     with state_lock:
                         ast_probed_repos.add(check_repo)
                         self.state["ast_probed_repos"] = list(ast_probed_repos)
-                    
-                if tools:
-                    merged_spec = self.merge_and_enrich_passport(
-                        package_name=spec.package_name,
-                        ecosystem=spec.ecosystem,
-                        existing_spec=spec,
-                    )
-                    if merged_spec and any(bool(v.tool_signatures) for v in merged_spec.versions):
+
+                if tools or gateway_conns:
+                    kwargs: dict[str, Any] = {
+                        "package_name": spec.package_name,
+                        "ecosystem": spec.ecosystem,
+                        "existing_spec": spec,
+                    }
+                    if gateway_conns:
+                        kwargs["pre_extracted_connections"] = gateway_conns
+                        kwargs["pre_extracted_capabilities"] = gateway_caps
+                    if strategy != "github" and tools:
+                        kwargs["pre_extracted_tools"] = tools
+                        kwargs["pre_extracted_source"] = strategy
+                    merged_spec = self.merge_and_enrich_passport(**kwargs)
+                    if merged_spec and (
+                        any(bool(v.tool_signatures) for v in merged_spec.versions)
+                        or any(bool(v.connections) for v in merged_spec.versions)
+                    ):
                         with state_lock:
                             FingerprintGenerator.save_spec_to_file(merged_spec, j_file)
                         logger.info(
-                            "Enriched zero-tool passport with %s tools: %s (%d tools)",
+                            "Enriched zero-tool passport with %s: %s (%d tools, %d conns)",
                             strategy,
                             spec.package_name,
                             len(tools),
+                            len(gateway_conns),
                         )
                         return True
             except Exception as exc:
