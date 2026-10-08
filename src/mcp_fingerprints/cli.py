@@ -16,6 +16,8 @@ from mcp_fingerprints.snapshot import build_snapshot
 from mcp_fingerprints.synchronizer import PassportSynchronizer
 from collections import Counter
 from mcp_fingerprints.models import ServerPackageSpec
+from mcp_fingerprints.search import search_passports, format_search_results
+from mcp_fingerprints.config_exporter import export_client_config
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("mcp_fingerprints.cli")
@@ -102,6 +104,18 @@ def main() -> None:
     snap_p.add_argument("--data-dir", default="data/fingerprints", help="Passport data directory")
     snap_p.add_argument("--output-gz", default="passports.json.gz", help="Output gzip file path")
     snap_p.add_argument("--output-json", default=None, help="Optional uncompressed JSON output path")
+
+    # Search
+    search_p = subparsers.add_parser("search", help="Fuzzy search MCP servers by keyword or capability")
+    search_p.add_argument("query", help="Search query")
+    search_p.add_argument("--dir", default="data/fingerprints", help="Passport data directory")
+    search_p.add_argument("--limit", type=int, default=10, help="Maximum results to return")
+
+    # Export Config
+    export_p = subparsers.add_parser("export-config", help="Export client configuration (Claude/Cursor)")
+    export_p.add_argument("package", help="Package name to export configuration for")
+    export_p.add_argument("--dir", default="data/fingerprints", help="Passport data directory")
+    export_p.add_argument("--client", choices=["claude", "cursor"], default="claude", help="Client type (claude/cursor)")
 
     args = parser.parse_args()
 
@@ -257,6 +271,34 @@ def main() -> None:
             logger.info("Compiling snapshot with enriched security profiles...")
             snap_path = f"{Path(args.dir).parent}/passports.json.gz" if args.dir != "data/fingerprints" else "passports.json.gz"
             build_snapshot(data_dir=args.dir, output_gz=snap_path)
+
+    elif args.command == "search":
+        results = search_passports(args.dir, args.query, args.limit)
+        print(format_search_results(results))
+
+    elif args.command == "export-config":
+        import urllib.parse
+        urllib.parse.quote_plus(args.package).replace("%40", "@")
+        
+        # In actual structure it looks like dir / package_name.json but slashes are replaced by _
+        # Usually it's purl or name - let's search for package_name
+        found = False
+        for j_file in Path(args.dir).rglob("*.json"):
+            if j_file.name in ("sync_state.json", "index.json", ".passport_index.pickle"):
+                continue
+            try:
+                content = json.loads(j_file.read_text(encoding="utf-8"))
+                if content.get("package_name") == args.package:
+                    config = export_client_config(content, client=args.client)
+                    print(json.dumps(config, indent=2))
+                    found = True
+                    break
+            except Exception:
+                pass
+                
+        if not found:
+            print(f"ERROR: Package '{args.package}' not found in passports.")
+            sys.exit(1)
 
 
 if __name__ == "__main__":
