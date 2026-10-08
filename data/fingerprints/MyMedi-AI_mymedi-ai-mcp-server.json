@@ -4,36 +4,798 @@
   "purl": "pkg:npm/@mymedi-ai%2Fmcp-server",
   "ecosystem": "npm",
   "display_name": "@mymedi-ai/mcp-server",
-  "description": "",
-  "repository_url": null,
+  "description": "# MedCode Oracle — Healthcare API for AI agents\n\nLicense-free medical coding, prior authorization prediction, drug intelligence, reimbursement rates, and clinical trial matching — all from US government data sources (CMS PFS, OpenFDA, ClinicalTrials.gov, NIH RxNorm, CDC NNDSS, NPI registry).\n\n## What it does\n\n**20 tools across 7 healthcare domains:**\n\n- **Medical coding** — ICD-10, CPT, HCPCS lookup with crosswalks (81,769 codes)\n- **Prior authorization** — approval probability prediction with 85% accuracy\n- **Drug intelligence** — OpenFDA labels, FAERS interactions, NIH RxNorm\n- **Reimbursement** — Medicare PFS RVUs + OPPS facility pricing (2026 rates)\n- **Clinical trials** — ClinicalTrials.gov search by condition / ICD-10 / intervention\n- **Provider data** — NPI directory, CMS Open Payments transparency\n- **Disease surveillance** — CDC NNDSS case counts and trends\n\n## Pricing\n\nPay-per-call. 1 credit = $0.001 USD.\n\n| Tier | Example | Cost |\n|---|---|---|\n| Cheap | Code lookup | $0.001 |\n| Mid | NER extract, FHIR transform, claims validate | $0.02–0.05 |\n| Premium | PA predict, market analysis | $0.05–0.10 |\n| Audit | HIPAA compliance audit | $0.25 |\n\n**100 free credits on signup** (\\$0.10 sample — enough for 1× pa/predict + 50 cheap calls).\n\n## Two payment paths\n\n1. **Anonymous USDC** — pay-per-call via x402 protocol on Base mainnet, no signup\n2. **Pre-paid credits** — Stripe or USDC deposit, X-API-Key header\n\n## Get started\n\n```bash\n# Register for an API key (instant, no email required)\ncurl -X POST https://mymedi-ai.com/bot-marketplace/register \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"name\":\"my-agent\"}'\n\n# First call (codes/lookup, 1 credit)\ncurl -X POST https://mymedi-ai.com/agent/v1/codes/lookup \\\\\n  -H \"X-API-Key: <your-key>\" \\\\\n  -d '{\"code\":\"G47.33\"}'\n```\n\n## Resources\n\n- **Homepage**: https://mymedi-ai.com\n- **Playground**: https://mymedi-ai.com/playground\n- **GitHub**: https://github.com/MyMedi-AI/mymedi-ai-mcp-server\n- **npm**: `@mymedi-ai/mcp-server` and `@mymedi-ai/sdk`\n- **Glama listing**: Security A · Quality A · License A\n- **listed on**: awesome-mcp-servers (merged Apr 23 2026)\n\nHIPAA-ready architecture. All data sources are public-domain US government APIs.\n",
+  "repository_url": "https://mcp-server--mymedi-ai.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "@mymedi-ai/mcp-server"
+    "@mymedi-ai/mcp-server",
+    "mymedi-ai/mcp-server"
   ],
   "sources_merged": [
-    "npm_registry"
+    "smithery"
   ],
-  "dist_tags": {
-    "latest": "1.7.5"
-  },
+  "dist_tags": {},
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:9823e95bc49f09774e397b0fd9fe20ffa8c8ca33be9aececc4d50e1fd5b4a4b4",
       "release_date": null,
       "dependencies": {
         "zod": "^4.3.6",
         "@modelcontextprotocol/sdk": "^1.27.1"
       },
-      "connections": [],
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://mcp-server--mymedi-ai.run.tools",
+          "configSchema": {}
+        }
+      ],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
-        "resources": false
+        "resources": false,
+        "verified_tools": true
       },
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "claims_validate",
+          "canonical_hash": "sha256:a771e3dbb819804b9896d1ef37776142a8c548d4c9f6a3aa525cd6555af5aff7",
+          "description": "Pre-submission claims validation. Checks for errors, missing fields, code mismatches, and provides fix suggestions before you submit to the payer.",
+          "is_mutating": false,
+          "property_keys": [
+            "claim"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim": {
+                "type": "object",
+                "required": [
+                  "patientId",
+                  "providerId",
+                  "dateOfService",
+                  "diagnosisCodes",
+                  "procedureCodes"
+                ],
+                "properties": {
+                  "modifiers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "patientId": {
+                    "type": "string"
+                  },
+                  "providerId": {
+                    "type": "string"
+                  },
+                  "dateOfService": {
+                    "type": "string",
+                    "description": "YYYY-MM-DD"
+                  },
+                  "diagnosisCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "placeOfService": {
+                    "type": "string"
+                  },
+                  "procedureCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "description": "Claim data to validate",
+                "additionalProperties": false
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ff2650e21b684a625391efd14b546f0b6a7df2af3d303dffa4315885d985af5d"
+        },
+        {
+          "name": "code_crossref",
+          "canonical_hash": "sha256:310852ee002f10d2956165dba0f3b8ba776c2bd1c9dfb8dc13fa7b15c4a33ff1",
+          "description": "Cross-reference a medical code across ICD-10, CPT, and HCPCS systems. Returns related codes grouped by system. Source: CodeReference DB (ICD-10/HCPCS: public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Medical code to cross-reference (e.g., \"M79.3\", \"99213\", \"E0601\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:204a102d27ab6af516e24cbb7b5ca52f38fc45b08a1716b00be44f7fc55a5a6f"
+        },
+        {
+          "name": "code_lookup",
+          "canonical_hash": "sha256:36fc16f032dce24937438ef65108584a1645ab1f337b2894466afd5fd6c7cec1",
+          "description": "Look up medical codes (ICD-10, CPT, HCPCS) by code string. Returns description, category, active status, and related codes.",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "codeType"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string",
+            "codeType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Medical code to look up (e.g., \"M79.3\", \"99213\", \"E0601\")"
+              },
+              "codeType": {
+                "enum": [
+                  "icd10",
+                  "cpt",
+                  "hcpcs"
+                ],
+                "type": "string",
+                "description": "Code system (auto-detected if omitted)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:73c0760394e3058933462c92f954659e04f0ebfc2283a5d429f8c4b46517001f"
+        },
+        {
+          "name": "code_reimbursement",
+          "canonical_hash": "sha256:2282fbda0c536728ec85c853219bc2756e53f2c3697aa9a1a43627f887a6869d",
+          "description": "Look up Medicare reimbursement rates for a medical code. Returns RVU values and estimated payment amounts using CMS PFS conversion factor. Source: CMS PFS RVU 2026 (public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "codeType"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string",
+            "codeType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Medical code (e.g., \"99213\", \"M79.3\")"
+              },
+              "codeType": {
+                "enum": [
+                  "ICD10",
+                  "CPT",
+                  "HCPCS"
+                ],
+                "type": "string",
+                "description": "Code system (auto-detected if omitted)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:14853e1119e9c21a13c8386ceb9c716a53deaad338bf27f4aa872b25dbe84458"
+        },
+        {
+          "name": "code_suggest",
+          "canonical_hash": "sha256:66275a3766d17e641a6e2e010f6b56a4af91fc45619907c8a7b5613430f07304",
+          "description": "Get AI-powered medical code suggestions from a clinical description. Returns ranked code suggestions with relevance scores.",
+          "is_mutating": false,
+          "property_keys": [
+            "codeType",
+            "description",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "codeType": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max suggestions to return (default 10, max 50)"
+              },
+              "codeType": {
+                "enum": [
+                  "icd10",
+                  "cpt",
+                  "hcpcs"
+                ],
+                "type": "string",
+                "description": "Limit to specific code system"
+              },
+              "description": {
+                "type": "string",
+                "description": "Clinical description to find codes for (e.g., \"chronic lower back pain\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8fbe9af991b05cc351740a5127a570ad9e4d3a8972d86d544433606cb8761880"
+        },
+        {
+          "name": "code_validate",
+          "canonical_hash": "sha256:154c98d6c9c3b68a90e1cdb7f595723fe83b6322c5e06727b20b3ee2ea619eff",
+          "description": "Validate a medical code for correctness, active status, and context. Returns warnings and errors.",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "codeType",
+            "context"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string",
+            "context": "object",
+            "codeType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Medical code to validate"
+              },
+              "context": {
+                "type": "object",
+                "properties": {
+                  "dateOfService": {
+                    "type": "string",
+                    "description": "Date of service (YYYY-MM-DD) for temporal validation"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "codeType": {
+                "enum": [
+                  "icd10",
+                  "cpt",
+                  "hcpcs"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:92ea9937e72f1e8de89593e8586c0e740786f7c31e37e912e201df51acff9113"
+        },
+        {
+          "name": "compliance_audit",
+          "canonical_hash": "sha256:734a8fc0230b8f970d832841208aca1db810bddc2f32b7868d2b0eec921b54c1",
+          "description": "HIPAA compliance audit. Scans data for PHI exposure (SSN, MRN, DOB patterns), returns findings with severity, score (0-100), and remediation recommendations.",
+          "is_mutating": false,
+          "property_keys": [
+            "auditType",
+            "data"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "data": "object",
+            "auditType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "description": "Data to audit for compliance issues",
+                "additionalProperties": {}
+              },
+              "auditType": {
+                "enum": [
+                  "general",
+                  "hipaa"
+                ],
+                "type": "string",
+                "description": "Type of audit (default: general)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:917b5d5d44114a32462c169afdf278f4d533a10f40707e06cc58607c4ceccabf"
+        },
+        {
+          "name": "disease_surveillance",
+          "canonical_hash": "sha256:ca751e4946261d812d0ed98c9695576a320663c9cc814d66512f3202cd50e350",
+          "description": "Look up disease surveillance data including case counts and trends by condition and geography. Source: CDC National Notifiable Diseases Surveillance System (public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "condition",
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string",
+            "state": "string",
+            "condition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "ICD-10 code (auto-mapped to condition name)"
+              },
+              "state": {
+                "type": "string",
+                "description": "2-letter state code to filter by geography"
+              },
+              "condition": {
+                "type": "string",
+                "description": "Disease or condition name (e.g., \"Hepatitis A\", \"Salmonellosis\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f6f3eab36937c0ce33073655eb39eea79804b3718c8e4cd27a8842219dd12786"
+        },
+        {
+          "name": "drug_enrich",
+          "canonical_hash": "sha256:e098148673059a1b1c88d332496da5bf3c340977eea4c5ae59d8dbbe6683bc3c",
+          "description": "Drug information enrichment via OpenFDA. Returns drug details, indications, interactions, and AI analysis.",
+          "is_mutating": false,
+          "property_keys": [
+            "drugName",
+            "searchField"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "drugName": "string",
+            "searchField": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "drugName": {
+                "type": "string",
+                "description": "Drug name (brand or generic, min 2 chars)"
+              },
+              "searchField": {
+                "enum": [
+                  "brand_name",
+                  "generic_name"
+                ],
+                "type": "string",
+                "description": "Search by brand or generic name"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0b97111a3595182d4e46b4e26225dea7e7f7e46ed74126450caad4b870b8930d"
+        },
+        {
+          "name": "drug_interactions",
+          "canonical_hash": "sha256:5376dd267454a0722526bdd08647c6db428b4836a1f6aad7aedea486efef2968",
+          "description": "Check drug-drug interaction signals from FDA adverse event co-reports. Returns co-reported reactions and signal strength. Source: OpenFDA FAERS (public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "drugs"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "drugs": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "drugs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "minItems": 2,
+                "description": "Array of 2-5 drug names to check for interactions"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:70c70082ab2b07e3f9522e21f57842987f7bb352b83737acac44703aadad1fb8"
+        },
+        {
+          "name": "drug_lookup",
+          "canonical_hash": "sha256:ba745e9655a9db5221b99f236d7b25da528c51425a18cc0fa0c2c06a00b7a0f2",
+          "description": "Look up drug information including label data, adverse events, and related diagnosis codes. Source: OpenFDA (public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "drugName",
+            "searchField"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "drugName": "string",
+            "searchField": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "drugName": {
+                "type": "string",
+                "description": "Drug name (brand, generic, or substance — min 2 chars)"
+              },
+              "searchField": {
+                "enum": [
+                  "brand_name",
+                  "generic_name",
+                  "product_ndc",
+                  "substance_name"
+                ],
+                "type": "string",
+                "description": "Search field (default: brand_name)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fbad16f2e3da0d8c578503930ddc02b6d9f5ccfbdd0e886fd8bef8987f97757e"
+        },
+        {
+          "name": "drug_rxnorm",
+          "canonical_hash": "sha256:b123451bd8132f2a168e8aaa9cd227a097647dbe7cb0a611fd5ca6547f084378",
+          "description": "Look up a drug in NIH RxNorm for normalized terminology (RxCUI) and optionally check clinical drug-drug interactions with severity ratings. Source: NIH RxNorm (public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "checkInteractions",
+            "drugName"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "drugName": "string",
+            "checkInteractions": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "drugName": {
+                "type": "string",
+                "description": "Drug name to look up (min 2 chars)"
+              },
+              "checkInteractions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Other drug names to check for clinical interactions against the primary drug"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:637399ae0e2145030a12a1ba913c572784d13f4e9ea5b1703853b585c111ff11"
+        },
+        {
+          "name": "market_analysis",
+          "canonical_hash": "sha256:52be6fb0a464943fdb9904e4a17144157daa2ded534f60ade76461d8661b3b09",
+          "description": "Healthcare specialty market analysis for a specific state. Returns provider density, competition metrics, and market opportunity data.",
+          "is_mutating": false,
+          "property_keys": [
+            "specialty",
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "state": "string",
+            "specialty": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "description": "2-letter state code (e.g., \"TX\", \"CA\")"
+              },
+              "specialty": {
+                "type": "string",
+                "description": "Medical specialty (e.g., \"cardiology\", \"orthopedics\")"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7a0e7558e84c99475eb17d778cdd2d3a4f0039acc2c206b75f8e25cd387a0f8d"
+        },
+        {
+          "name": "ner_extract",
+          "canonical_hash": "sha256:002ecc9b68da34bd8fe788642f65da66260146fbc323354fa6820f69ba7f40c8",
+          "description": "Extract medical named entities from clinical text. Identifies ICD-10 codes, CPT codes, dates, medications, and 12 entity types with confidence scores.",
+          "is_mutating": false,
+          "property_keys": [
+            "entityTypes",
+            "text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string",
+            "entityTypes": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Clinical text to extract entities from"
+              },
+              "entityTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Filter to specific entity types"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ee350c811bc29a178d9ae8059deb46efeec034443507075e7fc6dd9fa8aad132"
+        },
+        {
+          "name": "pa_predict",
+          "canonical_hash": "sha256:9c38dee0d5606a4dba0ad1911aa239ed0128e001ea6479888d9b61a5b898bb2d",
+          "description": "Predict prior authorization approval probability for a procedure. Returns approval likelihood (0-1), confidence level, estimated processing days, and contributing factors.",
+          "is_mutating": false,
+          "property_keys": [
+            "diagnosisCodes",
+            "patientAge",
+            "patientGender",
+            "payerId",
+            "procedureCode"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "payerId": "string",
+            "patientAge": "number",
+            "patientGender": "string",
+            "procedureCode": "string",
+            "diagnosisCodes": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "payerId": {
+                "type": "string",
+                "description": "Insurance payer ID"
+              },
+              "patientAge": {
+                "type": "number",
+                "description": "Patient age in years"
+              },
+              "patientGender": {
+                "enum": [
+                  "M",
+                  "F",
+                  "O"
+                ],
+                "type": "string"
+              },
+              "procedureCode": {
+                "type": "string",
+                "description": "CPT/HCPCS procedure code"
+              },
+              "diagnosisCodes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Supporting ICD-10 diagnosis codes"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f190ea357d8cbdbcf32e2b9a5b42836dd57b18d4c1f690e7cc7c434f6bd839d1"
+        },
+        {
+          "name": "pa_status",
+          "canonical_hash": "sha256:7ed47fb845d07dc25bab47fc6900bf5ea94840a6b9af1768dadf222633277df4",
+          "description": "Check the status of a prior authorization request. Returns current status, dates, and expiration info.",
+          "is_mutating": false,
+          "property_keys": [
+            "authorizationId",
+            "trackingNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "trackingNumber": "string",
+            "authorizationId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "trackingNumber": {
+                "type": "string",
+                "description": "Tracking number (alternative to authorizationId)"
+              },
+              "authorizationId": {
+                "type": "string",
+                "description": "Prior authorization ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b869347b2efaacc877075d35fb2230ce0884130f0881dafee14d844dc81be70f"
+        },
+        {
+          "name": "provider_enrich",
+          "canonical_hash": "sha256:cf41f3e93177615a90f2598cf3e7e7a4a8975788e6a09cfc7ba13e3458c68e5d",
+          "description": "AI-enriched provider intelligence from NPI number. Returns practice details, specialties, affiliations, and market context.",
+          "is_mutating": false,
+          "property_keys": [
+            "npi"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "npi": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "npi": {
+                "type": "string",
+                "description": "10-digit NPI number"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:181bf8e038c8e0f16cfef0eabea28d193f1669e56f257dc889f2366220219a8c"
+        },
+        {
+          "name": "provider_payments",
+          "canonical_hash": "sha256:f089a241761fe0f2bc5852cb64f4bc8ee8145d99418ee95dfeb75e02f1bb9677",
+          "description": "Look up pharmaceutical and device company payments to a physician (Sunshine Act data). Returns total payments, breakdown by type, and top paying companies. Source: CMS Open Payments (public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "npi"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "npi": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "npi": {
+                "type": "string",
+                "description": "10-digit NPI number of the physician"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b4107f48949381025bb9db3fc7650422fdaad6554d129382df857a464e7c6b40"
+        },
+        {
+          "name": "provider_search",
+          "canonical_hash": "sha256:7ecf2fb141cf9a9e0daa5da93013b195e7f04c6771c09d94d13e6c2b681f773a",
+          "description": "Search the NPI provider directory. Find healthcare providers by name, specialty, or location.",
+          "is_mutating": false,
+          "property_keys": [
+            "city",
+            "firstName",
+            "lastName",
+            "limit",
+            "organizationName",
+            "state",
+            "taxonomy"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "city": "string",
+            "limit": "number",
+            "state": "string",
+            "lastName": "string",
+            "taxonomy": "string",
+            "firstName": "string",
+            "organizationName": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "number",
+                "description": "Max results (default 10, max 50)"
+              },
+              "state": {
+                "type": "string",
+                "description": "2-letter state code"
+              },
+              "lastName": {
+                "type": "string"
+              },
+              "taxonomy": {
+                "type": "string",
+                "description": "Provider taxonomy/specialty code"
+              },
+              "firstName": {
+                "type": "string"
+              },
+              "organizationName": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:479a81d94d943ca389d1b04a491b2f8284f0c4216f34e446092b59d64962254e"
+        },
+        {
+          "name": "trials_search",
+          "canonical_hash": "sha256:ea40c9b2c22d98f0efeee66bb7ba6c4261e849f0f90ac2f231261a0c37ff5890",
+          "description": "Search active clinical trials by condition, ICD-10 code, or intervention. Returns trial details including NCT ID, phase, enrollment, and eligibility. Source: ClinicalTrials.gov (public domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "condition",
+            "intervention",
+            "limit",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string",
+            "limit": "number",
+            "status": "string",
+            "condition": "string",
+            "intervention": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "ICD-10 code (auto-mapped to condition)"
+              },
+              "limit": {
+                "type": "number",
+                "description": "Max results (default 10, max 50)"
+              },
+              "status": {
+                "enum": [
+                  "RECRUITING",
+                  "ACTIVE_NOT_RECRUITING",
+                  "COMPLETED",
+                  "NOT_YET_RECRUITING"
+                ],
+                "type": "string",
+                "description": "Trial status filter (default: RECRUITING)"
+              },
+              "condition": {
+                "type": "string",
+                "description": "Medical condition to search for"
+              },
+              "intervention": {
+                "type": "string",
+                "description": "Drug or intervention name"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b5c6b1b420ff5513f3cabec689b47d699b6b210d8ed1e3b111dcc0484f1feba0"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     },

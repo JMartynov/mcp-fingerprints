@@ -4,20 +4,19 @@
   "purl": "pkg:npm/@i4ctime%2Fq-ring",
   "ecosystem": "npm",
   "display_name": "@i4ctime/q-ring",
-  "description": "",
-  "repository_url": null,
+  "description": "OS keychain secrets for AI coding agents, over MCP.",
+  "repository_url": "https://smithery.ai/servers/@i4ctime/q-ring",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "@i4ctime/q-ring"
+    "@i4ctime/q-ring",
+    "i4ctime/q-ring"
   ],
   "sources_merged": [
-    "npm_registry"
+    "smithery"
   ],
-  "dist_tags": {
-    "latest": "0.18.0"
-  },
+  "dist_tags": {},
   "versions": [
     {
       "version": "0.10.1",
@@ -807,6 +806,2281 @@
         "resources": false
       },
       "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:cb6cd76696eb52797898698548e1c88369f6b193bcee8bc639488810f2be0971",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "65369ee2-6267-4f51-9906-e0155c07b40d/5a5db3ce-4451-4bec-b16a-b7bcfede5c71/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "qring_env": {
+                "type": "string",
+                "title": "Environment override",
+                "x-order": 0,
+                "description": "Force a q-ring environment context (dev, staging, prod). Leave empty to auto-detect from QRING_ENV/NODE_ENV/git branch."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "agent_forget",
+          "canonical_hash": "sha256:f73dc6c4e0224e9942b0e81cfb4d929280040bf811b8fc1ad62fefd18c3507d6",
+          "description": "[agent] Permanently delete a single key from encrypted agent memory. Use to retract obsolete or misremembered context; prefer overwriting via `agent_remember` when you just want to update the value, and use `delete_secret` for actual credentials (which never live in agent memory). Destructive: there is no recycle bin. Returns 'Forgot \"KEY\"' on success or a not-found error if the key was already absent.",
+          "is_mutating": false,
+          "property_keys": [
+            "key"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Memory key to delete."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:458284c59704deca4369b1f24f00eba4e4f6725cda194aaa51db60d513797836"
+        },
+        {
+          "name": "agent_recall",
+          "canonical_hash": "sha256:2f6bc4c7f1a4b0c28a279f1c4a825d1fc511dacbb2000724d740838081943339",
+          "description": "[agent] Read a value from encrypted agent memory, or list every stored key when no specific key is supplied. Use at the start of an agent loop to rehydrate prior context, or to look up a single remembered fact; prefer `get_project_context` for a redacted overview of secrets and `get_secret` for actual credential values. Read-only. With a `key` argument: returns JSON `{ ok, data: { key, value } }` or a not-found error. Without `key`: returns a JSON listing of every stored key (no values), or 'Agent memory is empty'.",
+          "is_mutating": false,
+          "property_keys": [
+            "key"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Memory key to read. Omit to list every stored key (without values)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:97f8a045bc6dc865c6cd11ddacede84a341dc21dc4b673306878a4b95254ec4b"
+        },
+        {
+          "name": "agent_remember",
+          "canonical_hash": "sha256:c2d99b785f4c4fb33255cd37595afbf5b2cf42779e496cc06639980e52a9fd48",
+          "description": "[agent] Persist a non-secret key/value note in encrypted, on-disk agent memory that survives across MCP sessions. Use to record stable agent context — last rotation date for a key, the user's deployment preferences, decisions taken in earlier sessions; do NOT use this to store secrets (use `set_secret` instead) and prefer chat scratchpad for purely transient state. Mutates the encrypted memory store. Idempotent: rewriting the same key with a new value simply overwrites. Returns 'Remembered \"KEY\"' on success.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "value"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "value": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Memory key (free-form string). Convention: lowercase dotted namespaces, e.g. 'project.lastDeploy'."
+              },
+              "value": {
+                "type": "string",
+                "description": "Plain-string value to store. JSON-stringify structured data on the caller side if needed."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c6c2391be345377b14537f46503b49b2919f2a1fae39dc52f066acde2abad0a1"
+        },
+        {
+          "name": "agent_scan",
+          "canonical_hash": "sha256:63dd536c4294786a6445aacb484a72bd39cd094e2d9abee03b76f39ca9ecefaa",
+          "description": "[agent] Run a multi-project health pass that gathers decay status, audit anomalies, and `.q-ring.json` manifest gaps across one or more project paths and (optionally) auto-rotates expired secrets with freshly generated values. Use as the canonical 'agent maintenance loop' across a portfolio of repos; prefer `health_check` for a single read-only scope, `detect_anomalies` for audit-only triage, and `check_project` for a single-project manifest check. With `autoRotate=false` (default) this is read-only. With `autoRotate=true` it OVERWRITES expired secret values in the keyring with generated replacements — credential changes that may break upstream integrations until they are propagated. Subject to tool policy. Returns a JSON report of per-project findings and any rotations performed.",
+          "is_mutating": false,
+          "property_keys": [
+            "autoRotate",
+            "projectPaths"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "autoRotate": "boolean",
+            "projectPaths": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "autoRotate": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, replace expired secrets with newly generated values (using each secret's `rotationFormat`/`rotationPrefix`). Only enable when intentional rotation is desired — this is destructive on the upstream side."
+              },
+              "projectPaths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of absolute project roots to scan. Defaults to `[server.cwd]` when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:64936f63b2cef3964f16ac55afdcd9139b601b76b4a7bcd56bea3b28ab4c7ec6"
+        },
+        {
+          "name": "analyze_secrets",
+          "canonical_hash": "sha256:4aaa69cf53ff9e7d8b8b210f9bac2ee759549c39ed7721f0eaf569af8f55f061",
+          "description": "[agent] Cross-reference the secrets in scope with recent audit events to produce a usage profile and rotation/retirement suggestions. Use as a quarterly hygiene check or as input to a planner that decides what to rotate or delete; prefer `health_check` for decay-only triage and `audit_log` to inspect access timelines for one key. Read-only; uses the most recent ~500 audit events. Returns JSON `{ total, expired, stale, neverAccessed: [...], noRotationFormat: [...], mostAccessed: [{ key, reads }] }`. `neverAccessed` and `noRotationFormat` are good candidates for cleanup or for adding rotation hints.",
+          "is_mutating": false,
+          "property_keys": [
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:da747874a7f94fce6cbb3b67619bc4c242966c9ea0015d918fe8bb893005b7d4"
+        },
+        {
+          "name": "audit_log",
+          "canonical_hash": "sha256:07bf8b8d92abe6854ecbff739d2906eca385713f71b69ed323d23f8de9646c38",
+          "description": "[audit] Query the q-ring audit log — a tamper-evident record of every read/write/delete touching a secret. Use to investigate 'who accessed KEY recently?' or to feed an agent the access timeline for a specific credential; prefer `detect_anomalies` for automated unusual-pattern detection and `health_check` for decay-state-plus-anomalies in one call. Read-only. Returns one line per event in chronological order, formatted `timestamp | action | key | [scope] | env:NAME | detail`. Returns 'No audit events found' when the filter matches nothing.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "agent",
+            "key",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "agent": "string",
+            "limit": "number",
+            "action": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Limit to events touching this exact key. Omit for the full log."
+              },
+              "agent": {
+                "type": "string",
+                "description": "Limit to events stamped with this agent label (clientInfo name@version). Omit for all agents."
+              },
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "description": "Maximum events to return, newest first. Defaults to 20. Increase for deeper investigations."
+              },
+              "action": {
+                "enum": [
+                  "read",
+                  "write",
+                  "delete",
+                  "list",
+                  "export",
+                  "generate",
+                  "entangle",
+                  "tunnel",
+                  "teleport",
+                  "collapse",
+                  "approve",
+                  "revoke",
+                  "policy_deny",
+                  "rotate",
+                  "push",
+                  "wrap"
+                ],
+                "type": "string",
+                "description": "Limit to a single action verb (e.g. 'read' to see only reads). Omit for all actions."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c2657970502cb0761c33efcf10dc4dc618f3806f3e05c9c381c32b6a8b520d7e"
+        },
+        {
+          "name": "check_policy",
+          "canonical_hash": "sha256:8b28f43af665560eaadc732466685dac99c2914b43750e9e3070cc8e98ac3c53",
+          "description": "[policy] Ask whether a single intended action would be allowed by the project's `.q-ring.json` policy without actually performing it. Use as a dry-run before calling a potentially-blocked tool, attempting to read a sensitive key, or invoking `exec_with_secrets` with a non-trivial command; prefer `get_policy_summary` for a one-shot overview of the entire policy. Read-only. Returns JSON `{ allowed, reason?, policySource }` describing the decision. Returns an error 'Missing required parameter for the selected action type' if the matching argument for the chosen `action` is not supplied.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "command",
+            "key",
+            "projectPath",
+            "toolName"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "action": "string",
+            "command": "string",
+            "toolName": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Secret key name to evaluate. Required when `action` is 'key_read'."
+              },
+              "action": {
+                "enum": [
+                  "tool",
+                  "key_read",
+                  "exec"
+                ],
+                "type": "string",
+                "description": "Which policy surface to query. 'tool' = MCP tool gate (needs `toolName`); 'key_read' = secret read gate (needs `key`); 'exec' = exec_with_secrets command gate (needs `command`)."
+              },
+              "command": {
+                "type": "string",
+                "description": "Command to evaluate against the exec allowlist/denylist. Required when `action` is 'exec'."
+              },
+              "toolName": {
+                "type": "string",
+                "description": "Tool id to evaluate, e.g. 'rotate_secret'. Required when `action` is 'tool'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9c3c4ad9bab591b313c93657f81f50067f2a08130a46fae15e7ae485c11ca669"
+        },
+        {
+          "name": "check_project",
+          "canonical_hash": "sha256:86b7da198a020f2cee840c6f08043ace9cfd02e24da90c74f5d572a209ee4a24",
+          "description": "[project] Compare the keys declared in the project's `.q-ring.json` manifest against what is actually present in the keyring. Use as the canonical 'is this project ready to run' gate before starting a dev server, deploying, or onboarding a teammate; prefer `health_check` for a scope-wide decay sweep (no manifest), and `agent_scan` for multi-project scans with optional auto-rotation. Read-only; does not mutate the keyring or audit log materially beyond a 'list' read. Returns JSON `{ total, present, missing, expired, stale, ready, secrets: [...] }` where `ready` is true only when nothing is missing or expired. Errors with 'No secrets manifest found in .q-ring.json' if the project has no manifest.",
+          "is_mutating": false,
+          "property_keys": [
+            "projectPath"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ebce473ec18e284d8d5b316e6c682d92c433f81560cd71870418f733ace32d3c"
+        },
+        {
+          "name": "ci_validate_secrets",
+          "canonical_hash": "sha256:a95017da67b629fb46331562fdd2ad5568edd623ae50f2c6374cf4df0fa854f9",
+          "description": "[validation] Validate every accessible secret in the requested scope against its detected provider in a single batch and return a structured pass/fail report. Use as a CI gate ('do all our credentials still work before deploy?') or as a pre-rotation health pass; prefer `validate_secret` for a single key. Side effects: one outbound request per validatable secret (cost scales with N). Reads each secret value (records 'read' audit events). Returns JSON `{ total, valid, invalid, results: [...] }` listing per-key status, provider, and error messages where applicable. Returns 'No secrets to validate' if nothing in scope has a provider mapping.",
+          "is_mutating": false,
+          "property_keys": [
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e8df366f4a288a5413a780f4f96fea79795199c93dc144d64721316c263ce6cf"
+        },
+        {
+          "name": "delete_secret",
+          "canonical_hash": "sha256:b8d9a275abb06d9be5c4445757bbd1bc6b51176c7c2b6290efb0fe1320b3a55e",
+          "description": "[secrets] Permanently remove a secret value (and all its env states) from the keyring for the given scope. Use when a credential is being retired or was created in error; prefer `disentangle_secrets` to break a sync link without erasing values, `remove_hook` to detach lifecycle callbacks, and `tunnel_destroy` for ephemeral tunnels. Destructive and not undoable from q-ring (no built-in trash). Writes a 'delete' event to the audit log and fires matching hooks. Returns 'Deleted \"KEY\"' on success or a not-found error if the key did not exist in the requested scope. Subject to tool policy.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Exact secret key name to delete. Example: 'OLD_API_KEY'."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e11f858880e9c54b2fcb5301c9b8e30bc902301953a1e53d1fafa7daac26f584"
+        },
+        {
+          "name": "detect_anomalies",
+          "canonical_hash": "sha256:2ea00d8e4d46d54811814c0d0126acd58fe20f404b6a0d83bc38a6b1a32afe51",
+          "description": "[audit] Scan the audit history for suspicious access patterns — burst reads of the same key, off-hours access, and other heuristics. Use as a quick triage signal when investigating a single key or before letting an agent rotate credentials; prefer `health_check` for a scope-wide decay+anomaly summary, and `agent_scan` for multi-project JSON reports with optional auto-rotation. Read-only; never mutates secrets or the audit log. Returns one line per finding formatted `[type] description`, or 'No anomalies detected' when the log looks clean.",
+          "is_mutating": false,
+          "property_keys": [
+            "key"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "If provided, narrow the scan to this exact key. Omit to scan across every key in the audit log."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6abdbe33b4e38ebce10e3f2c3d1509abd290d0d711133ed43e384e74f8bbd35d"
+        },
+        {
+          "name": "detect_environment",
+          "canonical_hash": "sha256:168796bea8e2ba6aa56900e49f5af1da1c98caef4f305c810c7205455aa8f879",
+          "description": "[project] Resolve which environment slug (e.g. 'dev', 'staging', 'prod') the current invocation should collapse to. Use before reading secrets when you want to mirror the same env q-ring would auto-pick (e.g. to log it, or to pass through to another tool); prefer passing an explicit `env` to `get_secret`/`env_generate` when you already know which env you want. Read-only; checks the QRING_ENV env var, NODE_ENV, the project's `.q-ring.json`, and the current git branch in priority order. Returns JSON `{ env, source }` (e.g. `{ env: 'dev', source: 'NODE_ENV' }`), or a plain message indicating that no env could be detected.",
+          "is_mutating": false,
+          "property_keys": [
+            "projectPath"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e04b704f720794f59a06132eb57a80b277451c619f9747f9798a44707c5316ef"
+        },
+        {
+          "name": "diff_environments",
+          "canonical_hash": "sha256:fd652465ea805151ebb0db4de0f4880bbfc6e49cf51429b3ac94b34cdebe397f",
+          "description": "[secrets] Compare two environments across the visible secrets and report, per key, whether the values are the same, different, or present on only one side — statuses only, never values. Use before a deploy or promotion to see environment drift; follow up with `promote_secret` per key. A single-value (collapsed) secret applies to every environment and is reported as 'collapsed'. Read-only apart from a 'list' audit event. Returns { a, b, entries: [{ key, scope, status }], summary, drift }.",
+          "is_mutating": false,
+          "property_keys": [
+            "envA",
+            "envB",
+            "keys",
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "envA": "string",
+            "envB": "string",
+            "keys": "array",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "envA": {
+                "type": "string",
+                "description": "First environment. Example: 'staging'."
+              },
+              "envB": {
+                "type": "string",
+                "description": "Second environment. Example: 'prod'."
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Restrict the comparison to these keys."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b61db8753f4464388b364a20d4436d2b8e12d9ad4de7e842de65a8f9d0abd7d9"
+        },
+        {
+          "name": "disentangle_secrets",
+          "canonical_hash": "sha256:b4a5c80952c964758184496e936c72e32c5d7839ee86ea6151180c9d2964f4c4",
+          "description": "[secrets] Break the sync link between two previously entangled keys so future rotations no longer propagate. Use when one of the keys is being retired or should diverge intentionally; pair with `delete_secret` if you also want to erase one of the values, and use `entangle_secrets` to recreate the link. Mutates only metadata; the current values remain untouched. Safe and idempotent — running on a pair that was never linked returns success without effect. Subject to tool policy. Returns 'Disentangled: SOURCE </> TARGET'.",
+          "is_mutating": false,
+          "property_keys": [
+            "sourceKey",
+            "sourceProjectPath",
+            "sourceScope",
+            "targetKey",
+            "targetProjectPath",
+            "targetScope"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sourceKey": "string",
+            "targetKey": "string",
+            "sourceScope": "string",
+            "targetScope": "string",
+            "sourceProjectPath": "string",
+            "targetProjectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceKey": {
+                "type": "string",
+                "description": "First key in the previously linked pair."
+              },
+              "targetKey": {
+                "type": "string",
+                "description": "Second key in the previously linked pair."
+              },
+              "sourceScope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "targetScope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "sourceProjectPath": {
+                "type": "string",
+                "description": "Project root for sourceKey when sourceScope='project'."
+              },
+              "targetProjectPath": {
+                "type": "string",
+                "description": "Project root for targetKey when targetScope='project'."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0d603192f137f5a7d07a568e3f6b29dcd83eae536abf726169e9eded596b440f"
+        },
+        {
+          "name": "entangle_secrets",
+          "canonical_hash": "sha256:6b7c3cf0fc6841c2c0d8ef93bc2daf668671959ca3521686f74562f8a12d1a2a",
+          "description": "[secrets] Link two keys (across the same or different scopes) so future writes/rotations of either propagate the same value to the other. Use when one logical credential lives under multiple names (e.g. `STRIPE_SECRET_KEY` global and project) and should never drift; prefer `set_secret` for unrelated values, and reverse the link with `disentangle_secrets` (does not delete values). Mutates only the metadata of both envelopes — the values themselves are not changed by this call. Idempotent: re-running on an already-entangled pair is a no-op. Subject to tool policy. Returns a short confirmation: 'Entangled: SOURCE <-> TARGET'.",
+          "is_mutating": false,
+          "property_keys": [
+            "sourceKey",
+            "sourceProjectPath",
+            "sourceScope",
+            "targetKey",
+            "targetProjectPath",
+            "targetScope"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sourceKey": "string",
+            "targetKey": "string",
+            "sourceScope": "string",
+            "targetScope": "string",
+            "sourceProjectPath": "string",
+            "targetProjectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceKey": {
+                "type": "string",
+                "description": "First secret key in the pair. Example: 'STRIPE_SECRET_KEY'."
+              },
+              "targetKey": {
+                "type": "string",
+                "description": "Second secret key to keep in lockstep with the source."
+              },
+              "sourceScope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "targetScope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "sourceProjectPath": {
+                "type": "string",
+                "description": "Project root for sourceKey when sourceScope='project'. Defaults to the server cwd."
+              },
+              "targetProjectPath": {
+                "type": "string",
+                "description": "Project root for targetKey when targetScope='project'. Defaults to the server cwd."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5b9962fa3acecaa79958cab1955835febd8f958fbfc0e50fc86040e2a77de7d9"
+        },
+        {
+          "name": "env_generate",
+          "canonical_hash": "sha256:fb53a7a97c7d6bfe601b639d40f657a5a430fa8081515f87969be5ec0fcf6893",
+          "description": "[project] Render a complete `.env` file body from the project's `.q-ring.json` manifest, resolving each declared key from the keyring. Use when a build step or local runtime needs a real `.env` materialized on disk and you want exactly the keys the manifest declares; prefer `export_secrets` when you want every key in scope (manifest-agnostic) and `exec_with_secrets` to inject secrets into a child process without writing them to a file. Reads values (records 'read' audit events) and collapses superposition for the requested env. Returns the raw `.env` text, with `# MISSING (required): KEY` / `# EXPIRED: KEY` / `# STALE: KEY` warnings appended as comments. Missing keys appear as commented-out `# KEY=` placeholders so the file remains a valid drop-in.",
+          "is_mutating": false,
+          "property_keys": [
+            "env",
+            "projectPath"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "env": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "env": {
+                "type": "string",
+                "description": "Environment slug used to collapse superposition when a secret has multiple per-env states. Examples: 'dev', 'staging', 'prod'. If omitted, the secret's defaultEnv is used."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8e0f0c9857738b5059a7bd433c22321bd1bbdb8d8188e9a7812eaf5740ac7d4e"
+        },
+        {
+          "name": "exec_with_secrets",
+          "canonical_hash": "sha256:60673b4db1035dcd1ca711cf796e36a5d6a50098855362937d5712102b1df62e",
+          "description": "[exec] Run a child shell command with project secrets injected as environment variables and any leaked secret values redacted from captured stdout/stderr before they return to the agent. Use to let an agent run a script that needs credentials (`npm run db:migrate`, `terraform plan`, `vercel deploy`) without ever putting plaintext values in the chat; prefer `env_generate` if you need to write a `.env` file to disk and `validate_secret` for upstream liveness checks. Spawns a real child process — has whatever side effects the command itself causes (writes, network, exec). Subject to BOTH tool policy and exec policy (allowlist/denylist). Returns a text body with `Exit code: N` then `STDOUT:` and `STDERR:` blocks; both streams are scrubbed against the secret values that were injected.",
+          "is_mutating": false,
+          "property_keys": [
+            "args",
+            "command",
+            "keys",
+            "orgId",
+            "profile",
+            "projectPath",
+            "scope",
+            "tags",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "array",
+            "keys": "array",
+            "tags": "array",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "command": "string",
+            "profile": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Positional arguments passed to `command`. Example: ['run', 'db:migrate']. Each element is passed verbatim with no extra shell parsing."
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Whitelist of exact key names to inject. Omit to inject every secret in scope (subject to `tags`)."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Inject only secrets carrying at least one of these tags. Combinable with `keys` as an AND filter."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "command": {
+                "type": "string",
+                "description": "Executable name or full command to run. Example: 'pnpm', 'node', '/usr/bin/env'. Must be allowed by exec policy."
+              },
+              "profile": {
+                "enum": [
+                  "unrestricted",
+                  "restricted",
+                  "ci"
+                ],
+                "type": "string",
+                "default": "restricted",
+                "description": "Exec sandbox profile. 'restricted' (default) denies network-tool binaries (curl, wget, ssh, scp, nc, netcat, ncat) AND common interpreters/shells (python, node, deno, bun, perl, ruby, php, sh, bash, zsh) — since those could otherwise egress the injected secrets — strips proxy env vars, and caps runtime at 30s. It still is NOT a real OS sandbox (it does not restrict PATH, and some allowed binary could in principle make network calls); for genuinely untrusted commands use OS-level isolation (containers, network namespaces). 'ci' allows network and interpreters with a 300s cap and blocks a few destructive commands; 'unrestricted' inherits the full server environment. Define a custom profile in .q-ring.json to allow specific interpreters with secrets."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2c96338d6c12353885ebfa2b2ab1765be174c611854433bf5faed93b59c43909"
+        },
+        {
+          "name": "export_audit",
+          "canonical_hash": "sha256:316782514d9a8ea4334f0d21633fba24741aa9ab27ad7850ed1bf618d04fbf6b",
+          "description": "[audit] Export the audit log as a portable text artifact suitable for archiving or feeding into another SIEM/analyzer. Use for compliance exports, after-the-fact investigations, or to hand the trail to a non-MCP consumer; prefer `audit_log` for an in-conversation tail and `verify_audit_chain` to confirm integrity before exporting. Read-only. Returns the rendered text directly (no JSON wrapper). 'jsonl' is one event per line; 'json' is a single array; 'csv' is a header row plus events. Time filters are applied to the event timestamps before formatting.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "since",
+            "until"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "since": "string",
+            "until": "string",
+            "format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "since": {
+                "type": "string",
+                "description": "Inclusive lower bound on event timestamp, ISO 8601. Example: '2026-04-01T00:00:00Z'. Omit for no lower bound."
+              },
+              "until": {
+                "type": "string",
+                "description": "Inclusive upper bound on event timestamp, ISO 8601. Omit for now/no upper bound."
+              },
+              "format": {
+                "enum": [
+                  "jsonl",
+                  "json",
+                  "csv"
+                ],
+                "type": "string",
+                "default": "jsonl",
+                "description": "Output format. 'jsonl' (default) is most stream-friendly; 'json' is a single array; 'csv' is spreadsheet-friendly."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2630b3186ea07351797133ffd5106163c11daebdb0c3c767a315288bf8387548"
+        },
+        {
+          "name": "export_secrets",
+          "canonical_hash": "sha256:812403fd6da073e3e7d99dab617b9b5e8c9ccaa21ae964f2d6c50c1073db53ae",
+          "description": "[secrets] Render multiple secrets as a single .env or JSON document for piping into another tool or file. Use to materialize secrets for a one-off export or copy; prefer `env_generate` when you want output driven by the project's `.q-ring.json` manifest, and `teleport_pack` for an encrypted bundle to share between machines. Reads values (collapses superposition for the requested env) and writes one 'export' event per included secret to the audit log. Returns the rendered text directly (no JSON wrapper). Returns an error if no secrets matched the filters. Values are surfaced in plaintext — handle with care.",
+          "is_mutating": false,
+          "property_keys": [
+            "env",
+            "format",
+            "keys",
+            "orgId",
+            "projectPath",
+            "scope",
+            "tags",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "env": "string",
+            "keys": "array",
+            "tags": "array",
+            "orgId": "string",
+            "scope": "string",
+            "format": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "env": {
+                "type": "string",
+                "description": "Environment slug used to collapse superposition when a secret has multiple per-env states. Examples: 'dev', 'staging', 'prod'. If omitted, the secret's defaultEnv is used."
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Whitelist of exact key names to include. If omitted, every key in scope is considered (subject to `tags`)."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Include only secrets tagged with at least one of these tags. Combined with `keys` as an AND filter when both are supplied."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "format": {
+                "enum": [
+                  "env",
+                  "json"
+                ],
+                "type": "string",
+                "default": "env",
+                "description": "'env' renders KEY=\"value\" lines suitable for a .env file; 'json' renders an object keyed by secret name. Defaults to 'env'."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0dda289c4cfdc8d11f9c7fba993ac3a5bde1601074eab31e7f3049cc5f664991"
+        },
+        {
+          "name": "generate_secret",
+          "canonical_hash": "sha256:92f900d8749ab7fd6ebbfffb02beafb9d06a106c7505641ad5ca15a02cff0e49",
+          "description": "[secrets] Generate a cryptographically random secret using Node's CSPRNG and optionally store it in the keyring in one step. Use to create new credentials that you control (signing keys, internal tokens, passwords); for issuer-issued credentials (Stripe/OpenAI etc.) use `rotate_secret` to ask the upstream provider for a fresh key, and use `set_secret` for values you already have in hand. If `saveAs` is provided this mutates the keyring (one 'write' event) and returns a summary like 'Generated and saved as \"KEY\" (FORMAT, ~N bits entropy)'. Without `saveAs` the call is read-only and returns JSON `{ ok, data: { value } }` containing the freshly generated string.",
+          "is_mutating": false,
+          "property_keys": [
+            "format",
+            "length",
+            "orgId",
+            "prefix",
+            "projectPath",
+            "saveAs",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orgId": "string",
+            "scope": "string",
+            "format": "string",
+            "length": "number",
+            "prefix": "string",
+            "saveAs": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "format": {
+                "enum": [
+                  "hex",
+                  "base64",
+                  "alphanumeric",
+                  "uuid",
+                  "api-key",
+                  "token",
+                  "password"
+                ],
+                "type": "string",
+                "default": "api-key",
+                "description": "Output shape. 'hex' / 'base64' / 'alphanumeric' = raw random string of `length` characters; 'uuid' = RFC4122 v4; 'api-key' / 'token' = random alphanumeric with optional `prefix`; 'password' = mixed-case alphanumeric with symbols. Defaults to 'api-key'."
+              },
+              "length": {
+                "type": "number",
+                "description": "Number of characters (or bytes for hex/base64) to generate. Ignored for 'uuid'. Defaults to a sensible per-format value (e.g. 32 for api-key)."
+              },
+              "prefix": {
+                "type": "string",
+                "description": "Literal prefix prepended to the random portion. Only meaningful for 'api-key' and 'token'. Example: 'sk-' or 'svc_'."
+              },
+              "saveAs": {
+                "type": "string",
+                "description": "If provided, store the generated value at this key name in the keyring (one mutation). Omit to just return the value without persisting."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:44075a00dad4c86aa69297e931f3d5f0b7305f8a764d676d8e2d7a36ab4d5996"
+        },
+        {
+          "name": "get_policy_summary",
+          "canonical_hash": "sha256:f89c34032c4bfebaeaa5519f25f8bef22954dfd0866828e9212a71bf01bd491c",
+          "description": "[policy] Return a high-level summary of the project's `.q-ring.json` governance policy — counts of allow/deny rules for tools, key reads, exec commands, plus approval and rotation requirements. Use to orient an agent (or the user) on what guardrails are active before attempting policy-restricted actions; prefer `check_policy` for a precise per-action verdict. Read-only. Returns pretty-printed JSON; missing policy file returns an empty/default summary rather than an error so callers can branch on the counts.",
+          "is_mutating": false,
+          "property_keys": [
+            "projectPath"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3e97aa5e7188a2a1ebe6590fbb6eba6eebbf62bd620731aff36da8a9cc68c442"
+        },
+        {
+          "name": "get_project_context",
+          "canonical_hash": "sha256:f06c90ea718c8db9a29660f68d5f84d1916a1e8d6c854a99ae0ee55243c101f7",
+          "description": "[agent] Return a single redacted snapshot of everything an AI agent typically wants to know about this project: secrets present (keys + metadata only), detected env, manifest declarations, configured providers, registered hooks, and recent audit activity. Use this as the very first call in a session to orient the agent before it asks for any individual secret; prefer `list_secrets` for a flat key listing, `check_project` for manifest-vs-keyring drift, and `audit_log` for a deeper access trail. Read-only and value-safe — no plaintext secret values are ever included. Returns a single pretty-printed JSON document; shape is intentionally broad and may grow over time, so read defensively.",
+          "is_mutating": false,
+          "property_keys": [
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:50f5022bfc46e5ae767659b5a42666b9b33e9847bf31a70499cd35727201968d"
+        },
+        {
+          "name": "get_secret",
+          "canonical_hash": "sha256:2eafb73c7c521377831cd303a11cd09396a5be24d5628d1d1aa46eafe9553f1b",
+          "description": "[secrets] Read the plaintext value of a single secret from the q-ring keyring. Use when an agent needs the actual credential to call an external API or inject into a runtime; prefer `inspect_secret` to see metadata only, `has_secret` for presence-only checks, and `exec_with_secrets` to run a command without exposing the value to chat. Side effects: collapses superposition (selects the per-env state) and writes a 'read' event to the audit log (observer effect). Subject to project tool/key policy and may be denied with a 'Policy Denied' message. Returns JSON `{ ok, data: { key, value } }` on success or an error message if missing/blocked.",
+          "is_mutating": false,
+          "property_keys": [
+            "env",
+            "key",
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "env": "string",
+            "key": "string",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "env": {
+                "type": "string",
+                "description": "Environment slug used to collapse superposition when a secret has multiple per-env states. Examples: 'dev', 'staging', 'prod'. If omitted, the secret's defaultEnv is used."
+              },
+              "key": {
+                "type": "string",
+                "description": "Exact secret key name as stored in the keyring (case-sensitive). Example: 'OPENAI_API_KEY'."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f7ff795e26085bf40774770643dd62aceb2712aad8a6c71f0f78ac6830f73a32"
+        },
+        {
+          "name": "has_secret",
+          "canonical_hash": "sha256:966f2d33e5d27ad824ec77a50865bf451e9ca418fabee21a36736c59feb7c1ed",
+          "description": "[secrets] Check whether a secret exists in the requested scope without reading the value. Use as a cheap precondition before reading or writing — for example, to skip prompting the user for a key that is already configured. Prefer `inspect_secret` when you also need metadata. Read-only; does not record a 'read' in the audit log. Decay-aware: returns 'false' for expired secrets even though the value is still in the store. Returns the literal text 'true' or 'false'.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Exact secret key name. Example: 'GITHUB_TOKEN'."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9702e41a1ca18164345ddac94414fd956935d1207b8beb33cd5899f15c6e90f7"
+        },
+        {
+          "name": "health_check",
+          "canonical_hash": "sha256:8892ce254e71d6ec6de756a7ad23b13d2cb73512da162106c4c3063b8eb7661b",
+          "description": "[health] Run a single read-only sweep over every secret in the requested scope and report counts of healthy/stale/expired secrets plus any current audit anomalies. Use as the default 'is everything OK?' command for an agent or operator; prefer `check_project` to validate manifest compliance specifically, `detect_anomalies` for audit-only triage, and `agent_scan` for multi-project JSON output or optional auto-rotation. Read-only — never writes. Returns a multi-line text summary: header counts (Total / Healthy / Stale / Expired / No decay / Anomalies), then per-secret `EXPIRED:` / `STALE:` issue lines, then per-anomaly `[type] description` lines.",
+          "is_mutating": false,
+          "property_keys": [
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5f9e945e6bde5f54b9b72905372dac3fef82b1fab93908ee47ece1bf236aad84"
+        },
+        {
+          "name": "import_dotenv",
+          "canonical_hash": "sha256:1e85b293ae2167e398c950ce09492eeef268fdfeded8c8646888f832037a7e8d",
+          "description": "[secrets] Parse standard dotenv-formatted text and store each key/value pair into the keyring in one batch. Use when migrating an existing `.env` file into q-ring or onboarding a new project; prefer `set_secret` for a single key, and `teleport_unpack` to import an encrypted bundle. Mutates the keyring (one write per parsed key) and emits a 'write' audit event for each. Supports comments, single/double quotes, and `\\n` escapes. Returns a multiline summary listing imported keys and any skipped (existing) keys; in dryRun mode no writes happen and the same summary is produced for review.",
+          "is_mutating": false,
+          "property_keys": [
+            "content",
+            "dryRun",
+            "projectPath",
+            "scope",
+            "skipExisting"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "scope": "string",
+            "dryRun": "boolean",
+            "content": "string",
+            "projectPath": "string",
+            "skipExisting": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "dryRun": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, parse and report what would happen but do not write to the keyring. Useful for previewing imports before committing."
+              },
+              "content": {
+                "type": "string",
+                "description": "Raw .env file content as a single string (newline-separated KEY=VALUE lines, comments allowed)."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              },
+              "skipExisting": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, leave already-present keys untouched and add them to the 'skipped' list instead of overwriting."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:66f0833843f4a194723bd2bc6e1d7a359285985291c75dbf260ec9cf930b2d32"
+        },
+        {
+          "name": "inspect_secret",
+          "canonical_hash": "sha256:0a6594cf26677678e62b9d8358b97841c54b0d1699b0e0f19031a991fb5bec1f",
+          "description": "[secrets] Show full metadata for a single secret — env states, decay window, entanglement links, access counters — without ever revealing the value. Use when you need to understand the shape of a key before reading it or to debug 'why is this expired/stale'; prefer `get_secret` for the actual value, `list_secrets` for a many-key overview, and `audit_log` for the full access timeline. Read-only; does not write a 'read' event since the value is not exposed. Returns pretty-printed JSON with fields: key, scope, type ('superposition'|'collapsed'), created, updated, accessCount, lastAccessed, environments, defaultEnv, decay { expired, stale, lifetimePercent, timeRemaining }, rotation { lastRotatedAt, ageDays, rotateEveryDays, dueAt, daysUntilDue, state: 'ok'|'due-soon'|'overdue'|'unscheduled' }, entangled, description, tags. Errors with not-found if the key is absent.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Exact secret key name to inspect. Example: 'OPENAI_API_KEY'."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d9b03291f8f78b18def4a35a113299a43665edd9103f1be09417fbb27f5c5922"
+        },
+        {
+          "name": "lint_files",
+          "canonical_hash": "sha256:5bdfecf9cc71e2c4d809ccfa822a89a8a884837867afda0dff36d463229b7d47",
+          "description": "[scan] Inspect a specific list of files for hardcoded secrets and, when `fix` is true, replace each finding with `process.env.KEY` while storing the extracted value into the keyring. Use to migrate a known set of files (e.g. just-changed files in a pre-commit hook) into q-ring; prefer `scan_codebase_for_secrets` for a whole-tree audit and `import_dotenv` to ingest an existing .env. With `fix: false` this is read-only. With `fix: true` this MUTATES the listed source files in place (review with git diff!) and writes one new secret per finding to the keyring. Returns a JSON array of `{ file, line, key, value, kind }` findings, or 'No hardcoded secrets found in the specified files.'.",
+          "is_mutating": false,
+          "property_keys": [
+            "files",
+            "fix",
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "fix": "boolean",
+            "files": "array",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fix": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, rewrite the source files to read `process.env.KEY` and store the extracted value in the keyring. If false (default), only report findings."
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Absolute or relative paths to lint. Non-existent paths surface as scan errors."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6b07d449db0845797864e494ab7c152f3ff2ee94973aabef3b233a48a25417a2"
+        },
+        {
+          "name": "list_hooks",
+          "canonical_hash": "sha256:ec3449d85fea90a8e0846fcc2f501f5cda821091b68987e8e99a20303c146807",
+          "description": "[hooks] Enumerate every registered lifecycle hook with its match criteria, delivery type, enabled flag, and description. Use to find a hook's `id` before calling `remove_hook`, audit what side effects are wired up, or diagnose why a hook did not fire. Read-only. Returns pretty-printed JSON array of hook entries, or 'No hooks registered' when the registry is empty.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f9269a05bae43e61a1ca5180d9d14260a2dfe72b40e7d4629e6b97b26dd17896"
+        },
+        {
+          "name": "list_providers",
+          "canonical_hash": "sha256:0f5f8addfd95f0ba6bc3b1240cc426fb5fd3a22c74ce5d742b9dd8c6d0a1ba8a",
+          "description": "[validation] Enumerate the secret-validation providers q-ring knows how to call (OpenAI, Stripe, GitHub, …) along with their auto-detect prefixes. Use to discover what `provider` string to pass to `validate_secret`/`rotate_secret`, or to check whether your custom provider is registered. Read-only. Returns JSON array of `{ name, description, prefixes }` objects. `prefixes` are the literal key-value prefixes (e.g. 'sk-' for OpenAI) used for auto-detection.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5eefc3f477b6322b0b917b52761213c40d6c4d6e5fa4456bb6c6e64f5d344830"
+        },
+        {
+          "name": "list_secrets",
+          "canonical_hash": "sha256:73c2a12bb474dbdc7587ae3bd4a3b1082d994e543396bc41275363a1c1ee07c7",
+          "description": "[secrets] List secret keys and quantum metadata in the requested scope, never the values. Use to discover what secrets exist before reading or writing; pair with `inspect_secret` for full metadata on one key, `analyze_secrets` for usage trends, or `health_check` for decay/anomaly summaries. Read-only; safe to call repeatedly. Returns JSON `{ ok, data: { entries: [...] } }` where each entry has scope, key, stateKeys (env names if superposed), expired, stale, lifetimePercent, timeRemaining, entangledCount, accessCount.",
+          "is_mutating": false,
+          "property_keys": [
+            "expired",
+            "filter",
+            "orgId",
+            "projectPath",
+            "scope",
+            "stale",
+            "tag",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tag": "string",
+            "orgId": "string",
+            "scope": "string",
+            "stale": "boolean",
+            "filter": "string",
+            "teamId": "string",
+            "expired": "boolean",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tag": {
+                "type": "string",
+                "description": "Return only secrets that include this exact tag (case-sensitive). Example: 'production'."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "stale": {
+                "type": "boolean",
+                "description": "If true, return only secrets in the stale window (lifetimePercent >= 75 and not yet expired)."
+              },
+              "filter": {
+                "type": "string",
+                "description": "Glob pattern matched against the key name. Supports `*` and `?`. Examples: 'API_*', 'STRIPE_?_KEY'."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "expired": {
+                "type": "boolean",
+                "description": "If true, return only secrets whose decay TTL has elapsed (lifetimePercent >= 100)."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f03ba19164f806372f633367e565084e54c69f8b884d24acfd0151713a29f0fb"
+        },
+        {
+          "name": "promote_secret",
+          "canonical_hash": "sha256:5a2c6055ec3a2552287cbf9412e0e21e0ca1b4b9f3cdebbdb6558375b85327d6",
+          "description": "[secrets] Copy one secret's value from a source environment to a target environment (superposition states), e.g. staging → prod, without the value ever leaving the keyring. Use when an environment must match another for a single key; use `diff_environments` first to see what differs. Refuses to overwrite a differing target unless `force` is true; a target that already matches is a no-op. Mutates the keyring (one 'write' audit event, hooks fire) only when the target changes. Returns { key, scope, from, to, previous: 'absent'|'same'|'different', changed }. Never returns the value.",
+          "is_mutating": false,
+          "property_keys": [
+            "force",
+            "from",
+            "key",
+            "orgId",
+            "projectPath",
+            "scope",
+            "teamId",
+            "to"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "to": "string",
+            "key": "string",
+            "from": "string",
+            "force": "boolean",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to": {
+                "type": "string",
+                "description": "Target environment state. Example: 'prod'."
+              },
+              "key": {
+                "type": "string",
+                "description": "Secret key name. Example: 'DATABASE_URL'."
+              },
+              "from": {
+                "type": "string",
+                "description": "Source environment state. Example: 'staging'."
+              },
+              "force": {
+                "type": "boolean",
+                "default": false,
+                "description": "Overwrite a differing target value. Default false → the call fails with ERR_PROMOTE_CONFLICT instead."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7112e0433219e60290580bc96dbc06b3cd0bb4284eab97052649a944340c2f18"
+        },
+        {
+          "name": "register_hook",
+          "canonical_hash": "sha256:d69e8a7facf8643e93d63f3ac9936fa974f649c3fafc835c957263a0991ee552",
+          "description": "[hooks] Register a side-effect (shell command, HTTP webhook, or process signal) that fires automatically when a matching secret is written, deleted, or rotated. Use to keep external systems in sync (restart a service after rotation, post to Slack on delete, kick a build); prefer `agent_remember` for storing facts an agent should recall later, and `register_hook` is not the right tool for time-based scheduled rotation (use `agent_scan` for that). Mutates the hook registry on disk. At least one match criterion (`key`, `keyPattern`, or `tag`) is required — calls without any return an error. Returns JSON of the registered hook entry including its assigned `id` (use that `id` with `remove_hook`).",
+          "is_mutating": false,
+          "property_keys": [
+            "actions",
+            "command",
+            "description",
+            "key",
+            "keyPattern",
+            "scope",
+            "signalName",
+            "signalTarget",
+            "tag",
+            "type",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "tag": "string",
+            "url": "string",
+            "type": "string",
+            "scope": "string",
+            "actions": "array",
+            "command": "string",
+            "keyPattern": "string",
+            "signalName": "string",
+            "description": "string",
+            "signalTarget": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Trigger only on this exact key name. Pick at most one of `key` / `keyPattern` / `tag` (or combine for stricter matching)."
+              },
+              "tag": {
+                "type": "string",
+                "description": "Trigger on any secret carrying this exact tag. Combinable with key/keyPattern as an AND filter."
+              },
+              "url": {
+                "type": "string",
+                "description": "Required when type='http'. Full URL to POST a JSON body `{ id, key, scope, action, timestamp }` to (the value itself is never sent)."
+              },
+              "type": {
+                "enum": [
+                  "shell",
+                  "http",
+                  "signal"
+                ],
+                "type": "string",
+                "description": "Hook delivery mechanism. 'shell' runs a local command, 'http' POSTs JSON to a URL, 'signal' sends an OS signal to a named process."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project"
+                ],
+                "type": "string",
+                "description": "Restrict the hook to secrets in this scope. Omit to fire across both global and project secrets."
+              },
+              "actions": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "write",
+                    "delete",
+                    "rotate"
+                  ],
+                  "type": "string"
+                },
+                "default": [
+                  "write",
+                  "delete",
+                  "rotate"
+                ],
+                "description": "Which lifecycle actions trigger this hook. Defaults to all three."
+              },
+              "command": {
+                "type": "string",
+                "description": "Required when type='shell'. The literal shell command to run; q-ring exposes the matching key as $QRING_HOOK_KEY and action as $QRING_HOOK_ACTION."
+              },
+              "keyPattern": {
+                "type": "string",
+                "description": "Trigger on any key matching this glob pattern. Examples: 'DB_*', 'STRIPE_*'."
+              },
+              "signalName": {
+                "type": "string",
+                "default": "SIGHUP",
+                "description": "Signal name to send (e.g. 'SIGHUP', 'SIGUSR1'). Defaults to SIGHUP, which most daemons treat as 'reload config'."
+              },
+              "description": {
+                "type": "string",
+                "description": "Free-text human-readable description, surfaced by `list_hooks` and the dashboard."
+              },
+              "signalTarget": {
+                "type": "string",
+                "description": "Required when type='signal'. Either a numeric PID or a process name resolvable via `ps`."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:71a79d1f8c228eebc202ae9aadd1f848c30c64e38f8cd5e96c670c891fa74f8a"
+        },
+        {
+          "name": "remove_hook",
+          "canonical_hash": "sha256:dc8c434103f310c8cc3532e94223174153a06388df31210fb2569f7875513545",
+          "description": "[hooks] Detach a single lifecycle hook by its registry id so it stops firing. Use to retire a specific webhook/command without touching any secrets; prefer `delete_secret` to remove a credential and `tunnel_destroy` for ephemeral tunnels. Mutates the hook registry only — does not touch secret values, audit log, or env states. Idempotent in spirit: removing an already-absent id returns a not-found error rather than partial work. Returns 'Removed hook ID' on success.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Hook id returned by `register_hook` or visible in `list_hooks` (opaque string)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:90b34436ea5dfc4d33a2edf2cb79d8d97fdd1b2ce23baadb33faa45c779a1148"
+        },
+        {
+          "name": "rotate_secret",
+          "canonical_hash": "sha256:d2ba2d0ef853b66b6b7720efacb8ed84842f106c5c4182796a5e57a7e8be3ea6",
+          "description": "[validation] Ask the upstream provider to issue a fresh credential for this secret and store the new value back into the keyring. Use when a secret is expiring, leaked, or part of a scheduled rotation; prefer `generate_secret` for self-managed values you fully control, and `agent_scan --autoRotate` for sweep-style rotation across multiple expired keys. Mutates the keyring with the newly-issued value if rotation succeeds (one 'write' audit event), and makes outbound network requests against the provider's rotation API. Returns JSON `{ rotated, newValue?, message?, ... }`. If `rotated` is false, the existing value is left untouched.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "orgId",
+            "projectPath",
+            "provider",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "provider": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Exact key to rotate. Must already exist in the keyring."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "provider": {
+                "type": "string",
+                "description": "Force a specific provider id (see `list_providers`). Omit to auto-detect from the current value or the secret's stored provider hint."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e811d06fc55a524950c95d7caf9d9436be84d3d8d718220c8d27597d98c760e3"
+        },
+        {
+          "name": "scan_codebase_for_secrets",
+          "canonical_hash": "sha256:d60960518e5093b57ae6df98bce80c2d72a37a9f38b5fe94f23479ffd17662d4",
+          "description": "[scan] Walk a directory tree and flag plausible hardcoded secrets using regex heuristics plus Shannon-entropy scoring on string literals. Use as a one-shot 'is anything leaking in this repo?' audit before commit/release; prefer `lint_files` when you already know the specific files to check (and want optional auto-fix). Read-only — never modifies source files. Honors `.gitignore`. Returns JSON array of `{ file, line, key, value, kind }` findings, or 'No hardcoded secrets found in the specified directory.' when clean. False positives are possible — review before treating as ground truth.",
+          "is_mutating": false,
+          "property_keys": [
+            "dirPath"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dirPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dirPath": {
+                "type": "string",
+                "description": "Directory to scan, absolute or relative to the server cwd. The scan recurses into subdirectories."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c36551890ab884d8ca3451afcdb5f9138e01b03db2e5b58fa1ff62b007c85dc0"
+        },
+        {
+          "name": "set_secret",
+          "canonical_hash": "sha256:f03fefbace33139d559960b736e192827a742ca12ca3fd5efa769215b996be29",
+          "description": "[secrets] Create or overwrite a single secret value, optionally with TTL/decay, per-env superposition, description, tags, and rotation hints. Use to add or update one key at a time; prefer `import_dotenv` for bulk .env ingest, `generate_secret` (with saveAs) to generate-and-store in one step, and `entangle_secrets` instead of duplicating the same value under two keys. Mutates the keyring (overwrites any existing value at the same key/scope), writes a 'write' event to the audit log, and triggers any matching hooks. Subject to tool policy. Returns a short confirmation text like '[scope] KEY saved' (or '[scope] KEY set for env:NAME' when `env` is provided).",
+          "is_mutating": false,
+          "property_keys": [
+            "description",
+            "env",
+            "key",
+            "orgId",
+            "projectPath",
+            "rotateEveryDays",
+            "rotationFormat",
+            "rotationPrefix",
+            "scope",
+            "tags",
+            "teamId",
+            "ttlSeconds",
+            "value"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "env": "string",
+            "key": "string",
+            "tags": "array",
+            "orgId": "string",
+            "scope": "string",
+            "value": "string",
+            "teamId": "string",
+            "ttlSeconds": "number",
+            "description": "string",
+            "projectPath": "string",
+            "rotationFormat": "string",
+            "rotationPrefix": "string",
+            "rotateEveryDays": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "env": {
+                "type": "string",
+                "description": "If set, writes this value to the named per-env state (superposition) instead of the default slot. Existing default value is preserved as state 'default'. Example: 'prod'."
+              },
+              "key": {
+                "type": "string",
+                "description": "Secret key name (UPPER_SNAKE_CASE recommended). Example: 'STRIPE_SECRET_KEY'."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Tag list for filtering and hook matching. Example: ['production', 'payments']."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "value": {
+                "type": "string",
+                "description": "The secret value to store. Stored as-is; never logged or echoed. May be empty only when `env` is provided to register a new env without a default."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "ttlSeconds": {
+                "type": "number",
+                "description": "Quantum decay window in seconds. After this many seconds the secret is marked expired (still readable, but `has_secret` returns false and `health_check` flags it). Omit for no decay."
+              },
+              "description": {
+                "type": "string",
+                "description": "Free-text human-readable description shown in `inspect_secret` and the dashboard."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              },
+              "rotationFormat": {
+                "enum": [
+                  "hex",
+                  "base64",
+                  "alphanumeric",
+                  "uuid",
+                  "api-key",
+                  "token",
+                  "password"
+                ],
+                "type": "string",
+                "description": "Format used by `agent_scan --autoRotate` and `rotate_secret` when this secret expires. Pick the format that matches the upstream service's accepted shape."
+              },
+              "rotationPrefix": {
+                "type": "string",
+                "description": "Literal prefix prepended on auto-rotation (only used with rotationFormat 'api-key' or 'token'). Example: 'sk-'."
+              },
+              "rotateEveryDays": {
+                "type": "integer",
+                "maximum": 3650,
+                "minimum": 1,
+                "description": "Rotation reminder interval in days (1-3650). `inspect_secret` then reports rotation state ok / due-soon / overdue, and the dashboard and `qring rotate:due` surface it. Purely a reminder — nothing rotates automatically. Omit to keep the existing interval."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:51d2ea3bd4023932f376025add1d9b2ec03e71101dc55a03238173604ad5e801"
+        },
+        {
+          "name": "status_dashboard",
+          "canonical_hash": "sha256:1adc30ca6d74ee08f26474d9b0aeda14bc1277d1913341b78d9c44699ab92254",
+          "description": "[dashboard] Start a local web dashboard (`http://127.0.0.1:PORT`) that streams live KPIs, secret tables, manifest gaps, hooks, audit events, and anomalies via Server-Sent Events. Use when an operator (or an agent on behalf of one) wants a richer visual surface than chat output; prefer `health_check` / `analyze_secrets` for one-shot text summaries inside the conversation. Side effect: binds an HTTP server on the requested port (one process-wide instance — re-running returns the existing URL instead of starting a second server). Never exposes secret values. Returns the URL string to open in a browser.",
+          "is_mutating": false,
+          "property_keys": [
+            "port"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "port": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "port": {
+                "type": "number",
+                "default": 9876,
+                "description": "TCP port to listen on (default 9876). Pick another port if 9876 is already in use; the call fails if binding errors."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:132bc0f979a22702ac4d2a133d02d5263ae0886b14bc03c02bfdab2d3a72e16b"
+        },
+        {
+          "name": "teleport_pack",
+          "canonical_hash": "sha256:2792b7a6a76844fc66ae3c4f76b7c42c6dca2405a4df418aa9cada118959f50c",
+          "description": "[teleport] Encrypt one or more secrets into a single AES-256-GCM bundle string that can be safely transferred between machines. Use to hand off a curated set of credentials to another developer or environment; prefer `export_secrets` for plaintext .env output (single machine, trusted) and `tunnel_create` for ephemeral one-shot delivery on the same machine. Two modes, exactly one required: `passphrase` (v1, symmetric — receiver needs the same string) or `recipients` (v2, public-key — each receiver's `qring1...` string from `qring teleport identity`; no shared secret, only the listed identities can open it). Reads each secret value (records 'export' audit events) and produces a base64-encoded ciphertext. Returns the bundle string directly. Errors with 'No secrets to pack' if the filter matched zero secrets.",
+          "is_mutating": false,
+          "property_keys": [
+            "keys",
+            "orgId",
+            "passphrase",
+            "projectPath",
+            "recipients",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "keys": "array",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "passphrase": "string",
+            "recipients": "array",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Whitelist of exact key names to include. Omit to pack every secret in the requested scope."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "passphrase": {
+                "type": "string",
+                "description": "Symmetric passphrase used to derive the AES-256-GCM key (v1 bundle). The receiver must supply the same string to `teleport_unpack`. Pick something high-entropy and share it out-of-band. Mutually exclusive with `recipients`."
+              },
+              "recipients": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Recipient public keys (`qring1...` strings, one per teammate) for a v2 recipient pack. The bundle can only be opened by the matching private keys, which each receiver created with `qring teleport keygen`. Mutually exclusive with `passphrase`."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7e6e81915027d9631d758cf3df90ea66e0fa4f8fdfc9f50a455c6fb88bc2e001"
+        },
+        {
+          "name": "teleport_unpack",
+          "canonical_hash": "sha256:1e3a5150861357ddf1334654e3c4de88c97f1540f4457d720067faed0e743c14",
+          "description": "[teleport] Decrypt a bundle produced by `teleport_pack` and import each contained secret into the local keyring. Use on the receiving machine after a packer hands you the bundle; prefer `dryRun=true` first to preview what will be written. Passphrase (v1) bundles need `passphrase`. Recipient (v2) bundles need no input: this machine's teleport identity is read from the OS keyring (create one with `qring teleport keygen`; the private key is never returned). When dryRun is false this mutates the keyring (one 'write' event per imported secret) at the requested scope. Bad passphrase, missing identity, not-a-recipient or tampered bundle returns JSON `{ ok: false, error: { message } }` with `isError: true`. On success returns 'Imported N secret(s) from teleport bundle'; in dryRun mode returns 'Would import N secrets:' followed by a `KEY [scope]` listing (v2 also lists the recipient ids the bundle is addressed to).",
+          "is_mutating": false,
+          "property_keys": [
+            "bundle",
+            "dryRun",
+            "orgId",
+            "passphrase",
+            "projectPath",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orgId": "string",
+            "scope": "string",
+            "bundle": "string",
+            "dryRun": "boolean",
+            "teamId": "string",
+            "passphrase": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "default": "global",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "bundle": {
+                "type": "string",
+                "description": "Base64-encoded ciphertext returned by `teleport_pack`. Pass through whitespace untouched if possible."
+              },
+              "dryRun": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, decrypt and report what would be written but do not mutate the keyring. Useful for verifying bundle contents before commit."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "passphrase": {
+                "type": "string",
+                "description": "The passphrase used to pack a v1 bundle. Omit for v2 recipient bundles (decrypted with this machine's keyring identity). Bad passphrases return an authentication error rather than wrong plaintext."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:14e16e17d6ddc28a2fbc7dd9997452e9eda5d066834e44bfbcf404d5ee4cd9bc"
+        },
+        {
+          "name": "tunnel_create",
+          "canonical_hash": "sha256:827da68ecc79aa9e8b967c9b8521e7ee354a53aa4059facb8851d500e3fe8ad8",
+          "description": "[tunnel] Stash a one-shot or short-lived secret in the q-ring server's process memory and return an ID that can be used to read it back. Use for handing a one-time value to another tool/process without persisting it (npm OTP codes, magic-link tokens, copy/paste between machines via a relay); prefer `set_secret` with `ttlSeconds` when you actually want a tracked, auditable secret. Mutates only in-memory state — the value never touches disk and is lost on server restart. Subject to tool policy. Returns JSON `{ ok, data: { id } }` where `id` is an opaque string to pass to `tunnel_read`/`tunnel_destroy`.",
+          "is_mutating": false,
+          "property_keys": [
+            "maxReads",
+            "ttlSeconds",
+            "value"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "value": "string",
+            "maxReads": "number",
+            "ttlSeconds": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "The plaintext value to tunnel. Held only in process memory; never logged."
+              },
+              "maxReads": {
+                "type": "number",
+                "description": "Self-destruct after this many successful `tunnel_read` calls. Use 1 for true one-shot delivery."
+              },
+              "ttlSeconds": {
+                "type": "number",
+                "description": "Auto-destroy the tunnel after this many seconds. Omit for no time limit (then a `maxReads` is highly recommended)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:84aa08f98d518dff1f868a2caf484b5e591a07befa472e4e331e2b02c2303ed4"
+        },
+        {
+          "name": "tunnel_destroy",
+          "canonical_hash": "sha256:55c4cecf63d69c96dba3fb2d5ab427d33257962d7b85c75204fb263a1404e883",
+          "description": "[tunnel] Immediately remove a tunnel from memory, regardless of remaining reads or TTL. Use when a tunneled value should be cancelled before delivery (e.g. wrong recipient, secret already rotated); prefer letting `maxReads`/TTL handle cleanup for normal flows. Mutates in-memory state only. Returns 'Destroyed ID' on success or a not-found error if the ID is unknown or already gone.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The opaque tunnel ID to destroy."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8b24f383b748daa5ae7305e12fa5a3715956551fa9a51d24f892ddb173205951"
+        },
+        {
+          "name": "tunnel_list",
+          "canonical_hash": "sha256:06e74a1dc1ff207dd20191bbc448889599c4f399c46f1612ff55b6d66d0e683f",
+          "description": "[tunnel] Enumerate all currently-active tunnels in the q-ring server with their remaining read budget and time-to-live. Use to audit what is still in memory or to look up an ID you forgot; values are never included in the output. Read-only. Returns one line per tunnel formatted as `id | reads:N | max:N | expires:Ns`, or the literal text 'No active tunnels' when the list is empty.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ebc572fe8f3d228618ea73841eba133730cbcc809c57e878e11017277ee2dd36"
+        },
+        {
+          "name": "tunnel_read",
+          "canonical_hash": "sha256:7ac8bbc1f8568f6874ad4be3e0a84ec2bed1e532ccb8e740f8f0e6979014ff6e",
+          "description": "[tunnel] Fetch the value stashed by a prior `tunnel_create` call by its ID. Use exactly once per intended consumer; the value is destructive-by-design and may self-delete after this call. Increments the read counter and may auto-destroy the tunnel if `maxReads` was set. Returns JSON `{ ok, data: { id, value } }` on success, or an error 'Tunnel \"...\" not found or expired' if the tunnel has been destroyed, hit its TTL, or never existed.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The opaque tunnel ID returned by `tunnel_create`. Case-sensitive."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3c823a59f0e9790c0605c48d38e6b6676bba731bc05c961d13d7c03e52a5531f"
+        },
+        {
+          "name": "validate_secret",
+          "canonical_hash": "sha256:2bad57dada5a81aad153455cb84ffb5170b1b7ed4a160d51437502d733746d7b",
+          "description": "[validation] Test whether a stored secret is still accepted by its upstream service (OpenAI, Stripe, GitHub, AWS, generic HTTP, etc.) by making a minimal authenticated request. Use to confirm liveness before relying on a credential or as the verification step after `rotate_secret`; prefer `ci_validate_secrets` for a batch run across every key in scope. Side effects: makes one outbound network request per call (may incur tiny provider-side rate-limit cost). Records 'read' for the underlying secret value in the audit log; the value itself is never logged. Returns JSON `{ valid, provider, status?, message?, rateLimit?, ... }` (provider-specific shape).",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "orgId",
+            "projectPath",
+            "provider",
+            "scope",
+            "teamId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "key": "string",
+            "orgId": "string",
+            "scope": "string",
+            "teamId": "string",
+            "provider": "string",
+            "projectPath": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "The exact key whose value should be tested upstream. Example: 'OPENAI_API_KEY'."
+              },
+              "orgId": {
+                "type": "string",
+                "description": "Organization identifier for org-scoped secrets. Required only when scope='org'. Example: 'acme-corp'."
+              },
+              "scope": {
+                "enum": [
+                  "global",
+                  "project",
+                  "team",
+                  "org"
+                ],
+                "type": "string",
+                "description": "Where the secret lives. 'global' = user keyring (default if omitted on reads), 'project' = scoped to projectPath, 'team' = team-shared (needs teamId), 'org' = org-shared (needs orgId)."
+              },
+              "teamId": {
+                "type": "string",
+                "description": "Team identifier for team-scoped secrets. Required only when scope='team'. Example: 'acme-platform'."
+              },
+              "provider": {
+                "type": "string",
+                "description": "Force a specific provider id. Built-ins include 'openai', 'stripe', 'github', 'aws', 'http'. Omit to auto-detect from the value's prefix or the secret's stored provider hint."
+              },
+              "projectPath": {
+                "type": "string",
+                "description": "Absolute path to the project root for project-scoped secrets and policy resolution. Defaults to the MCP server's current working directory when omitted."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:666f1e3f570ee901c2ede102e9644492fec574a398bb7bbb07168f7496ab041d"
+        },
+        {
+          "name": "verify_audit_chain",
+          "canonical_hash": "sha256:d439e59916b33a18614d9f6d1a0ac22abe2f373f5cebbdc70d951b58b74cf8d8",
+          "description": "[audit] Recompute the SHA-256 hash chain over the audit log and confirm no event has been mutated, deleted, or reordered. Use periodically as a tamper-evidence check, or whenever you suspect the audit log has been touched outside q-ring; the result is informational — this tool does not repair the chain if it is broken. Read-only. Returns JSON `{ ok, valid, brokenAt? }` where `valid` is `true` for an intact chain and `brokenAt` (when present) names the first event whose hash did not match.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ecaf686b2b71a14e30955c1de6e7c59dc2034b84667c22833da9adba4bc5f0a2"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

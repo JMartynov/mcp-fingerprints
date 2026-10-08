@@ -4,20 +4,19 @@
   "purl": "pkg:npm/@blazingcdn%2Fmcp",
   "ecosystem": "npm",
   "display_name": "@blazingcdn/mcp",
-  "description": "",
-  "repository_url": null,
+  "description": "Official BlazingCDN MCP server — manage Anycast CDN resources, cache purge and warmup, traffic metrics, custom domains, cloud storage, the Video CDN and on-the-fly image processing from AI agents. Read-only by default; changes and deletions are opt-in.",
+  "repository_url": "https://smithery.ai/servers/@blazingcdn/mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "@blazingcdn/mcp"
+    "@blazingcdn/mcp",
+    "blazingcdn/mcp"
   ],
   "sources_merged": [
-    "npm_registry"
+    "smithery"
   ],
-  "dist_tags": {
-    "latest": "0.1.6"
-  },
+  "dist_tags": {},
   "versions": [
     {
       "version": "0.1.0",
@@ -142,6 +141,1981 @@
         "resources": false
       },
       "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:2cc89693197bcc659fef0df9c2041a272372148bbf23fb58fe93ca7500f17b78",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "8771fae8-b7a3-4591-ba16-dec2b5634124/8a406f9f-6254-4acb-97f7-9b1e7d12be19/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "api_token"
+            ],
+            "properties": {
+              "api_token": {
+                "type": "string",
+                "title": "BlazingCDN API token",
+                "x-order": 0,
+                "description": "In the BlazingCDN panel open API (client.blazingcdn.com/api), create new API credentials and paste the token here"
+              },
+              "allow_write": {
+                "type": "boolean",
+                "title": "Allow changes",
+                "default": false,
+                "x-order": 1,
+                "description": "Let Claude create and change CDN settings: turn on image processing, adjust caching, add domains. Leave unchecked for read-only access (settings, statistics and cache purge still work)"
+              },
+              "allow_delete": {
+                "type": "boolean",
+                "title": "Allow deleting",
+                "default": false,
+                "x-order": 2,
+                "description": "Let Claude delete custom domains and Video CDN resources. CDN resources, storage buckets and your account can never be deleted through this extension"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "tool_signatures": [
+        {
+          "name": "add_custom_domain",
+          "canonical_hash": "sha256:514ae860e57dbce954d9f8f6162dc5696b1d021ada32f89ed824366290a7d538",
+          "description": "Attach one or more custom domains to an aCDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "names",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "names": "array",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Domain names to add, e.g. ['cdn.example.com']"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:97cd48b34a98def690da16af342a2a1e3d9c80055449f29f4227de5330140b37"
+        },
+        {
+          "name": "bulk_update_cdn_resources",
+          "canonical_hash": "sha256:bebe7a055d0dcbadbfebadbe6f52117074c14623aa7ec584e0a10b811b47ab2e",
+          "description": "Apply the same settings to several Anycast CDN resources (pull zones) at once.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_ids",
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "settings": "object",
+            "resource_ids": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {},
+                "description": "aCDN resource settings to change. Common keys: name, origin_url, source ('origin'|'storage'), proxy_cache (the 'Use CDN cache' master toggle) + proxy_buffering, active_ttl, use_active_ttl, browser_active_ttl, use_browser_active_ttl, inactive_ttl, default_ttl (TTL for HTTP codes not listed in custom_ttls), custom_ttls (object mapping HTTP code to TTL seconds as INTEGERS, e.g. {\"200\": 172800}), cache_min_uses, honor_response_ttl_headers, edge_compression, compression_methods (comma-separated 'gzip,br'; zstd may be unavailable), origin_shield_enabled, origin_shield_type ('auto'|'custom'), shield_retest, shield_change_notify, redirect_to_https, http2, cors, hsts (NUMBER: max-age seconds, e.g. 31536000), ssl, shared_ssl, hotlink_protection + hotlink_protection_type ('allow'|'block'): in allow mode set hotlink_domains (newline-separated; becomes the allowed list), in block mode set hotlink_blocked_domains + deny_blocked_referrers=true (hotlink_domains feeds the ALLOWED list even in block mode); related fields: hotlink_allowed_domains, deny_none_referrers, country_protection_enabled + country_protection_type ('allow'|'block') + country_protection_list (ISO 3166 codes, e.g. ['BY','CN']), ip_protection_enabled + ip_protection_type ('allow'|'block') + ip_protection_list (IP addresses) (IMPORTANT: country/hotlink protection changes can take several HOURS to reach edge enforcement, unlike other settings (~10 min) — verify with a real test request before reporting them active), securelink_enabled (must be set together with securelink_arg and securelink_value) + securelink_expiration/securelink_expiration_arg/securelink_addr, truncate_url_params, truncate_url_params_ext (only when truncate_url_params is false), allow_proxy_extensions + proxy_extensions (newline-separated with dots, e.g. '.mp4\\n.zip'), resolve_origin_ips, origin_ips, origin_ips_v6, speed_test_fastest_ip + speed_test_path (origin IP prioritization by speed test), preferred_origin_ip_version ('v4'|'v6'), ipv6_enabled (serve over IPv6), origin_sni_enabled, if_modified_since ('off'|'exact'|'before'), folder_name, bucket_id, external_storage_id. Streaming: hls_support_enabled, hls_chunk_type ('common'|'specific'), hls_chunk_ext (ARRAY, e.g. ['.ts']), per-playlist and per-chunk TTL/cache keys (hls_playlist_active_ttl + hls_playlist_use_active_ttl, hls_chunk_active_ttl + hls_chunk_use_active_ttl, plus _browser_active_ttl/_custom_ttls/_default_ttl/_cache_min_uses/_proxy_cache families for both), and the mpeg_dash_* equivalents (mpeg_dash_support_enabled, mpeg_dash_chunk_ext accepts ONLY ['.mp4'] — '.m4s' is rejected, though .m4s segments still proxy as regular files). For live streams set playlist TTL to 1-2s and chunk TTL to minutes. Image processing (on-the-fly resize/crop at the edge — the same switch as Locations → Image processing in the panel; works in the default basic Locations Mode, no custom locations needed): image_processing_enabled + image_processing_extensions (ARRAY with dots, e.g. ['.jpg','.png']; must not overlap truncate_url_params_ext; its TTLs must be 2-365 days — pass auto_resolve=true to let the API fix bounds) plus its own cache family (image_processing_active_ttl/_browser_active_ttl/_custom_ttls/_default_ttl/_cache_min_uses/_proxy_cache/_proxy_buffering/_honor_response_ttl_headers). While it is on, CDN cache and origin shield cannot be switched off. location_mode ('basic'|'extended'): basic = locations are generated from the proxy/truncation settings; extended = full control over custom locations (required by update_cdn_locations). Switching back to basic resets all custom locations — confirm with the user before changing it. The live API accepts and returns more fields than the OpenAPI spec documents (e.g. dnssec, restricted_countries) — call get_cdn_resource to see everything (~147 fields); unknown keys pass through unchanged. Zone creation and every settings change can take up to ~10 minutes to reach the edge (DNS of a new zone included) — re-test before assuming a change failed.",
+                "additionalProperties": true
+              },
+              "resource_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "minItems": 1,
+                "description": "List of aCDN resource IDs"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d2e707a7c5d4cf117a7ca77842974d5686bce2e98acab53a3b42eae11499ddde"
+        },
+        {
+          "name": "create_bucket",
+          "canonical_hash": "sha256:25daf519972f20a5b63f46ab2d6d03584f893aa80a37a333bd65958ecae37293",
+          "description": "Create a new cloud storage bucket. Defaults to type 'cdn', which is REQUIRED for a bucket that will serve as a pull-zone origin (the API's own default, 'private', cannot be attached to a CDN resource). Pass type 'private' only for storage that is never served by the CDN.",
+          "is_mutating": false,
+          "property_keys": [
+            "name",
+            "protocol",
+            "type",
+            "web_index"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "type": "string",
+            "protocol": "string",
+            "web_index": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Bucket name"
+              },
+              "type": {
+                "enum": [
+                  "private",
+                  "segments",
+                  "cdn"
+                ],
+                "type": "string",
+                "description": "Bucket content type — default 'cdn' (usable as CDN origin); 'private' for non-served storage"
+              },
+              "protocol": {
+                "enum": [
+                  "swift",
+                  "s3"
+                ],
+                "type": "string",
+                "description": "Access protocol: 'swift' (API default) or 's3' for an S3-compatible bucket. Undocumented in the OpenAPI spec but honoured by the live API; the created bucket's 'protocol' field confirms it. Immutable after creation — choose it up front."
+              },
+              "web_index": {
+                "type": "string",
+                "description": "Path to the bucket index file"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6ca66aa24a3c67f8e904d03baad3f841105b8409802314797c63e247f764a307"
+        },
+        {
+          "name": "create_cdn_resource",
+          "canonical_hash": "sha256:7deffd20999ff9f3fb4035c1bec77c04ef0555003ac3def3cc3fa968a8c7acac",
+          "description": "Create a new Anycast CDN resource (pull zone). Requires name, source and origin_url. Optionally attach a cloud storage bucket or external storage as the origin, and create a custom domain in one call. Provisioning: a new zone typically becomes fully live (DNS + serving) in ~10-11 minutes (sometimes 2-6, rarely hours) — poll the zone's cdn_domain rather than assuming failure. If a zone is still not serving after ~20 minutes, treat it as stuck: create a replacement zone with a new name and use that one instead (this server cannot delete zones — ask the user to remove the stuck zone in the panel and mention it to support). When creating SEVERAL zones, create them SEQUENTIALLY — wait until each zone serves before creating the next; parallel batches queue up and push individual zones to 30-45+ minutes.",
+          "is_mutating": false,
+          "property_keys": [
+            "bucket_id",
+            "domain",
+            "external_storage_alias",
+            "external_storage_id",
+            "folder_name",
+            "name",
+            "origin_url",
+            "source",
+            "system_dns_zone_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "domain": "string",
+            "source": "string",
+            "origin_url": "string",
+            "folder_name": "string",
+            "external_storage_id": "string",
+            "external_storage_alias": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Pull zone name"
+              },
+              "domain": {
+                "type": "string",
+                "description": "Custom domain to create for the resource"
+              },
+              "source": {
+                "enum": [
+                  "origin",
+                  "storage"
+                ],
+                "type": "string",
+                "description": "Source type"
+              },
+              "bucket_id": {
+                "$ref": "#/properties/external_storage_id",
+                "description": "Cloud storage bucket ID to use as origin (the bucket must have type 'cdn')"
+              },
+              "origin_url": {
+                "type": "string",
+                "description": "URL of the origin server"
+              },
+              "folder_name": {
+                "type": "string",
+                "description": "Bucket folder to serve from (bucket origins only)"
+              },
+              "system_dns_zone_id": {
+                "$ref": "#/properties/external_storage_id",
+                "description": "System DNS zone ID for the CDN domain"
+              },
+              "external_storage_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "External storage ID to use as origin"
+              },
+              "external_storage_alias": {
+                "type": "string",
+                "description": "External storage alias"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5d40284d216d646ea87cf6afff8d3ab69b21410cc562f99221366395197a8323"
+        },
+        {
+          "name": "create_external_storage",
+          "canonical_hash": "sha256:08cae5567eb5c38cc177cc00ba1599f1e8cc435480944effa6253575b7936b0d",
+          "description": "Connect an external S3-compatible storage to use as a CDN origin.",
+          "is_mutating": false,
+          "property_keys": [
+            "access_key_id",
+            "alias",
+            "bucket",
+            "host",
+            "port",
+            "region",
+            "secret_access_key"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "host": "string",
+            "port": "integer",
+            "alias": "string",
+            "bucket": "string",
+            "region": "string",
+            "access_key_id": "string",
+            "secret_access_key": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "type": "string",
+                "description": "Storage endpoint as a full URL, e.g. 'https://s3.amazonaws.com' (S3-compatible)"
+              },
+              "port": {
+                "type": "integer",
+                "description": "Storage port, usually 443"
+              },
+              "alias": {
+                "type": "string",
+                "description": "External storage alias"
+              },
+              "bucket": {
+                "type": "string",
+                "description": "Bucket name on the external storage"
+              },
+              "region": {
+                "type": "string",
+                "description": "Storage region"
+              },
+              "access_key_id": {
+                "type": "string",
+                "description": "Access key ID"
+              },
+              "secret_access_key": {
+                "type": "string",
+                "description": "Secret access key"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:10a4dead4e15cf30bb15cbc5ba7793dc48d53f8fb0d7efcacd0104337175059a"
+        },
+        {
+          "name": "create_vcdn_domain",
+          "canonical_hash": "sha256:8c5d3478aa977f44f036b654712e82394b5c930cbcabf980341c551d956a7da5",
+          "description": "Add a domain to a Video CDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "create_referer",
+            "name",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "resource_id": "string",
+            "create_referer": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Domain name, e.g. 'video.example.com'"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              },
+              "create_referer": {
+                "enum": [
+                  "global",
+                  "local"
+                ],
+                "type": "string",
+                "description": "Create an account-level (global) or domain-level (local) referer restriction"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:704f7010047fc9fac4aa02f1b29f6489887e51fdeced40b9e72c52ddef98d28e"
+        },
+        {
+          "name": "create_vcdn_resource",
+          "canonical_hash": "sha256:f17b193018f677c6f64b5a8d88a67cb80642fff195119b791871394ca71bda3e",
+          "description": "Create a new Video CDN resource. Provisioning is fast: the system_domain typically starts responding within ~1-2 minutes of creation.",
+          "is_mutating": false,
+          "property_keys": [
+            "name",
+            "www_folder"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "www_folder": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Resource name"
+              },
+              "www_folder": {
+                "type": "string",
+                "description": "Resource folder name, e.g. '/a'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:05d83e13c2a67982c40961b03e3e95917f3c192e107cf0a5ea0024b855c94c28"
+        },
+        {
+          "name": "delete_custom_domain",
+          "canonical_hash": "sha256:96cfafe5258198d80cf2348f26710911e05c3df6d99add495b3a2f928f90b568",
+          "description": "Detach and delete a custom domain from an aCDN resource. This cannot be undone.",
+          "is_mutating": false,
+          "property_keys": [
+            "domain_id",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "domain_id": "string",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domain_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Custom domain ID"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5ce851415fa44962b63b643adad6acb42fb989f0dfed4041419123ba8a9d60b9"
+        },
+        {
+          "name": "delete_vcdn_resource",
+          "canonical_hash": "sha256:e9863f3f2ccf08e25b03ef46922676e85f6a200985a1a49483ce78a50934356e",
+          "description": "Delete a Video CDN resource. This cannot be undone.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5a6e8e8d0ffc7efd2892902654bdc5f9b612c854d7e160f83344969b9922e373"
+        },
+        {
+          "name": "estimate_traffic_cost",
+          "canonical_hash": "sha256:12d878237821ce21a305b1e45f8eab493b9bcaf5e0098e0372d436cff524c11f",
+          "description": "Estimate the monthly cost of CDN traffic on the pay-as-you-go Flex plan (progressive tiers from $5.00/TB down to $2.50/TB, $25/month minimum covering the first 5 TB). Runs locally without network access. Public pricing as of August 2026 — for current rates see https://blazingcdn.com/pricing/. Volumes over 100 TB/month qualify for custom pricing: https://blazingcdn.com/sign-up-contact-form/",
+          "is_mutating": false,
+          "property_keys": [
+            "tb_per_month"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "tb_per_month": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tb_per_month": {
+                "type": "number",
+                "description": "Expected monthly traffic in TB, e.g. 190",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f58e29e71ede6c23ac7746854d3f67f64b1a7ac719d5e7bce0a29dd04d65a7f7"
+        },
+        {
+          "name": "get_bucket",
+          "canonical_hash": "sha256:8f5bb8634897b7da0aca7fa6cfc9614729c3dca1dbba5bc06356b65dd3082a6c",
+          "description": "Get details of one cloud storage bucket.",
+          "is_mutating": false,
+          "property_keys": [
+            "bucket_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bucket_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bucket_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Bucket ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ef08a8f3987efc35c71909e54ce721b5d44eefc2d298865bf9f6b9673d5cefc3"
+        },
+        {
+          "name": "get_bucket_metrics",
+          "canonical_hash": "sha256:7d8dd9e9f242b273789d10b7cec4307d776841c9ef27739561795823ef6e184f",
+          "description": "Get usage statistics for cloud storage buckets over a period.",
+          "is_mutating": false,
+          "property_keys": [
+            "bucket_id",
+            "date",
+            "external_storage_id",
+            "period"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "date": "string",
+            "period": "string",
+            "bucket_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "description": "Date inside the period, e.g. '2026-08-01'"
+              },
+              "period": {
+                "enum": [
+                  "day",
+                  "month",
+                  "year"
+                ],
+                "type": "string",
+                "description": "Period length"
+              },
+              "bucket_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Filter by bucket ID"
+              },
+              "external_storage_id": {
+                "$ref": "#/properties/bucket_id",
+                "description": "Filter by external storage ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9fc1439add3eb0d449911a55011ee410f6314303063ccd8483716014c850e062"
+        },
+        {
+          "name": "get_cdn_metrics",
+          "canonical_hash": "sha256:7bb72053e1209970966f81a2a6fd70888f17860b09c1230dcc5436bb13aa77d8",
+          "description": "Get Anycast CDN metrics for the whole account or a single resource. Select a period either with period+date (e.g. period='month', date='2026-08-01') or with from+to timestamps. Metric types: bandwidth, cache, cache_requests, responses (HTTP codes), traffic, hybrid, cloud_storage.",
+          "is_mutating": false,
+          "property_keys": [
+            "date",
+            "domain_id",
+            "from",
+            "period",
+            "region_id",
+            "resource_id",
+            "scale",
+            "to",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "to": "string",
+            "date": "string",
+            "from": "string",
+            "type": "string",
+            "scale": "string",
+            "period": "string",
+            "domain_id": "string",
+            "region_id": "string",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to": {
+                "type": "string",
+                "description": "Period end (use with from)"
+              },
+              "date": {
+                "type": "string",
+                "description": "Date inside the period, e.g. '2026-08-01'"
+              },
+              "from": {
+                "type": "string",
+                "description": "Period start, e.g. '2026-08-01 00:00:00 UTC' (use with to)"
+              },
+              "type": {
+                "enum": [
+                  "bandwidth",
+                  "cache",
+                  "cache_requests",
+                  "cloud_storage",
+                  "hybrid",
+                  "responses",
+                  "traffic"
+                ],
+                "type": "string",
+                "description": "Metrics type"
+              },
+              "scale": {
+                "enum": [
+                  "day",
+                  "hour",
+                  "minute"
+                ],
+                "type": "string",
+                "description": "Data point granularity. minute: period <= day; hour: period <= month."
+              },
+              "period": {
+                "enum": [
+                  "day",
+                  "month",
+                  "year"
+                ],
+                "type": "string",
+                "description": "Period length (use with date)"
+              },
+              "domain_id": {
+                "type": "string",
+                "description": "Filter by custom domain ID"
+              },
+              "region_id": {
+                "type": "string",
+                "description": "Filter by region ID"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource ID. Omit for account-wide metrics."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aa419ea21f0dc719d98b82586be45d1bf199a798c0d9ba86c93c23c9bb372db6"
+        },
+        {
+          "name": "get_cdn_resource",
+          "canonical_hash": "sha256:35db11362c7340e6101c1eb3cc73f54e9147618172560e535764d575dee02a02",
+          "description": "Get full details of one Anycast CDN resource (pull zone): origin, TTLs, compression, origin shield, domains, locations. Check here whether a feature is on before proposing changes — e.g. image_processing_enabled (+ image_processing_extensions), location_mode ('basic'|'extended'), hls_support_enabled, mpeg_dash_support_enabled, origin_shield_enabled, edge_compression. The same settings are switches in the customer panel at https://client.blazingcdn.com/anycast_cdn/<resource_id>/<tab>.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a89d26b250fd8bab6eae50dc1d51f51e66ea56bc7a5b001934ede1323c3651d8"
+        },
+        {
+          "name": "get_external_storage",
+          "canonical_hash": "sha256:3a02c5de4c537ec70fd8423f1e68a5c39846072a0b606fb9df5452cdccd0092f",
+          "description": "Get details of one external storage connection.",
+          "is_mutating": false,
+          "property_keys": [
+            "external_storage_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "external_storage_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "external_storage_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "External storage ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:18e169a1195628c15d9635d247b22cdbe843967051df8fb3cc7dc3e61368720e"
+        },
+        {
+          "name": "get_prometheus_metrics",
+          "canonical_hash": "sha256:3336710d82becf9b3af56da3e68af77a04bc071c40d0d9c090e1e9d14eeac56d",
+          "description": "Fetch Prometheus-format metrics for monitoring dashboards: source 'cdn' for Anycast CDN, 'cloud_storage' for Cloud Store.",
+          "is_mutating": false,
+          "property_keys": [
+            "source"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "source": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "enum": [
+                  "cdn",
+                  "cloud_storage"
+                ],
+                "type": "string",
+                "description": "Metrics source"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bdc811cf7daa1c93dddbf393ed1a947c884a4e84cd329f4e984bd263eed1e5ee"
+        },
+        {
+          "name": "get_storage_info",
+          "canonical_hash": "sha256:ca414565c9e3e51e4b4047beb41cf34b0a90eee086d4ea6ca8fef21d5cb87e6a",
+          "description": "Get cloud storage account info (endpoints, usage).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:eaf0a00a239a5d9f8b60a678042d44cba771ff33fdddf7c9746a4cc9c9fe950e"
+        },
+        {
+          "name": "get_vcdn_domain",
+          "canonical_hash": "sha256:faa4043fa4793d84e20a30ca9768d00333acf87be06307a431b840e82466846c",
+          "description": "Get details of one Video CDN domain.",
+          "is_mutating": false,
+          "property_keys": [
+            "domain_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domain_id": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "description": "vCDN domain ID (numeric)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5e2afdbd2d94d7f3f2c01531d4428cafbf430794973b3a4f22952560878a8ba1"
+        },
+        {
+          "name": "get_vcdn_files_total",
+          "canonical_hash": "sha256:243ae13996ef4f38d7278613d1ad85c54c179a58937e00c2ef7f9d50da0ed833",
+          "description": "Get total count and size of files stored on the Video CDN.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:97bb97712d490dfc18556059223c34200be7e40df91ecdc2a88a0667896cf0c0"
+        },
+        {
+          "name": "get_vcdn_ftp_settings",
+          "canonical_hash": "sha256:4b18171f456e32255082b7db94447b2b4eeed8c6063f970f7cb2b88654243435",
+          "description": "Get FTP import settings of a Video CDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ca0a61dc383800ffd8c7962f9c2e2c15db0bf819818bf34ddade6b732ac6245c"
+        },
+        {
+          "name": "get_vcdn_proxy",
+          "canonical_hash": "sha256:da420f09c6694765894bbbf2ac72eb51ef3a4c00e7f014a6a458b0026e37aacc",
+          "description": "Get proxy (origin fetch) settings of a Video CDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:86e8676df6fa6cd78ac8481623b455b2ac8aa75b05e59c69d5b1d1014866a4fc"
+        },
+        {
+          "name": "get_vcdn_resource",
+          "canonical_hash": "sha256:a2eddf1116e9ba16177525bf7731dfc8c8037d636f18a002d58dc6cd5a18d809",
+          "description": "Get details of one Video CDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ce368605f844845167216abb514d8eb11f09db5833e007e7d3775603e930f728"
+        },
+        {
+          "name": "get_vcdn_settings",
+          "canonical_hash": "sha256:4048350c68c427510c8a78c17558098745f2c11341dc31f1a3086f1045f156ca",
+          "description": "Get account-wide default Video CDN settings.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:52a12b528f015dcef6543da5c9d153bf76a0cce0aef8d434d2a73dd3fe1019b8"
+        },
+        {
+          "name": "get_vcdn_statistics",
+          "canonical_hash": "sha256:29140908cb05904ac7c3a887d87b8e1ae49ef8a8924418c390ac7171f10696c8",
+          "description": "Get Video CDN statistics. Reports: 'monthly_totals' — totals for the current month (requires resource_id); 'timeseries' — per-resource stats over start_date..end_date (requires resource_id); 'by_domains' — per-domain stats (requires resource_id and domains); 'top_domains' — top rated domains of a resource (requires resource_id); 'http_codes' — per-resource HTTP code stats (requires resource_id); 'bandwidth' — account bandwidth (optional resource_id filter); 'cache_storage' — cache and storage usage; 'global_http_codes' — account-wide HTTP code stats. Dates in ISO format, e.g. '2026-08-01T00:00:00Z'. start_date and end_date are REQUIRED for every report except monthly_totals.",
+          "is_mutating": false,
+          "property_keys": [
+            "domains",
+            "end_date",
+            "report",
+            "resource_id",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "report": "string",
+            "domains": "array",
+            "end_date": "string",
+            "start_date": "string",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "report": {
+                "enum": [
+                  "monthly_totals",
+                  "timeseries",
+                  "by_domains",
+                  "top_domains",
+                  "http_codes",
+                  "bandwidth",
+                  "cache_storage",
+                  "global_http_codes"
+                ],
+                "type": "string"
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Domain names (for by_domains / http_codes reports)"
+              },
+              "end_date": {
+                "type": "string",
+                "description": "Period end, e.g. '2026-08-07T23:59:59Z'"
+              },
+              "start_date": {
+                "type": "string",
+                "description": "Period start, e.g. '2026-08-01T00:00:00Z'"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4ce365634e2093865804c40c85668e6fb844b254e64918a827eb7fe93b4bd071"
+        },
+        {
+          "name": "list_auto_imports",
+          "canonical_hash": "sha256:a3be5150960fead5640efa38323f64af83362ff50492a2cc4dedbeb786e6c1c8",
+          "description": "List content auto-import jobs of a Video CDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7093ab76e763d00a1d43bd4f217085c5f0faaa016e9854393475d8aa4826c2c8"
+        },
+        {
+          "name": "list_buckets",
+          "canonical_hash": "sha256:6cae505e011ffe659f283a3fa8677e311da5d8218aac5a2b1868e895d523250a",
+          "description": "List all cloud storage buckets in the account.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b87b846b5093433b62ba2f0e453670bb8fb96334113a412a2fe0580f2187b7a6"
+        },
+        {
+          "name": "list_cdn_resources",
+          "canonical_hash": "sha256:c860d92e9621c4e6c9a41f3f6183b971a9b35ff87f84b37c5098e55f1176f964",
+          "description": "List Anycast CDN resources (pull zones) in the account with their settings, domains and state. The API paginates (its own default is 25 per page, undocumented) — this tool requests up to 100 per call. ALWAYS check meta.total in the response: if it exceeds the number of returned zones, fetch the remaining pages with the page parameter before reporting the account's zones.",
+          "is_mutating": false,
+          "property_keys": [
+            "page",
+            "per_page",
+            "traffic_distribution"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "per_page": "integer",
+            "traffic_distribution": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Page number (default 1)"
+              },
+              "per_page": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Zones per page (default 100, max 100)"
+              },
+              "traffic_distribution": {
+                "type": "boolean",
+                "description": "Include traffic distribution data for each resource"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:84c3459daa277e6f0d0243697cb05453d6ba0f61215d3379b97f5e85abe2af8a"
+        },
+        {
+          "name": "list_custom_domains",
+          "canonical_hash": "sha256:c5293ba95f8d897274f0d576ef511b023f775776533f217762713e77086b54cb",
+          "description": "List custom domains attached to an aCDN resource, including SSL status.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:57c0e0e7a2f56cb79fa2ad899b92924ac1176a2ab3abd960e49169ceebf231ff"
+        },
+        {
+          "name": "list_external_storages",
+          "canonical_hash": "sha256:79c5de0327388689f8c0813c6a45455b0d032745e6db491d71cb2a3471766dae",
+          "description": "List configured external (S3-compatible) storages used as CDN origins.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5e5e3a9a4e0f47b9f09fcc8f539a27eb75a94c52096e44057be9180e1bcf66aa"
+        },
+        {
+          "name": "list_ftp_logins",
+          "canonical_hash": "sha256:a0510075f0b86235ba3606ecbeba7c8c82b90d46f7fd12709ed3c68c36c3a2b5",
+          "description": "List FTP/SFTP logins of a Video CDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:01c8b098a5bd75cd7f72a86fa1bc210aeb9b816c596802113069e01237da8453"
+        },
+        {
+          "name": "list_system_dns_zones",
+          "canonical_hash": "sha256:3308b50bc37b526cc443af79144cea415018d2e2a246adabbdab73abbb2abe4c",
+          "description": "List system DNS zones available for CDN domain names (used when creating aCDN resources).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e18d9eda1aab78f4422b1e4cf7345873982dd7d26a959d13f4858e44210f312b"
+        },
+        {
+          "name": "list_vcdn_domains",
+          "canonical_hash": "sha256:c0fec8c82a0fad1f782d2136bdd3a76fafe221e9ba18b40e4827f92d33d67a5b",
+          "description": "List Video CDN domains, optionally filtered by name or SSL certificate.",
+          "is_mutating": false,
+          "property_keys": [
+            "domains",
+            "ssl_certificate_ids"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "domains": "array",
+            "ssl_certificate_ids": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Filter by domain names"
+              },
+              "ssl_certificate_ids": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Filter by SSL certificate IDs"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:17d6c250f1cd91e7308e9f6987e5d7b54ba7157cba1b6f1c01951788c758792a"
+        },
+        {
+          "name": "list_vcdn_files",
+          "canonical_hash": "sha256:3222bec025e2f851961059a35a968c933e6177fd5145585ef80437c0c3a7f574",
+          "description": "List files stored on the Video CDN, with filtering, sorting and pagination.",
+          "is_mutating": false,
+          "property_keys": [
+            "data_type",
+            "end_date",
+            "page",
+            "per_page",
+            "sort_field_name",
+            "sort_order",
+            "start_date",
+            "status",
+            "type",
+            "vcdn_resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "type": "string",
+            "status": "string",
+            "end_date": "string",
+            "per_page": "integer",
+            "data_type": "string",
+            "sort_order": "string",
+            "start_date": "string",
+            "sort_field_name": "string",
+            "vcdn_resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "type": {
+                "type": "string",
+                "description": "Filter by file type"
+              },
+              "status": {
+                "type": "string",
+                "description": "Filter by file status"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "per_page": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1
+              },
+              "data_type": {
+                "enum": [
+                  "full",
+                  "list",
+                  "summary"
+                ],
+                "type": "string",
+                "description": "Response verbosity (default full)"
+              },
+              "sort_order": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string"
+              },
+              "start_date": {
+                "type": "string"
+              },
+              "sort_field_name": {
+                "type": "string"
+              },
+              "vcdn_resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Filter by vCDN resource"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:068a2d8288d8135f57660ff5a32f9dda3ae46bf4c986ed653995244a450e4206"
+        },
+        {
+          "name": "list_vcdn_resources",
+          "canonical_hash": "sha256:a525ef147d52d86840ab9872ab5b09aeecdc136f47a6757bcbf80744e0fd3a1d",
+          "description": "List all Video CDN resources in the account.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7fdee4310123b541a52c14fa014da6c266c1251afb3b2899b79c535013f4b5e4"
+        },
+        {
+          "name": "manage_auto_import",
+          "canonical_hash": "sha256:217129418693692dcc173de53b8c5f3d3615118a0c2daf67aae4f9563f4edd72",
+          "description": "Create (omit auto_import_id) or update (pass auto_import_id) a content auto-import job of a vCDN resource. Params: either bucket source (bucket_id/bucket_name, folder_name) or rsync source (rsync_url, fetch_url), plus callback_url, cut_folders ('scan strip folders'), scan_interval / scan_min_age (seconds), scan_exclude (array) and fetch options (fetch_ext, fetch_min_size, fetch_min_rate, fetch_sign_* — rsync sources only). A bucket folder can feed only one resource — creating a second import for the same folder returns 422.",
+          "is_mutating": false,
+          "property_keys": [
+            "auto_import_id",
+            "params",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "params": "object",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "params": {
+                "type": "object",
+                "properties": {},
+                "description": "Auto import parameters",
+                "additionalProperties": true
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              },
+              "auto_import_id": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "description": "Auto import ID (numeric; update if provided)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a78db7b7b046aed9734bdd13c25d0e827dca9a6780cc635b15c4cac7328c9ce5"
+        },
+        {
+          "name": "manage_ftp_login",
+          "canonical_hash": "sha256:fc9aba0426884fc935b476cfaf624d9c06c7cae903ed1010f14df6e9b1613549",
+          "description": "Manage FTP/SFTP logins of a vCDN resource. action 'create' requires password; 'update' modifies an existing login (ftp_login_id); 'enable'/'disable' toggle an existing login.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "allowed_ips",
+            "callback_url",
+            "folder",
+            "ftp_login_id",
+            "label",
+            "password",
+            "public_keys",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "label": "string",
+            "action": "string",
+            "folder": "string",
+            "password": "string",
+            "allowed_ips": "array",
+            "public_keys": "string",
+            "resource_id": "string",
+            "callback_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "action": {
+                "enum": [
+                  "create",
+                  "update",
+                  "enable",
+                  "disable"
+                ],
+                "type": "string"
+              },
+              "folder": {
+                "type": "string",
+                "description": "FTP folder, e.g. '/a/b'"
+              },
+              "password": {
+                "type": "string",
+                "description": "Password (required for create)"
+              },
+              "allowed_ips": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Allowed IPs in CIDR format"
+              },
+              "public_keys": {
+                "type": "string",
+                "description": "SSH public keys separated by newlines"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              },
+              "callback_url": {
+                "type": "string"
+              },
+              "ftp_login_id": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "description": "FTP login ID (numeric; required for update/enable/disable)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:22294acc2567c0c7652fb3ac40e27461e169cd9f380d9e0f7a8dc61dc86c18e1"
+        },
+        {
+          "name": "purge_cache",
+          "canonical_hash": "sha256:4e0af8835f9ecbea87d540f93b5df84841d05712efc971a80efc9ecdf9290e6e",
+          "description": "Purge cached content. With resource_id: purge that aCDN resource — everything (clear_all=true) or specific URLs. Without resource_id: purge by full URLs across all resources (the zone is matched by domain automatically).",
+          "is_mutating": false,
+          "property_keys": [
+            "clear_all",
+            "resource_id",
+            "urls"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "urls": "array",
+            "clear_all": "boolean",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "URLs/paths to purge. Required unless clear_all is true."
+              },
+              "clear_all": {
+                "type": "boolean",
+                "description": "Purge the entire cache of the resource (requires resource_id)"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID. Omit to purge by URL across all resources."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:749d431cd024573b3ece08d7a7ba8b3fb62048bbe03231218e75a5b36f9bb0ce"
+        },
+        {
+          "name": "search_custom_domains",
+          "canonical_hash": "sha256:2f219361d9346f236ee818ca4edc1b8a6bf9f37eac78b57b884a13b05b4a244c",
+          "description": "Match domain names against all custom domains in the account (which resource serves which domain).",
+          "is_mutating": false,
+          "property_keys": [
+            "domains"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "domains": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Domain names to match"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c629dee4d1e7c5d143b4bf363922b45c2d7e1898bd25eae00bde152e586103a3"
+        },
+        {
+          "name": "search_docs",
+          "canonical_hash": "sha256:eb560cfd0124ebf650c6f3a0ab97423c3169ee34a035b9df101c09aefa987811",
+          "description": "Search BlazingCDN documentation, how-to guides and product pages by keyword — e.g. 'image processing' returns the preset guide with the URL format and every parameter. Returns matching pages with URLs and summaries — fetch a URL for full details.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search query, e.g. 'purge cache API' or 'video streaming pricing'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e391afa7c57f663d8c96bda60a6625051a838d18b58f28f7e36e2d56a8ede1ee"
+        },
+        {
+          "name": "test_external_storage_connection",
+          "canonical_hash": "sha256:10b9e3d008b66e1e24dc8455c0027b72fa89f723e5b36d299080e18478f18a1c",
+          "description": "Test connectivity and credentials of an external storage configuration before saving it.",
+          "is_mutating": false,
+          "property_keys": [
+            "access_key_id",
+            "alias",
+            "bucket",
+            "host",
+            "port",
+            "region",
+            "secret_access_key"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "host": "string",
+            "port": "integer",
+            "alias": "string",
+            "bucket": "string",
+            "region": "string",
+            "access_key_id": "string",
+            "secret_access_key": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "type": "string",
+                "description": "Storage endpoint as a full URL, e.g. 'https://s3.amazonaws.com' (S3-compatible)"
+              },
+              "port": {
+                "type": "integer",
+                "description": "Storage port, usually 443"
+              },
+              "alias": {
+                "type": "string",
+                "description": "External storage alias"
+              },
+              "bucket": {
+                "type": "string",
+                "description": "Bucket name on the external storage"
+              },
+              "region": {
+                "type": "string",
+                "description": "Storage region"
+              },
+              "access_key_id": {
+                "type": "string",
+                "description": "Access key ID"
+              },
+              "secret_access_key": {
+                "type": "string",
+                "description": "Secret access key"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ea698812ce044536fa8c802ed4636ded4b95cd13daba29b6e0803df8c956e957"
+        },
+        {
+          "name": "update_bucket",
+          "canonical_hash": "sha256:c647a577879f9156b29438af007a1cd851c5b21c634a38c5e1042c01fcce726a",
+          "description": "Update a cloud storage bucket's type or web index.",
+          "is_mutating": false,
+          "property_keys": [
+            "bucket_id",
+            "type",
+            "web_index"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "type": "string",
+            "bucket_id": "string",
+            "web_index": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "private",
+                  "segments",
+                  "cdn"
+                ],
+                "type": "string",
+                "description": "Bucket content type"
+              },
+              "bucket_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Bucket ID"
+              },
+              "web_index": {
+                "type": "string",
+                "description": "Path to the bucket index file"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:423d05b5c1c7259ab9e0f50485bf7cf14f5108879eee7a2ea47c160c64e20420"
+        },
+        {
+          "name": "update_cdn_locations",
+          "canonical_hash": "sha256:c175b89e3d5d636c36689c27c20814a09610c3d46b28d7bee3ab197a3b8a9633",
+          "description": "Update per-location (URL path) cache rules of an aCDN resource. Each location supports: id (to update existing), url, modifier ('='|'~'|'~*'|'^~'), position, cache_enabled, active_ttl, browser_active_ttl, default_ttl, custom_ttls, cache_min_uses, honor_response_ttl_headers, proxy_buffering, proxy_cache, deny_traffic, truncate_url_params, if_modified_since_enabled, if_modified_since, _destroy (true to remove the location), image_processing_enabled, image_processing_default_presets (object mapping preset name to an operation string, e.g. {\"resizefit\": \"resize:fit:$arg_width:$arg_height\", \"crop\": \"crop:$arg_width:$arg_height:$arg_gravity\"}; clients then request images as ?preset=resizefit&width=100&height=100 and the CDN transforms on the fly). Requires Locations Mode 'extended' — in the default basic mode the API answers 409. Switch it with update_cdn_resource {location_mode: 'extended'} once the user agrees, or have them flip 'Locations Mode' in the panel's locations tab. To simply turn image processing on you do not need this tool: use update_cdn_resource (image_processing_enabled + image_processing_extensions).",
+          "is_mutating": false,
+          "property_keys": [
+            "auto_resolve",
+            "locations",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "locations": "array",
+            "resource_id": "string",
+            "auto_resolve": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Location definitions (locations_attributes)"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              },
+              "auto_resolve": {
+                "type": "boolean",
+                "description": "Automatically resolve conflicting settings"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0ae56a99f4939811964cbd202f3ab91e7e28bf308933ff9018df23aa80bc5748"
+        },
+        {
+          "name": "update_cdn_resource",
+          "canonical_hash": "sha256:e680eb5fda1f559cb02e739517828887bf8537fd94a9303dc06274e33bf18c4b",
+          "description": "Update settings of an Anycast CDN resource (pull zone): caching/TTLs, compression, origin shield, HTTPS, access protection (hotlink, country, IP, URL signing), HLS/DASH streaming, image processing (on-the-fly resize/crop), Locations Mode, origin. Send only the keys you change. Each setting is also a switch in the customer panel (https://client.blazingcdn.com/anycast_cdn/<resource_id>/<tab>), so the user can make the same change by hand.",
+          "is_mutating": false,
+          "property_keys": [
+            "auto_resolve",
+            "resource_id",
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "settings": "object",
+            "resource_id": "string",
+            "auto_resolve": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {},
+                "description": "aCDN resource settings to change. Common keys: name, origin_url, source ('origin'|'storage'), proxy_cache (the 'Use CDN cache' master toggle) + proxy_buffering, active_ttl, use_active_ttl, browser_active_ttl, use_browser_active_ttl, inactive_ttl, default_ttl (TTL for HTTP codes not listed in custom_ttls), custom_ttls (object mapping HTTP code to TTL seconds as INTEGERS, e.g. {\"200\": 172800}), cache_min_uses, honor_response_ttl_headers, edge_compression, compression_methods (comma-separated 'gzip,br'; zstd may be unavailable), origin_shield_enabled, origin_shield_type ('auto'|'custom'), shield_retest, shield_change_notify, redirect_to_https, http2, cors, hsts (NUMBER: max-age seconds, e.g. 31536000), ssl, shared_ssl, hotlink_protection + hotlink_protection_type ('allow'|'block'): in allow mode set hotlink_domains (newline-separated; becomes the allowed list), in block mode set hotlink_blocked_domains + deny_blocked_referrers=true (hotlink_domains feeds the ALLOWED list even in block mode); related fields: hotlink_allowed_domains, deny_none_referrers, country_protection_enabled + country_protection_type ('allow'|'block') + country_protection_list (ISO 3166 codes, e.g. ['BY','CN']), ip_protection_enabled + ip_protection_type ('allow'|'block') + ip_protection_list (IP addresses) (IMPORTANT: country/hotlink protection changes can take several HOURS to reach edge enforcement, unlike other settings (~10 min) — verify with a real test request before reporting them active), securelink_enabled (must be set together with securelink_arg and securelink_value) + securelink_expiration/securelink_expiration_arg/securelink_addr, truncate_url_params, truncate_url_params_ext (only when truncate_url_params is false), allow_proxy_extensions + proxy_extensions (newline-separated with dots, e.g. '.mp4\\n.zip'), resolve_origin_ips, origin_ips, origin_ips_v6, speed_test_fastest_ip + speed_test_path (origin IP prioritization by speed test), preferred_origin_ip_version ('v4'|'v6'), ipv6_enabled (serve over IPv6), origin_sni_enabled, if_modified_since ('off'|'exact'|'before'), folder_name, bucket_id, external_storage_id. Streaming: hls_support_enabled, hls_chunk_type ('common'|'specific'), hls_chunk_ext (ARRAY, e.g. ['.ts']), per-playlist and per-chunk TTL/cache keys (hls_playlist_active_ttl + hls_playlist_use_active_ttl, hls_chunk_active_ttl + hls_chunk_use_active_ttl, plus _browser_active_ttl/_custom_ttls/_default_ttl/_cache_min_uses/_proxy_cache families for both), and the mpeg_dash_* equivalents (mpeg_dash_support_enabled, mpeg_dash_chunk_ext accepts ONLY ['.mp4'] — '.m4s' is rejected, though .m4s segments still proxy as regular files). For live streams set playlist TTL to 1-2s and chunk TTL to minutes. Image processing (on-the-fly resize/crop at the edge — the same switch as Locations → Image processing in the panel; works in the default basic Locations Mode, no custom locations needed): image_processing_enabled + image_processing_extensions (ARRAY with dots, e.g. ['.jpg','.png']; must not overlap truncate_url_params_ext; its TTLs must be 2-365 days — pass auto_resolve=true to let the API fix bounds) plus its own cache family (image_processing_active_ttl/_browser_active_ttl/_custom_ttls/_default_ttl/_cache_min_uses/_proxy_cache/_proxy_buffering/_honor_response_ttl_headers). While it is on, CDN cache and origin shield cannot be switched off. location_mode ('basic'|'extended'): basic = locations are generated from the proxy/truncation settings; extended = full control over custom locations (required by update_cdn_locations). Switching back to basic resets all custom locations — confirm with the user before changing it. The live API accepts and returns more fields than the OpenAPI spec documents (e.g. dnssec, restricted_countries) — call get_cdn_resource to see everything (~147 fields); unknown keys pass through unchanged. Zone creation and every settings change can take up to ~10 minutes to reach the edge (DNS of a new zone included) — re-test before assuming a change failed.",
+                "additionalProperties": true
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              },
+              "auto_resolve": {
+                "type": "boolean",
+                "description": "Automatically resolve conflicting settings"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e9c119b7c9a1b386029f3527d7efa660b9a36fe6d785c31e3ab38e8c4258c52a"
+        },
+        {
+          "name": "update_custom_domain",
+          "canonical_hash": "sha256:ee0baca3b92f8c6cfd2f411101dcbedf8d6db7bf3bfd1467c4e50a71215c2f6f",
+          "description": "Update a custom domain of an aCDN resource: attach an SSL certificate or enable auto SSL (Let's Encrypt).",
+          "is_mutating": false,
+          "property_keys": [
+            "auto_ssl",
+            "domain_id",
+            "resource_id",
+            "ssl_certificate_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "auto_ssl": "boolean",
+            "domain_id": "string",
+            "resource_id": "string",
+            "ssl_certificate_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "auto_ssl": {
+                "type": "boolean",
+                "description": "Use an automatically issued Let's Encrypt certificate"
+              },
+              "domain_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Custom domain ID"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              },
+              "ssl_certificate_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "SSL certificate ID to attach"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2a77e685e51a564b1e1c77ec5b44e5ca9e31f1f2e52077c0d70dffa8a111a9d8"
+        },
+        {
+          "name": "update_external_storage",
+          "canonical_hash": "sha256:53bd614e426eb78d78dbdec6e3ad6d6778f755c515be9db36fffd22060e67681",
+          "description": "Update an external storage connection.",
+          "is_mutating": false,
+          "property_keys": [
+            "access_key_id",
+            "alias",
+            "bucket",
+            "external_storage_id",
+            "host",
+            "port",
+            "region",
+            "secret_access_key"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "host": "string",
+            "port": "integer",
+            "alias": "string",
+            "bucket": "string",
+            "region": "string",
+            "access_key_id": "string",
+            "secret_access_key": "string",
+            "external_storage_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "type": "string",
+                "description": "Storage endpoint as a full URL, e.g. 'https://s3.amazonaws.com' (S3-compatible)"
+              },
+              "port": {
+                "type": "integer",
+                "description": "Storage port, usually 443"
+              },
+              "alias": {
+                "type": "string",
+                "description": "External storage alias"
+              },
+              "bucket": {
+                "type": "string",
+                "description": "Bucket name on the external storage"
+              },
+              "region": {
+                "type": "string",
+                "description": "Storage region"
+              },
+              "access_key_id": {
+                "type": "string",
+                "description": "Access key ID"
+              },
+              "secret_access_key": {
+                "type": "string",
+                "description": "Secret access key"
+              },
+              "external_storage_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "External storage ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1df1dcb0dcc45f0a010e6d3a5ffed48070db62a4f0e8f91726e1cca994abd51b"
+        },
+        {
+          "name": "update_vcdn_domain",
+          "canonical_hash": "sha256:4910195091fbcc00e946a75b90062c9e661c043f58fc79a63f70599e26dbe6da",
+          "description": "Update a Video CDN domain. Settings keys: secret_primary / secret_secondary (link signature secrets; '' to unset, null for default; write-only — reads return them as true/false flags), ssl_certificate_id, auto_ssl, plus every account-default key (see update_vcdn_settings: force_https, default_speed, rate limits, referer, block_geo, http_headers, redirect_ttl, …) as a per-domain override. Set an override key to null to re-link it to the account default (the panel's 'linked to Defaults').",
+          "is_mutating": false,
+          "property_keys": [
+            "domain_id",
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "settings": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {},
+                "description": "Domain settings to change",
+                "additionalProperties": true
+              },
+              "domain_id": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "description": "vCDN domain ID (numeric)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8404088f92b2c654876cabaad4a70e6a0db717bfb6578673ea5059407b4bc483"
+        },
+        {
+          "name": "update_vcdn_ftp_settings",
+          "canonical_hash": "sha256:904c4a0563ade00bf015d28da692c26065fe23413cfa1b6be00e01dfbc7759d8",
+          "description": "Update FTP import settings (password) of a vCDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "import_ftp_password",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "resource_id": "string",
+            "import_ftp_password": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              },
+              "import_ftp_password": {
+                "type": "string",
+                "description": "FTP password"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bbd7add54795a6edf95d8b474e3f1ff8fe16b91fc9e3efd11d9afac57fb7a2c7"
+        },
+        {
+          "name": "update_vcdn_proxy",
+          "canonical_hash": "sha256:59b9999067aaca3698b51d9bb478c62d42ca85e2f7feb5a31d64facf19b6b567",
+          "description": "Update proxy (origin fetch) settings of a vCDN resource. Params: either bucket source (bucket_id/bucket_name, folder_name) or URL source (proxy_url, fetch_url, proxy_ip), plus callback_url and rescan options.",
+          "is_mutating": false,
+          "property_keys": [
+            "params",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "params": "object",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "params": {
+                "type": "object",
+                "properties": {},
+                "description": "Proxy parameters",
+                "additionalProperties": true
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a96a2618aeeffba1495dd5f71bb582848ad1952a6c9910e4b6b9682ab0248848"
+        },
+        {
+          "name": "update_vcdn_resource",
+          "canonical_hash": "sha256:133a19edeb257d908ecc0d215295f3fe3b977547014efc459d5cc0d5be4ce6d6",
+          "description": "Rename a Video CDN resource.",
+          "is_mutating": false,
+          "property_keys": [
+            "name",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "New resource name"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5a061f27497a4198fdb48f9f0b87b4bb313c33d6e7ff073f4b04d2f969d8e9d9"
+        },
+        {
+          "name": "update_vcdn_settings",
+          "canonical_hash": "sha256:f44b9f1f3449572c478008e6684e8842352575f57d3871065b9d916f054222c1",
+          "description": "Update account-wide default Video CDN settings (all write-tested). General: force_https, check_url_signature + secret_primary/secret_secondary (ASCII 6-100 chars, '' to unset) + key_ttl, block_parameter ('ignore URL parameters': {ip, speed, buffer, initial_buffer, download, referer, media, secure_cookie}). File serving: http_headers, default_speed / default_download_speed / default_buffer / initial_buffer (objects {value, unit: '%'|'Kbps'}), redirect_ttl (Expires header TTL, seconds). Protection: check_referer + referer (array, '.domain.com' wildcards) + force_referer, block_geo (country map, keys stored lowercase, e.g. {\"by\": true}), encrypt_url, pass_googlebots, rate_limit_burst / rate_limit_interval / rate_limit_ipv4_mask (16-32) / rate_limit_ipv6_mask (16-128). Storage sync defaults: scan_interval / scan_min_age (seconds), scan_exclude (array), rescan_proxy_origin + rescan_proxy_origin_interval. Fetch: fetch_ext (video/audio/miscellaneous extension maps), fetch_min_size ({value, unit}), fetch_min_rate, fetch_sign_* and proxy_sign_* (method/key/ttl/securelink_argument), secure_cookie. WARNING: nested objects (e.g. fetch_ext.video) are replaced wholesale, not merged — call get_vcdn_settings first and send the complete object with your change applied.",
+          "is_mutating": false,
+          "property_keys": [
+            "settings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "settings": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "settings": {
+                "type": "object",
+                "properties": {},
+                "description": "Settings to change",
+                "additionalProperties": true
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dbad50e7d319e1350965e4579f9ed880d892e83319872eabc3b84e4b8db0c7ae"
+        },
+        {
+          "name": "upload_vcdn_file",
+          "canonical_hash": "sha256:bc8ea5ea8cb8155370bf9b4d95fc1a3c53b4f58da63cf1071e11ea6c77188290",
+          "description": "Upload a local file to a Video CDN resource. Files must be between 10 MB and 10 GB (the storage is video-oriented). Returns HTTP 202 — the file is processed asynchronously and appears in list_vcdn_files once processing completes (status 'active'). It is then served at https://<resource system_domain>/<filename> (the resource's www_folder is not part of the public URL) via a signed 302 redirect to an edge node.",
+          "is_mutating": false,
+          "property_keys": [
+            "file_path",
+            "filename",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "filename": "string",
+            "file_path": "string",
+            "resource_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filename": {
+                "type": "string",
+                "description": "Target file name (defaults to the local file name)"
+              },
+              "file_path": {
+                "type": "string",
+                "description": "Absolute path of the local file to upload"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "vCDN resource ID"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45a3a4b914f277c2f786105dae92dc26b96d76638e79945581438919b73b8a91"
+        },
+        {
+          "name": "warmup_cache",
+          "canonical_hash": "sha256:88a74a86f3d1e1aba3f6a3206c4e5e79a987533695c90baaf7929880e11fee0b",
+          "description": "Pre-fetch (warm up) content into the aCDN resource cache for the given paths, optionally per compression method.",
+          "is_mutating": false,
+          "property_keys": [
+            "compression_methods",
+            "paths",
+            "resource_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "paths": "array",
+            "resource_id": "string",
+            "compression_methods": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Paths to warm up, e.g. ['/video/intro.mp4']"
+              },
+              "resource_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "aCDN resource (pull zone) ID"
+              },
+              "compression_methods": {
+                "enum": [
+                  "gzip",
+                  "br",
+                  "zstd",
+                  "raw"
+                ],
+                "type": "string",
+                "description": "Compression variant to warm (must be enabled on the resource)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c173f5f08a0be17006670160de776f5de8ac9ae2a8fc14b2fd037ecf8b0f5e06"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
