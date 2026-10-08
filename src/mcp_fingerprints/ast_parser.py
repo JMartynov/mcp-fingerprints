@@ -49,6 +49,43 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
     def __init__(self) -> None:
         self.extracted_tools: list[dict[str, Any]] = []
+        self.pydantic_models: dict[str, dict[str, Any]] = {}
+
+    def visit_Module(self, node: ast.Module) -> None:
+        """First pass to find Pydantic models."""
+        for stmt in node.body:
+            if isinstance(stmt, ast.ClassDef):
+                is_pydantic = False
+                for base in stmt.bases:
+                    if isinstance(base, ast.Name) and base.id == "BaseModel":
+                        is_pydantic = True
+                        break
+                    elif isinstance(base, ast.Attribute) and base.attr == "BaseModel":
+                        is_pydantic = True
+                        break
+                
+                fields: dict[str, dict[str, str]] = {}
+                required: list[str] = []
+                has_annotations = False
+                
+                for item in stmt.body:
+                    if isinstance(item, ast.AnnAssign):
+                        has_annotations = True
+                        if isinstance(item.target, ast.Name):
+                            field_name = item.target.id
+                            schema_type = _python_type_to_schema_type(item.annotation)
+                            fields[field_name] = {"type": schema_type}
+                            # Check if it has a default value
+                            if item.value is None:
+                                required.append(field_name)
+                
+                if is_pydantic or has_annotations:
+                    self.pydantic_models[stmt.name] = {
+                        "properties": fields,
+                        "required": required
+                    }
+                    
+        self.generic_visit(node)
 
     @staticmethod
     def _is_tool_decorator(decorator: ast.expr) -> tuple[bool, str | None, str | None]:
@@ -161,25 +198,46 @@ class FastMcpAstVisitor(ast.NodeVisitor):
             if arg_name in ("self", "cls", "ctx", "context"):
                 continue
 
-            schema_type = _python_type_to_schema_type(arg.annotation)
-            properties[arg_name] = {"type": schema_type}
+            is_model = False
+            if getattr(arg, "annotation", None) and isinstance(arg.annotation, ast.Name):
+                type_name = arg.annotation.id
+                if type_name in self.pydantic_models:
+                    model_info = self.pydantic_models[type_name]
+                    properties.update(model_info["properties"])
+                    required.extend(model_info["required"])
+                    is_model = True
 
-            # Check if arg has a default value (non-required)
-            num_defaults = len(node.args.defaults)
-            args_without_defaults = len(node.args.args) - num_defaults
-            arg_idx = node.args.args.index(arg)
-            if arg_idx < args_without_defaults:
-                required.append(arg_name)
+            if not is_model:
+                schema_type = _python_type_to_schema_type(arg.annotation)
+                properties[arg_name] = {"type": schema_type}
+
+                # Check if arg has a default value (non-required)
+                num_defaults = len(node.args.defaults)
+                args_without_defaults = len(node.args.args) - num_defaults
+                arg_idx = node.args.args.index(arg)
+                if arg_idx < args_without_defaults:
+                    required.append(arg_name)
 
         # Process keyword-only arguments
         for idx, kwarg in enumerate(node.args.kwonlyargs):
             kwarg_name = kwarg.arg
             if kwarg_name in ("self", "cls", "ctx", "context"):
                 continue
-            schema_type = _python_type_to_schema_type(kwarg.annotation)
-            properties[kwarg_name] = {"type": schema_type}
-            if idx >= len(node.args.kw_defaults) or node.args.kw_defaults[idx] is None:
-                required.append(kwarg_name)
+
+            is_model = False
+            if getattr(kwarg, "annotation", None) and isinstance(kwarg.annotation, ast.Name):
+                type_name = kwarg.annotation.id
+                if type_name in self.pydantic_models:
+                    model_info = self.pydantic_models[type_name]
+                    properties.update(model_info["properties"])
+                    required.extend(model_info["required"])
+                    is_model = True
+
+            if not is_model:
+                schema_type = _python_type_to_schema_type(kwarg.annotation)
+                properties[kwarg_name] = {"type": schema_type}
+                if idx >= len(node.args.kw_defaults) or node.args.kw_defaults[idx] is None:
+                    required.append(kwarg_name)
 
         input_schema = {
             "type": "object",
