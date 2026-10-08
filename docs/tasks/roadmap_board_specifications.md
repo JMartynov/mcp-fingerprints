@@ -77,11 +77,11 @@ The repository includes a static web catalog (`web/index.html` + `web/catalog.js
    - Update `tests/test_action_and_hooks.py` to ensure `.pre-commit-config.yaml` is valid YAML and compatible.
 
 ### Acceptance Criteria
-- [ ] `.pre-commit-config.yaml` is present in the repository root.
-- [ ] `pre-commit run --all-files` runs cleanly across all files in the repository.
-- [ ] Modifying a fixture MCP config triggers `mcp-audit-config` verification.
-- [ ] `README.md` includes clear instructions for setting up pre-commit.
-- [ ] All unit tests pass.
+- [x] `.pre-commit-config.yaml` is present in the repository root.
+- [x] `pre-commit run --all-files` runs cleanly across all files in the repository.
+- [x] Modifying a fixture MCP config triggers `mcp-audit-config` verification.
+- [x] `README.md` includes clear instructions for setting up pre-commit.
+- [x] All unit tests pass.
 
 ---
 
@@ -105,10 +105,10 @@ The repository includes a static web catalog (`web/index.html` + `web/catalog.js
    - Add usage snippet in `README.md` showing how to invoke `JMartynov/mcp-fingerprints@v1` in GitHub Actions.
 
 ### Acceptance Criteria
-- [ ] `.github/workflows/test_action.yml` created and passing on GitHub Actions.
-- [ ] Composite action `uses: ./` tested for both passing and collision-failing scenarios.
-- [ ] Action execution time is fast (<1 minute on Ubuntu latest).
-- [ ] Usage instructions in `README.md` verified.
+- [x] `.github/workflows/test_action.yml` created and passing on GitHub Actions.
+- [x] Composite action `uses: ./` tested for both passing and collision-failing scenarios.
+- [x] Action execution time is fast (<1 minute on Ubuntu latest).
+- [x] Usage instructions in `README.md` verified.
 
 ---
 
@@ -135,10 +135,10 @@ Currently, `conflict_detector.py` and `mcp-fingerprints audit-config` identify e
    - Test CLI roundtrip and JSON schema compliance.
 
 ### Acceptance Criteria
-- [ ] `mcp-fingerprints resolve-config --help` exposes strategy options and output paths.
-- [ ] Colliding tools are successfully identified and disambiguated.
-- [ ] Non-conflicting server definitions and arguments are preserved with 100% fidelity.
-- [ ] Full unit test coverage in `tests/test_conflict_resolver.py` without regressions.
+- [x] `mcp-fingerprints resolve-config --help` exposes strategy options and output paths.
+- [x] Colliding tools are successfully identified and disambiguated.
+- [x] Non-conflicting server definitions and arguments are preserved with 100% fidelity.
+- [x] Full unit test coverage in `tests/test_conflict_resolver.py` without regressions.
 
 ---
 
@@ -164,10 +164,10 @@ The web directory (`web/index.html`) currently allows searching 5,031+ servers a
    - Add unit tests in `tests/test_web_catalog.py` verifying combined config generation logic.
 
 ### Acceptance Criteria
-- [ ] Users can select multiple servers across search queries without losing selections.
-- [ ] Multi-server builder generates valid JSON for Claude, Cursor, Cline, Zed, and Windsurf.
-- [ ] Duplicate tool names across selected servers trigger a clear warning in the builder UI.
-- [ ] 1-click clipboard copy and file download function without browser errors.
+- [x] Users can select multiple servers across search queries without losing selections.
+- [x] Multi-server builder generates valid JSON for Claude, Cursor, Cline, Zed, and Windsurf.
+- [x] Duplicate tool names across selected servers trigger a clear warning in the builder UI.
+- [x] 1-click clipboard copy and file download function without browser errors.
 
 ---
 
@@ -191,10 +191,10 @@ The web directory (`web/index.html`) currently allows searching 5,031+ servers a
    - Update `tests/test_ci_pipeline.py` asserting proper step ordering and environment variables.
 
 ### Acceptance Criteria
-- [ ] `.github/workflows/daily_sync.yml` runs `detect-drift` on every scheduled execution.
-- [ ] Drift summary is published to GitHub Step Summary.
-- [ ] Critical tampering triggers automated notifications/issues.
-- [ ] CI pipeline test suite passes without regressions.
+- [x] `.github/workflows/daily_sync.yml` runs `detect-drift` on every scheduled execution.
+- [x] Drift summary is published to GitHub Step Summary.
+- [x] Critical tampering triggers automated notifications/issues.
+- [x] CI pipeline test suite passes without regressions.
 
 ---
 
@@ -221,7 +221,7 @@ The web directory (`web/index.html`) currently allows searching 5,031+ servers a
    - Test fallback behavior and CLI arguments.
 
 ### Acceptance Criteria
-- [ ] `mcp-fingerprints search 'read spreadsheet' --semantic` identifies spreadsheet tools despite lexical divergence.
-- [ ] Core package remains zero-bloat; `fastembed` is an optional extra.
-- [ ] Graceful fallback to lexical search occurs cleanly when semantic dependencies are omitted.
-- [ ] Full unit test coverage in `tests/test_semantic_search.py`.
+- [x] `mcp-fingerprints search 'read spreadsheet' --semantic` identifies spreadsheet tools despite lexical divergence.
+- [x] Core package remains zero-bloat; `fastembed` is an optional extra.
+- [x] Graceful fallback to lexical search occurs cleanly when semantic dependencies are omitted.
+- [x] Full unit test coverage in `tests/test_semantic_search.py`.
