@@ -53,11 +53,20 @@ class McpServerValidator:
         description: str | None = None,
         has_tools_declared: bool = False,
         is_curated_source: bool = False,
+        transport: str = "stdio",
+        remote_endpoint: str | None = None,
     ) -> tuple[bool, str]:
         """Evaluate whether a package is genuinely an MCP server.
 
         Returns (is_valid, reason).
         """
+        if transport == "sse" and remote_endpoint:
+            if not remote_endpoint.startswith("https://") and "localhost" not in remote_endpoint and "127.0.0.1" not in remote_endpoint:
+                return False, f"rejected: remote sse endpoint must be https, got {remote_endpoint}"
+        elif transport == "websocket" and remote_endpoint:
+            if not remote_endpoint.startswith("wss://") and "localhost" not in remote_endpoint and "127.0.0.1" not in remote_endpoint:
+                return False, f"rejected: remote websocket endpoint must be wss, got {remote_endpoint}"
+
         pkg_lower = package_name.lower().strip()
         desc_lower = (description or "").lower()
         kws = [k.lower() for k in (keywords or [])]

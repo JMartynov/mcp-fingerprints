@@ -117,5 +117,16 @@ python -m mcp_fingerprints.cli validate --dir data/fingerprints
 python -m mcp_fingerprints.cli snapshot
 ```
 
+## Releases
+
+### TestPyPI Dry-Run
+
+You can perform an automated dry-run release to TestPyPI to verify packaging, metadata, and functionality before a production PyPI release.
+1. Navigate to the **Actions** tab in the GitHub repository.
+2. Select the **Release to TestPyPI (Dry-Run)** workflow.
+3. Click **Run workflow**.
+4. You can optionally provide a `version_suffix` (e.g. `rc1`, `b2`) which will be appended to the current version in `pyproject.toml` to avoid conflicts on TestPyPI.
+5. The workflow will build artifacts, publish them to TestPyPI using Trusted Publishing, and execute an automated smoke test (`pip install` into a clean container).
+
 ## License
 MIT

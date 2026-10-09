@@ -25,6 +25,8 @@ from mcp_fingerprints.models import (
     VersionFingerprint,
 )
 
+__version__ = "1.0.0"
+
 __all__ = [
     "FingerprintGenerator",
     "FingerprintMatchResult",

@@ -1089,18 +1089,6 @@ class PassportSynchronizer:
                 all_deps.update(v.dependencies)
 
         clean_pkg_name = package_name.strip()
-        is_valid, reason = McpServerValidator.is_valid_mcp_server(
-            package_name=clean_pkg_name,
-            ecosystem=ecosystem,
-            dependencies=all_deps if all_deps else None,
-            keywords=keywords,
-            description=desc,
-            has_tools_declared=bool(tools) or any(bool(v.tool_signatures) for v in all_versions) or bool(connections) or any(bool(v.connections) for v in all_versions) or bool(existing_spec),
-            is_curated_source=is_curated_source,
-        )
-        if not is_valid:
-            logger.info("Skipping invalid/non-MCP package %s (%s)", clean_pkg_name, reason)
-            return None
 
         # Ensure all versions have a valid version string
         sanitized_versions = []
@@ -1113,6 +1101,43 @@ class PassportSynchronizer:
                 sanitized_versions.append(v)
 
         purl = f"pkg:{ecosystem.lower()}/{clean_pkg_name.replace('/', '%2F')}"
+        
+        # Deduce transport from connections
+        transport = "stdio"
+        remote_endpoint = None
+        for v in sanitized_versions:
+            for conn in v.connections:
+                ctype = conn.get("type", "")
+                if ctype in ("sse", "websocket"):
+                    # Validate HTTPS/WSS schemes
+                    url = conn.get("url") or conn.get("deploymentUrl") or ""
+                    if url:
+                        is_localhost = "localhost" in url or "127.0.0.1" in url
+                        if ctype == "sse" and not url.startswith("https://") and not is_localhost:
+                            pass # Reject plain HTTP unless localhost, handled by not setting or by validator? We'll enforce in validator, but here we detect it.
+                        elif ctype == "websocket" and not url.startswith("wss://") and not is_localhost:
+                            pass
+                        transport = ctype
+                        remote_endpoint = url
+                        break
+            if transport != "stdio":
+                break
+
+        clean_pkg_name = package_name.strip()
+        is_valid, reason = McpServerValidator.is_valid_mcp_server(
+            package_name=clean_pkg_name,
+            ecosystem=ecosystem,
+            dependencies=all_deps if all_deps else None,
+            keywords=keywords,
+            description=desc,
+            has_tools_declared=bool(tools) or any(bool(v.tool_signatures) for v in all_versions) or bool(connections) or any(bool(v.connections) for v in all_versions) or bool(existing_spec),
+            is_curated_source=is_curated_source,
+            transport=transport,
+            remote_endpoint=remote_endpoint,
+        )
+        if not is_valid:
+            logger.info("Skipping invalid/non-MCP package %s (%s)", clean_pkg_name, reason)
+            return None
         return ServerPackageSpec(
             package_name=clean_pkg_name,
             purl=purl,
@@ -1126,6 +1151,8 @@ class PassportSynchronizer:
             sources_merged=tuple(sorted(set(sources))),
             dist_tags=dist_tags,
             versions=tuple(sorted(sanitized_versions, key=lambda x: x.version)),
+            transport=transport,
+            remote_endpoint=remote_endpoint,
         )
 
     @staticmethod

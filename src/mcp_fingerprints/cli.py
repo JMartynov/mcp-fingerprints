@@ -16,6 +16,7 @@ from mcp_fingerprints.config_exporter import (
 )
 from mcp_fingerprints.conflict_detector import audit_client_config, format_audit_report
 from mcp_fingerprints.conflict_resolver import resolve_client_config
+from mcp_fingerprints.remediation_advisor import evaluate_client_config
 from mcp_fingerprints.drift_detector import (
     compare_passports_for_drift,
     dispatch_drift_webhook,
@@ -70,8 +71,15 @@ def print_ecosystem_health_report(data_dir: str | Path) -> None:
 
 
 def main() -> None:
+    import mcp_fingerprints
+
     parser = argparse.ArgumentParser(
         description="MCP Fingerprint & Passport Knowledge Base CLI"
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"mcp-fingerprints {mcp_fingerprints.__version__}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -228,6 +236,19 @@ def main() -> None:
         "--output-json", default=None, help="Optional uncompressed JSON output path"
     )
 
+    # Build Index
+    build_index_p = subparsers.add_parser(
+        "build-index", help="Build semantic embeddings index"
+    )
+    build_index_p.add_argument(
+        "--passports-dir",
+        default="data/fingerprints",
+        help="Path to passports directory",
+    )
+    build_index_p.add_argument(
+        "--output", default="data/embeddings.npz", help="Path to output NPZ file"
+    )
+
     # Search
     search_p = subparsers.add_parser(
         "search", help="Fuzzy search MCP servers by keyword or capability"
@@ -244,6 +265,15 @@ def main() -> None:
         action="store_true",
         help="Use semantic/embedding-based search (requires fastembed)",
     )
+
+    # Browse (TUI)
+    browse_p = subparsers.add_parser(
+        "browse", help="Interactive TUI browser for the MCP catalog"
+    )
+    browse_p.add_argument(
+        "--dir", default="data/fingerprints", help="Passport data directory"
+    )
+    browse_p.add_argument("--query", default="", help="Initial search query")
 
     # Export Config
     export_p = subparsers.add_parser(
@@ -280,6 +310,31 @@ def main() -> None:
     )
     audit_p.add_argument(
         "--json", action="store_true", help="Output audit report as JSON"
+    )
+
+    # Fix Advisories
+    fix_advisories_p = subparsers.add_parser(
+        "fix-advisories",
+        help="Automated Vulnerability Remediation Advisor for client configurations",
+    )
+    fix_advisories_p.add_argument(
+        "config_file",
+        help="Path to client config file (e.g. claude_desktop_config.json)",
+    )
+    fix_advisories_p.add_argument(
+        "--dir", default="data/fingerprints", help="Passport data directory"
+    )
+    fix_advisories_p.add_argument(
+        "--apply", action="store_true", help="Atomically update configuration file"
+    )
+    fix_advisories_p.add_argument(
+        "--strategy",
+        choices=["upgrade", "replace", "all"],
+        default="all",
+        help="Strategy to use for remediation (default: all)",
+    )
+    fix_advisories_p.add_argument(
+        "--output", default=None, help="Output path for modified configuration file"
     )
 
     # Resolve Config
@@ -537,11 +592,40 @@ def main() -> None:
             )
             build_snapshot(data_dir=args.dir, output_gz=snap_path)
 
+    elif args.command == "build-index":
+        script_path = (
+            Path(__file__).parent.parent.parent / "scripts" / "build_semantic_index.py"
+        )
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "build_semantic_index", script_path
+        )
+        if spec and spec.loader:
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            try:
+                module.build_index(args.passports_dir, args.output)
+            except ImportError as e:
+                print(f"Error: {e}")
+                sys.exit(1)
+            except Exception as e:
+                print(f"Error building index: {e}")
+                sys.exit(1)
+        else:
+            print(f"Error: Could not load {script_path}")
+            sys.exit(1)
+
     elif args.command == "search":
         if getattr(args, "semantic", False):
             from mcp_fingerprints.semantic_search import semantic_search
 
-            results = semantic_search(args.query, args.dir, top_k=args.limit)
+            index_path = Path("data/embeddings.npz")
+            if index_path.exists():
+                print("Using pre-computed semantic index.", file=sys.stderr)
+            results = semantic_search(
+                args.query, args.dir, top_k=args.limit, index_path=index_path
+            )
         else:
             results = search_passports(args.dir, args.query, args.limit)
         print(format_search_results(results))
@@ -577,6 +661,18 @@ def main() -> None:
 
         if not found:
             print(f"ERROR: Package '{args.package}' not found in passports.")
+            sys.exit(1)
+
+    elif args.command == "browse":
+        if not sys.stdin.isatty():
+            print("Interactive TUI requires a TTY. Exiting cleanly.")
+            sys.exit(0)
+        from mcp_fingerprints.tui import run_tui
+
+        try:
+            run_tui(Path(args.dir), args.query)
+        except Exception as e:  # noqa: BLE001
+            logger.error("TUI exited with error: %s", e)
             sys.exit(1)
 
     elif args.command == "resolve-config":
@@ -626,6 +722,144 @@ def main() -> None:
             print(format_audit_report(report))
 
         if report.has_critical_conflicts:
+            sys.exit(1)
+
+    elif args.command == "fix-advisories":
+        try:
+            report = evaluate_client_config(
+                config_path=args.config_file,
+                passport_dir=args.dir,
+            )
+        except Exception as e:
+            logger.error("Failed to audit configuration: %s", e)
+            print(f"ERROR: {e}")
+            sys.exit(1)
+
+        print("==================================================")
+        print("     MCP VULNERABILITY REMEDIATION REPORT         ")
+        print("==================================================")
+
+        if report.is_clean:
+            print("No vulnerabilities detected in configuration.")
+            sys.exit(0)
+
+        print(f"Total unremediated packages: {report.unremediated_count}")
+        print(f"Total remediations proposed: {len(report.actions)}")
+
+        for action in report.actions:
+            print(f"\nPackage: {action.package_name}@{action.current_version}")
+            print(f"  CVEs: {', '.join(action.cve_list)}")
+            if action.action_type == "none":
+                print("  Action: NO REMEDIATION AVAILABLE")
+            elif action.action_type == "upgrade":
+                if args.strategy in ("all", "upgrade"):
+                    print(f"  Action: UPGRADE to {action.target_version}")
+                else:
+                    print("  Action: UPGRADE available, but ignored by strategy")
+            elif action.action_type == "replace":
+                if args.strategy in ("all", "replace"):
+                    print(
+                        f"  Action: REPLACE with {action.target_package}@{action.target_version} (Similarity: {action.similarity_score:.2f})"
+                    )
+                else:
+                    print("  Action: REPLACE available, but ignored by strategy")
+
+        if args.apply:
+            p = Path(args.config_file)
+            raw_conf = json.loads(p.read_text(encoding="utf-8"))
+
+            servers_dict = {}
+            servers_key = None
+            if "mcpServers" in raw_conf and isinstance(raw_conf["mcpServers"], dict):
+                servers_dict = raw_conf["mcpServers"]
+                servers_key = "mcpServers"
+            elif "context_servers" in raw_conf and isinstance(
+                raw_conf["context_servers"], dict
+            ):
+                servers_dict = raw_conf["context_servers"]
+                servers_key = "context_servers"
+
+            if servers_key:
+                for action in report.actions:
+                    if action.action_type == "upgrade" and args.strategy in (
+                        "all",
+                        "upgrade",
+                    ):
+                        for server_conf in servers_dict.values():
+                            command = server_conf.get("command", "")
+                            args_list = server_conf.get("args", [])
+
+                            new_args = []
+                            for arg in args_list:
+                                if "@" in arg and action.package_name in arg:
+                                    parts = arg.split("@")
+                                    new_args.append(
+                                        f"{parts[0]}@{action.target_version}"
+                                    )
+                                else:
+                                    new_args.append(arg)
+                            server_conf["args"] = new_args
+
+                            if "@" in command and action.package_name in command:
+                                parts = command.split("@")
+                                server_conf["command"] = (
+                                    f"{parts[0]}@{action.target_version}"
+                                )
+                    elif action.action_type == "replace" and args.strategy in (
+                        "all",
+                        "replace",
+                    ):
+                        for server_conf in servers_dict.values():
+                            command = server_conf.get("command", "")
+                            args_list = server_conf.get("args", [])
+
+                            new_args = []
+                            for arg in args_list:
+                                if "@" in arg and action.package_name in arg:
+                                    parts = arg.split("@")
+                                    # Very basic heuristic for replacement
+                                    new_arg = arg.replace(
+                                        action.package_name, action.target_package
+                                    )
+                                    new_arg = new_arg.replace(
+                                        parts[1], action.target_version
+                                    )
+                                    new_args.append(new_arg)
+                                elif action.package_name in arg:
+                                    new_args.append(
+                                        arg.replace(
+                                            action.package_name, action.target_package
+                                        )
+                                    )
+                                else:
+                                    new_args.append(arg)
+                            server_conf["args"] = new_args
+
+                            if "@" in command and action.package_name in command:
+                                parts = command.split("@")
+                                # Very basic heuristic for replacement
+                                new_cmd = command.replace(
+                                    action.package_name, action.target_package
+                                )
+                                new_cmd = new_cmd.replace(
+                                    parts[1], action.target_version
+                                )
+                                server_conf["command"] = new_cmd
+                            elif action.package_name in command:
+                                server_conf["command"] = command.replace(
+                                    action.package_name, action.target_package
+                                )
+
+            out_path = Path(args.output) if args.output else p
+            out_path.write_text(json.dumps(raw_conf, indent=2))
+            print(f"\nConfiguration updated at {out_path}")
+
+        if report.unremediated_count > 0 or any(
+            a.action_type == "none"
+            or (a.action_type == "upgrade" and args.strategy == "replace")
+            or (a.action_type == "replace" and args.strategy == "upgrade")
+            for a in report.actions
+        ):
             sys.exit(1)
 
     elif args.command == "detect-drift":

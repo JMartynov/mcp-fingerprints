@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
+
+TransportType = Literal["stdio", "sse", "websocket"]
 
 
 @dataclass(frozen=True)
@@ -135,6 +137,10 @@ class VersionFingerprint:
     dependencies: dict[str, str] = field(default_factory=dict)
     connections: list[dict[str, Any]] = field(default_factory=list)
     capabilities: dict[str, bool] = field(default_factory=dict)
+    transport: TransportType = "stdio"
+    remote_endpoint: str | None = None
+    auth_type: Literal["none", "bearer", "api-key", "oauth2"] = "none"
+    headers_schema: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -144,6 +150,10 @@ class VersionFingerprint:
             "dependencies": self.dependencies,
             "connections": self.connections,
             "capabilities": self.capabilities,
+            "transport": self.transport,
+            "remote_endpoint": self.remote_endpoint,
+            "auth_type": self.auth_type,
+            "headers_schema": self.headers_schema,
             "tool_signatures": [t.to_dict() for t in self.tool_signatures],
             "prompt_signatures": [p.to_dict() for p in self.prompt_signatures],
             "resource_signatures": [r.to_dict() for r in self.resource_signatures],
@@ -158,6 +168,10 @@ class VersionFingerprint:
             dependencies=data.get("dependencies", {}),
             connections=data.get("connections", []),
             capabilities=data.get("capabilities", {}),
+            transport=data.get("transport", "stdio"),
+            remote_endpoint=data.get("remote_endpoint"),
+            auth_type=data.get("auth_type", "none"),
+            headers_schema=data.get("headers_schema", {}),
             tool_signatures=tuple(
                 ToolContractSignature.from_dict(t) for t in data.get("tool_signatures", ())
             ),
@@ -188,6 +202,10 @@ class ServerPackageSpec:
     dist_tags: dict[str, str] = field(default_factory=dict)
     versions: tuple[VersionFingerprint, ...] = ()
     security_profile: dict[str, Any] = field(default_factory=dict)
+    transport: TransportType = "stdio"
+    remote_endpoint: str | None = None
+    auth_type: Literal["none", "bearer", "api-key", "oauth2"] = "none"
+    headers_schema: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -206,6 +224,10 @@ class ServerPackageSpec:
             "dist_tags": self.dist_tags,
             "versions": [v.to_dict() for v in self.versions],
             "security_profile": self.security_profile,
+            "transport": self.transport,
+            "remote_endpoint": self.remote_endpoint,
+            "auth_type": self.auth_type,
+            "headers_schema": self.headers_schema,
         }
 
     @classmethod
@@ -225,6 +247,10 @@ class ServerPackageSpec:
             dist_tags=data.get("dist_tags", {}),
             versions=tuple(VersionFingerprint.from_dict(v) for v in data.get("versions", ())),
             security_profile=data.get("security_profile", {}),
+            transport=data.get("transport", "stdio"),
+            remote_endpoint=data.get("remote_endpoint"),
+            auth_type=data.get("auth_type", "none"),
+            headers_schema=data.get("headers_schema", {}),
         )
 
 

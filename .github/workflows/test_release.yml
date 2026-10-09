@@ -1,0 +1,98 @@
+name: Release to TestPyPI (Dry-Run)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_suffix:
+        description: 'Candidate version suffix (e.g., rc1)'
+        required: false
+        default: 'rc1'
+        type: string
+      skip_smoke_test:
+        description: 'Skip post-publish smoke test'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    name: Build wheels and sdist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: pip install --upgrade pip build twine
+
+      - name: Inject Version Suffix
+        if: ${{ inputs.version_suffix != '' }}
+        run: |
+          sed -i 's/version = "\([0-9\.]*\)"/version = "\1${{ inputs.version_suffix }}"/' pyproject.toml
+          cat pyproject.toml | grep version
+
+      - name: Build wheel and sdist
+        run: python -m build
+
+      - name: Verify build artifacts with twine
+        run: |
+          ls -la dist/
+          test -n "$(find dist -name '*.whl' -print -quit)" || (echo "No wheel found" && exit 1)
+          test -n "$(find dist -name '*.tar.gz' -print -quit)" || (echo "No sdist found" && exit 1)
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+  publish:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/mcp-fingerprints
+    permissions:
+      id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+      - name: Publish package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  smoke-test:
+    name: TestPyPI Smoke Test
+    needs: publish
+    if: ${{ !inputs.skip_smoke_test }}
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.12-slim
+    steps:
+      - name: Wait for TestPyPI replication
+        run: sleep 30
+
+      - name: Install from TestPyPI
+        run: |
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-fingerprints
+
+      - name: Verify Installation
+        run: |
+          mcp-fingerprints --version

@@ -49,33 +49,43 @@ def export_client_config(passport: dict[str, Any], client: str = "claude") -> di
 
     # Handle SSE connections
     if conn and conn.get("type") == "sse":
-        url = conn.get("url") or conn.get("deploymentUrl") or ""
+        url = conn.get("url") or conn.get("deploymentUrl") or passport.get("remote_endpoint") or ""
+        headers = passport.get("headers_schema") or {}
         if client in ("claude", "cursor", "windsurf"):
+            server_conf = {
+                "type": "sse",
+                "url": url,
+            }
+            if headers:
+                server_conf["headers"] = headers
             return {
                 "mcpServers": {
-                    safe_name: {
-                        "type": "sse",
-                        "url": url,
-                    }
+                    safe_name: server_conf
                 }
             }
         elif client == "cline":
+            server_conf = {
+                "type": "sse",
+                "url": url,
+                "disabled": False,
+                "autoApprove": [],
+            }
+            if headers:
+                server_conf["headers"] = headers
             return {
                 "mcpServers": {
-                    safe_name: {
-                        "type": "sse",
-                        "url": url,
-                        "disabled": False,
-                        "autoApprove": [],
-                    }
+                    safe_name: server_conf
                 }
             }
         elif client == "zed":
+            server_conf = {
+                "url": url,
+            }
+            if headers:
+                server_conf["headers"] = headers
             return {
                 "context_servers": {
-                    safe_name: {
-                        "url": url,
-                    }
+                    safe_name: server_conf
                 }
             }
         elif client == "docker":

@@ -24,6 +24,33 @@ class SemanticSearcher:
     def __init__(self, model_name: str = "BAAI/bge-small-en-v1.5"):
         self.model_name = model_name
         self._model = None
+        self.index_cache = None
+
+    def load_precomputed_index(self, index_path: Path | str | None = None) -> bool:
+        """Loads pre-computed embeddings index from a file if it exists."""
+        if index_path is None:
+            index_path = Path("data/embeddings.npz")
+        else:
+            index_path = Path(index_path)
+            
+        if not index_path.exists():
+            return False
+            
+        try:
+            import numpy as np
+            logger.info(f"Loading pre-computed semantic index from {index_path}...")
+            data = np.load(index_path, allow_pickle=True)
+            self.index_cache = {
+                "vectors": data["vectors"],
+                "package_names": data["package_names"],
+                "metadata": [json.loads(m) for m in data["metadata"]]
+            }
+            logger.info(f"Loaded index with {len(self.index_cache['vectors'])} vectors.")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to load pre-computed index: {e}")
+            self.index_cache = None
+            return False
 
     @property
     def model(self):
@@ -101,12 +128,15 @@ class SemanticSearcher:
             )
             raise ImportError("fastembed is not installed")
 
-        if not passports:
+        if not passports and self.index_cache is None:
             return []
 
-        documents, metadata = self._extract_documents(passports)
-        if not documents:
-            return []
+        documents = []
+        metadata = []
+        if self.index_cache is None:
+            documents, metadata = self._extract_documents(passports)
+            if not documents:
+                return []
 
         # Embed query and documents
         try:
@@ -118,6 +148,39 @@ class SemanticSearcher:
                 return []
             query_emb = query_embeddings[0]
 
+            # If we have a cached index, use it directly to bypass doc embedding
+            if self.index_cache is not None:
+                # Normalize query embedding
+                norm_q = np.linalg.norm(query_emb)
+                if norm_q > 0:
+                    query_emb = query_emb / norm_q
+                    
+                # Matrix dot product - O(N) where N is number of passports
+                # Since cached vectors are also L2 normalized, dot product == cosine similarity
+                similarities = np.dot(self.index_cache["vectors"], query_emb)
+                
+                # Get top K indices using argpartition for O(N) complexity
+                # Find indices of top K (unsorted)
+                k = min(top_k, len(similarities))
+                if k == 0:
+                    return []
+                    
+                top_k_indices = np.argpartition(similarities, -k)[-k:]
+                
+                # Sort the top K indices by similarity score (descending)
+                top_k_scores = similarities[top_k_indices]
+                sorted_idx_of_top_k = np.argsort(-top_k_scores)
+                final_indices = top_k_indices[sorted_idx_of_top_k]
+                
+                results = []
+                for idx in final_indices:
+                    item = self.index_cache["metadata"][idx].copy()
+                    item["score"] = float(similarities[idx])
+                    results.append(item)
+                    
+                return results
+
+            # Fallback to computing document embeddings on the fly
             doc_embeddings = list(self.model.embed(documents))
 
             # Calculate cosine similarities
@@ -177,7 +240,7 @@ def load_passports_from_dir(dir_path: Path | str) -> list[dict]:
 
 
 def semantic_search(
-    query: str, passports_dir: Path | str, top_k: int = 10
+    query: str, passports_dir: Path | str, top_k: int = 10, index_path: Path | str | None = None
 ) -> list[dict[str, Any]]:
     """
     Main entry point for semantic search.
@@ -187,8 +250,18 @@ def semantic_search(
         if not HAS_FASTEMBED:
             raise ImportError("fastembed is not installed.")
 
-        passports = load_passports_from_dir(passports_dir)
         searcher = SemanticSearcher()
+        
+        # Try to load pre-computed index
+        searcher.load_precomputed_index(index_path)
+        
+        # If cache is used, passports aren't strictly needed for extracting docs since we bypass it
+        # But we still load them in case we fallback
+        if searcher.index_cache is None:
+            passports = load_passports_from_dir(passports_dir)
+        else:
+            passports = []  # We don't need them if we have cache
+            
         return searcher.search(query, passports, top_k=top_k)
 
     except ImportError as e:
