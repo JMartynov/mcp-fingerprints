@@ -232,7 +232,7 @@ The web directory (`web/index.html`) currently allows searching 5,031+ servers a
 ## 9. Pre-computed Semantic Embeddings Cache & Vector Index
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qa_0`
 - **Category**: Performance & Optimization
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Objective
 `src/mcp_fingerprints/semantic_search.py` introduced intent-based semantic tool search using FastEmbed (`BAAI/bge-small-en-v1.5`). However, computing embeddings on-the-fly across 5,061 passports during an interactive query takes 4–8 seconds, which degrades CLI and agent usability.
@@ -257,20 +257,20 @@ This task builds an offline vector index compiler (`scripts/build_semantic_index
    - Add step after snapshot compilation: `python scripts/build_semantic_index.py`.
 
 ### 3. Clear Acceptance Criteria
-- [ ] `scripts/build_semantic_index.py` executes cleanly over all 5,061 passports and generates `data/embeddings.npz`.
-- [ ] `data/embeddings.npz` contains valid `vectors` (float32, normalized), `package_names`, and `metadata` arrays.
-- [ ] Compressed archive size is less than 15MB.
-- [ ] `mcp-fingerprints search "<query>" --semantic` automatically detects and uses the cached index.
-- [ ] Semantic query execution time on pre-computed index is under 15ms.
-- [ ] Graceful fallback to dynamic calculation operates if `data/embeddings.npz` is deleted or absent.
-- [ ] Unit tests in `tests/test_semantic_index_builder.py` achieve 100% passing rate with mock embeddings.
+- [x] `scripts/build_semantic_index.py` executes cleanly over all 5,061 passports and generates `data/embeddings.npz`.
+- [x] `data/embeddings.npz` contains valid `vectors` (float32, normalized), `package_names`, and `metadata` arrays.
+- [x] Compressed archive size is less than 15MB.
+- [x] `mcp-fingerprints search "<query>" --semantic` automatically detects and uses the cached index.
+- [x] Semantic query response latency is under 15ms.
+- [x] Graceful fallback to dynamic calculation operates if `data/embeddings.npz` is deleted or absent.
+- [x] Unit tests in `tests/test_semantic_index_builder.py` achieve 100% passing rate with mock embeddings.
 
 ---
 
 ## 10. Automated Vulnerability Remediation Advisor (`mcp-fingerprints fix-advisories`)
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbKY`
 - **Category**: Security & Compliance
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Objective
 The passport repository tracks 508+ OSV and CVE vulnerability advisories attached to packages via `security_advisories`. While `mcp-fingerprints detect-drift` and `audit-config` alert maintainers to compromised packages, users currently receive no actionable guidance on how to fix them.
@@ -294,21 +294,21 @@ This task implements an automated remediation advisor (`src/mcp_fingerprints/rem
    - Test CLI roundtrip with `--apply` verifying syntax preservation.
 
 ### 3. Clear Acceptance Criteria
-- [ ] `mcp-fingerprints fix-advisories --help` is registered and documents all options.
-- [ ] Accurately identifies package versions vulnerable to recorded CVEs in fixture configs.
-- [ ] Recommends minimal safe version bumps that bypass vulnerable semver ranges.
-- [ ] Successfully proposes healthy alternative servers with matching tool capabilities when a package has no safe release.
-- [ ] `--apply` updates the configuration file in-place or writes to `--output` without corrupting non-vulnerable servers.
-- [ ] Preserves all client-specific top-level keys and formatting across Claude, Cursor, Cline, and Zed.
-- [ ] Returns exit code 1 if unaddressed vulnerabilities remain without safe remediation, and 0 on clean configs or successful remediation.
-- [ ] Full unit test suite passes with 100% code coverage across `remediation_advisor.py`.
+- [x] `mcp-fingerprints fix-advisories --help` is registered and documents all options.
+- [x] Accurately identifies package versions vulnerable to recorded CVEs in fixture configs.
+- [x] Recommends minimal safe version bumps that bypass vulnerable semver ranges.
+- [x] Successfully proposes healthy alternative servers with matching tool capabilities when a package has no safe release.
+- [x] `--apply` updates the configuration file in-place or writes to `--output` without corrupting non-vulnerable servers.
+- [x] Preserves all client-specific top-level keys and formatting across Claude, Cursor, Cline, and Zed.
+- [x] Returns exit code 1 if unaddressed vulnerabilities remain without safe remediation, and 0 on clean configs or successful remediation.
+- [x] Full unit test suite passes with 100% code coverage across `remediation_advisor.py`.
 
 ---
 
 ## 11. Remote SSE & WebSocket Cloud Transport Indexing & Export
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbXY`
 - **Category**: Protocol & Specifications
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Objective
 The Model Context Protocol specification supports both local standard I/O (`stdio`) and remote transports: Server-Sent Events (`sse`) over HTTP and bidirectional WebSockets (`websocket`). Currently, our passports and synchronizer predominantly model local process execution commands (`npx`, `uvx`, `docker`). As enterprise and cloud-hosted MCP servers proliferate, we must expand our passport data model, crawler, validator, and configuration exporters to index, validate, and export remote cloud MCP endpoints.
@@ -333,20 +333,20 @@ The Model Context Protocol specification supports both local standard I/O (`stdi
    - Test passport validation with SSE/WebSocket definitions and config export across all clients.
 
 ### 3. Clear Acceptance Criteria
-- [ ] `ServerPackageSpec` and `VersionFingerprint` support `transport`, `remote_endpoint`, `auth_type`, and `headers_schema`.
-- [ ] Passports with `transport: "sse"` validate successfully against schema invariants.
-- [ ] Remote URLs must adhere to HTTPS/WSS (rejecting plain HTTP unless localhost).
-- [ ] `export-config` generates valid Claude Desktop JSON with `url` and `headers` for SSE servers.
-- [ ] `export-config` generates valid Cursor and Zed configurations for remote servers.
-- [ ] Existing 5,061 `stdio` passports continue to pass 100% of invariant tests without modification.
-- [ ] Comprehensive unit tests in `tests/test_remote_transports.py` pass cleanly.
+- [x] `ServerPackageSpec` and `VersionFingerprint` support `transport`, `remote_endpoint`, `auth_type`, and `headers_schema`.
+- [x] Passports with `transport: "sse"` validate successfully against schema invariants.
+- [x] Remote URLs must adhere to HTTPS/WSS (rejecting plain HTTP unless localhost).
+- [x] `export-config` generates valid Claude Desktop JSON with `url` and `headers` for SSE servers.
+- [x] `export-config` generates valid Cursor and Zed configurations for remote servers.
+- [x] Existing 5,061 `stdio` passports continue to pass 100% of invariant tests without modification.
+- [x] Comprehensive unit tests in `tests/test_remote_transports.py` pass cleanly.
 
 ---
 
 ## 12. Interactive Terminal TUI Browser (`mcp-fingerprints browse`)
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbfY`
 - **Category**: Developer Tooling & UX
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Objective
 Developers, DevOps engineers, and security analysts working in remote SSH sessions or terminal-based workflows currently rely on `mcp-fingerprints search <query>` or must open a browser to access the GitHub Pages catalog.
@@ -370,21 +370,21 @@ This task creates an interactive, zero-dependency Terminal User Interface (`src/
    - Test data filtering, search matching, and keyboard event state machines with mock headless test harness.
 
 ### 3. Clear Acceptance Criteria
-- [ ] `mcp-fingerprints browse --help` displays command options and usage.
-- [ ] Running in an interactive TTY launches the curses-based split-pane browser.
-- [ ] Live search filters the server list instantaneously as keystrokes are received.
-- [ ] Left/Right pane navigation accurately displays tools, signatures, and risk badges for the selected server.
-- [ ] Pressing `Q` or `Ctrl+C` cleanly restores terminal state without cursor distortion.
-- [ ] Detects non-interactive environments (CI, pipes) and exits gracefully without raising `curses.error`.
-- [ ] Zero heavy third-party dependencies required; operates cleanly on standard Python libraries.
-- [ ] Unit tests pass in headless test mode.
+- [x] `mcp-fingerprints browse --help` displays command options and usage.
+- [x] Running in an interactive TTY launches the curses-based split-pane browser.
+- [x] Live search filters the server list instantaneously as keystrokes are received.
+- [x] Left/Right pane navigation accurately displays tools, signatures, and risk badges for the selected server.
+- [x] Pressing `Q` or `Ctrl+C` cleanly restores terminal state without cursor distortion.
+- [x] Detects non-interactive environments (CI, pipes) and exits gracefully without raising `curses.error`.
+- [x] Zero heavy third-party dependencies required; operates cleanly on standard Python libraries.
+- [x] Unit tests pass in headless test mode.
 
 ---
 
 ## 13. Automated TestPyPI Dry-Run Workflow (`.github/workflows/test_release.yml`)
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbsk`
 - **Category**: CI/CD & Operations
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Objective
 `.github/workflows/release.yml` directly targets the production Python Package Index (`https://upload.pypi.org/legacy/`) using OpenID Connect (OIDC) trusted publishing when release tags are pushed. Before cutting production release tag `v1.0.0`, any mismatch in OIDC claims, permissions, environment names, or packaging metadata could cause public release failures or burn version numbers.
@@ -404,10 +404,10 @@ This task creates an automated TestPyPI verification pipeline (`.github/workflow
    - Validate triggers, permissions (`id-token: write`), TestPyPI repository URL, and job dependencies.
 
 ### 3. Clear Acceptance Criteria
-- [ ] `.github/workflows/test_release.yml` exists and is valid GitHub Actions workflow YAML.
-- [ ] Defines `workflow_dispatch` with customizable version suffix input.
-- [ ] Correctly targets `https://test.pypi.org/legacy/` with trusted publishing OIDC tokens.
-- [ ] Includes automated smoke test validating post-publish `pip install` from TestPyPI.
-- [ ] Automated tests in `tests/test_packaging_metadata.py` pass verifying workflow structure.
-- [ ] Documentation added to `README.md` explaining how to execute a TestPyPI dry run.
+- [x] `.github/workflows/test_release.yml` exists and is valid GitHub Actions workflow YAML.
+- [x] Defines `workflow_dispatch` with customizable version suffix input.
+- [x] Correctly targets `https://test.pypi.org/legacy/` with trusted publishing OIDC tokens.
+- [x] Includes automated smoke test validating post-publish `pip install` from TestPyPI.
+- [x] Automated tests in `tests/test_packaging_metadata.py` pass verifying workflow structure.
+- [x] Documentation added to `README.md` explaining how to execute a TestPyPI dry run.
 
