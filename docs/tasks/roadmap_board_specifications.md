@@ -225,3 +225,142 @@ The web directory (`web/index.html`) currently allows searching 5,031+ servers a
 - [x] Core package remains zero-bloat; `fastembed` is an optional extra.
 - [x] Graceful fallback to lexical search occurs cleanly when semantic dependencies are omitted.
 - [x] Full unit test coverage in `tests/test_semantic_search.py`.
+
+
+---
+
+## 9. Pre-computed Semantic Embeddings Cache
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qa_0`
+- **Category**: Performance & Optimization
+- **Status**: Todo
+
+### Context & Objective
+`src/mcp_fingerprints/semantic_search.py` was introduced in Wave 5 to support semantic search. However, calculating embeddings dynamically on query time for thousands of servers incurs noticeable latency. We need an offline pre-computation script (`scripts/build_semantic_index.py`) integrated into the daily sync pipeline that generates normalized embeddings for all indexed servers and serializes them to `data/embeddings.npz`. When present, `semantic_search` loads this pre-computed index for sub-5ms queries.
+
+### Implementation Steps
+1. **Pre-computation Script (`scripts/build_semantic_index.py`)**:
+   - Iterate over all passports in `data/fingerprints/`.
+   - Concatenate server descriptions, tool names, and tool descriptions.
+   - Use `FastEmbed` (`BAAI/bge-small-en-v1.5`) to compute normalized vector embeddings.
+   - Save embeddings and package index mappings into `data/embeddings.npz`.
+2. **Runtime Integration (`src/mcp_fingerprints/semantic_search.py`)**:
+   - Check if `data/embeddings.npz` exists; if so, load embeddings matrix.
+   - Perform matrix vector dot product for near-instant cosine similarity ranking.
+   - Fall back to on-the-fly calculation if the file is absent.
+3. **CI Pipeline Integration (`.github/workflows/daily_sync.yml`)**:
+   - Add step to run `python scripts/build_semantic_index.py` after sync.
+4. **Unit Tests (`tests/test_semantic_index_builder.py`)**:
+   - Test pre-computation on mock passports and assert shape and accuracy.
+
+### Acceptance Criteria
+- [ ] `scripts/build_semantic_index.py` successfully builds `data/embeddings.npz`.
+- [ ] `mcp-fingerprints search --semantic` uses the pre-computed cache when available.
+- [ ] Semantic query response latency is < 15ms.
+- [ ] Unit tests pass 100%.
+
+---
+
+## 10. Automated Vulnerability Remediation Advisor (`mcp-fingerprints fix-advisories`)
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbKY`
+- **Category**: Security & Compliance
+- **Status**: Todo
+
+### Context & Objective
+`drift_detector.py` and `security_classifier.py` identify OSV vulnerabilities and CVEs attached to server passports. When users or agent operators audit client configurations (Claude, Cursor, Cline), finding a vulnerability currently requires manual research to replace or fix the server. We need an automated remediation command (`mcp-fingerprints fix-advisories`) that inspects a client configuration, checks configured servers against OSV advisories in the passport knowledge base, and outputs recommended safe version bumps or alternative, healthy replacement MCP packages.
+
+### Implementation Steps
+1. **Remediation Advisor Core (`src/mcp_fingerprints/remediation_advisor.py`)**:
+   - `recommend_remediations(config_path, passport_dir) -> RemediationReport`.
+   - Look up newest release of same package without known vulnerabilities.
+   - If no safe version exists, search for alternative MCP servers providing equivalent tool capabilities.
+2. **CLI Interface (`src/mcp_fingerprints/cli.py`)**:
+   - Add `mcp-fingerprints fix-advisories <config.json> [--apply] [--output <path>]`.
+   - `--apply` automatically rewrites the client configuration with upgraded package versions or safe alternatives.
+3. **Unit Tests (`tests/test_remediation_advisor.py`)**:
+   - Test advisory detection on fixture configs with known CVE packages.
+   - Test alternative package recommendation algorithms.
+   - Test `--apply` and CLI options.
+
+### Acceptance Criteria
+- [ ] `mcp-fingerprints fix-advisories` accurately flags vulnerable packages in client configs.
+- [ ] Suggests safe version upgrades or alternative servers with similar tool signatures.
+- [ ] `--apply` generates clean, valid client configs with vulnerabilities resolved.
+- [ ] 100% test coverage with no regressions.
+
+---
+
+## 11. Remote SSE & WebSocket Cloud Transport Indexing
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbXY`
+- **Category**: Protocol & Specifications
+- **Status**: Todo
+
+### Context & Objective
+Currently, server passports prioritize `stdio` execution entrypoints (`npx`, `uvx`, `docker`). With the MCP specification increasingly adopting remote hosted servers using HTTP with Server-Sent Events (SSE) and WebSockets, we need to extend the passport data model, crawler, and config exporter to support remote cloud endpoints, authentication header templates, and remote ping health-checks.
+
+### Implementation Steps
+1. **Schema & Model Expansion (`src/mcp_fingerprints/models.py`)**:
+   - Add `transport: Literal["stdio", "sse", "websocket"] = "stdio"`.
+   - Add `remote_endpoint: str | None = None` and `auth_type: str | None = None`.
+2. **Crawler & Synchronizer Updates (`src/mcp_fingerprints/crawler.py` & `synchronizer.py`)**:
+   - Detect remote MCP server endpoints declared in Smithery manifests and official registry entries.
+   - Record endpoint URLs and transport protocols in passport JSON.
+3. **Config Exporter Support (`src/mcp_fingerprints/config_exporter.py`)**:
+   - Output valid SSE configurations for Claude Desktop, Cursor, and Zed.
+4. **Unit Tests (`tests/test_remote_transports.py`)**:
+   - Test validation of SSE/WebSocket server passports and exporter outputs.
+
+### Acceptance Criteria
+- [ ] Schema validates `sse` and `websocket` transports.
+- [ ] Config exporter generates valid remote SSE server blocks for all supported IDE clients.
+- [ ] Full test coverage in `tests/test_remote_transports.py`.
+
+---
+
+## 12. Interactive Terminal TUI Browser (`mcp-fingerprints browse`)
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbfY`
+- **Category**: Developer Tooling & UX
+- **Status**: Todo
+
+### Context & Objective
+Currently, users search and explore MCP passports via command-line flags (`mcp-fingerprints search`) or the static web directory. A rich, terminal-native text user interface (TUI) allows developers and terminal users to search 5,000+ servers, filter by ecosystems/risk, view tool schemas, and copy/export client configuration snippets without opening a web browser.
+
+### Implementation Steps
+1. **TUI Module (`src/mcp_fingerprints/tui.py`)**:
+   - Build a clean terminal interface using `curses` or lightweight dependency.
+   - Header with search bar, filter tabs, and server count.
+   - Split pane layout: Left pane for server list; Right pane for tool signatures, parameters, risk badge, and copyable config.
+2. **CLI Integration (`src/mcp_fingerprints/cli.py`)**:
+   - Add command `mcp-fingerprints browse`.
+3. **Unit Tests (`tests/test_tui.py`)**:
+   - Test data binding, filtering logic, and terminal rendering safely in headless test environments.
+
+### Acceptance Criteria
+- [ ] `mcp-fingerprints browse` launches a responsive terminal UI.
+- [ ] Keyboard navigation allows searching and inspecting tools.
+- [ ] Works cleanly across standard terminal emulators without crashing.
+- [ ] Unit tests pass in headless mode.
+
+---
+
+## 13. Automated TestPyPI Dry-Run Workflow (`.github/workflows/test_release.yml`)
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbsk`
+- **Category**: CI/CD & Operations
+- **Status**: Todo
+
+### Context & Objective
+`.github/workflows/release.yml` publishes directly to production PyPI when release tags are cut. To eliminate any risk during production release cuts and verify OpenID Connect (OIDC) token exchange, environment configuration, and package installation in advance, we should create a dedicated TestPyPI dry-run workflow (`.github/workflows/test_release.yml`) that can be executed on demand via `workflow_dispatch`.
+
+### Implementation Steps
+1. **TestPyPI Workflow (`.github/workflows/test_release.yml`)**:
+   - Trigger on `workflow_dispatch`.
+   - Build sdist and wheel using `build`.
+   - Verify dist with `twine check dist/*`.
+   - Publish to `https://test.pypi.org/legacy/` via `pypa/gh-action-pypi-publish@release/v1`.
+   - Smoke test installation in clean virtual environment.
+2. **Unit Tests (`tests/test_packaging_metadata.py`)**:
+   - Assert `test_release.yml` syntax, permissions, and trusted publishing parameters.
+
+### Acceptance Criteria
+- [ ] `.github/workflows/test_release.yml` exists with valid YAML.
+- [ ] Supports manual execution on demand via GitHub Actions.
+- [ ] Tests verify workflow structure and publish actions.
