@@ -35,7 +35,25 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
     sec_profile = passport.get("security_profile")
     if not sec_profile and versions:
         sec_profile = classify_server_security_profile(versions)
+    
+    advisories = []
+    if sec_profile:
+        advisories = sec_profile.get("advisories", [])
+        
+    advisory_count = len(advisories)
+    
+    # Update risk tier based on advisories
     risk_tier = sec_profile.get("highest_risk_tier", "low") if sec_profile else "low"
+    if advisory_count > 0:
+        # Check for critical or high severity advisories
+        has_crit = any(adv.get("severity") == "CRITICAL" for adv in advisories)
+        has_high = any(adv.get("severity") == "HIGH" for adv in advisories)
+        if has_crit:
+            risk_tier = "critical"
+        elif has_high and risk_tier not in ("critical",):
+            risk_tier = "high"
+        elif risk_tier not in ("critical", "high"):
+            risk_tier = "medium"
 
     # Default install / run command
     conn = None
@@ -71,6 +89,8 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
         "tool_count": len(tools),
         "tools": tools,
         "risk_tier": risk_tier,
+        "advisories": advisories,
+        "advisory_count": advisory_count,
         "connection_type": conn_type,
         "command": install_cmd,
         "is_verified": latest_v.get("capabilities", {}).get("runtime_verified", False)

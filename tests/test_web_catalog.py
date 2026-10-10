@@ -8,6 +8,10 @@ from scripts.generate_web_catalog import build_catalog_entry, compile_web_catalo
 
 def test_build_catalog_entry_npm():
     passport = {
+        "security_profile": {
+            "highest_risk_tier": "low",
+            "advisories": [{"id": "CVE-2024-1234", "severity": "HIGH"}],
+        },
         "package_name": "@org/sample-mcp",
         "ecosystem": "npm",
         "description": "Sample MCP server for testing",
@@ -33,6 +37,9 @@ def test_build_catalog_entry_npm():
     assert entry["tools"][0]["name"] == "tool_one"
     assert entry["command"] == "node dist/index.js"
     assert entry["is_verified"] is True
+    assert entry["advisory_count"] == 1
+    assert entry["advisories"][0]["id"] == "CVE-2024-1234"
+    assert entry["risk_tier"] == "high"
 
 
 def test_compile_web_catalog(tmp_path):
@@ -79,6 +86,14 @@ def test_web_index_html_exists_and_valid():
     assert "app.js" in html_content
 
 
+def test_web_index_html_css_classes():
+    index_file = Path("web/index.html")
+    assert index_file.is_file()
+    html_content = index_file.read_text(encoding="utf-8")
+    assert ".badge-advisory" in html_content
+    assert ".highlight-card" in html_content
+
+
 def test_web_index_html_multi_server_ui_elements():
     index_file = Path("web/index.html")
     assert index_file.is_file()
@@ -89,6 +104,18 @@ def test_web_index_html_multi_server_ui_elements():
     assert 'id="configModal"' in html_content
     assert 'id="collisionWarning"' in html_content
     assert 'id="configOutput"' in html_content
+
+
+def test_web_app_js_deep_linking_logic():
+    app_file = Path("web/app.js")
+    assert app_file.is_file()
+    js_content = app_file.read_text(encoding="utf-8")
+    assert "URLSearchParams" in js_content
+    assert "history.replaceState" in js_content
+    assert "window.location.search" in js_content
+    assert "badge-advisory" in js_content
+    assert "osv.dev/vulnerability" in js_content
+    assert "copyShareLink" in js_content
 
 
 def test_web_app_js_multi_server_logic():

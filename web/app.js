@@ -56,8 +56,9 @@
       filtered.slice(0, 100).forEach(item => {
         const card = document.createElement("div");
         card.className = "card";
-
+        
         const safeKey = item.name.replace(/[@/_]/g, "-");
+        card.id = 'server-' + safeKey;
         const displayedTools = item.tools.slice(0, 6);
 
         const isChecked = selectedServers.has(item.name) ? 'checked' : '';
@@ -70,12 +71,22 @@
                   ${item.name}
                 </label>
               </div>
-              <div style="display: flex; gap: 0.35rem;">
+              <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <span class="badge badge-eco">${item.ecosystem}</span>
                 <span class="badge badge-${item.risk_tier}">${item.risk_tier}</span>
+                ${(item.advisory_count > 0 || (item.advisories && item.advisories.length > 0)) ? 
+                    `<span class="badge badge-advisory" title="${(item.advisories || []).map(a => a.id).join(', ')}">
+                      ⚠️ ${item.advisory_count || item.advisories.length} Advisory
+                    </span>` : ''}
               </div>
             </div>
             <div class="card-desc">${item.description || "No description provided."}</div>
+            ${(item.advisories && item.advisories.length > 0) ? `
+              <div class="advisories-list" style="margin-bottom: 0.75rem; font-size: 0.8rem;">
+                <strong>Advisories:</strong> 
+                ${item.advisories.map(a => `<a href="https://osv.dev/vulnerability/${a.id || a}" target="_blank" style="color: var(--risk-crit); margin-right: 0.5rem;">${a.id || a}</a>`).join("")}
+              </div>
+            ` : ""}
             
             ${item.tool_count > 0 ? `
               <div class="tools-section">
@@ -89,6 +100,7 @@
           </div>
 
           <div class="card-actions">
+            <button class="btn-copy" onclick="copyShareLink('${item.name}', this)" title="Copy Share Link">🔗</button>
             <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'claude', this)">Claude</button>
             <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cursor', this)">Cursor</button>
             <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cline', this)">Cline</button>
@@ -132,8 +144,24 @@
       setTimeout(() => t.classList.remove("show"), 2000);
     }
 
+    function updateURLState() {
+      const url = new URL(window.location);
+      if (activeQuery) {
+        url.searchParams.set('q', activeQuery);
+      } else {
+        url.searchParams.delete('q');
+      }
+      if (activeEco !== 'all') {
+        url.searchParams.set('eco', activeEco);
+      } else {
+        url.searchParams.delete('eco');
+      }
+      history.replaceState(null, '', url);
+    }
+
     document.getElementById("searchInput").addEventListener("input", e => {
       activeQuery = e.target.value;
+      updateURLState();
       render();
     });
 
@@ -142,11 +170,52 @@
         document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
         e.target.classList.add("active");
         activeEco = e.target.getAttribute("data-val");
+        updateURLState();
         render();
       });
     });
 
-    loadCatalog();
+    function initFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      
+      const q = params.get('q') || hashParams.get('q');
+      const eco = params.get('eco') || hashParams.get('eco');
+      
+      if (q) {
+        activeQuery = q;
+        document.getElementById('searchInput').value = q;
+      }
+      
+      if (eco) {
+        activeEco = eco;
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          if (b.getAttribute('data-val') === eco) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
+      }
+    }
+
+    initFromURL();
+    loadCatalog().then(() => {
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        const targetServer = params.get('server') || hashParams.get('server');
+        
+        if (targetServer) {
+            setTimeout(() => {
+                const el = document.getElementById('server-' + targetServer.replace(/[@/_]/g, "-"));
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('highlight-card');
+                    setTimeout(() => el.classList.remove('highlight-card'), 2000);
+                }
+            }, 100);
+        }
+    });
 
     function toggleSelection(name) {
       if (selectedServers.has(name)) {
@@ -276,4 +345,14 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+
+    function copyShareLink(name, btn) {
+      const url = new URL(window.location);
+      url.searchParams.set('server', name);
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        showToast();
+        btn.classList.add("copied");
+        setTimeout(() => btn.classList.remove("copied"), 1500);
+      });
     }
