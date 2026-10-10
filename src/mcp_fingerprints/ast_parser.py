@@ -323,8 +323,12 @@ def parse_python_mcp_ast(code: str) -> list[dict[str, Any]]:
         return []
 
     visitor = FastMcpAstVisitor()
-    visitor.visit(tree)
+    try:
+        visitor.visit(tree)
+    except Exception:
+        pass
     return visitor.extracted_tools
+
 
 
 def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:

@@ -30,7 +30,7 @@ from mcp_fingerprints.canonicalizer import (
 from mcp_fingerprints.runtime_sandbox import probe_mcp_server_stdio
 from mcp_fingerprints.crawler import FingerprintGenerator
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
-from mcp_fingerprints.validator import McpServerValidator
+from mcp_fingerprints.validator import McpServerValidator, sanitize_tool_definition
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("verity.passport.sync")
@@ -342,9 +342,11 @@ class PassportSynchronizer:
                             code = zf.read(name).decode("utf-8", errors="ignore")
                             tools = parse_python_mcp_ast(code)
                             for t in tools:
-                                if t.get("name") not in seen_tool_names:
-                                    seen_tool_names.add(t.get("name"))
-                                    extracted_tools.append(t)
+                                sanitized = sanitize_tool_definition(t)
+                                if sanitized and sanitized.get("name") not in seen_tool_names:
+                                    seen_tool_names.add(sanitized.get("name"))
+                                    extracted_tools.append(sanitized)
+
             except zipfile.BadZipFile as e:
                 logger.warning(f"Zip error extracting {package_name}: {e}")
         elif target_type == "sdist":
@@ -362,9 +364,11 @@ class PassportSynchronizer:
                                 code = f_obj.read().decode("utf-8", errors="ignore")
                                 tools = parse_python_mcp_ast(code)
                                 for t in tools:
-                                    if t.get("name") not in seen_tool_names:
-                                        seen_tool_names.add(t.get("name"))
-                                        extracted_tools.append(t)
+                                    sanitized = sanitize_tool_definition(t)
+                                    if sanitized and sanitized.get("name") not in seen_tool_names:
+                                        seen_tool_names.add(sanitized.get("name"))
+                                        extracted_tools.append(sanitized)
+
             except tarfile.TarError as e:
                 logger.warning(f"Tar error extracting {package_name}: {e}")
 
@@ -454,10 +458,11 @@ class PassportSynchronizer:
                                     self._last_detected_gateway[package_name] = (g_conns, g_caps)
                                 tools = parse_typescript_mcp_ast(code)
                                 for t in tools:
-                                    t_name = t.get("name")
-                                    if t_name not in seen_tool_names:
-                                        seen_tool_names.add(t_name)
-                                        extracted_tools.append(t)
+                                    sanitized = sanitize_tool_definition(t)
+                                    if sanitized and sanitized.get("name") not in seen_tool_names:
+                                        seen_tool_names.add(sanitized.get("name"))
+                                        extracted_tools.append(sanitized)
+
                                 if extracted_tools:
                                     return extracted_tools
 

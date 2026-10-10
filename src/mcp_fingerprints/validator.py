@@ -2,7 +2,65 @@
 
 from __future__ import annotations
 
+import logging
 import re
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+
+def sanitize_tool_definition(tool: dict[str, Any]) -> dict[str, Any] | None:
+    """Sanitize and normalize a tool definition, returning None if unrecoverable."""
+    if not isinstance(tool, dict):
+        logger.warning("Tool definition is not a dict: %s", type(tool))
+        return None
+
+    name = tool.get("name")
+    if not isinstance(name, str):
+        logger.warning("Tool definition has invalid name type: %s", type(name))
+        return None
+
+    # Strip whitespace and control characters
+    name = re.sub(r"[\x00-\x1F\x7F]", "", name).strip()
+    if not name:
+        logger.warning("Tool definition has empty name after sanitization")
+        return None
+
+    description = tool.get("description", "")
+    if not isinstance(description, str):
+        description = ""
+
+    raw_schema = tool.get("inputSchema") or tool.get("input_schema")
+    if not isinstance(raw_schema, dict):
+        input_schema = {"type": "object", "properties": {}}
+    else:
+        input_schema = dict(raw_schema)
+        if "type" not in input_schema or input_schema["type"] != "object":
+            input_schema["type"] = "object"
+        props = input_schema.get("properties")
+        if not isinstance(props, dict):
+            input_schema["properties"] = {}
+        else:
+            cleaned_props = {}
+            for k, v in props.items():
+                if isinstance(v, dict):
+                    cleaned_props[str(k)] = v
+                else:
+                    cleaned_props[str(k)] = {}
+            input_schema["properties"] = cleaned_props
+
+        req = input_schema.get("required")
+        if isinstance(req, (list, tuple)):
+            input_schema["required"] = [str(r) for r in req if isinstance(r, (str, int))]
+        elif req is not None:
+            input_schema["required"] = []
+
+    sanitized = dict(tool)
+    sanitized["name"] = name
+    sanitized["description"] = description
+    sanitized["inputSchema"] = input_schema
+    return sanitized
+
 
 # Official namespaces and organizations
 OFFICIAL_SCOPES = {

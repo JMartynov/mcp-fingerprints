@@ -39,18 +39,45 @@ class ToolContractSignature:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ToolContractSignature:
+        if not isinstance(data, dict):
+            data = {}
+        property_keys = data.get("property_keys")
+        if not isinstance(property_keys, (list, tuple)):
+            property_keys = ()
+        else:
+            property_keys = tuple(str(k) for k in property_keys)
+
+        required_keys = data.get("required_keys")
+        if not isinstance(required_keys, (list, tuple)):
+            required_keys = ()
+        else:
+            required_keys = tuple(str(k) for k in required_keys)
+
+        parameter_types = data.get("parameter_types")
+        if not isinstance(parameter_types, dict):
+            parameter_types = {}
+
+        input_schema = data.get("inputSchema")
+        if not isinstance(input_schema, dict):
+            input_schema = {}
+
+        output_schema = data.get("outputSchema")
+        if not isinstance(output_schema, dict):
+            output_schema = None
+
         return cls(
-            name=data["name"],
-            canonical_hash=data["canonical_hash"],
-            description=data.get("description", ""),
-            is_mutating=data.get("is_mutating", False),
-            property_keys=tuple(data.get("property_keys", ())),
-            required_keys=tuple(data.get("required_keys", ())),
-            parameter_types=data.get("parameter_types", {}),
-            input_schema=data.get("inputSchema", {}),
-            output_schema=data.get("outputSchema"),
+            name=str(data.get("name", "")),
+            canonical_hash=str(data.get("canonical_hash", "")),
+            description=str(data.get("description", "") or ""),
+            is_mutating=bool(data.get("is_mutating", False)),
+            property_keys=property_keys,
+            required_keys=required_keys,
+            parameter_types=parameter_types,
+            input_schema=input_schema,
+            output_schema=output_schema,
             description_hash=data.get("description_hash"),
         )
+
 
 
 @dataclass(frozen=True)
