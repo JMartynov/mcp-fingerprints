@@ -411,3 +411,139 @@ This task creates an automated TestPyPI verification pipeline (`.github/workflow
 - [x] Automated tests in `tests/test_packaging_metadata.py` pass verifying workflow structure.
 - [x] Documentation added to `README.md` explaining how to execute a TestPyPI dry run.
 
+---
+
+## 14. Ingestion Hardening & Malformed Tool Sanitization (Daily CI Fix)
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_5O_8`
+- **Category**: Ingestion & Data Quality
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+Daily scheduled sync runs (`.github/workflows/daily_sync.yml`) scrape and index MCP packages from npm and PyPI registries. In real-world ecosystems, upstream repositories frequently publish malformed tool schemas—such as missing `name` strings, non-dictionary `inputSchema` objects, null property values, invalid JSON types, or unparseable AST constructs. When encountering these, the ingestion pipeline should never crash or abort the sync job.
+This task hardens the ingestion pipeline in `src/mcp_fingerprints/ast_parser.py`, `src/mcp_fingerprints/synchronizer.py`, and `src/mcp_fingerprints/validator.py` with robust tool sanitization, defensive default fallbacks, schema normalization, and quarantine logging to guarantee 100% resilient daily CI execution.
+
+### 2. Technical Implementation Specifications
+1. **Tool Sanitization Utility (`src/mcp_fingerprints/validator.py`)**:
+   - Implemented `sanitize_tool_definition(tool: dict[str, Any]) -> dict[str, Any] | None`:
+     - Validates tool name: non-empty string, strips extraneous whitespace and control characters `[\x00-\x1F\x7F]`.
+     - Validates `inputSchema`: if missing or not a dict, normalizes to standard schema `{"type": "object", "properties": {}}`.
+     - Validates property schemas: ensures properties dictionary is well-formed, normalizing null or malformed definitions to `{}`.
+     - Validates description: ensures string representation; defaults to `""`.
+     - Rejects unrecoverable tool objects cleanly with a warning rather than raising unhandled exceptions.
+2. **Synchronizer & Parser Ingestion Defense (`src/mcp_fingerprints/synchronizer.py` & `ast_parser.py`)**:
+   - Wrapped tool extraction loops in PyPI wheel/sdist and npm tarball processing with `sanitize_tool_definition`.
+   - Guarded `parse_python_mcp_ast` visitor traversal against unhandled AST syntax exceptions.
+   - Guarded `ToolContractSignature.from_dict` against malformed schema structures.
+3. **Comprehensive Unit Tests (`tests/test_ingestion_sanitization.py`)**:
+   - Tests covering valid tools, invalid/non-string names, control character stripping, schema normalization, and defensive `from_dict`.
+
+### 3. Clear Acceptance Criteria
+- [x] `sanitize_tool_definition` gracefully handles missing fields, non-string names, and invalid schema types.
+- [x] Normalizes malformed `inputSchema` into compliant JSON Schema dictionary.
+- [x] Ingestion pipeline in `synchronizer.py` continues smoothly when encountering malformed tools without raising unhandled exceptions.
+- [x] `ToolContractSignature` construction remains stable with corrupted or non-standard tool dicts.
+- [x] Full unit test suite in `tests/test_ingestion_sanitization.py` passes 100%.
+
+---
+
+## 15. CLI Audit Autofix Integration (`mcp-fingerprints audit-config --fix`)
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_5PDU`
+- **Category**: Security & CLI Tools
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+Currently, `mcp-fingerprints audit-config` inspects client configurations (Claude Desktop, Cursor, Cline, Zed) for collisions and security risks, but requires users to run a separate command (`mcp-fingerprints fix-advisories --apply`) to remediate vulnerabilities.
+This task unifies the developer experience by integrating an automated `--fix` flag directly into `mcp-fingerprints audit-config`. When invoked with `--fix`, the CLI automatically audits the configuration, detects vulnerabilities and collisions, presents an action plan, and safely patches the target configuration file while preserving client-specific schemas and comments.
+
+### 2. Technical Implementation Specifications
+1. **CLI Argument Parser Extension (`src/mcp_fingerprints/cli.py`)**:
+   - Added `--fix` flag to `audit-config` subparser.
+   - Added `--strategy` option (`upgrade`, `replace`, `all`, default: `all`).
+   - Added `--dry-run` flag to display proposed modifications without writing to disk.
+   - Added `--backup` / `--no-backup` option to create a timestamped backup before modifying files.
+2. **Remediation Integration**:
+   - Connected `audit_client_config` with `remediation_advisor.evaluate_client_config`.
+   - When `--fix` is passed:
+     - Runs audit and detects both collisions and known CVE/OSV advisories.
+     - Safely rewrites client configuration file with upgrade/replacement recommendations.
+     - Displays formatted summary of applied fixes.
+3. **Unit Tests (`tests/test_audit_config_autofix.py`)**:
+   - Verifies `--fix --dry-run` preview behavior, in-place patching, backup creation, and schema preservation across Claude Desktop, Cursor, and Cline configs.
+
+### 3. Clear Acceptance Criteria
+- [x] `mcp-fingerprints audit-config --help` shows `--fix`, `--strategy`, and `--dry-run` options.
+- [x] Running `audit-config --fix` on a vulnerable configuration safely updates the file to safe package versions.
+- [x] `--dry-run` simulates the remediation without touching disk.
+- [x] Preserves client JSON structure across Claude Desktop, Cursor, and Cline configuration schemas.
+- [x] Unit tests in `tests/test_audit_config_autofix.py` pass 100%.
+
+---
+
+## 16. Web Catalog Deep Linking & Security Advisory Badges
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_5PIA`
+- **Category**: Web Catalog & UI
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+The static web catalog (`web/index.html` + `web/app.js` + `web/catalog.json`) serves as the primary searchable portal for 5,031+ MCP servers deployed to GitHub Pages. However, users previously could not share links to specific servers or filtered views because the page lacked URL routing/deep linking. Furthermore, servers with known security advisories or high risk did not visibly highlight OSV advisory references.
+This task adds URL deep linking and interactive security advisory badges to the web catalog. Users can link directly to any server (`#server=<name>` or `?server=<name>`) or search state (`?q=<query>&eco=<ecosystem>`). The catalog entries and UI cards are enriched with security advisory badges and direct links to advisory details.
+
+### 2. Technical Implementation Specifications
+1. **Catalog Entry Enrichment (`scripts/generate_web_catalog.py`)**:
+   - Included advisory metadata in catalog entries: `advisories` (list of CVE/OSV IDs) and `advisory_count`.
+2. **Web Deep Linking & State Sync (`web/app.js`)**:
+   - Reads URL hash and search params on page load (`URLSearchParams` and `window.location.hash`).
+   - If `server` param is present, filters or scrolls to and highlights the targeted server card.
+   - If `q` or `eco` params are present, pre-fills search input and ecosystem filter tabs.
+   - Updates URL dynamically when user searches or filters using `history.replaceState`.
+   - Added direct copyable share links per server card.
+3. **Security Advisory Badges UI (`web/index.html` & `web/app.js`)**:
+   - Renders distinct security advisory badge (`badge-advisory`) when `advisory_count > 0`.
+   - Clicking badge links directly to OSV database (`https://osv.dev/vulnerability/<ID>`).
+4. **Unit Tests (`tests/test_web_catalog.py`)**:
+   - Verifies `build_catalog_entry` extracts advisories, and `app.js` and `index.html` contain deep-linking and advisory badge elements.
+
+### 3. Clear Acceptance Criteria
+- [x] `scripts/generate_web_catalog.py` populates advisory information in `web/catalog.json`.
+- [x] `web/app.js` initializes search query and ecosystem filters from URL search params.
+- [x] Deep linking to `?server=<name>` or `#server=<name>` highlights the specified server.
+- [x] Servers with known vulnerabilities display clear security advisory badges with advisory links.
+- [x] Unit tests in `tests/test_web_catalog.py` validate catalog building and deep-linking DOM logic.
+
+---
+
+## 17. Open-Source Community Polish (CONTRIBUTING.md & Release Template)
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_5PL4`
+- **Category**: Community & Governance
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+With `mcp-fingerprints` approaching its v1.0.0 milestone, open-source governance and contributor workflows need to be formalized. Contributors submitting new MCP servers or bug fixes need clear setup instructions, code style standards, and structured GitHub issue/PR templates.
+This task delivers comprehensive open-source community polish: a complete `CONTRIBUTING.md`, structured GitHub issue templates for bug reports, feature requests, and new server passport submissions, a pull request template, a release checklist template, and automated test validation.
+
+### 2. Technical Implementation Specifications
+1. **Contributor Guidelines (`CONTRIBUTING.md`)**:
+   - Architecture overview: AST parsing, fingerprinting, vector indexing, and client configurations.
+   - Local development environment setup: Python 3.10+, virtual environment, `pip install -e ".[dev]"`.
+   - Code standards: `ruff`, `pre-commit`, typing, and `pytest`.
+   - MCP Server Passport Submission Guide: how to add or update server passports in `data/fingerprints/`.
+   - Security vulnerability reporting policy (responsible disclosure).
+2. **GitHub Issue Templates (`.github/ISSUE_TEMPLATE/`)**:
+   - `bug_report.md`: Structured form for reporting bugs with environment details, reproduction steps, and logs.
+   - `feature_request.md`: Template for proposing new features and CLI commands.
+   - `new_mcp_server.md`: Standardized checklist and metadata form for submitting a new MCP server passport.
+3. **Pull Request Template (`.github/pull_request_template.md`)**:
+   - PR description, linked issues, checklist (tests pass, documentation updated, no secrets committed).
+4. **Release Checklist Template (`.github/RELEASE_TEMPLATE.md`)**:
+   - Step-by-step checklist for release managers: pre-flight checks, TestPyPI dry-run verification, changelog generation, git tagging, and PyPI release steps.
+5. **Community Health Unit Tests (`tests/test_community_health.py`)**:
+   - Automated pytest assertions validating that all templates and guidelines exist and contain required sections.
+
+### 3. Clear Acceptance Criteria
+- [x] `CONTRIBUTING.md` exists and covers development setup, testing, passport submissions, and security reporting.
+- [x] `.github/ISSUE_TEMPLATE/bug_report.md`, `feature_request.md`, and `new_mcp_server.md` exist and are valid.
+- [x] `.github/pull_request_template.md` exists with clear contributor verification checkboxes.
+- [x] `.github/RELEASE_TEMPLATE.md` exists detailing v1.0.0 release procedures.
+- [x] Unit tests in `tests/test_community_health.py` pass 100%.
+
+
