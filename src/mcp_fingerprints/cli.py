@@ -16,7 +16,6 @@ from mcp_fingerprints.config_exporter import (
 )
 from mcp_fingerprints.conflict_detector import audit_client_config, format_audit_report
 from mcp_fingerprints.conflict_resolver import resolve_client_config
-from mcp_fingerprints.remediation_advisor import evaluate_client_config
 from mcp_fingerprints.drift_detector import (
     compare_passports_for_drift,
     dispatch_drift_webhook,
@@ -26,6 +25,7 @@ from mcp_fingerprints.enricher import VulnerabilityEnricher
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.prober import McpStdioProber
+from mcp_fingerprints.remediation_advisor import evaluate_client_config
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
 from mcp_fingerprints.search import format_search_results, search_passports
 from mcp_fingerprints.snapshot import build_snapshot
@@ -310,6 +310,28 @@ def main() -> None:
     )
     audit_p.add_argument(
         "--json", action="store_true", help="Output audit report as JSON"
+    )
+    audit_p.add_argument(
+        "--fix",
+        action="store_true",
+        help="Automatically remediate detected vulnerabilities and configuration risks",
+    )
+    audit_p.add_argument(
+        "--strategy",
+        choices=["upgrade", "replace", "all"],
+        default="all",
+        help="Remediation strategy to apply",
+    )
+    audit_p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simulate fixes without writing changes to configuration file",
+    )
+    audit_p.add_argument(
+        "--backup",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Create a backup copy before modifying configuration file",
     )
 
     # Fix Advisories
@@ -721,8 +743,73 @@ def main() -> None:
         else:
             print(format_audit_report(report))
 
-        if report.has_critical_conflicts:
-            sys.exit(1)
+        if not args.fix:
+            if report.has_critical_conflicts:
+                sys.exit(1)
+        else:
+            print("\n==================================================")
+            print("     MCP VULNERABILITY REMEDIATION REPORT         ")
+            print("==================================================")
+
+            try:
+                rem_report = evaluate_client_config(
+                    config_path=args.config_file,
+                    passport_dir=args.dir,
+                )
+            except Exception as e:
+                logger.error("Failed to evaluate configuration for remediation: %s", e)
+                print(f"ERROR: {e}")
+                sys.exit(1)
+
+            if rem_report.is_clean:
+                print("No vulnerabilities detected in configuration.")
+                sys.exit(0)
+
+            print(f"Total unremediated packages: {rem_report.unremediated_count}")
+            print(f"Total remediations proposed: {len(rem_report.actions)}")
+
+            for action in rem_report.actions:
+                print(f"\nPackage: {action.package_name}@{action.current_version}")
+                print(f"  CVEs: {', '.join(action.cve_list)}")
+                if action.action_type == "none":
+                    print("  Action: NO REMEDIATION AVAILABLE")
+                elif action.action_type == "upgrade":
+                    if args.strategy in ("all", "upgrade"):
+                        print(f"  Action: UPGRADE to {action.target_version}")
+                    else:
+                        print("  Action: UPGRADE available, but ignored by strategy")
+                elif action.action_type == "replace":
+                    if args.strategy in ("all", "replace"):
+                        print(
+                            f"  Action: REPLACE with {action.target_package}@{action.target_version} (Similarity: {action.similarity_score:.2f})"
+                        )
+                    else:
+                        print("  Action: REPLACE available, but ignored by strategy")
+
+            if args.dry_run:
+                print("\n[Dry Run] Remediations previewed successfully. No changes written to file.")
+            else:
+                p = Path(args.config_file)
+                if getattr(args, "backup", False):
+                    import shutil
+                    backup_path = p.with_name(f"{p.name}.bak")
+                    shutil.copy2(p, backup_path)
+                    print(f"\nBackup created at {backup_path}")
+
+                from mcp_fingerprints.remediation_advisor import apply_remediation_patch
+                raw_text = p.read_text(encoding="utf-8")
+                patched_text = apply_remediation_patch(raw_text, rem_report, args.strategy)
+                
+                p.write_text(patched_text, encoding="utf-8")
+                print(f"\nConfiguration updated at {p}")
+
+            if rem_report.unremediated_count > 0 or any(
+                a.action_type == "none"
+                or (a.action_type == "upgrade" and args.strategy == "replace")
+                or (a.action_type == "replace" and args.strategy == "upgrade")
+                for a in rem_report.actions
+            ):
+                sys.exit(1)
 
     elif args.command == "fix-advisories":
         try:
@@ -766,92 +853,12 @@ def main() -> None:
 
         if args.apply:
             p = Path(args.config_file)
-            raw_conf = json.loads(p.read_text(encoding="utf-8"))
-
-            servers_dict = {}
-            servers_key = None
-            if "mcpServers" in raw_conf and isinstance(raw_conf["mcpServers"], dict):
-                servers_dict = raw_conf["mcpServers"]
-                servers_key = "mcpServers"
-            elif "context_servers" in raw_conf and isinstance(
-                raw_conf["context_servers"], dict
-            ):
-                servers_dict = raw_conf["context_servers"]
-                servers_key = "context_servers"
-
-            if servers_key:
-                for action in report.actions:
-                    if action.action_type == "upgrade" and args.strategy in (
-                        "all",
-                        "upgrade",
-                    ):
-                        for server_conf in servers_dict.values():
-                            command = server_conf.get("command", "")
-                            args_list = server_conf.get("args", [])
-
-                            new_args = []
-                            for arg in args_list:
-                                if "@" in arg and action.package_name in arg:
-                                    parts = arg.split("@")
-                                    new_args.append(
-                                        f"{parts[0]}@{action.target_version}"
-                                    )
-                                else:
-                                    new_args.append(arg)
-                            server_conf["args"] = new_args
-
-                            if "@" in command and action.package_name in command:
-                                parts = command.split("@")
-                                server_conf["command"] = (
-                                    f"{parts[0]}@{action.target_version}"
-                                )
-                    elif action.action_type == "replace" and args.strategy in (
-                        "all",
-                        "replace",
-                    ):
-                        for server_conf in servers_dict.values():
-                            command = server_conf.get("command", "")
-                            args_list = server_conf.get("args", [])
-
-                            new_args = []
-                            for arg in args_list:
-                                if "@" in arg and action.package_name in arg:
-                                    parts = arg.split("@")
-                                    # Very basic heuristic for replacement
-                                    new_arg = arg.replace(
-                                        action.package_name, action.target_package
-                                    )
-                                    new_arg = new_arg.replace(
-                                        parts[1], action.target_version
-                                    )
-                                    new_args.append(new_arg)
-                                elif action.package_name in arg:
-                                    new_args.append(
-                                        arg.replace(
-                                            action.package_name, action.target_package
-                                        )
-                                    )
-                                else:
-                                    new_args.append(arg)
-                            server_conf["args"] = new_args
-
-                            if "@" in command and action.package_name in command:
-                                parts = command.split("@")
-                                # Very basic heuristic for replacement
-                                new_cmd = command.replace(
-                                    action.package_name, action.target_package
-                                )
-                                new_cmd = new_cmd.replace(
-                                    parts[1], action.target_version
-                                )
-                                server_conf["command"] = new_cmd
-                            elif action.package_name in command:
-                                server_conf["command"] = command.replace(
-                                    action.package_name, action.target_package
-                                )
+            from mcp_fingerprints.remediation_advisor import apply_remediation_patch
+            raw_text = p.read_text(encoding="utf-8")
+            patched_text = apply_remediation_patch(raw_text, report, args.strategy)
 
             out_path = Path(args.output) if args.output else p
-            out_path.write_text(json.dumps(raw_conf, indent=2))
+            out_path.write_text(patched_text, encoding="utf-8")
             print(f"\nConfiguration updated at {out_path}")
 
         if report.unremediated_count > 0 or any(

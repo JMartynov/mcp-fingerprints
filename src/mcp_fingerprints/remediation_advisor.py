@@ -266,3 +266,28 @@ def evaluate_client_config(
     return RemediationReport(
         is_clean=is_clean, actions=actions, unremediated_count=unremediated_count
     )
+
+def apply_remediation_patch(config_text: str, report: RemediationReport, strategy: str = "all") -> str:
+    """Safely apply a remediation report to raw configuration text preserving JSON comments."""
+    import re
+    
+    new_text = config_text
+    
+    for action in report.actions:
+        if action.action_type == "upgrade" and strategy in ("all", "upgrade"):
+            # We want to replace pkg@old -> pkg@new in the raw string.
+            # E.g. "my-pkg@1.0.0" -> "my-pkg@1.1.0"
+            if action.current_version:
+                target_str = f"{action.package_name}@{action.current_version}"
+                replace_str = f"{action.package_name}@{action.target_version}"
+                new_text = new_text.replace(target_str, replace_str)
+        elif action.action_type == "replace" and strategy in ("all", "replace"):
+            # Replace package name and version
+            if action.current_version:
+                target_str = f"{action.package_name}@{action.current_version}"
+                replace_str = f"{action.target_package}@{action.target_version}"
+                new_text = new_text.replace(target_str, replace_str)
+            else:
+                new_text = re.sub(r'\b' + re.escape(action.package_name) + r'\b', action.target_package, new_text)
+
+    return new_text
