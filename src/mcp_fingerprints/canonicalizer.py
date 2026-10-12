@@ -105,7 +105,11 @@ def extract_tool_signature(tool_def: dict[str, Any]) -> ToolContractSignature:
 
 def compute_toolset_canonical_hash(tools: list[dict[str, Any]]) -> str:
     """Compute single aggregated order-independent canonical hash across all tools in a toolset."""
-    signatures = [extract_tool_signature(t) for t in tools if isinstance(t, dict) and t.get("name")]
+    signatures = [
+        extract_tool_signature(t)
+        for t in tools
+        if isinstance(t, dict) and bool(t.get("name") and str(t.get("name")).strip())
+    ]
     # Sort tool signatures deterministically by tool name
     sorted_hashes = sorted(sig.canonical_hash for sig in signatures)
     combined = "|".join(sorted_hashes)
@@ -121,7 +125,11 @@ def build_version_fingerprint(
     capabilities: dict[str, bool] | None = None,
 ) -> VersionFingerprint:
     """Construct a full VersionFingerprint object from raw protocol inspection results."""
-    clean_tools = [t for t in (tools or []) if isinstance(t, dict)]
+    clean_tools = [
+        t
+        for t in (tools or [])
+        if isinstance(t, dict) and bool(t.get("name") and str(t.get("name")).strip())
+    ]
     tool_sigs = tuple(
         sorted((extract_tool_signature(t) for t in clean_tools), key=lambda x: x.name)
     )
