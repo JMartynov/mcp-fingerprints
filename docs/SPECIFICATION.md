@@ -19,7 +19,19 @@ The **MCP Fingerprint & Passport Knowledge Base** solves these challenges by com
 
 ---
 
-## 2. Core Architecture & Concepts
+## 2. Ecosystem Boundaries & Clean Architecture
+
+The Model Context Protocol security and governance ecosystem is built on a strictly separated Clean Architecture. This separation ensures that each component has a single source of truth and a focused domain of responsibility:
+
+1. **`mcp-fingerprints` (This Repository)**: Serves as the authoritative structural passport standard. Its responsibilities are strictly limited to extracting tool contracts, tracking schema drift, and computing deterministic cryptographic hashes. It maintains the foundational *identity* of an MCP server.
+2. **`mcp-vulnerabilities`**: The authoritative OSV/CVE advisory database. It maps structural fingerprints to known security advisories, keeping the vulnerability lifecycle decoupled from the structural definitions.
+3. **`verity-mcp-auditor`**: The active runtime security tool. It performs live runtime auditing, database guardrails, payload inspection, and vulnerability remediation (e.g., parameter injection defenses).
+
+By keeping these domains isolated, `mcp-fingerprints` remains a fast, pure, and memory-safe static extraction pipeline without being burdened by active runtime sandbox state or the constant flux of CVE disclosures.
+
+---
+
+## 3. Core Architecture & Concepts
 
 ### 2.1 The MCP Server Passport (`ServerPackageSpec`)
 An **MCP Passport** is a standardized, high-fidelity JSON document representing the catalog identity, metadata, and complete historical evolution of an MCP server across all published versions.
@@ -34,7 +46,7 @@ A deterministic SHA-256 digest computed across all tools exposed by an MCP serve
 
 ---
 
-## 3. Data Format & Schema Specification
+## 4. Data Format & Schema Specification
 
 Every passport document in `data/fingerprints/<package_name>.json` conforms to the following schema hierarchy.
 
@@ -86,9 +98,9 @@ ServerPackageSpec
 
 ---
 
-## 4. Comprehensive Schema Sub-Variants & Detailed JSON Examples
+## 5. Comprehensive Schema Sub-Variants & Detailed JSON Examples
 
-### 4.1 Variant A: Complete Multi-Version Passport (npm Ecosystem)
+### 5.1 Variant A: Complete Multi-Version Passport (npm Ecosystem)
 
 This example shows a full passport for `@modelcontextprotocol/server-postgres` containing multiple versions, schema drift tracking, and rich tool contracts.
 
@@ -244,7 +256,7 @@ This example shows a full passport for `@modelcontextprotocol/server-postgres` c
 
 ---
 
-### 4.2 Variant B: PyPI / Python-Native MCP Passport
+### 5.2 Variant B: PyPI / Python-Native MCP Passport
 
 ```json
 {
@@ -342,9 +354,9 @@ This example shows a full passport for `@modelcontextprotocol/server-postgres` c
 
 ---
 
-## 5. Canonical Hashing Algorithms
+## 6. Canonical Hashing Algorithms
 
-### 5.1 Tool Signature Canonicalization Formula
+### 6.1 Tool Signature Canonicalization Formula
 For any tool contract $T$:
 1. Extract property keys and sort alphabetically: $K = \text{sort}(\text{keys}(T.\text{inputSchema}.\text{properties}))$.
 2. Extract required property keys and sort alphabetically: $R = \text{sort}(T.\text{inputSchema}.\text{required})$.
@@ -354,7 +366,7 @@ For any tool contract $T$:
 5. Compute canonical hash:
    $$\text{canonical\_hash}(T) = \text{SHA256}(\text{canonical\_repr})$$
 
-### 5.2 Toolset Canonicalization Formula
+### 6.2 Toolset Canonicalization Formula
 For a collection of tools $\{T_1, T_2, \dots, T_n\}$:
 1. Compute $\text{canonical\_hash}(T_i)$ for each tool.
 2. Sort all hashes lexicographically: $H = \text{sort}([\text{canonical\_hash}(T_1), \dots, \text{canonical\_hash}(T_n)])$.
@@ -369,7 +381,7 @@ This mathematical structure guarantees that:
 
 ---
 
-## 6. What Can This Knowledge Base Serve?
+## 7. What Can This Knowledge Base Serve?
 
 1. **Autonomous MCP Firewall & Proxy Inspection**:
    - Inspects `tools/list` responses during the MCP initialization handshake.

@@ -11,7 +11,9 @@ from typing import Any
 
 from mcp_fingerprints.security_classifier import classify_server_security_profile
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger("mcp_fingerprints.web_catalog")
 
 
@@ -26,34 +28,19 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
     tools = []
     for t in tool_sigs:
         if isinstance(t, dict) and "name" in t:
-            tools.append({
-                "name": t["name"],
-                "desc": (t.get("description") or "")[:120],
-            })
+            tools.append(
+                {
+                    "name": t["name"],
+                    "desc": (t.get("description") or "")[:120],
+                }
+            )
 
-    # Determine security risk
+    # Determine security risk strictly from static tool capabilities
     sec_profile = passport.get("security_profile")
     if not sec_profile and versions:
         sec_profile = classify_server_security_profile(versions)
-    
-    advisories = []
-    if sec_profile:
-        advisories = sec_profile.get("advisories", [])
-        
-    advisory_count = len(advisories)
-    
-    # Update risk tier based on advisories
+
     risk_tier = sec_profile.get("highest_risk_tier", "low") if sec_profile else "low"
-    if advisory_count > 0:
-        # Check for critical or high severity advisories
-        has_crit = any(adv.get("severity") == "CRITICAL" for adv in advisories)
-        has_high = any(adv.get("severity") == "HIGH" for adv in advisories)
-        if has_crit:
-            risk_tier = "critical"
-        elif has_high and risk_tier not in ("critical",):
-            risk_tier = "high"
-        elif risk_tier not in ("critical", "high"):
-            risk_tier = "medium"
 
     # Default install / run command
     conn = None
@@ -89,8 +76,6 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
         "tool_count": len(tools),
         "tools": tools,
         "risk_tier": risk_tier,
-        "advisories": advisories,
-        "advisory_count": advisory_count,
         "connection_type": conn_type,
         "command": install_cmd,
         "is_verified": latest_v.get("capabilities", {}).get("runtime_verified", False)
@@ -128,8 +113,14 @@ def compile_web_catalog(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Compile Static Web Catalog for MCP Servers")
-    parser.add_argument("--passports-dir", default="data/fingerprints", help="Source passports directory")
+    parser = argparse.ArgumentParser(
+        description="Compile Static Web Catalog for MCP Servers"
+    )
+    parser.add_argument(
+        "--passports-dir",
+        default="data/fingerprints",
+        help="Source passports directory",
+    )
     parser.add_argument("--output-dir", default="web", help="Target web directory")
     args = parser.parse_args()
 

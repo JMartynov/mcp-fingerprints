@@ -213,7 +213,11 @@ class VersionFingerprint:
 
 @dataclass(frozen=True)
 class ServerPackageSpec:
-    """Catalog specification of an MCP server package and all its known version fingerprints."""
+    """Catalog specification of an MCP server package and all its known version fingerprints.
+
+    Note: `security_profile` is reserved solely for static AST tool capability risk profiles
+    (e.g., risk_tier, highest_risk_tier, tool_risks from security_classifier.py) and never vulnerability/CVE metadata.
+    """
 
     package_name: str
     purl: str
@@ -259,6 +263,19 @@ class ServerPackageSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ServerPackageSpec:
+        raw_sec = data.get("security_profile", {})
+        clean_sec = {}
+        if isinstance(raw_sec, dict):
+            legacy_keys = {
+                "vulnerable_versions",
+                "vulnerability_advisories",
+                "max_cvss_score",
+                "cve_list",
+                "has_known_vulnerabilities",
+                "advisories",
+            }
+            clean_sec = {k: v for k, v in raw_sec.items() if k not in legacy_keys}
+
         return cls(
             package_name=data["package_name"],
             purl=data["purl"],
@@ -273,7 +290,7 @@ class ServerPackageSpec:
             sources_merged=tuple(data.get("sources_merged", ())),
             dist_tags=data.get("dist_tags", {}),
             versions=tuple(VersionFingerprint.from_dict(v) for v in data.get("versions", ())),
-            security_profile=data.get("security_profile", {}),
+            security_profile=clean_sec,
             transport=data.get("transport", "stdio"),
             remote_endpoint=data.get("remote_endpoint"),
             auth_type=data.get("auth_type", "none"),

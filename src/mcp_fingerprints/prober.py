@@ -18,7 +18,7 @@ logger = logging.getLogger("mcp_fingerprints.prober")
 
 @dataclass
 class ProbeReport:
-    """Consolidated probe, identification, and security audit report."""
+    """Consolidated probe and identification report."""
 
     server_command: list[str]
     connection_successful: bool
@@ -26,10 +26,6 @@ class ProbeReport:
     prompts_observed: list[dict[str, Any]] = field(default_factory=list)
     resources_observed: list[dict[str, Any]] = field(default_factory=list)
     match_result: FingerprintMatchResult | None = None
-    is_vulnerable: bool = False
-    active_advisories: list[dict[str, Any]] = field(default_factory=list)
-    max_cvss_score: float = 0.0
-    recommended_fixed_version: str | None = None
     error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -40,13 +36,6 @@ class ProbeReport:
             "prompts_count": len(self.prompts_observed),
             "resources_count": len(self.resources_observed),
             "match": self.match_result.to_dict() if self.match_result else None,
-            "security": {
-                "is_vulnerable": self.is_vulnerable,
-                "max_cvss_score": self.max_cvss_score,
-                "recommended_fixed_version": self.recommended_fixed_version,
-                "active_advisories_count": len(self.active_advisories),
-                "advisories": self.active_advisories,
-            },
             "error": self.error,
         }
 
@@ -202,25 +191,6 @@ class McpStdioProber:
             min_confidence_threshold=min_confidence_threshold,
         )
 
-        is_vulnerable = False
-        active_advisories: list[dict[str, Any]] = []
-        max_cvss = 0.0
-        recommended_fix = None
-
-        if match_result.matched and match_result.package_name:
-            pkg_spec = self.matcher._packages.get(match_result.package_name)
-            if pkg_spec and pkg_spec.security_profile:
-                sec = pkg_spec.security_profile
-                vuln_vers = set(sec.get("vulnerable_versions") or [])
-                if match_result.matched_version in vuln_vers:
-                    is_vulnerable = True
-                    max_cvss = float(sec.get("max_cvss_score") or 0.0)
-                    for adv in sec.get("advisories") or []:
-                        if match_result.matched_version in adv.get("affected_versions", []):
-                            active_advisories.append(adv)
-                            if not recommended_fix and adv.get("fixed_version"):
-                                recommended_fix = adv.get("fixed_version")
-
         return ProbeReport(
             server_command=command,
             connection_successful=True,
@@ -228,8 +198,4 @@ class McpStdioProber:
             prompts_observed=prompts,
             resources_observed=resources,
             match_result=match_result,
-            is_vulnerable=is_vulnerable,
-            active_advisories=active_advisories,
-            max_cvss_score=max_cvss,
-            recommended_fixed_version=recommended_fix,
         )

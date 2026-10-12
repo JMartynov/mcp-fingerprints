@@ -74,19 +74,9 @@
               <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <span class="badge badge-eco">${item.ecosystem}</span>
                 <span class="badge badge-${item.risk_tier}">${item.risk_tier}</span>
-                ${(item.advisory_count > 0 || (item.advisories && item.advisories.length > 0)) ? 
-                    `<span class="badge badge-advisory" title="${(item.advisories || []).map(a => a.id).join(', ')}">
-                      ⚠️ ${item.advisory_count || item.advisories.length} Advisory
-                    </span>` : ''}
               </div>
             </div>
             <div class="card-desc">${item.description || "No description provided."}</div>
-            ${(item.advisories && item.advisories.length > 0) ? `
-              <div class="advisories-list" style="margin-bottom: 0.75rem; font-size: 0.8rem;">
-                <strong>Advisories:</strong> 
-                ${item.advisories.map(a => `<a href="https://osv.dev/vulnerability/${a.id || a}" target="_blank" style="color: var(--risk-crit); margin-right: 0.5rem;">${a.id || a}</a>`).join("")}
-              </div>
-            ` : ""}
             
             ${item.tool_count > 0 ? `
               <div class="tools-section">

@@ -37,9 +37,7 @@ def test_build_catalog_entry_npm():
     assert entry["tools"][0]["name"] == "tool_one"
     assert entry["command"] == "node dist/index.js"
     assert entry["is_verified"] is True
-    assert entry["advisory_count"] == 1
-    assert entry["advisories"][0]["id"] == "CVE-2024-1234"
-    assert entry["risk_tier"] == "high"
+    assert entry["risk_tier"] == "low"
 
 
 def test_compile_web_catalog(tmp_path):
@@ -90,8 +88,8 @@ def test_web_index_html_css_classes():
     index_file = Path("web/index.html")
     assert index_file.is_file()
     html_content = index_file.read_text(encoding="utf-8")
-    assert ".badge-advisory" in html_content
     assert ".highlight-card" in html_content
+    assert ".badge-advisory" not in html_content
 
 
 def test_web_index_html_multi_server_ui_elements():
@@ -113,8 +111,8 @@ def test_web_app_js_deep_linking_logic():
     assert "URLSearchParams" in js_content
     assert "history.replaceState" in js_content
     assert "window.location.search" in js_content
-    assert "badge-advisory" in js_content
-    assert "osv.dev/vulnerability" in js_content
+    assert "badge-advisory" not in js_content
+    assert "osv.dev/vulnerability" not in js_content
     assert "copyShareLink" in js_content
 
 

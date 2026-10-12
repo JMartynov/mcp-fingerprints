@@ -21,11 +21,9 @@ from mcp_fingerprints.drift_detector import (
     dispatch_drift_webhook,
     format_drift_report,
 )
-from mcp_fingerprints.enricher import VulnerabilityEnricher
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.prober import McpStdioProber
-from mcp_fingerprints.remediation_advisor import evaluate_client_config
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
 from mcp_fingerprints.search import format_search_results, search_passports
 from mcp_fingerprints.snapshot import build_snapshot
@@ -170,7 +168,7 @@ def main() -> None:
     # Probe
     probe_p = subparsers.add_parser(
         "probe",
-        help="Probe a live MCP server over stdio, fingerprint it, and audit known vulnerabilities",
+        help="Probe a live MCP server over stdio, extract signatures, and match against passport knowledge base",
     )
     probe_p.add_argument(
         "--dir", default="data/fingerprints", help="Passport data directory"
@@ -192,26 +190,6 @@ def main() -> None:
         "cmd",
         nargs=argparse.REMAINDER,
         help="Server launch command and arguments (e.g. -- npx ...)",
-    )
-
-    # Enrich
-    enrich_p = subparsers.add_parser(
-        "enrich", help="Enrich passports with OSV vulnerability metadata"
-    )
-    enrich_p.add_argument(
-        "--vulnerabilities",
-        "-v",
-        required=True,
-        help="Path to vulnerabilities.json.gz or vulnerabilities.json",
-    )
-    enrich_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
-    )
-    enrich_p.add_argument(
-        "--snapshot",
-        action="store_true",
-        default=True,
-        help="Compile snapshot after enrichment",
     )
 
     # Validate
@@ -311,53 +289,7 @@ def main() -> None:
     audit_p.add_argument(
         "--json", action="store_true", help="Output audit report as JSON"
     )
-    audit_p.add_argument(
-        "--fix",
-        action="store_true",
-        help="Automatically remediate detected vulnerabilities and configuration risks",
-    )
-    audit_p.add_argument(
-        "--strategy",
-        choices=["upgrade", "replace", "all"],
-        default="all",
-        help="Remediation strategy to apply",
-    )
-    audit_p.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Simulate fixes without writing changes to configuration file",
-    )
-    audit_p.add_argument(
-        "--backup",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Create a backup copy before modifying configuration file",
-    )
 
-    # Fix Advisories
-    fix_advisories_p = subparsers.add_parser(
-        "fix-advisories",
-        help="Automated Vulnerability Remediation Advisor for client configurations",
-    )
-    fix_advisories_p.add_argument(
-        "config_file",
-        help="Path to client config file (e.g. claude_desktop_config.json)",
-    )
-    fix_advisories_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
-    )
-    fix_advisories_p.add_argument(
-        "--apply", action="store_true", help="Atomically update configuration file"
-    )
-    fix_advisories_p.add_argument(
-        "--strategy",
-        choices=["upgrade", "replace", "all"],
-        default="all",
-        help="Strategy to use for remediation (default: all)",
-    )
-    fix_advisories_p.add_argument(
-        "--output", default=None, help="Output path for modified configuration file"
-    )
 
     # Resolve Config
     resolve_p = subparsers.add_parser(
@@ -578,41 +510,9 @@ def main() -> None:
                 print(
                     f"Confidence:         {report.match_result.confidence_score * 100:.1f}% ({report.match_result.match_layer})"
                 )
-                print("--------------------------------------------------")
-                if report.is_vulnerable:
-                    print("SECURITY STATUS:    ⚠️  VULNERABLE")
-                    print(f"Max CVSS Score:     {report.max_cvss_score:.1f}")
-                    if report.recommended_fixed_version:
-                        print(
-                            f"Recommended Fix:    Upgrade to >= {report.recommended_fixed_version}"
-                        )
-                    print(f"Active Advisories:  {len(report.active_advisories)}")
-                    for adv in report.active_advisories:
-                        print(
-                            f"  - [{adv['severity']}] {adv['id']}: {adv.get('summary', '')}"
-                        )
-                else:
-                    print(
-                        "SECURITY STATUS:    ✅ CLEAN (No known CVEs affecting this version)"
-                    )
             else:
                 print("Identified Package: UNKNOWN (Confidence below threshold)")
             print("==================================================")
-
-    elif args.command == "enrich":
-        enricher = VulnerabilityEnricher(args.vulnerabilities)
-        total, with_vulns = enricher.enrich_directory(args.dir)
-        print(
-            f"Enrichment summary: {total} passports audited, {with_vulns} enriched with known vulnerabilities."
-        )
-        if args.snapshot:
-            logger.info("Compiling snapshot with enriched security profiles...")
-            snap_path = (
-                f"{Path(args.dir).parent}/passports.json.gz"
-                if args.dir != "data/fingerprints"
-                else "passports.json.gz"
-            )
-            build_snapshot(data_dir=args.dir, output_gz=snap_path)
 
     elif args.command == "build-index":
         script_path = (
@@ -743,130 +643,7 @@ def main() -> None:
         else:
             print(format_audit_report(report))
 
-        if not args.fix:
-            if report.has_critical_conflicts:
-                sys.exit(1)
-        else:
-            print("\n==================================================")
-            print("     MCP VULNERABILITY REMEDIATION REPORT         ")
-            print("==================================================")
-
-            try:
-                rem_report = evaluate_client_config(
-                    config_path=args.config_file,
-                    passport_dir=args.dir,
-                )
-            except Exception as e:
-                logger.error("Failed to evaluate configuration for remediation: %s", e)
-                print(f"ERROR: {e}")
-                sys.exit(1)
-
-            if rem_report.is_clean:
-                print("No vulnerabilities detected in configuration.")
-                sys.exit(0)
-
-            print(f"Total unremediated packages: {rem_report.unremediated_count}")
-            print(f"Total remediations proposed: {len(rem_report.actions)}")
-
-            for action in rem_report.actions:
-                print(f"\nPackage: {action.package_name}@{action.current_version}")
-                print(f"  CVEs: {', '.join(action.cve_list)}")
-                if action.action_type == "none":
-                    print("  Action: NO REMEDIATION AVAILABLE")
-                elif action.action_type == "upgrade":
-                    if args.strategy in ("all", "upgrade"):
-                        print(f"  Action: UPGRADE to {action.target_version}")
-                    else:
-                        print("  Action: UPGRADE available, but ignored by strategy")
-                elif action.action_type == "replace":
-                    if args.strategy in ("all", "replace"):
-                        print(
-                            f"  Action: REPLACE with {action.target_package}@{action.target_version} (Similarity: {action.similarity_score:.2f})"
-                        )
-                    else:
-                        print("  Action: REPLACE available, but ignored by strategy")
-
-            if args.dry_run:
-                print("\n[Dry Run] Remediations previewed successfully. No changes written to file.")
-            else:
-                p = Path(args.config_file)
-                if getattr(args, "backup", False):
-                    import shutil
-                    backup_path = p.with_name(f"{p.name}.bak")
-                    shutil.copy2(p, backup_path)
-                    print(f"\nBackup created at {backup_path}")
-
-                from mcp_fingerprints.remediation_advisor import apply_remediation_patch
-                raw_text = p.read_text(encoding="utf-8")
-                patched_text = apply_remediation_patch(raw_text, rem_report, args.strategy)
-                
-                p.write_text(patched_text, encoding="utf-8")
-                print(f"\nConfiguration updated at {p}")
-
-            if rem_report.unremediated_count > 0 or any(
-                a.action_type == "none"
-                or (a.action_type == "upgrade" and args.strategy == "replace")
-                or (a.action_type == "replace" and args.strategy == "upgrade")
-                for a in rem_report.actions
-            ):
-                sys.exit(1)
-
-    elif args.command == "fix-advisories":
-        try:
-            report = evaluate_client_config(
-                config_path=args.config_file,
-                passport_dir=args.dir,
-            )
-        except Exception as e:
-            logger.error("Failed to audit configuration: %s", e)
-            print(f"ERROR: {e}")
-            sys.exit(1)
-
-        print("==================================================")
-        print("     MCP VULNERABILITY REMEDIATION REPORT         ")
-        print("==================================================")
-
-        if report.is_clean:
-            print("No vulnerabilities detected in configuration.")
-            sys.exit(0)
-
-        print(f"Total unremediated packages: {report.unremediated_count}")
-        print(f"Total remediations proposed: {len(report.actions)}")
-
-        for action in report.actions:
-            print(f"\nPackage: {action.package_name}@{action.current_version}")
-            print(f"  CVEs: {', '.join(action.cve_list)}")
-            if action.action_type == "none":
-                print("  Action: NO REMEDIATION AVAILABLE")
-            elif action.action_type == "upgrade":
-                if args.strategy in ("all", "upgrade"):
-                    print(f"  Action: UPGRADE to {action.target_version}")
-                else:
-                    print("  Action: UPGRADE available, but ignored by strategy")
-            elif action.action_type == "replace":
-                if args.strategy in ("all", "replace"):
-                    print(
-                        f"  Action: REPLACE with {action.target_package}@{action.target_version} (Similarity: {action.similarity_score:.2f})"
-                    )
-                else:
-                    print("  Action: REPLACE available, but ignored by strategy")
-
-        if args.apply:
-            p = Path(args.config_file)
-            from mcp_fingerprints.remediation_advisor import apply_remediation_patch
-            raw_text = p.read_text(encoding="utf-8")
-            patched_text = apply_remediation_patch(raw_text, report, args.strategy)
-
-            out_path = Path(args.output) if args.output else p
-            out_path.write_text(patched_text, encoding="utf-8")
-            print(f"\nConfiguration updated at {out_path}")
-
-        if report.unremediated_count > 0 or any(
-            a.action_type == "none"
-            or (a.action_type == "upgrade" and args.strategy == "replace")
-            or (a.action_type == "replace" and args.strategy == "upgrade")
-            for a in report.actions
-        ):
+        if report.has_critical_conflicts:
             sys.exit(1)
 
     elif args.command == "detect-drift":

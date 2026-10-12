@@ -547,3 +547,84 @@ This task delivers comprehensive open-source community polish: a complete `CONTR
 - [x] Unit tests in `tests/test_community_health.py` pass 100%.
 
 
+
+---
+
+## 18. Clean Architecture: Codebase Structural Decoupling
+- **Board Item ID**: `T18_CleanArchitectureCode`
+- **Category**: Architecture & Refactoring
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+Remove vulnerability extraction (e.g. `OSV_DB_URL`, `OSVAdvisory` dataclass, `sync_advisories()`) from `mcp-fingerprints`, migrating these responsibilities to the `mcp-vulnerabilities` database. Also, move active remediation (e.g. `remediate()`, `PatchStrategy`) to `verity-mcp-auditor`. `mcp-fingerprints` must focus purely on being a static structural passport standard and knowledge base.
+
+### 2. Technical Implementation Specifications
+1. Strip out `OSV_DB_URL`, OSV/CVE extraction logic, and the `OSVAdvisory` dataclass.
+2. Remove active remediation functions and `PatchStrategy`.
+3. Update pure functions in `mcp_fingerprints/` and tests in `tests/`.
+
+### 3. Clear Acceptance Criteria
+- [x] No `OSV` or `CVE` references in core `mcp_fingerprints` logic.
+- [x] No active `remediate()` logic.
+
+---
+
+## 19. Clean Architecture: Purify Data Models
+- **Board Item ID**: `T19_CleanArchitectureModels`
+- **Category**: Architecture & Refactoring
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+Modify core data models (`ServerPackageSpec`, `VersionFingerprint`) in `mcp_fingerprints/models.py` to remove vulnerability tracking fields (`advisories`, `vulnerabilities`) and security remediation attributes, ensuring the schema remains strictly structural.
+
+### 2. Technical Implementation Specifications
+1. Remove `advisories` and `vulnerabilities` fields from models.
+2. Update JSON mock files in tests to reflect the new strict structural schema.
+3. Fix all failing tests due to removed fields.
+
+### 3. Clear Acceptance Criteria
+- [x] Core models no longer track advisories.
+- [x] Test mocks updated.
+
+---
+
+## 20. Clean Architecture: Refactor Build & Workflow Pipelines
+- **Board Item ID**: `T20_CleanArchitecturePipelines`
+- **Category**: Architecture & Refactoring
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+Remove automated CVE advisory fetching, OSV patching steps, and vulnerability scanning logic from GitHub Actions workflows, `scripts/generate_web_catalog.py`, `scripts/build_snapshot.py`, and the CLI.
+
+### 2. Technical Implementation Specifications
+1. Refactor `scripts/generate_web_catalog.py` and `scripts/build_snapshot.py`.
+2. Refactor GitHub Actions (`daily_sync.yml`, `release.yml`, etc.) to remove OSV/CVE steps.
+3. Clean up CLI commands to remove vulnerability patching commands.
+
+### 3. Clear Acceptance Criteria
+- [x] Workflows and scripts execute without fetching OSV/CVE data.
+- [x] CLI is purified.
+
+---
+
+## 21. Clean Architecture: Ecosystem Boundary Documentation & Governance
+- **Board Item ID**: `T21_CleanArchitectureGovernance`
+- **Category**: Documentation & Governance
+- **Status**: In Progress
+
+### 1. Architectural Context & Objective
+Formalize the Clean Architecture separation in project documentation, explicitly defining the ecosystem boundaries between `mcp-fingerprints`, `mcp-vulnerabilities`, and `verity-mcp-auditor`.
+
+### 2. Technical Implementation Specifications
+1. Update `docs/SPECIFICATION.md` to define boundaries.
+2. Update `README.md` to clarify scope and update CLI tables.
+3. Update `CONTRIBUTING.md` to explicitly declare out-of-scope PRs (vulnerabilities, runtime remediation).
+4. Add Tasks 18, 19, 20, 21 to `docs/tasks/roadmap_board_specifications.md`.
+5. Update `tests/test_community_health.py` to enforce governance documentation tests.
+
+### 3. Clear Acceptance Criteria
+- [x] `docs/SPECIFICATION.md` updated.
+- [x] `README.md` updated.
+- [x] `CONTRIBUTING.md` updated.
+- [x] `docs/tasks/roadmap_board_specifications.md` updated.
+- [ ] `tests/test_community_health.py` validates new boundaries.

@@ -10,6 +10,12 @@
 
 An open-source, automated database and knowledge base of **Model Context Protocol (MCP)** server passports, version signatures, and tool contract fingerprints.
 
+## Ecosystem Boundaries & Architecture
+The Model Context Protocol security ecosystem follows a strictly separated **Clean Architecture**:
+* **`mcp-fingerprints` (This Repo)**: The authoritative standard for structural server passports. Focuses purely on static AST extraction, deterministic cryptographic fingerprinting, and tracking schema drift.
+* **`mcp-vulnerabilities`**: The authoritative OSV/CVE advisory database mapping fingerprints to known exploits.
+* **`verity-mcp-auditor`**: The active runtime security auditing framework handling live sandbox execution, database guardrails, and vulnerability remediation.
+
 ## Key Features
 - **3,900+ Indexed Passports**: Cross-indexed across Smithery, npm, and PyPI registries.
 - **Automated Daily Sync**: Continuously crawls, extracts tool signatures, canonicalizes hash fingerprints, and tracks historical schema drift.
@@ -106,15 +112,39 @@ pre-commit run --all-files
 ```
 
 ## CLI Usage
+
+The CLI has been purified to a focused set of core commands:
+
 ```bash
 # Sync from registries
 python -m mcp_fingerprints.cli sync --all
+
+# Match a toolset hash against the knowledge base
+python -m mcp_fingerprints.cli match <hash>
+
+# Probe a server and extract its fingerprint
+python -m mcp_fingerprints.cli probe <server_command>
 
 # Validate schema invariants
 python -m mcp_fingerprints.cli validate --dir data/fingerprints
 
 # Build compressed snapshot
 python -m mcp_fingerprints.cli snapshot
+
+# Search the catalog
+python -m mcp_fingerprints.cli search "query"
+
+# Browse interactively via TUI
+python -m mcp_fingerprints.cli browse
+
+# Export client configurations (Claude, Cursor, etc.)
+python -m mcp_fingerprints.cli export-config <server_name> --client claude
+
+# Audit an existing client configuration for collisions and shadowing
+python -m mcp_fingerprints.cli audit-config <config_file>
+
+# Detect configuration drift against the latest passports
+python -m mcp_fingerprints.cli detect-drift <config_file>
 ```
 
 ## Releases

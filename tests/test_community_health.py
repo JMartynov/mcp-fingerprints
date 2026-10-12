@@ -11,6 +11,33 @@ def test_contributing_md_exists_and_content():
     assert "running tests" in content
     assert "contributing passports" in content or "new mcp server" in content
     assert "security" in content
+    
+    # Clean Architecture Scope Verification
+    assert "mcp-fingerprints" in content
+    assert "mcp-vulnerabilities" in content
+    assert "verity-mcp-auditor" in content
+    assert "do not" in content and "vulnerability advisories" in content
+
+def test_specification_boundaries_documented():
+    path = Path("docs/SPECIFICATION.md")
+    assert path.exists(), "SPECIFICATION.md does not exist"
+    content = path.read_text().lower()
+    
+    assert "ecosystem boundaries" in content
+    assert "clean architecture" in content
+    assert "mcp-vulnerabilities" in content
+    assert "verity-mcp-auditor" in content
+    assert "authoritative structural passport standard" in content
+
+def test_readme_boundaries_documented():
+    path = Path("README.md")
+    assert path.exists(), "README.md does not exist"
+    content = path.read_text().lower()
+    
+    assert "ecosystem boundaries" in content
+    assert "clean architecture" in content
+    assert "mcp-vulnerabilities" in content
+    assert "verity-mcp-auditor" in content
 
 
 def test_issue_templates_exist_and_non_empty():

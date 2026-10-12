@@ -136,12 +136,6 @@ class TestMcpStdioProber(unittest.TestCase):
             self.assertEqual(report.match_result.package_name, "user-service-mcp")
             self.assertEqual(report.match_result.matched_version, "1.0.0")
 
-            # Check vulnerability audit
-            self.assertTrue(report.is_vulnerable)
-            self.assertEqual(report.max_cvss_score, 8.5)
-            self.assertEqual(report.recommended_fixed_version, "1.0.1")
-            self.assertEqual(len(report.active_advisories), 1)
-            self.assertEqual(report.active_advisories[0]["id"], "CVE-2026-TEST")
 
 
 if __name__ == "__main__":

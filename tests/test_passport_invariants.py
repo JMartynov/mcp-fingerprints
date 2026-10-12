@@ -448,3 +448,40 @@ def test_invariant_detects_tool_addition_and_removal_in_updated_releases() -> No
     assert res_v2.matched is True
     assert res_v2.matched_version == "2.0.0"
     assert res_v2.layer1_exact_match is True
+
+
+def test_invariant_legacy_vulnerability_fields_stripped() -> None:
+    """Invariant: ServerPackageSpec.from_dict strips legacy vulnerability fields from security_profile."""
+    data = {
+        "passport_schema_version": "1.1.0",
+        "package_name": "vuln-pkg",
+        "purl": "pkg:npm/vuln-pkg",
+        "ecosystem": "npm",
+        "versions": [
+            {
+                "version": "1.0.0",
+                "toolset_canonical_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            }
+        ],
+        "security_profile": {
+            "risk_tier": "low",
+            "highest_risk_tier": "low",
+            "tool_risks": [],
+            "vulnerable_versions": ["1.0.0"],
+            "vulnerability_advisories": [{"id": "CVE-1234"}],
+            "max_cvss_score": 9.8,
+            "cve_list": ["CVE-1234"],
+            "has_known_vulnerabilities": True,
+            "advisories": [{"id": "CVE-1234"}],
+        },
+    }
+    spec = ServerPackageSpec.from_dict(data)
+    assert "risk_tier" in spec.security_profile
+    assert "highest_risk_tier" in spec.security_profile
+    assert "tool_risks" in spec.security_profile
+    assert "vulnerable_versions" not in spec.security_profile
+    assert "vulnerability_advisories" not in spec.security_profile
+    assert "max_cvss_score" not in spec.security_profile
+    assert "cve_list" not in spec.security_profile
+    assert "has_known_vulnerabilities" not in spec.security_profile
+    assert "advisories" not in spec.security_profile

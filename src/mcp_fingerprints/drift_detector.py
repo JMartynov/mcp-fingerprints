@@ -19,7 +19,7 @@ class TamperIncident:
 
     package_name: str
     version: str
-    incident_type: str  # "hash_tamper", "tool_added", "tool_removed", "new_vulnerability"
+    incident_type: str  # "hash_tamper", "tool_added", "tool_removed"
     severity: str  # "critical", "high", "medium", "low"
     details: str
     old_hash: str | None = None
@@ -62,7 +62,9 @@ class DriftAuditReport:
         }
 
 
-def load_passports_map(source: Path | str | dict[str, Any]) -> dict[str, dict[str, Any]]:
+def load_passports_map(
+    source: Path | str | dict[str, Any],
+) -> dict[str, dict[str, Any]]:
     """Load passports from directory, snapshot gzip, or dictionary into a pkg_name -> dict map."""
     if isinstance(source, dict):
         return source
@@ -84,6 +86,7 @@ def load_passports_map(source: Path | str | dict[str, Any]) -> dict[str, dict[st
     elif p.is_file():
         if p.name.endswith(".gz"):
             import gzip
+
             with gzip.open(p, "rt", encoding="utf-8") as gz_f:
                 snapshot = json.load(gz_f)
                 passports = snapshot.get("passports", {})
@@ -123,7 +126,7 @@ def compare_passports_for_drift(
     new_source: Path | str | dict[str, Any],
 ) -> DriftAuditReport:
     """
-    Detect unexpected hash mutations, silent tool additions, and new vulnerabilities on identical versions.
+    Detect unexpected hash mutations, silent tool additions, and silent tool removals on identical versions.
     """
     old_map = load_passports_map(old_source)
     new_map = load_passports_map(new_source)
@@ -140,8 +143,16 @@ def compare_passports_for_drift(
         packages_compared += 1
         old_passport = old_map[pkg_name]
 
-        old_versions = {v.get("version"): v for v in old_passport.get("versions", []) if v.get("version")}
-        new_versions = {v.get("version"): v for v in new_passport.get("versions", []) if v.get("version")}
+        old_versions = {
+            v.get("version"): v
+            for v in old_passport.get("versions", [])
+            if v.get("version")
+        }
+        new_versions = {
+            v.get("version"): v
+            for v in new_passport.get("versions", [])
+            if v.get("version")
+        }
 
         pkg_has_drift = False
 
@@ -172,8 +183,16 @@ def compare_passports_for_drift(
                         pkg_has_drift = True
 
                 # Check individual tool signatures
-                old_tool_names = {t.get("name") for t in old_v.get("tool_signatures", []) if t.get("name")}
-                new_tool_names = {t.get("name") for t in new_v.get("tool_signatures", []) if t.get("name")}
+                old_tool_names = {
+                    t.get("name")
+                    for t in old_v.get("tool_signatures", [])
+                    if t.get("name")
+                }
+                new_tool_names = {
+                    t.get("name")
+                    for t in new_v.get("tool_signatures", [])
+                    if t.get("name")
+                }
 
                 added_tools = new_tool_names - old_tool_names
                 removed_tools = old_tool_names - new_tool_names
@@ -204,31 +223,15 @@ def compare_passports_for_drift(
                     )
                     pkg_has_drift = True
 
-                # Check newly attached vulnerabilities
-                old_advs = {adv.get("id") for adv in old_v.get("vulnerability_advisories", []) if adv.get("id")}
-                new_advs = {adv.get("id"): adv for adv in new_v.get("vulnerability_advisories", []) if adv.get("id")}
-                new_ids = set(new_advs.keys()) - old_advs
-
-                for nid in new_ids:
-                    adv = new_advs[nid]
-                    incidents.append(
-                        TamperIncident(
-                            package_name=pkg_name,
-                            version=ver,
-                            incident_type="new_vulnerability",
-                            severity="high" if adv.get("severity") in ("CRITICAL", "HIGH") else "medium",
-                            details=f"New advisory {nid} ({adv.get('severity', 'UNKNOWN')}) attached: {adv.get('summary', '')}",
-                        )
-                    )
-                    pkg_has_drift = True
-
             else:
                 version_bumps += 1
 
         if not pkg_has_drift:
             unaltered += 1
 
-    has_tamper = any(inc.incident_type in ("hash_tamper", "tool_added") for inc in incidents)
+    has_tamper = any(
+        inc.incident_type in ("hash_tamper", "tool_added") for inc in incidents
+    )
     is_clean = len(incidents) == 0
 
     return DriftAuditReport(
@@ -254,18 +257,26 @@ def format_drift_report(report: DriftAuditReport) -> str:
     ]
 
     if report.is_clean:
-        lines.append("Status:             ✅ CLEAN (No hash tampering or silent mutations)")
+        lines.append(
+            "Status:             ✅ CLEAN (No hash tampering or silent mutations)"
+        )
         lines.append("==================================================")
         return "\n".join(lines)
 
-    status_str = "🚨 CRITICAL TAMPER DETECTED" if report.has_tamper_incidents else "⚠️  DRIFT DETECTED"
+    status_str = (
+        "🚨 CRITICAL TAMPER DETECTED"
+        if report.has_tamper_incidents
+        else "⚠️  DRIFT DETECTED"
+    )
     lines.append(f"Status:             {status_str}")
     lines.append("--------------------------------------------------")
     lines.append("DETECTED DRIFT INCIDENTS:")
 
     for idx, inc in enumerate(report.incidents, 1):
         icon = "🚨" if inc.severity in ("critical", "high") else "⚠️"
-        lines.append(f"\n{idx}. [{inc.severity.upper()}] {inc.package_name} (v{inc.version}) {icon}")
+        lines.append(
+            f"\n{idx}. [{inc.severity.upper()}] {inc.package_name} (v{inc.version}) {icon}"
+        )
         lines.append(f"   Type:    {inc.incident_type}")
         lines.append(f"   Details: {inc.details}")
         if inc.old_hash and inc.new_hash:

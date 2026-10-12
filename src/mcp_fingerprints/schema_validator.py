@@ -1,4 +1,8 @@
-"""Schema validator for MCP Server Passports verifying structural invariants and completeness."""
+"""Schema validator for MCP Server Passports verifying structural invariants and completeness.
+
+Passports strictly track tool schemas, prompt interfaces, resource templates, and canonical
+hashes, remaining independent of mutable CVE vulnerability feeds.
+"""
 
 from __future__ import annotations
 

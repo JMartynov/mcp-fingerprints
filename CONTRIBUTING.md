@@ -4,7 +4,13 @@ Welcome to MCP Fingerprints! We're glad you're interested in contributing.
 
 ## Project Mission and Architectural Overview
 
-The repository's primary purpose is to extract and fingerprint Model Context Protocol (MCP) tool declarations, and to audit MCP server attack surfaces (Verity Red-Team), using static AST parsing for source code and safe runtime stdio sandboxes for compiled binaries/closed-source servers. Additionally, it implements a pre-computed semantic embeddings index for MCP tool fingerprints using `fastembed` and `numpy` vectorized operations.
+The repository's primary purpose is to extract and fingerprint Model Context Protocol (MCP) tool declarations using static AST parsing for source code and safe runtime stdio sandboxes for compiled binaries/closed-source servers. Additionally, it implements a pre-computed semantic embeddings index for MCP tool fingerprints using `fastembed` and `numpy` vectorized operations.
+
+### Scope and Ecosystem Boundaries
+This project strictly follows a **Clean Architecture** with clearly defined boundaries:
+* **`mcp-fingerprints` (This Repository)**: Manages the structural passports containing tool contracts, schemas, and static risk profiles. **Do not** submit vulnerability advisories or active runtime auditing tools here.
+* **`mcp-vulnerabilities`**: Managed upstream. Submit all security advisory and vulnerability metadata to the authoritative OSV database repository.
+* **`verity-mcp-auditor`**: Handled in a separate repository. Submit active runtime auditing modules, database guardrails, and vulnerability remediation scripts there.
 
 ## Development Setup
 

@@ -1,11 +1,11 @@
 """Unit tests for the Supply-Chain Drift and Tamper Detector."""
 
-import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from mcp_fingerprints.drift_detector import (
     compare_passports_for_drift,
-    format_drift_report,
     dispatch_drift_webhook,
+    format_drift_report,
 )
 
 
@@ -122,46 +122,6 @@ def test_silent_tool_addition_and_removal():
     assert "injected_backdoor_tool" in add_inc.affected_tools
 
 
-def test_new_vulnerability_advisory_attached():
-    old = {
-        "server-vuln": {
-            "package_name": "server-vuln",
-            "versions": [
-                {
-                    "version": "1.0.0",
-                    "toolset_canonical_hash": "sha256:h1",
-                    "vulnerability_advisories": [],
-                }
-            ],
-        }
-    }
-    new = {
-        "server-vuln": {
-            "package_name": "server-vuln",
-            "versions": [
-                {
-                    "version": "1.0.0",
-                    "toolset_canonical_hash": "sha256:h1",
-                    "vulnerability_advisories": [
-                        {
-                            "id": "GHSA-xxxx-yyyy-zzzz",
-                            "severity": "CRITICAL",
-                            "summary": "Remote Code Execution via MCP input",
-                        }
-                    ],
-                }
-            ],
-        }
-    }
-    report = compare_passports_for_drift(old, new)
-    assert report.is_clean is False
-    assert len(report.incidents) == 1
-    inc = report.incidents[0]
-    assert inc.incident_type == "new_vulnerability"
-    assert inc.severity == "high"
-    assert "GHSA-xxxx-yyyy-zzzz" in inc.details
-
-
 def test_benign_version_bump():
     old = {
         "server-bump": {
@@ -211,7 +171,9 @@ def test_dispatch_drift_webhook(mock_urlopen):
         }
     }
     report = compare_passports_for_drift(old, new)
-    success = dispatch_drift_webhook(report, webhook_url="https://hooks.slack.com/services/test")
+    success = dispatch_drift_webhook(
+        report, webhook_url="https://hooks.slack.com/services/test"
+    )
     assert success is True
     assert mock_urlopen.called
 
