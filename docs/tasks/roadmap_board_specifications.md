@@ -627,4 +627,43 @@ Formalize the Clean Architecture separation in project documentation, explicitly
 - [x] `README.md` updated.
 - [x] `CONTRIBUTING.md` updated.
 - [x] `docs/tasks/roadmap_board_specifications.md` updated.
-- [ ] `tests/test_community_health.py` validates new boundaries.
+- [x] `tests/test_community_health.py` validates new boundaries.
+
+---
+
+## 22. Automated Continuous PyPI Release on New Fingerprints Ingestion
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAV094`
+- **Category**: Operations & Release
+- **Status**: Done
+
+### 1. Architectural Context & Objective
+On each successful daily sync where new or updated MCP server fingerprints are ingested, automatically bump the patch version, create a GitHub release, and trigger publishing to PyPI. This guarantees that downstream consumers of the `mcp-fingerprints` PyPI package always have immediate access to the latest fingerprint database and structural signatures without manual maintainer intervention.
+
+### 2. Technical Implementation Specifications
+1. **Version Bumping Script (`scripts/bump_version.py`)**:
+   - Robust Python script to read the current version from `pyproject.toml` and `src/mcp_fingerprints/__init__.py`.
+   - Increment the patch version (e.g. 1.0.0 -> 1.0.1) using `packaging.version.Version`.
+   - Support `--dry-run` to print the next version and `--apply` to rewrite `pyproject.toml` and `src/mcp_fingerprints/__init__.py`.
+   - Support optional `--pyproject` and `--init-file` for flexible scripting and automated testing.
+2. **PyPI Release Reusable Workflow (`.github/workflows/release.yml`)**:
+   - Add `workflow_call:` trigger under `on:` so the release job can be triggered as a reusable workflow or via published releases and `workflow_dispatch`.
+3. **Daily Sync Automated Continuous Release Integration (`.github/workflows/daily_sync.yml`)**:
+   - After compiling new snapshot, check if new or modified fingerprints were added (`git status --porcelain data/fingerprints/`).
+   - If changes exist:
+     - Run `python scripts/bump_version.py --dry-run` to determine `$NEW_VERSION`.
+     - Run `python scripts/bump_version.py --apply`.
+     - Git commit: `chore(release): bump version to v<NEW_VERSION> and sync MCP fingerprints`.
+     - Tag git release `v<NEW_VERSION>`.
+     - Push commit and tag to `origin/main --tags`.
+     - Create GitHub release with `gh release create v<NEW_VERSION> --title "v<NEW_VERSION>: Automated Fingerprint Sync Release" --generate-notes`.
+     - Pass outputs `release_created=true` and trigger reusable workflow job `pypi-release` with `id-token: write` permissions.
+4. **Test Suite (`tests/test_automated_release_trigger.py`)**:
+   - Test version bumping logic, regex/semver replacement, file synchronization between `pyproject.toml` and `src/mcp_fingerprints/__init__.py`, CLI `--dry-run` and `--apply`, and workflow trigger configurations.
+
+### 3. Clear Acceptance Criteria
+- [x] `scripts/bump_version.py` supports `--dry-run` and `--apply`, correctly bumping patch version using `packaging.version.Version` and keeping `pyproject.toml` and `src/mcp_fingerprints/__init__.py` in sync.
+- [x] `.github/workflows/release.yml` includes `workflow_call:` trigger under `on:`.
+- [x] `.github/workflows/daily_sync.yml` detects fingerprint updates, runs `bump_version.py --apply`, commits, tags `v<NEW_VERSION>`, pushes, creates GitHub release, and triggers PyPI release workflow.
+- [x] `tests/test_automated_release_trigger.py` passes 100% and validates version bumping, synchronization, and workflow triggers.
+- [x] Full project test suite passes cleanly with `PYTHONPATH=src pytest` (214 passed, 4 skipped).
+
