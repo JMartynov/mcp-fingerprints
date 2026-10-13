@@ -670,6 +670,47 @@ On each successful daily sync where new or updated MCP server fingerprints are i
 
 ---
 
+---
+
+
+
+## 23. Hierarchical JSON Partitioning & Ephemeral DuckDB Acceleration
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAY4ic`
+- **Category**: Storage & Indexing
+- **Status**: Completed
+
+
+
+### 1. Architectural Context & Technical Objective
+
+`mcp_fingerprints` stores tool fingerprints and metadata as raw JSON files in `data/fingerprints/`. As the repository grows to thousands of fingerprints, a flat directory structure poses issues with inode scaling, git tree performance, and traversal overhead. Furthermore, doing live searches over thousands of JSON files strictly via Python dictionaries and standard loops can result in higher latency.
+
+The objective is to implement a hierarchical directory structure (partitioning) for JSON files based on ecosystem and package name to prevent single-directory scaling issues. Alongside this, an `EphemeralDBEngine` leveraging DuckDB (when available) will be implemented to act as an on-demand, `:memory:` or `.cache/` backed query acceleration engine over these JSON files without introducing tracked binary files into git, keeping the JSON structure as the canonical source of truth.
+
+
+
+### 2. Technical Implementation Specifications
+
+1. **Partitioning Engine**: `src/mcp_fingerprints/partitioner.py` handles computing hierarchical path based on ecosystem and first char of namespace/package.
+
+2. **Ephemeral DB Engine**: `src/mcp_fingerprints/db_engine.py` using DuckDB (with fallback to SQLite/Dict) to accelerate `search_packages` and `find_by_hash`.
+
+3. **Repository Updates**: `.gitignore` configured to ignore binary caches and DB files, keeping git clean.
+
+
+
+### 3. Clear Acceptance Criteria
+
+- [x] Hierarchical partitioning logic implemented and unit tested.
+
+- [x] DuckDB query acceleration implemented with `read_json_auto`.
+
+- [x] Fallback mechanisms are stable.
+
+- [x] Zero git footprint constraints enforced.
+
+
+
 ## 24. Resilient Network Ingestion Engine (`tenacity` & HTTP 429 Queues)
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYXnc`
 - **Category**: Ingestion & Resilience
