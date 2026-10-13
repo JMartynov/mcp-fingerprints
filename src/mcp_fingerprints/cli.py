@@ -343,6 +343,33 @@ def main() -> None:
         "--json", action="store_true", help="Output resolution result as JSON"
     )
 
+    # SBOM
+    sbom_p = subparsers.add_parser(
+        "sbom",
+        help="Generate a Software Bill of Materials (SBOM) for an MCP Server Package",
+    )
+    sbom_p.add_argument("package_name", help="Package name to generate SBOM for")
+    sbom_p.add_argument(
+        "--format",
+        choices=["cyclonedx"],
+        default="cyclonedx",
+        help="SBOM format to output",
+    )
+    sbom_p.add_argument(
+        "--output", help="Optional file path to write the SBOM to"
+    )
+    sbom_p.add_argument(
+        "--dir", default="data/fingerprints", help="Passport data directory"
+    )
+
+    # Validate Protocol
+    validate_p = subparsers.add_parser(
+        "validate-protocol", help="Validate server JSON-RPC 2.0 and MCP Protocol conformance"
+    )
+    validate_p.add_argument(
+        "server_command", nargs="+", help="Server command to run"
+    )
+
     # Detect Drift
     drift_p = subparsers.add_parser(
         "detect-drift",
@@ -750,6 +777,164 @@ def main() -> None:
                 f.write(out_content)
 
         if args.fail_on_tamper and report.has_tamper_incidents:
+            sys.exit(1)
+
+    elif args.command == "sbom":
+        from mcp_fingerprints.sbom import generate_cyclonedx_sbom
+
+        found = False
+        search_pkg = args.package_name
+
+        for j_file in Path(args.dir).rglob("*.json"):
+            if j_file.name in (
+                "sync_state.json",
+                "index.json",
+                ".passport_index.pickle",
+            ):
+                continue
+            try:
+                content = json.loads(j_file.read_text(encoding="utf-8"))
+                if content.get("package_name") == search_pkg:
+                    spec = ServerPackageSpec.from_dict(content)
+                    
+                    if args.format == "cyclonedx":
+                        sbom_data = generate_cyclonedx_sbom(spec)
+                        sbom_json = json.dumps(sbom_data, indent=2)
+                        
+                        if args.output:
+                            Path(args.output).write_text(sbom_json, encoding="utf-8")
+                            print(f"Wrote SBOM to {args.output}")
+                        else:
+                            print(sbom_json)
+                            
+                    found = True
+                    break
+            except Exception:
+                pass
+
+        if not found:
+            print(f"ERROR: Package '{search_pkg}' not found in passports.")
+            sys.exit(1)
+
+    elif args.command == "validate-protocol":
+        from mcp_fingerprints.protocol_validator import ProtocolViolationError
+        import subprocess
+        import threading
+        import queue
+
+        if not args.server_command:
+            print("ERROR: Command required for validate-protocol")
+            sys.exit(1)
+
+        cmd = args.server_command
+
+        try:
+            print(f"Validating protocol conformance for: {' '.join(cmd)}")
+
+            # Start process
+            proc = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1
+            )
+
+            q = queue.Queue()
+            def reader_thread(stream):
+                for line in stream:
+                    q.put(line)
+
+            t = threading.Thread(target=reader_thread, args=(proc.stdout,), daemon=True)
+            t.start()
+
+            def send_msg(msg):
+                proc.stdin.write(json.dumps(msg) + "\n")
+                proc.stdin.flush()
+
+            def read_msg(timeout=2.0):
+                try:
+                    line = q.get(timeout=timeout)
+                    return json.loads(line)
+                except queue.Empty:
+                    return None
+                except json.JSONDecodeError:
+                    return None
+
+            from mcp_fingerprints.protocol_validator import validate_mcp_handshake, validate_jsonrpc_message
+
+            # 1. Valid handshake
+            init_req = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {},
+                    "clientInfo": {"name": "validator", "version": "1.0"}
+                }
+            }
+            send_msg(init_req)
+
+            init_resp = read_msg()
+            if not init_resp:
+                print("FAIL: No response to initialize request")
+                proc.kill()
+                sys.exit(1)
+
+            init_notif = {
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized"
+            }
+            send_msg(init_notif)
+
+            messages = [init_req, init_resp, init_notif]
+            try:
+                validate_mcp_handshake(messages)
+                print("PASS: Valid sequence")
+            except ProtocolViolationError as e:
+                print(f"FAIL: Handshake validation failed: {e}")
+                proc.kill()
+                sys.exit(1)
+
+            # 2. Intentional invalid method to test error object structure
+            bad_req = {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "invalid/method/does/not/exist",
+                "params": {}
+            }
+            send_msg(bad_req)
+
+            bad_resp = read_msg()
+            if not bad_resp:
+                print("FAIL: No response to invalid request")
+                proc.kill()
+                sys.exit(1)
+
+            try:
+                # Should have jsonrpc, id matching, and valid error object
+                validate_jsonrpc_message(bad_resp, request_id=2)
+                if "error" not in bad_resp:
+                    print("FAIL: Invalid request did not return an error object")
+                    proc.kill()
+                    sys.exit(1)
+                print("PASS: Error object structure")
+            except ProtocolViolationError as e:
+                print(f"FAIL: Error response validation failed: {e}")
+                proc.kill()
+                sys.exit(1)
+
+            print("==================================================")
+            print("Protocol Conformance: PASS")
+            print("==================================================")
+            proc.kill()
+
+        except Exception as e:
+            print(f"FAIL: Exception during validation: {e}")
+            if 'proc' in locals() and proc.poll() is None:
+                proc.kill()
             sys.exit(1)
 
 

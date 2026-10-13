@@ -61,6 +61,7 @@ jobs:
             cat drift_report.json >> $GITHUB_STEP_SUMMARY
           fi
 
+          PYTHONPATH=src python scripts/sync_embeddings.py
           PYTHONPATH=src:. python scripts/generate_web_catalog.py
 
       - name: Commit and push updated passports & snapshot
@@ -75,6 +76,7 @@ jobs:
           FINGERPRINT_CHANGES=$(git status --porcelain data/fingerprints/)
           
           git add data/fingerprints/ passports.json.gz web/catalog.json
+          [ -f data/embeddings.npz ] && git add data/embeddings.npz data/.embeddings_hash || true
           
           if ! git diff --staged --quiet; then
             if [ -n "$FINGERPRINT_CHANGES" ]; then

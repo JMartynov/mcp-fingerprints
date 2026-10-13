@@ -1,8 +1,145 @@
     let catalog = [];
+    let filteredCatalog = [];
     let activeEco = "all";
     let activeQuery = "";
     let selectedServers = new Map();
     let activeModalClient = "claude";
+
+    // Virtualization variables
+    let scrollTicking = false;
+    const CARD_HEIGHT = 280;
+    const GAP = 20; // 1.25rem = 20px
+    let columns = 1;
+    let scrollTop = 0;
+    let viewportHeight = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      viewportHeight = window.innerHeight;
+      updateGridMetrics();
+      renderVirtual();
+    });
+
+    window.addEventListener('scroll', () => {
+      scrollTop = window.scrollY;
+      if (!scrollTicking) {
+        window.requestAnimationFrame(() => {
+          renderVirtual();
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    });
+
+    function updateGridMetrics() {
+      const grid = document.getElementById("serverGrid");
+      if (!grid) return;
+      const gridWidth = grid.clientWidth;
+      const cardMinWidth = 350;
+      columns = Math.max(1, Math.floor((gridWidth + GAP) / (cardMinWidth + GAP)));
+    }
+
+    function getVisibleRange(scrollTop, containerHeight, itemHeight, itemCount, columns) {
+      const buffer = 2; // Buffer rows
+      const totalItemHeight = itemHeight + GAP;
+      const startRow = Math.max(0, Math.floor(scrollTop / totalItemHeight) - buffer);
+      const visibleRows = Math.ceil(containerHeight / totalItemHeight) + (buffer * 2);
+      
+      const startIndex = startRow * columns;
+      const endIndex = Math.min(itemCount, startIndex + (visibleRows * columns));
+      
+      return { startIndex, endIndex };
+    }
+
+    function renderVirtual() {
+      if (!filteredCatalog.length) return;
+      
+      const grid = document.getElementById("serverGrid");
+      updateGridMetrics();
+      
+      const totalRows = Math.ceil(filteredCatalog.length / columns);
+      const totalHeight = totalRows * (CARD_HEIGHT + GAP) - GAP;
+      grid.style.height = `${totalHeight}px`;
+
+      const { startIndex, endIndex } = getVisibleRange(scrollTop, viewportHeight, CARD_HEIGHT, filteredCatalog.length, columns);
+      
+      const existingCards = new Map();
+      Array.from(grid.children).forEach(child => {
+        existingCards.set(child.getAttribute('data-index'), child);
+      });
+
+      const newIndices = new Set();
+      
+      for (let i = startIndex; i < endIndex; i++) {
+        newIndices.add(i.toString());
+        const item = filteredCatalog[i];
+        
+        const row = Math.floor(i / columns);
+        const col = i % columns;
+        
+        const top = row * (CARD_HEIGHT + GAP);
+        const width = `calc(${100 / columns}% - ${((columns - 1) * GAP) / columns}px)`;
+        const left = `calc(${col} * (${width} + ${GAP}px))`;
+
+        let card = existingCards.get(i.toString());
+        if (!card) {
+          card = document.createElement("div");
+          card.className = "card";
+          card.setAttribute('data-index', i.toString());
+          
+          const safeKey = item.name.replace(/[@/_]/g, "-");
+          card.id = 'server-' + safeKey;
+          const displayedTools = item.tools.slice(0, 6);
+
+          const isChecked = selectedServers.has(item.name) ? 'checked' : '';
+          card.innerHTML = `
+            <div>
+              <div class="card-header">
+                <div class="card-title">
+                  <label class="checkbox-container" style="color:var(--text); font-size:1.15rem; font-weight:700;">
+                    <input type="checkbox" class="server-checkbox" data-name="${item.name}" ${isChecked} onchange="toggleSelection('${item.name}')">
+                    ${item.name}
+                  </label>
+                </div>
+                <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                  <span class="badge badge-eco">${item.ecosystem}</span>
+                  <span class="badge badge-${item.risk_tier}">${item.risk_tier}</span>
+                </div>
+              </div>
+              <div class="card-desc">${item.description || "No description provided."}</div>
+              
+              ${item.tool_count > 0 ? `
+                <div class="tools-section">
+                  <div class="tools-label">Tools (${item.tool_count})</div>
+                  <div class="tool-tags">
+                    ${displayedTools.map(t => `<span class="tool-tag">${t.name}</span>`).join("")}
+                    ${item.tool_count > 6 ? `<span class="tool-tag">+${item.tool_count - 6} more</span>` : ""}
+                  </div>
+                </div>
+              ` : `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 0.5rem;">Zero static tools recorded</div>`}
+            </div>
+
+            <div class="card-actions">
+              <button class="btn-copy" onclick="copyShareLink('${item.name}', this)" title="Copy Share Link">🔗</button>
+              <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'claude', this)">Claude</button>
+              <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cursor', this)">Cursor</button>
+              <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cline', this)">Cline</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        }
+        
+        card.style.top = `${top}px`;
+        card.style.left = left;
+        card.style.width = width;
+        card.style.height = `${CARD_HEIGHT}px`;
+      }
+      
+      existingCards.forEach((card, index) => {
+        if (!newIndices.has(index)) {
+          card.remove();
+        }
+      });
+    }
 
     async function loadCatalog() {
       try {
@@ -39,7 +176,7 @@
 
     function render() {
       const q = activeQuery.toLowerCase().trim();
-      const filtered = catalog.filter(item => {
+      filteredCatalog = catalog.filter(item => {
         if (activeEco !== "all" && item.ecosystem.toLowerCase() !== activeEco) return false;
         if (!q) return true;
         if (item.name.toLowerCase().includes(q)) return true;
@@ -48,56 +185,13 @@
       });
 
       document.getElementById("metricsDisplay").innerText = 
-        `Showing ${filtered.length.toLocaleString()} of ${catalog.length.toLocaleString()} MCP servers`;
+        `Showing ${filteredCatalog.length.toLocaleString()} of ${catalog.length.toLocaleString()} MCP servers`;
 
       const grid = document.getElementById("serverGrid");
       grid.innerHTML = "";
-
-      filtered.slice(0, 100).forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-        
-        const safeKey = item.name.replace(/[@/_]/g, "-");
-        card.id = 'server-' + safeKey;
-        const displayedTools = item.tools.slice(0, 6);
-
-        const isChecked = selectedServers.has(item.name) ? 'checked' : '';
-        card.innerHTML = `
-          <div>
-            <div class="card-header">
-              <div class="card-title">
-                <label class="checkbox-container" style="color:var(--text); font-size:1.15rem; font-weight:700;">
-                  <input type="checkbox" class="server-checkbox" data-name="${item.name}" ${isChecked} onchange="toggleSelection('${item.name}')">
-                  ${item.name}
-                </label>
-              </div>
-              <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                <span class="badge badge-eco">${item.ecosystem}</span>
-                <span class="badge badge-${item.risk_tier}">${item.risk_tier}</span>
-              </div>
-            </div>
-            <div class="card-desc">${item.description || "No description provided."}</div>
-            
-            ${item.tool_count > 0 ? `
-              <div class="tools-section">
-                <div class="tools-label">Tools (${item.tool_count})</div>
-                <div class="tool-tags">
-                  ${displayedTools.map(t => `<span class="tool-tag">${t.name}</span>`).join("")}
-                  ${item.tool_count > 6 ? `<span class="tool-tag">+${item.tool_count - 6} more</span>` : ""}
-                </div>
-              </div>
-            ` : `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 0.5rem;">Zero static tools recorded</div>`}
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-copy" onclick="copyShareLink('${item.name}', this)" title="Copy Share Link">🔗</button>
-            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'claude', this)">Claude</button>
-            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cursor', this)">Cursor</button>
-            <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cline', this)">Cline</button>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
+      
+      updateGridMetrics();
+      renderVirtual();
     }
 
     function copyConfig(name, eco, cmd, client, btn) {

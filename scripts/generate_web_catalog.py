@@ -92,6 +92,8 @@ def compile_web_catalog(
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    import time
+    
     catalog: list[dict[str, Any]] = []
 
     for f in p_dir.rglob("*.json"):
@@ -108,6 +110,17 @@ def compile_web_catalog(
 
     target_json = out_dir / "catalog.json"
     target_json.write_text(json.dumps(catalog, separators=(",", ":")), encoding="utf-8")
+    
+    sw_path = out_dir / "sw.js"
+    if sw_path.exists():
+        version_str = str(int(time.time()))
+        sw_content = sw_path.read_text(encoding="utf-8")
+        import re
+        sw_content = re.sub(r'mcp-catalog-v[0-9a-zA-Z_]+', f'mcp-catalog-v{version_str}', sw_content)
+        sw_content = sw_content.replace('__CACHE_VERSION__', version_str)
+        sw_path.write_text(sw_content, encoding="utf-8")
+        logger.info(f"Injected cache version {version_str} into sw.js")
+    
     logger.info("Compiled %d server catalog entries into %s", len(catalog), target_json)
     return target_json
 
