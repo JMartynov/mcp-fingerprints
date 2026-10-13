@@ -263,9 +263,14 @@ def main() -> None:
         "export-config",
         help="Export client configuration (Claude/Cursor/Cline/Zed/Windsurf/Docker)",
     )
-    export_p.add_argument("package", help="Package name to export configuration for")
+    export_p.add_argument("package", nargs="?", help="Package name to export configuration for")
     export_p.add_argument(
         "--dir", default="data/fingerprints", help="Passport data directory"
+    )
+    export_p.add_argument(
+        "--target",
+        choices=["claude", "cursor", "cline", "zed", "windsurf", "docker"],
+        help="Client type (alias for --client)",
     )
     export_p.add_argument(
         "--client",
@@ -277,6 +282,12 @@ def main() -> None:
         "--all-clients",
         action="store_true",
         help="Export configuration for all supported clients",
+    )
+    export_p.add_argument(
+        "--config", help="Path to config file to patch (JSONC supported)"
+    )
+    export_p.add_argument(
+        "--server", help="Server name/alias (overrides package name for config key)"
     )
 
     # Audit Config
@@ -563,8 +574,18 @@ def main() -> None:
 
     elif args.command == "export-config":
         import urllib.parse
+        from mcp_fingerprints.config_exporter import (
+            ZedExporter, ClineExporter, WindsurfExporter, ClaudeExporter, CursorExporter, DockerExporter, extract_base_config
+        )
 
-        urllib.parse.quote_plus(args.package).replace("%40", "@")
+        target_client = args.target if args.target else args.client
+        search_pkg = args.package or args.server
+
+        if not search_pkg:
+            print("ERROR: Must provide either a package positional argument or --server.")
+            sys.exit(1)
+
+        urllib.parse.quote_plus(search_pkg).replace("%40", "@")
 
         # In actual structure it looks like dir / package_name.json but slashes are replaced by _
         # Usually it's purl or name - let's search for package_name
@@ -578,20 +599,43 @@ def main() -> None:
                 continue
             try:
                 content = json.loads(j_file.read_text(encoding="utf-8"))
-                if content.get("package_name") == args.package:
-                    if args.all_clients:
-                        configs = export_all_client_configs(content)
-                        print(json.dumps(configs, indent=2))
+                if content.get("package_name") == search_pkg:
+                    if args.config:
+                        # Patch in place
+                        exporters = {
+                            "zed": ZedExporter,
+                            "cline": ClineExporter,
+                            "windsurf": WindsurfExporter,
+                            "claude": ClaudeExporter,
+                            "cursor": CursorExporter,
+                            "docker": DockerExporter
+                        }
+                        exporter_cls = exporters.get(target_client, ClaudeExporter)
+                        
+                        config_path = Path(args.config)
+                        existing_content = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
+                        
+                        base_config = extract_base_config(content)
+                        package_name = content.get("package_name", "unknown")
+                        server_name = args.server or package_name.replace("@", "").replace("/", "-").replace("_", "-")
+                        
+                        patched = exporter_cls.patch_config(existing_content, server_name, base_config)
+                        config_path.write_text(patched, encoding="utf-8")
+                        print(f"Patched configuration into {config_path}")
                     else:
-                        config = export_client_config(content, client=args.client)
-                        print(json.dumps(config, indent=2))
+                        if args.all_clients:
+                            configs = export_all_client_configs(content)
+                            print(json.dumps(configs, indent=2))
+                        else:
+                            config = export_client_config(content, client=target_client)
+                            print(json.dumps(config, indent=2))
                     found = True
                     break
             except Exception:
                 pass
 
         if not found:
-            print(f"ERROR: Package '{args.package}' not found in passports.")
+            print(f"ERROR: Package '{search_pkg}' not found in passports.")
             sys.exit(1)
 
     elif args.command == "browse":
