@@ -671,7 +671,7 @@ On each successful daily sync where new or updated MCP server fingerprints are i
 ---
 
 ## 24. Resilient Network Ingestion Engine (`tenacity` & HTTP 429 Queues)
-- **Board Item ID**: `T24_ResilientIngestion`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYXnc`
 - **Category**: Ingestion & Resilience
 - **Status**: Backlog
 
@@ -708,7 +708,7 @@ Run `uv run python -c "from mcp_fingerprints.ingestion_engine import fetch_with_
 ---
 
 ## 25. Automated Semantic Embeddings Cache CI Synchronization
-- **Board Item ID**: `T25_SemanticEmbeddingsCISync`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYXqA`
 - **Category**: CI/CD & Automation
 - **Status**: Backlog
 
@@ -740,7 +740,7 @@ Run `uv sync --all-extras` then manually add a dummy fingerprint to `data/finger
 ---
 
 ## 26. Interactive Terminal Setup Wizard (`mcp-fingerprints init`)
-- **Board Item ID**: `T26_SetupWizard`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYXsQ`
 - **Category**: Developer Experience
 - **Status**: Backlog
 
@@ -773,7 +773,7 @@ Run `uv run mcp-fingerprints init` in a real terminal. Answer the prompts intera
 ---
 
 ## 27. First-Class Zed, Cline & Windsurf Native Config Exporters
-- **Board Item ID**: `T27_NativeConfigExporters`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYXuM`
 - **Category**: Developer Experience
 - **Status**: Backlog
 
@@ -803,7 +803,7 @@ Create a dummy `zed_config.jsonc` file with comments. Run `uv run mcp-fingerprin
 ---
 
 ## 28. Web Catalog Offline PWA & Search Virtualization
-- **Board Item ID**: `T28_WebCatalogPWA`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYXwo`
 - **Category**: Web & Frontend
 - **Status**: Backlog
 
@@ -836,7 +836,7 @@ Use `uv run python scripts/generate_web_catalog.py`. Start a local HTTP server (
 ---
 
 ## 29. True Isolated Container Sandbox (`--probe-runtime --sandbox=docker`)
-- **Board Item ID**: `T29_ContainerSandbox`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYXzE`
 - **Category**: Security & Sandboxing
 - **Status**: Backlog
 
@@ -869,7 +869,7 @@ Ensure Docker is running locally. Run `uv run mcp-fingerprints probe --sandbox=d
 ---
 
 ## 30. SARIF Export for GitHub Code Scanning (`audit-config --format sarif`)
-- **Board Item ID**: `T30_SARIFExport`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYX1U`
 - **Category**: Integration & Ecosystem
 - **Status**: Backlog
 
@@ -901,7 +901,7 @@ Run `uv run mcp-fingerprints audit-config --config my_config.json --format sarif
 ---
 
 ## 31. MCP Server Software Bill of Materials (SBOM / CycloneDX)
-- **Board Item ID**: `T31_MCPServerSBOM`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYX3s`
 - **Category**: Integration & Ecosystem
 - **Status**: Backlog
 
@@ -933,7 +933,7 @@ Run `uv run mcp-fingerprints sbom my-mcp-server --format cyclonedx > sbom.json`.
 ---
 
 ## 32. Strict JSON-RPC 2.0 & MCP Protocol Conformance Validator
-- **Board Item ID**: `T32_ProtocolValidator`
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhAYX6A`
 - **Category**: Validation & Conformance
 - **Status**: Backlog
 
