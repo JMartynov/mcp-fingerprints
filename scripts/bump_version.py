@@ -45,15 +45,17 @@ def update_version_in_files(new_version: str, pyproject_path: str = "pyproject.t
         )
         init_file.write_text(new_content, encoding="utf-8")
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description="Bump patch version of the project.")
     parser.add_argument("--dry-run", action="store_true", help="Print the next version without modifying files")
     parser.add_argument("--apply", action="store_true", help="Apply the version bump to files")
+    parser.add_argument("--pyproject", default="pyproject.toml", help="Path to pyproject.toml")
+    parser.add_argument("--init-file", default="src/mcp_fingerprints/__init__.py", help="Path to __init__.py")
     
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     
     try:
-        current_version = get_current_version()
+        current_version = get_current_version(args.pyproject)
         next_version = bump_patch_version(current_version)
         
         if args.dry_run:
@@ -61,7 +63,7 @@ def main():
             return 0
             
         if args.apply:
-            update_version_in_files(next_version)
+            update_version_in_files(next_version, args.pyproject, args.init_file)
             print(f"Bumped version from {current_version} to {next_version}")
             return 0
             

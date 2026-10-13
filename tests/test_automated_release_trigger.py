@@ -2,17 +2,12 @@ import os
 import pytest
 from pathlib import Path
 import re
-import importlib.util
 import sys
 
-# Try to import bump_version dynamically since it's in scripts/
-import sys
+# Import bump_version dynamically from scripts/
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+import bump_version
 
-try:
-    import bump_version
-except ImportError:
-    pass # we will handle this inside the test if it fails
 
 def test_bump_version_logic(tmp_path):
     pyproject_toml = tmp_path / "pyproject.toml"
@@ -39,6 +34,55 @@ version = "1.0.0"
     assert bump_version.get_current_version(str(pyproject_toml)) == "1.0.1"
     assert '__version__ = "1.0.1"' in init_py.read_text()
 
+
+def test_bump_version_cli(tmp_path, capsys):
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text("""[project]
+name = "mcp-fingerprints"
+version = "1.0.0"
+""")
+
+    init_py = tmp_path / "__init__.py"
+    init_py.write_text("""__version__ = "1.0.0"
+""")
+
+    # Test --dry-run
+    ret = bump_version.main(["--dry-run", "--pyproject", str(pyproject_toml), "--init-file", str(init_py)])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "1.0.1"
+    assert bump_version.get_current_version(str(pyproject_toml)) == "1.0.0"
+
+    # Test --apply
+    ret = bump_version.main(["--apply", "--pyproject", str(pyproject_toml), "--init-file", str(init_py)])
+    assert ret == 0
+    captured = capsys.readouterr()
+    assert "Bumped version from 1.0.0 to 1.0.1" in captured.out
+    assert bump_version.get_current_version(str(pyproject_toml)) == "1.0.1"
+    assert '__version__ = "1.0.1"' in init_py.read_text()
+
+    # Test error handling on missing file
+    ret = bump_version.main(["--dry-run", "--pyproject", str(tmp_path / "nonexistent.toml")])
+    assert ret == 1
+    captured = capsys.readouterr()
+    assert "Error:" in captured.err
+
+
+def test_repository_version_synchronization():
+    repo_root = Path(__file__).parent.parent
+    pyproject_toml = repo_root / "pyproject.toml"
+    init_py = repo_root / "src" / "mcp_fingerprints" / "__init__.py"
+
+    pyproject_ver = bump_version.get_current_version(str(pyproject_toml))
+    
+    content = init_py.read_text(encoding="utf-8")
+    match = re.search(r'^__version__\s*=\s*"([^"]+)"', content, re.MULTILINE)
+    assert match is not None, "Could not find __version__ in __init__.py"
+    init_ver = match.group(1)
+
+    assert pyproject_ver == init_ver, f"Version mismatch: pyproject.toml ({pyproject_ver}) vs __init__.py ({init_ver})"
+
+
 def test_workflows_have_correct_triggers():
     repo_root = Path(__file__).parent.parent
     release_yml = repo_root / ".github" / "workflows" / "release.yml"
@@ -56,3 +100,4 @@ def test_workflows_have_correct_triggers():
     assert 'gh release create' in daily_sync_content
     assert 'uses: ./.github/workflows/release.yml' in daily_sync_content
     assert "git status --porcelain data/fingerprints/" in daily_sync_content
+    assert "release_created" in daily_sync_content
