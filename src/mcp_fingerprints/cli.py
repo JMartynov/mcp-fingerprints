@@ -25,6 +25,7 @@ from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.prober import McpStdioProber
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
+from mcp_fingerprints.sarif_exporter import generate_sarif
 from mcp_fingerprints.search import format_search_results, search_passports
 from mcp_fingerprints.snapshot import build_snapshot
 from mcp_fingerprints.synchronizer import PassportSynchronizer
@@ -303,7 +304,10 @@ def main() -> None:
         "--dir", default="data/fingerprints", help="Passport data directory"
     )
     audit_p.add_argument(
-        "--json", action="store_true", help="Output audit report as JSON"
+        "--json", action="store_true", help="Output audit report as JSON (deprecated, use --format json)"
+    )
+    audit_p.add_argument(
+        "--format", choices=["text", "json", "sarif"], default="text", help="Output format"
     )
 
     # Resolve Config
@@ -691,8 +695,15 @@ def main() -> None:
             print(f"ERROR: {e}")
             sys.exit(1)
 
+        output_format = args.format if hasattr(args, "format") and args.format else "text"
         if args.json:
+            output_format = "json"
+
+        if output_format == "json":
             print(json.dumps(report.to_dict(), indent=2))
+        elif output_format == "sarif":
+            sarif_data = generate_sarif(report, config_path=args.config_file)
+            print(json.dumps(sarif_data, indent=2))
         else:
             print(format_audit_report(report))
 
