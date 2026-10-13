@@ -81,6 +81,11 @@ def main() -> None:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # Init
+    subparsers.add_parser(
+        "init", help="Run interactive setup wizard to bootstrap configuration"
+    )
+
     # Sync
     sync_p = subparsers.add_parser(
         "sync", help="Synchronize MCP server passports from registries"
@@ -290,7 +295,6 @@ def main() -> None:
         "--json", action="store_true", help="Output audit report as JSON"
     )
 
-
     # Resolve Config
     resolve_p = subparsers.add_parser(
         "resolve-config", help="Automated conflict resolver and namespacing"
@@ -342,7 +346,12 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.command == "sync":
+    if args.command == "init":
+        from mcp_fingerprints.wizard import run_init_wizard
+
+        run_init_wizard()
+
+    elif args.command == "sync":
         sync = PassportSynchronizer(output_dir=args.output)
         if args.all or (
             not args.update_existing and not args.discover_new and not args.enrich_ast
