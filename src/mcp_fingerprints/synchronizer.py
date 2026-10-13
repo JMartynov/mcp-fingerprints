@@ -28,6 +28,7 @@ from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
 from mcp_fingerprints.runtime_sandbox import probe_mcp_server_stdio
+from mcp_fingerprints.sandbox_drivers import get_sandbox_runner, BaseSandboxRunner
 from mcp_fingerprints.crawler import FingerprintGenerator
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
 from mcp_fingerprints.validator import McpServerValidator, sanitize_tool_definition
@@ -1776,6 +1777,7 @@ class PassportSynchronizer:
         limit: int = 50,
         timeout: float = 5.0,
         safe_only: bool = True,
+        sandbox: str | BaseSandboxRunner = "auto",
     ) -> int:
         """
         Probe live MCP servers using sandboxed stdio runtime handshake to verify tools and capabilities.
@@ -1824,10 +1826,12 @@ class PassportSynchronizer:
             except Exception:
                 continue
 
+        runner = sandbox if isinstance(sandbox, BaseSandboxRunner) else get_sandbox_runner(sandbox)
+
         verified_count = 0
         for j_file, spec, cmd, env in candidates:
             try:
-                tools = probe_mcp_server_stdio(cmd, env=env, timeout_seconds=timeout)
+                tools = runner.run_handshake(cmd, timeout=timeout, env=env)
                 if not tools:
                     continue
 

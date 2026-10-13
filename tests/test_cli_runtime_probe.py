@@ -36,7 +36,7 @@ def test_probe_runtime_passports_success(tmp_path):
     ]
 
     sync = PassportSynchronizer(output_dir=passport_dir)
-    with patch("mcp_fingerprints.synchronizer.probe_mcp_server_stdio", return_value=mock_tools):
+    with patch("mcp_fingerprints.sandbox_drivers.probe_mcp_server_stdio", return_value=mock_tools):
         count = sync.probe_runtime_passports(limit=10, timeout=2.0)
 
     assert count == 1

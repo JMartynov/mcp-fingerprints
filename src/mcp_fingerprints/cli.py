@@ -142,6 +142,12 @@ def main() -> None:
         default=50,
         help="Maximum servers to probe in runtime handshake (default: 50)",
     )
+    sync_p.add_argument(
+        "--sandbox",
+        choices=["auto", "docker", "incus", "incus-vm", "host"],
+        default="auto",
+        help="Sandbox runtime to use for probes",
+    )
 
     # Match
     match_p = subparsers.add_parser(
@@ -191,6 +197,12 @@ def main() -> None:
     )
     probe_p.add_argument(
         "--json", action="store_true", help="Output full probe report as JSON"
+    )
+    probe_p.add_argument(
+        "--sandbox",
+        choices=["auto", "docker", "incus", "incus-vm", "host"],
+        default="auto",
+        help="Sandbox runtime to use for probes",
     )
     probe_p.add_argument(
         "cmd",
@@ -391,7 +403,7 @@ def main() -> None:
                 args.runtime_limit,
             )
             probed = sync.probe_runtime_passports(
-                limit=args.runtime_limit, timeout=args.runtime_timeout
+                limit=args.runtime_limit, timeout=args.runtime_timeout, sandbox=args.sandbox
             )
             logger.info("Successfully runtime-verified %d servers.", probed)
 
@@ -503,7 +515,7 @@ def main() -> None:
 
         matcher = FingerprintMatcher()
         matcher.load_from_directory(args.dir)
-        prober = McpStdioProber(matcher)
+        prober = McpStdioProber(matcher, sandbox=args.sandbox)
 
         report = prober.probe(
             command=cmd,
