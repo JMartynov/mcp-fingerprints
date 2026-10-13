@@ -667,3 +667,301 @@ On each successful daily sync where new or updated MCP server fingerprints are i
 - [x] `tests/test_automated_release_trigger.py` passes 100% and validates version bumping, synchronization, and workflow triggers.
 - [x] Full project test suite passes cleanly with `PYTHONPATH=src pytest` (214 passed, 4 skipped).
 
+
+---
+
+## 24. Resilient Network Ingestion Engine (`tenacity` & HTTP 429 Queues)
+- **Board Item ID**: `T24_ResilientIngestion`
+- **Category**: Ingestion & Resilience
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+Currently, the ingestion engine in `mcp_fingerprints` (specifically when downloading and verifying MCP repositories or interacting with external package registries) lacks robust handling of transient network failures and rate limits. The current implementation can fail pipelines when encountering HTTP 429 (Too Many Requests) or HTTP 500 errors.
+The objective of this task is to integrate the `tenacity` library to provide resilient retry logic with exponential backoff and jitter, specifically tailored for network ingestion tasks in `src/mcp_fingerprints/ingestion.py` (or similar modules), ensuring our data pipelines and CI/CD jobs don't randomly fail due to transient external issues. All data ingestion must remain memory-safe and zero-disk-footprint as per architecture guidelines.
+
+### 2. Technical Implementation Specifications
+1. Introduce `tenacity` as a dependency in `pyproject.toml`.
+2. Implement a new class or module `ResilientIngestionEngine` in `src/mcp_fingerprints/ingestion_engine.py`.
+3. Wrap external network calls (e.g., `requests.get` or `httpx.AsyncClient`) with `@retry` decorators using `tenacity`.
+4. Configure retry logic:
+   - Handle HTTP 429 and HTTP 5xx explicitly.
+   - Use `wait_exponential_jitter`.
+   - Max retries: 5.
+   - Timeout: 60 seconds.
+5. Create an asynchronous queue mechanism for bulk ingestion to distribute load and respect rate limits dynamically.
+
+### 3. Clear Acceptance Criteria
+- [ ] `tenacity` is added to `pyproject.toml`.
+- [ ] Network ingestion calls are wrapped in `tenacity` retry loops.
+- [ ] HTTP 429 and 5xx errors trigger retries with exponential backoff and jitter.
+- [ ] Bulk ingestion uses an async queue mechanism.
+
+### 4. Unit Test Plan
+1. **Mock Setup:** Use `responses` or `pytest-httpx` to mock external endpoints.
+2. **Retry Verification:** Mock a sequence of 3 HTTP 429 responses followed by a 200 OK. Assert the function succeeds and the mock was called 4 times.
+3. **Failure Verification:** Mock a sequence of 6 HTTP 500 responses. Assert the function eventually raises a retry error after 5 retries.
+4. **Queue Verification:** Assert that bulk ingestion processes items concurrently but with a limited concurrency pool (e.g., max 10 concurrent requests).
+
+### 5. Live Acceptance Test Plan
+Run `uv run python -c "from mcp_fingerprints.ingestion_engine import fetch_with_retry; fetch_with_retry('http://httpbin.org/status/429,200')"` and observe logs to verify that the retry happens automatically before successfully completing, entirely without mocks.
+
+---
+
+## 25. Automated Semantic Embeddings Cache CI Synchronization
+- **Board Item ID**: `T25_SemanticEmbeddingsCISync`
+- **Category**: CI/CD & Automation
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+The `mcp_fingerprints` repository includes a pre-computed semantic embeddings index (`data/embeddings.npz`) for MCP tool fingerprints using `fastembed` and `numpy`. Currently, this cache must be manually updated when new fingerprints are added.
+The objective is to automate the synchronization of this embeddings cache within the CI/CD pipeline (e.g., in `.github/workflows/daily_sync.yml`). This ensures that the vector search remains perfectly in sync with the structural fingerprint database on every automated release.
+
+### 2. Technical Implementation Specifications
+1. Create a script `scripts/sync_embeddings.py` that utilizes `src/mcp_fingerprints/semantic_search.py` to regenerate `data/embeddings.npz`.
+2. Update `.github/workflows/daily_sync.yml` to run `uv run python scripts/sync_embeddings.py` after new fingerprints are ingested.
+3. Ensure the script only runs if new fingerprints are detected.
+4. Add the updated `data/embeddings.npz` to the automated commit.
+5. The `sync_embeddings.py` script must handle missing optional dependencies (`fastembed`, `numpy`) gracefully during isolated CI environments if not installed, though CI should install the `semantic` extra.
+
+### 3. Clear Acceptance Criteria
+- [ ] `scripts/sync_embeddings.py` is implemented and can regenerate `data/embeddings.npz`.
+- [ ] `.github/workflows/daily_sync.yml` is updated to include the embedding sync step.
+- [ ] Automated commits include the updated `data/embeddings.npz` file.
+- [ ] CI uses `uv sync --all-extras` or equivalent to ensure `fastembed` is available.
+
+### 4. Unit Test Plan
+1. **Mock Generation:** Mock `fastembed` to return dummy vectors and assert that `sync_embeddings.py` writes an `.npz` file with the correct shape to a temporary directory.
+2. **Missing Dependencies:** Run the sync function with `fastembed` mocked out as missing (e.g., `ImportError`) and verify it logs a warning and exits gracefully.
+3. **No Changes Detected:** Ensure the script exits early if the existing embeddings cache already matches the latest fingerprints hash.
+
+### 5. Live Acceptance Test Plan
+Run `uv sync --all-extras` then manually add a dummy fingerprint to `data/fingerprints/`. Run `python scripts/sync_embeddings.py` and verify `data/embeddings.npz` is modified on disk using `git status`.
+
+---
+
+## 26. Interactive Terminal Setup Wizard (`mcp-fingerprints init`)
+- **Board Item ID**: `T26_SetupWizard`
+- **Category**: Developer Experience
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+While `mcp_fingerprints.cli` provides powerful commands, onboarding new users requires them to manually configure their environments or learn complex flags. 
+The objective is to implement a robust, interactive setup wizard (`mcp-fingerprints init`) that guides users through configuring their local MCP client integrations (e.g., Claude Desktop, Cursor), setting up semantic search, and bootstrapping their initial configuration file. The wizard must check `sys.stdin.isatty()` to gracefully degrade or abort in headless CI environments.
+
+### 2. Technical Implementation Specifications
+1. Add a new `init` command to `src/mcp_fingerprints/cli.py`.
+2. Implement the interactive wizard in a new module: `src/mcp_fingerprints/wizard.py`.
+3. Use the standard library (e.g., `input()`, `sys.stdout`) to ask users questions (e.g., "Do you want to configure Claude Desktop?", "Do you want to enable semantic search?").
+4. Validate `sys.stdin.isatty()` at the start of the command. If false, raise a descriptive error or fall back to defaults.
+5. Generate a default configuration file (e.g., `~/.mcp_fingerprints.toml` or similar) based on user input.
+
+### 3. Clear Acceptance Criteria
+- [ ] `mcp-fingerprints init` command exists.
+- [ ] Wizard checks for interactive terminal (`sys.stdin.isatty()`).
+- [ ] Prompts user for configurations (clients, features).
+- [ ] Writes a configuration file based on the interactive session.
+- [ ] No heavy external UI dependencies added.
+
+### 4. Unit Test Plan
+1. **Headless Environment:** Mock `sys.stdin.isatty()` to return `False` and assert the wizard raises a `RuntimeError` or exits gracefully with a message.
+2. **Interactive Flow Mocking:** Use `unittest.mock.patch('builtins.input')` with `side_effect` to simulate user responses (e.g., `['y', 'n', 'y']`). Assert the correct configuration dictionary is generated.
+3. **Config Write Verification:** Assert that the final configuration is written to the correct destination (mocking `open` or using a temporary directory).
+
+### 5. Live Acceptance Test Plan
+Run `uv run mcp-fingerprints init` in a real terminal. Answer the prompts interactively. Verify that the resulting configuration file is created successfully and matches your inputs. Pipe input via `echo "y" | uv run mcp-fingerprints init` to ensure non-TTY behavior handles it appropriately.
+
+---
+
+## 27. First-Class Zed, Cline & Windsurf Native Config Exporters
+- **Board Item ID**: `T27_NativeConfigExporters`
+- **Category**: Developer Experience
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+Currently, `mcp_fingerprints` primarily supports exporting client configurations for generic environments or Claude Desktop.
+The objective is to expand `src/mcp_fingerprints/exporters.py` to natively support popular IDE extensions and clients like Zed, Cline, and Windsurf. These tools have specific configuration schemas (often JSONC) that require careful parsing and modification to preserve comments and structural integrity, avoiding destructive updates from standard `json.dumps`.
+
+### 2. Technical Implementation Specifications
+1. Expand `src/mcp_fingerprints/exporters.py` with specific exporter classes: `ZedExporter`, `ClineExporter`, `WindsurfExporter`.
+2. Implement safe string manipulation or use a robust JSONC parsing method (if standard regex/string patching is viable as per project constraints) to inject MCP server configurations without destroying existing comments.
+3. Update the CLI `export-config` command to support these new targets (e.g., `--target zed`).
+4. Define the strict dictionary schemas expected by each tool based on their public documentation.
+
+### 3. Clear Acceptance Criteria
+- [ ] Exporter classes for Zed, Cline, and Windsurf exist.
+- [ ] Configurations are patched safely without stripping JSONC comments.
+- [ ] `export-config` CLI command supports `--target zed`, `--target cline`, `--target windsurf`.
+
+### 4. Unit Test Plan
+1. **JSONC Preservation:** Create mock JSONC strings containing comments. Pass them through the exporters and assert the output retains the comments and correctly inserts the new server config.
+2. **Schema Validation:** Assert that the generated configuration dictionaries conform exactly to the known schemas of Zed, Cline, and Windsurf.
+3. **CLI Integration:** Invoke the CLI runner programmatically with `--target zed` and verify it calls the correct exporter class.
+
+### 5. Live Acceptance Test Plan
+Create a dummy `zed_config.jsonc` file with comments. Run `uv run mcp-fingerprints export-config --target zed --config zed_config.jsonc --server my-server`. Open the file manually to verify comments are untouched and the new server is appended properly.
+
+---
+
+## 28. Web Catalog Offline PWA & Search Virtualization
+- **Board Item ID**: `T28_WebCatalogPWA`
+- **Category**: Web & Frontend
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+The static web catalog (`web/`) is currently a basic vanilla JS implementation. As the catalog grows to hundreds or thousands of fingerprints, DOM rendering can become slow. Furthermore, offline access is not supported.
+The objective is to implement a Progressive Web App (PWA) Service Worker to cache the static catalog for offline use and implement DOM virtualization (windowing) for the search results list to maintain sub-16ms rendering performance even with 10,000+ entries, adhering strictly to vanilla JS without external frameworks.
+
+### 2. Technical Implementation Specifications
+1. Create `web/sw.js` (Service Worker) to cache `index.html`, `app.js`, CSS, and the JSON catalog snapshot.
+2. Update `web/index.html` to register the Service Worker.
+3. Modify `web/app.js` to implement list virtualization:
+   - Calculate total height based on item count.
+   - Render only the subset of list items visible in the viewport plus a small buffer.
+   - Use absolute positioning within a scrollable container.
+4. Ensure the `scripts/generate_web_catalog.py` includes a mechanism to inject the current cache version into `sw.js` to trigger updates.
+
+### 3. Clear Acceptance Criteria
+- [ ] Service worker (`sw.js`) successfully caches the web catalog.
+- [ ] The web catalog is accessible offline.
+- [ ] `app.js` utilizes DOM virtualization for search results.
+- [ ] Vanilla JS is maintained; no React/Vue/Svelte dependencies.
+
+### 4. Unit Test Plan
+1. **Virtualization Logic:** Unit test the index calculation functions (e.g., `getVisibleRange(scrollTop, containerHeight, itemHeight)`) in a standard JS test runner (or via Playwright evaluating functions) to ensure accurate start and end indices are returned.
+2. **Service Worker Versioning:** Test that `generate_web_catalog.py` correctly updates the cache version string in `sw.js` when generating the site.
+
+### 5. Live Acceptance Test Plan
+Use `uv run python scripts/generate_web_catalog.py`. Start a local HTTP server (`python -m http.server -d web`). Open the browser, verify virtualization by inspecting the DOM (only a few elements should exist). Disconnect the server (stop script), refresh the page, and verify it still loads offline via the Service Worker. Finally, use Playwright frontend verification instructions to capture a screenshot of the catalog rendering correctly.
+
+---
+
+## 29. True Isolated Container Sandbox (`--probe-runtime --sandbox=docker`)
+- **Board Item ID**: `T29_ContainerSandbox`
+- **Category**: Security & Sandboxing
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+While `mcp_fingerprints` extracts static AST data efficiently, the current runtime probe (`probe` command) executes servers directly via `stdio` using standard library `subprocess`. Even with environment sanitization, running untrusted or closed-source MCP server binaries directly on the host poses significant security risks.
+The objective is to implement a true isolated container sandbox using Docker for runtime probing. When `--sandbox=docker` is specified, the engine will dynamically construct an ephemeral container, map only the necessary stdio pipes, execute the server, and immediately destroy the container.
+
+### 2. Technical Implementation Specifications
+1. Create `src/mcp_fingerprints/sandbox_docker.py`.
+2. Implement a class `DockerSandboxRunner` that implements the same interface as the current stdio runner.
+3. The runner will invoke the `docker` CLI directly (via `subprocess`) rather than using the heavy `docker-py` library to minimize dependencies.
+   - Example command: `docker run -i --rm --network none untrusted-mcp-image <cmd>`
+4. Update the `probe` CLI command to accept `--sandbox=[host|docker]`.
+5. Ensure strict timeout controls and zero network access (`--network none`) during extraction.
+
+### 3. Clear Acceptance Criteria
+- [ ] `DockerSandboxRunner` is implemented via standard `subprocess` calling the `docker` executable.
+- [ ] Container runs without network access (`--network none`).
+- [ ] CLI supports `--sandbox=docker`.
+- [ ] Fallback to `host` runner if docker is missing or requested.
+
+### 4. Unit Test Plan
+1. **Command Generation:** Unit test that `DockerSandboxRunner` generates the exact expected `docker run` command string, specifically asserting the presence of `-i`, `--rm`, and `--network none`.
+2. **Missing Docker CLI:** Mock `shutil.which('docker')` to return `None` and assert the runner raises an appropriate environment error.
+3. **Timeout Handling:** Mock `subprocess.Popen` to simulate a timeout and verify the runner forcibly kills the docker process.
+
+### 5. Live Acceptance Test Plan
+Ensure Docker is running locally. Run `uv run mcp-fingerprints probe --sandbox=docker <test-server-image>`. Verify the probe successfully extracts tools and cleanly exits. Verify via `docker ps` that no lingering containers remain.
+
+---
+
+## 30. SARIF Export for GitHub Code Scanning (`audit-config --format sarif`)
+- **Board Item ID**: `T30_SARIFExport`
+- **Category**: Integration & Ecosystem
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+The current configuration auditing (`audit-config`) command provides basic JSON or terminal output. To seamlessly integrate `mcp_fingerprints` into enterprise CI/CD pipelines and vulnerability management workflows (like GitHub Advanced Security Code Scanning), it needs to export structural risk findings in the standard SARIF (Static Analysis Results Interchange Format) format.
+The objective is to implement a SARIF v2.1.0 exporter that translates the static AST tool capability risk profiles (e.g., exposed shell execution tools) into SARIF rules and results. Note: As per Clean Architecture, this export is strictly for *structural risks* found via AST, not external CVE vulnerabilities.
+
+### 2. Technical Implementation Specifications
+1. Create `src/mcp_fingerprints/sarif_exporter.py`.
+2. Define the basic structural SARIF schema dictionaries (Rules, Results, Runs) adhering to the SARIF v2.1.0 specification.
+3. Map internal static risk profiles (e.g., `ToolCapabilityRisk`) to SARIF `rules`.
+4. Update `src/mcp_fingerprints/cli.py` `audit-config` command to support `--format sarif`.
+5. Ensure zero external dependencies (no heavy schema validation libraries) are required for generation.
+
+### 3. Clear Acceptance Criteria
+- [ ] SARIF v2.1.0 generator implemented using plain python dictionaries.
+- [ ] `audit-config` CLI command supports `--format sarif`.
+- [ ] Output is valid JSON.
+- [ ] Outputs only structural risks, adhering to Clean Architecture.
+
+### 4. Unit Test Plan
+1. **Schema Structure:** Generate a SARIF output from a mock audit result and assert the presence of required root keys (`version`, `$schema`, `runs`).
+2. **Rule Mapping:** Assert that a specific `ToolCapabilityRisk` is correctly mapped to a `result` object referencing the correct `ruleId`.
+3. **Empty Results:** Test that an audit with zero risks produces a valid SARIF file with an empty `results` array.
+
+### 5. Live Acceptance Test Plan
+Run `uv run mcp-fingerprints audit-config --config my_config.json --format sarif > out.sarif`. Open `out.sarif` and manually verify it is valid JSON and follows the expected structure. Optionally, attempt to upload the file to a GitHub repository's Code Scanning interface to verify compatibility natively.
+
+---
+
+## 31. MCP Server Software Bill of Materials (SBOM / CycloneDX)
+- **Board Item ID**: `T31_MCPServerSBOM`
+- **Category**: Integration & Ecosystem
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+While `mcp_fingerprints` tracks the structural layout of MCP servers via passports, it does not currently generate standard Software Bill of Materials (SBOMs) for the servers themselves.
+The objective is to implement an SBOM generation module that exports an MCP server's structural metadata and tool lists into the CycloneDX 1.5 JSON specification. This allows the structural data extracted by `mcp-fingerprints` to be easily ingested by standard enterprise supply chain tooling without blurring the lines into active vulnerability scanning.
+
+### 2. Technical Implementation Specifications
+1. Create `src/mcp_fingerprints/sbom.py`.
+2. Map `ServerPackageSpec` and `VersionFingerprint` data to a CycloneDX 1.5 JSON structure.
+   - Component type: `application`.
+   - Include tools as nested components or properties.
+3. Add a new CLI command `mcp-fingerprints sbom <package_name> --format cyclonedx`.
+4. Ensure generation relies only on standard Python dictionaries and standard library `json`.
+
+### 3. Clear Acceptance Criteria
+- [ ] `src/mcp_fingerprints/sbom.py` generates valid CycloneDX 1.5 JSON dictionaries.
+- [ ] CLI `sbom` command implemented.
+- [ ] Structural data correctly mapped to CycloneDX components.
+
+### 4. Unit Test Plan
+1. **Spec Generation:** Pass a mocked `ServerPackageSpec` to the generator. Assert the output dict contains `bomFormat: "CycloneDX"` and `specVersion: "1.5"`.
+2. **Component Mapping:** Assert that the primary package name and version are correctly mapped to the main component's `name` and `version` fields.
+3. **PURL Validation:** Ensure the package's PURL is correctly injected into the component `purl` field.
+
+### 5. Live Acceptance Test Plan
+Run `uv run mcp-fingerprints sbom my-mcp-server --format cyclonedx > sbom.json`. Manually inspect `sbom.json` to ensure the format is valid JSON and structurally resembles standard CycloneDX format for the specified server.
+
+---
+
+## 32. Strict JSON-RPC 2.0 & MCP Protocol Conformance Validator
+- **Board Item ID**: `T32_ProtocolValidator`
+- **Category**: Validation & Conformance
+- **Status**: Backlog
+
+### 1. Architectural Context & Technical Objective
+The Model Context Protocol operates over JSON-RPC 2.0 via `stdio` or HTTP/SSE. Currently, `mcp_fingerprints` assumes servers behave correctly during extraction or probing.
+The objective is to implement a strict protocol conformance validator tool (`validate-protocol`) that actively probes a running server and asserts its responses adhere perfectly to the JSON-RPC 2.0 specification (e.g., correct `jsonrpc` version string, proper handling of `id`, valid `error` object structures) and the specific MCP initialization handshake sequence.
+
+### 2. Technical Implementation Specifications
+1. Create `src/mcp_fingerprints/protocol_validator.py`.
+2. Implement specific test suites for JSON-RPC 2.0 compliance:
+   - Missing `jsonrpc: "2.0"` field.
+   - Malformed `id` reflection.
+   - Structured Error handling (Code, Message).
+3. Implement specific test suites for MCP compliance:
+   - Proper `initialize` request and response structure.
+   - Proper `notifications/initialized` sequence.
+4. Update the CLI with a `validate-protocol` command.
+
+### 3. Clear Acceptance Criteria
+- [ ] Protocol validation test suites implemented for JSON-RPC 2.0 and MCP handshake.
+- [ ] CLI command `validate-protocol` exists.
+- [ ] Validator detects missing `jsonrpc` fields and malformed errors.
+- [ ] Zero reliance on heavy third-party JSON schema libraries.
+
+### 4. Unit Test Plan
+1. **Valid Sequence:** Provide a mock sequence of valid JSON-RPC strings representing a perfect initialization handshake. Assert the validator returns success.
+2. **Missing jsonrpc Field:** Provide a mock response missing `"jsonrpc": "2.0"`. Assert the validator flags a strict JSON-RPC 2.0 violation.
+3. **Invalid Error Object:** Provide an error response missing the `code` integer field. Assert the validator flags an invalid error object structure.
+
+### 5. Live Acceptance Test Plan
+Use `uv run mcp-fingerprints validate-protocol <path-to-test-server-binary>`. The command should spawn the server, perform the handshake, deliberately send a malformed request, and verify the server's error response compliance, printing a pass/fail report to stdout.
