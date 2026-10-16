@@ -5,7 +5,51 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-TransportType = Literal["stdio", "sse", "websocket"]
+TransportType = Literal["stdio", "sse", "streamable-http", "websocket"]
+
+
+@dataclass(frozen=True)
+class ParameterMetadata:
+    """Rich parameter metadata for a tool argument."""
+
+    name: str
+    type: str
+    description: str | None = None
+    required: bool = False
+    default: Any = None
+    enum: tuple[Any, ...] | None = None
+    format: str | None = None
+    items_type: str | None = None
+    nested_properties: dict[str, Any] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "type": self.type,
+            "description": self.description,
+            "required": self.required,
+            "default": self.default,
+            "enum": list(self.enum) if self.enum is not None else None,
+            "format": self.format,
+            "items_type": self.items_type,
+            "nested_properties": self.nested_properties,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ParameterMetadata:
+        raw_enum = data.get("enum")
+        enum_val = tuple(raw_enum) if isinstance(raw_enum, (list, tuple)) else None
+        return cls(
+            name=str(data.get("name", "")),
+            type=str(data.get("type", "string")),
+            description=data.get("description"),
+            required=bool(data.get("required", False)),
+            default=data.get("default"),
+            enum=enum_val,
+            format=data.get("format"),
+            items_type=data.get("items_type"),
+            nested_properties=data.get("nested_properties"),
+        )
 
 
 @dataclass(frozen=True)
@@ -22,6 +66,8 @@ class ToolContractSignature:
     input_schema: dict[str, Any] = field(default_factory=dict)
     output_schema: dict[str, Any] | None = None
     description_hash: str | None = None
+    parameters: tuple[ParameterMetadata, ...] = ()
+    annotations: dict[str, bool] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -35,6 +81,8 @@ class ToolContractSignature:
             "inputSchema": self.input_schema,
             "outputSchema": self.output_schema,
             "description_hash": self.description_hash,
+            "parameters": [p.to_dict() for p in self.parameters],
+            "annotations": self.annotations,
         }
 
     @classmethod
@@ -65,6 +113,43 @@ class ToolContractSignature:
         if not isinstance(output_schema, dict):
             output_schema = None
 
+        raw_params = data.get("parameters")
+        parameters: list[ParameterMetadata] = []
+        if isinstance(raw_params, (list, tuple)) and len(raw_params) > 0:
+            for p in raw_params:
+                if isinstance(p, ParameterMetadata):
+                    parameters.append(p)
+                elif isinstance(p, dict):
+                    parameters.append(ParameterMetadata.from_dict(p))
+        elif isinstance(input_schema.get("properties"), dict):
+            props = input_schema["properties"]
+            for k in sorted(props.keys()):
+                v = props[k]
+                if isinstance(v, dict):
+                    raw_enum = v.get("enum")
+                    enum_tuple = tuple(raw_enum) if isinstance(raw_enum, (list, tuple)) else None
+                    items_type = v.get("items", {}).get("type") if isinstance(v.get("items"), dict) else None
+                    nested_properties = v.get("properties") if isinstance(v.get("properties"), dict) else None
+                    parameters.append(
+                        ParameterMetadata(
+                            name=str(k),
+                            type=str(v.get("type", "string")),
+                            description=v.get("description"),
+                            required=k in required_keys,
+                            default=v.get("default"),
+                            enum=enum_tuple,
+                            format=v.get("format"),
+                            items_type=items_type,
+                            nested_properties=nested_properties,
+                        )
+                    )
+
+        raw_annotations = data.get("annotations")
+        annotations: dict[str, bool] = {}
+        if isinstance(raw_annotations, dict):
+            for ak, av in raw_annotations.items():
+                annotations[str(ak)] = bool(av)
+
         return cls(
             name=str(data.get("name", "")),
             canonical_hash=str(data.get("canonical_hash", "")),
@@ -76,6 +161,8 @@ class ToolContractSignature:
             input_schema=input_schema,
             output_schema=output_schema,
             description_hash=data.get("description_hash"),
+            parameters=tuple(parameters),
+            annotations=annotations,
         )
 
 
@@ -168,6 +255,7 @@ class VersionFingerprint:
     remote_endpoint: str | None = None
     auth_type: Literal["none", "bearer", "api-key", "oauth2"] = "none"
     headers_schema: dict[str, str] = field(default_factory=dict)
+    required_env_vars: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -181,6 +269,7 @@ class VersionFingerprint:
             "remote_endpoint": self.remote_endpoint,
             "auth_type": self.auth_type,
             "headers_schema": self.headers_schema,
+            "required_env_vars": list(self.required_env_vars),
             "tool_signatures": [t.to_dict() for t in self.tool_signatures],
             "prompt_signatures": [p.to_dict() for p in self.prompt_signatures],
             "resource_signatures": [r.to_dict() for r in self.resource_signatures],
@@ -188,6 +277,11 @@ class VersionFingerprint:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> VersionFingerprint:
+        raw_env = data.get("required_env_vars", ())
+        if isinstance(raw_env, (list, tuple)):
+            env_vars = tuple(str(e) for e in raw_env)
+        else:
+            env_vars = ()
         return cls(
             version=data["version"],
             toolset_canonical_hash=data["toolset_canonical_hash"],
@@ -199,6 +293,7 @@ class VersionFingerprint:
             remote_endpoint=data.get("remote_endpoint"),
             auth_type=data.get("auth_type", "none"),
             headers_schema=data.get("headers_schema", {}),
+            required_env_vars=env_vars,
             tool_signatures=tuple(
                 ToolContractSignature.from_dict(t) for t in data.get("tool_signatures", ())
             ),
@@ -215,8 +310,7 @@ class VersionFingerprint:
 class ServerPackageSpec:
     """Catalog specification of an MCP server package and all its known version fingerprints.
 
-    Note: `security_profile` is reserved solely for static AST tool capability risk profiles
-    (e.g., risk_tier, highest_risk_tier, tool_risks from security_classifier.py) and never vulnerability/CVE metadata.
+    Note: Pure structural model without vulnerability or mutable security metadata.
     """
 
     package_name: str
@@ -224,6 +318,7 @@ class ServerPackageSpec:
     ecosystem: str
     display_name: str | None = None
     description: str | None = None
+    author: str | None = None
     repository_url: str | None = None
     homepage_url: str | None = None
     license: str | None = None
@@ -232,7 +327,6 @@ class ServerPackageSpec:
     sources_merged: tuple[str, ...] = ()
     dist_tags: dict[str, str] = field(default_factory=dict)
     versions: tuple[VersionFingerprint, ...] = ()
-    security_profile: dict[str, Any] = field(default_factory=dict)
     transport: TransportType = "stdio"
     remote_endpoint: str | None = None
     auth_type: Literal["none", "bearer", "api-key", "oauth2"] = "none"
@@ -246,6 +340,7 @@ class ServerPackageSpec:
             "ecosystem": self.ecosystem,
             "display_name": self.display_name,
             "description": self.description,
+            "author": self.author,
             "repository_url": self.repository_url,
             "homepage_url": self.homepage_url,
             "license": self.license,
@@ -254,7 +349,6 @@ class ServerPackageSpec:
             "sources_merged": list(self.sources_merged),
             "dist_tags": self.dist_tags,
             "versions": [v.to_dict() for v in self.versions],
-            "security_profile": self.security_profile,
             "transport": self.transport,
             "remote_endpoint": self.remote_endpoint,
             "auth_type": self.auth_type,
@@ -263,25 +357,13 @@ class ServerPackageSpec:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> ServerPackageSpec:
-        raw_sec = data.get("security_profile", {})
-        clean_sec = {}
-        if isinstance(raw_sec, dict):
-            legacy_keys = {
-                "vulnerable_versions",
-                "vulnerability_advisories",
-                "max_cvss_score",
-                "cve_list",
-                "has_known_vulnerabilities",
-                "advisories",
-            }
-            clean_sec = {k: v for k, v in raw_sec.items() if k not in legacy_keys}
-
         return cls(
             package_name=data["package_name"],
             purl=data["purl"],
             ecosystem=data["ecosystem"],
             display_name=data.get("display_name"),
             description=data.get("description"),
+            author=data.get("author"),
             repository_url=data.get("repository_url"),
             homepage_url=data.get("homepage_url"),
             license=data.get("license"),
@@ -290,7 +372,6 @@ class ServerPackageSpec:
             sources_merged=tuple(data.get("sources_merged", ())),
             dist_tags=data.get("dist_tags", {}),
             versions=tuple(VersionFingerprint.from_dict(v) for v in data.get("versions", ())),
-            security_profile=clean_sec,
             transport=data.get("transport", "stdio"),
             remote_endpoint=data.get("remote_endpoint"),
             auth_type=data.get("auth_type", "none"),

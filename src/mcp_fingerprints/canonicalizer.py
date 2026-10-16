@@ -7,9 +7,11 @@ import json
 from typing import Any
 
 from mcp_fingerprints.models import (
+    ParameterMetadata,
     PromptSignature,
     ResourceSignature,
     ToolContractSignature,
+    TransportType,
     VersionFingerprint,
 )
 
@@ -67,6 +69,50 @@ def extract_tool_signature(tool_def: dict[str, Any]) -> ToolContractSignature:
             if isinstance(v, dict) and "type" in v:
                 param_types[k] = str(v["type"])
 
+    # Extract rich ParameterMetadata objects
+    params: list[ParameterMetadata] = []
+    if "parameters" in tool_def and isinstance(tool_def["parameters"], (list, tuple)) and len(tool_def["parameters"]) > 0:
+        for p in tool_def["parameters"]:
+            if isinstance(p, ParameterMetadata):
+                params.append(p)
+            elif isinstance(p, dict):
+                params.append(ParameterMetadata.from_dict(p))
+    elif isinstance(props, dict):
+        for k in prop_keys:
+            v = props.get(k)
+            if isinstance(v, dict):
+                p_type = str(v.get("type", "string"))
+                p_desc = v.get("description")
+                p_req = k in required
+                p_default = v.get("default")
+                raw_enum = v.get("enum")
+                p_enum = tuple(raw_enum) if isinstance(raw_enum, (list, tuple)) else None
+                p_fmt = v.get("format")
+                items = v.get("items")
+                items_type = items.get("type") if isinstance(items, dict) else None
+                nested_props = v.get("properties") if isinstance(v.get("properties"), dict) else None
+                params.append(
+                    ParameterMetadata(
+                        name=k,
+                        type=p_type,
+                        description=p_desc,
+                        required=p_req,
+                        default=p_default,
+                        enum=p_enum,
+                        format=p_fmt,
+                        items_type=items_type,
+                        nested_properties=nested_props,
+                    )
+                )
+
+    # Extract annotations
+    raw_annotations = tool_def.get("annotations") or {}
+    annotations: dict[str, bool] = {}
+    if isinstance(raw_annotations, dict):
+        for ak in ("readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"):
+            if ak in raw_annotations:
+                annotations[ak] = bool(raw_annotations[ak])
+
     # Canonical normalized tool payload (excluding volatile comments/formatting)
     canonical_payload = {
         "name": name,
@@ -100,6 +146,8 @@ def extract_tool_signature(tool_def: dict[str, Any]) -> ToolContractSignature:
         input_schema=input_schema,
         output_schema=output_schema,
         description_hash=desc_hash,
+        parameters=tuple(params),
+        annotations=annotations,
     )
 
 
@@ -123,6 +171,8 @@ def build_version_fingerprint(
     resources: list[dict[str, Any]] | None = None,
     release_date: str | None = None,
     capabilities: dict[str, bool] | None = None,
+    required_env_vars: tuple[str, ...] | list[str] | None = None,
+    transport: TransportType = "stdio",
 ) -> VersionFingerprint:
     """Construct a full VersionFingerprint object from raw protocol inspection results."""
     clean_tools = [
@@ -161,6 +211,7 @@ def build_version_fingerprint(
             )
 
     caps = capabilities or {"tools": True, "prompts": bool(prompts), "resources": bool(resources)}
+    raw_env = tuple(str(e) for e in required_env_vars) if required_env_vars else ()
 
     return VersionFingerprint(
         version=version,
@@ -170,4 +221,6 @@ def build_version_fingerprint(
         resource_signatures=tuple(resource_sigs),
         release_date=release_date,
         capabilities=caps,
+        required_env_vars=raw_env,
+        transport=transport,
     )
