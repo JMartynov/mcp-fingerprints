@@ -1,23 +1,26 @@
 # MCP Fingerprints & Passport Knowledge Base
 
 [![Daily MCP Fingerprint & Passport Sync](https://github.com/JMartynov/mcp-fingerprints/actions/workflows/daily_sync.yml/badge.svg)](https://github.com/JMartynov/mcp-fingerprints/actions/workflows/daily_sync.yml)
-[![Passports Count](https://img.shields.io/badge/passports-5049-blue.svg)](data/fingerprints)
+[![Passports Count](https://img.shields.io/badge/passports-5058+-blue.svg)](data/fingerprints)
 [![Tools Provided](https://img.shields.io/badge/with_tools-710-green.svg)](data/fingerprints)
 [![Tombstoned Servers](https://img.shields.io/badge/tombstoned-150-inactive.svg)](data/fingerprints)
-[![Test Suite](https://img.shields.io/badge/tests-144_passing-brightgreen.svg)](tests/)
+[![Test Suite](https://img.shields.io/badge/tests-252_passing-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Web Directory](https://img.shields.io/badge/Web_Directory-Live_Catalog-38bdf8?style=flat-square&logo=googlechrome)](https://jmartynov.github.io/mcp-fingerprints/)
 
 An open-source, automated database and knowledge base of **Model Context Protocol (MCP)** server passports, version signatures, and tool contract fingerprints.
 
-## Ecosystem Boundaries & Architecture
-The Model Context Protocol security ecosystem follows a strictly separated **Clean Architecture**:
-* **`mcp-fingerprints` (This Repo)**: The authoritative standard for structural server passports. Focuses purely on static AST extraction, deterministic cryptographic fingerprinting, and tracking schema drift.
-* **`mcp-vulnerabilities`**: The authoritative OSV/CVE advisory database mapping fingerprints to known exploits.
-* **`verity-mcp-auditor`**: The active runtime security auditing framework handling live sandbox execution, database guardrails, and vulnerability remediation.
+## Ecosystem Architecture & Scope
+
+`mcp-fingerprints` serves as the authoritative open standard for structural Model Context Protocol server passports. It focuses purely on:
+* **Static AST Extraction**: Deep parameter schema, docstring, prompt, and resource extraction across Python, TypeScript/JavaScript, Go, and Rust.
+* **Deterministic Cryptographic Hashing**: Order-invariant and whitespace-insensitive canonical hashing (`canonical_hash`, `toolset_canonical_hash`).
+* **Supply-Chain Verification & Drift Tracking**: Detecting tool tampering, description changes, and schema mutations across package versions.
+* **Open Catalog & Client Exporters**: Serving enriched structural web catalogs with interactive parameter schema inspectors and 1-click config generators.
 
 ## Key Features
-- **3,900+ Indexed Passports**: Cross-indexed across Smithery, npm, and PyPI registries.
+- **5,058+ Indexed Passports**: Cross-indexed across Smithery, npm, PyPI, and GitHub registries.
+- **Deep Parameter & Annotation Extraction**: Captures parameter types, descriptions, defaults, enums, required flags, and protocol annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`).
 - **Automated Daily Sync**: Continuously crawls, extracts tool signatures, canonicalizes hash fingerprints, and tracks historical schema drift.
 - **Consolidated Snapshot**: Pre-compiled `passports.json.gz` for rapid HTTP consumption (< 50ms startup time).
 
@@ -38,15 +41,16 @@ Export an MCP server configuration for Cursor:
 python3 -m mcp_fingerprints.cli export-config @modelcontextprotocol/server-postgres --client cursor
 ```
 
-## Security Auditing & Risk Scoring
+## Enriched Tool Parameter Schemas & Protocol Annotations
 
-MCP Fingerprints assigns risk scores based on tool definitions and parameter signatures to help identify potentially dangerous capabilities:
-* **Critical**: Tools allowing arbitrary system command execution, unchecked filesystem writes, or broad remote code execution.
-* **High**: Tools with broad database access (e.g., arbitrary SQL execution), potential server-side request forgery (SSRF) parameters, or sensitive environment variable manipulation.
-* **Medium**: Tools with limited file reads/writes, scoped data extraction, or network requests to constrained domains.
-* **Low**: Read-only operations, safe calculations, or well-constrained API integrations.
-
-We employ robust parameter injection defenses and sandbox methodologies to ensure runtime safety during server auditing. For a full breakdown, read our [Security Audit Documentation](docs/SECURITY_AUDIT.md).
+MCP Fingerprints extracts rich parameter schemas and runtime protocol hints directly from server source ASTs:
+* **Structured Parameter Metadata**: Includes parameter types (`string`, `number`, `boolean`, `array`, `object`), descriptions, required status, default values, and allowed enums.
+* **Protocol Annotations**: Captures MCP tool behavior hints:
+  - `readOnlyHint`: Tool performs read-only operations without side effects.
+  - `destructiveHint`: Tool performs destructive operations (deletions, modifications).
+  - `idempotentHint`: Repeated invocations yield identical state.
+  - `openWorldHint`: Tool interacts with external/unconstrained network services.
+* **Transport Specifications**: Captures supported transports (`stdio`, `sse`, `streamable-http`, `websocket`) and required environment variables.
 
 ## Fast Consumption
 
@@ -67,53 +71,9 @@ with urllib.request.urlopen(url) as resp:
 print(f"Loaded {data['total_passports']} MCP server passports.")
 ```
 
-## CI Integration (GitHub Action)
-
-You can use the MCP Fingerprints GitHub Action to automatically audit your client configurations (Claude Desktop, Cursor, Cline, Zed) in your CI pipeline to catch tool collisions and security shadowing before they reach production:
-
-```yaml
-name: Audit MCP Configuration
-
-on:
-  push:
-    paths:
-      - 'claude_desktop_config.json'
-
-jobs:
-  audit-mcp:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Audit MCP Client Config
-        uses: JMartynov/mcp-fingerprints@v1
-        with:
-          config-file: 'claude_desktop_config.json'
-          fail-on-critical: 'true'
-```
-
-## Pre-Commit Integration
-
-To prevent committing conflicting or shadowed MCP configurations locally, add `mcp-audit-config` to your repository's `.pre-commit-config.yaml`:
-
-```yaml
-repos:
-  - repo: https://github.com/JMartynov/mcp-fingerprints
-    rev: v1.0.0
-    hooks:
-      - id: mcp-audit-config
-```
-
-To run pre-commit locally across all files:
-```bash
-pip install pre-commit
-pre-commit install
-pre-commit run --all-files
-```
-
 ## CLI Usage
 
-The CLI has been purified to a focused set of core commands:
+The CLI provides a focused set of pure structural commands:
 
 ```bash
 # Sync from registries
@@ -137,11 +97,8 @@ python -m mcp_fingerprints.cli search "query"
 # Browse interactively via TUI
 python -m mcp_fingerprints.cli browse
 
-# Export client configurations (Claude, Cursor, etc.)
+# Export client configurations (Claude, Cursor, Cline, Zed, Windsurf)
 python -m mcp_fingerprints.cli export-config <server_name> --client claude
-
-# Audit an existing client configuration for collisions and shadowing
-python -m mcp_fingerprints.cli audit-config <config_file>
 
 # Detect configuration drift against the latest passports
 python -m mcp_fingerprints.cli detect-drift <config_file>

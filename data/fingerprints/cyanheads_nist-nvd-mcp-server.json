@@ -182,7 +182,7 @@
                         },
                         "score": {
                           "type": "number",
-                          "description": "Highest base score (0.0–10.0)."
+                          "description": "Highest base score (0.0\u201310.0)."
                         },
                         "fromVersion": {
                           "type": "string",
@@ -217,7 +217,7 @@
                           },
                           "baseScore": {
                             "type": "number",
-                            "description": "Base score (0.0–10.0)."
+                            "description": "Base score (0.0\u201310.0)."
                           },
                           "sourceType": {
                             "type": "string",
@@ -400,7 +400,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when no CVEs were found — suggests verifying the CPE name."
+                "description": "Guidance when no CVEs were found \u2014 suggests verifying the CPE name."
               },
               "returned": {
                 "type": "number",
@@ -422,12 +422,71 @@
               "auditTarget"
             ]
           },
-          "description_hash": "sha256:fdbbf8b1b2f9bc9c16f17b59d67f8711ee1d6c06fef9289de9d36ee4b994d3ef"
+          "description_hash": "sha256:fdbbf8b1b2f9bc9c16f17b59d67f8711ee1d6c06fef9289de9d36ee4b994d3ef",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum number of CVEs to return (default 20, max 2000).",
+              "default": 20
+            },
+            {
+              "name": "cpeName",
+              "type": "string",
+              "description": "Full CPEv2.3 name (e.g., \"cpe:2.3:a:apache:http_server:2.4.51:*:*:*:*:*:*:*\"). NVD adds isVulnerable automatically. Mutually exclusive with virtualMatchString."
+            },
+            {
+              "name": "versionEnd",
+              "type": "string",
+              "description": "Upper version bound. Requires virtualMatchString."
+            },
+            {
+              "name": "severityMin",
+              "type": "string",
+              "description": "Filter out CVEs below this severity level.",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            },
+            {
+              "name": "versionStart",
+              "type": "string",
+              "description": "Lower version bound. Requires virtualMatchString."
+            },
+            {
+              "name": "versionEndType",
+              "type": "string",
+              "description": "Whether the upper version bound is inclusive or exclusive.",
+              "default": "including",
+              "enum": [
+                "including",
+                "excluding"
+              ]
+            },
+            {
+              "name": "versionStartType",
+              "type": "string",
+              "description": "Whether the lower version bound is inclusive or exclusive.",
+              "default": "including",
+              "enum": [
+                "including",
+                "excluding"
+              ]
+            },
+            {
+              "name": "virtualMatchString",
+              "type": "string",
+              "description": "Partial CPE match pattern (e.g., \"cpe:2.3:a:apache:http_server:*\"). Use with versionStart/versionEnd for version range audits. Mutually exclusive with cpeName."
+            }
+          ]
         },
         {
           "name": "nvd_get_cve",
           "canonical_hash": "sha256:a94e812273ebc8eaac00b5481dbc5e4fa25af0b0d294bf9e330b0b0f4cfa5789",
-          "description": "Fetch one or more CVEs by ID from the NIST National Vulnerability Database. Returns CVSS scores across all available versions (v2.0, v3.0, v3.1, v4.0), CWE weakness classifications, affected CPE configurations, CISA KEV fields, and references. Up to 100 CVE IDs per call. For bulk lookups of more than 10 IDs, use brief: true — full records for 100 CVEs can exceed 1MB and exhaust context budgets.",
+          "description": "Fetch one or more CVEs by ID from the NIST National Vulnerability Database. Returns CVSS scores across all available versions (v2.0, v3.0, v3.1, v4.0), CWE weakness classifications, affected CPE configurations, CISA KEV fields, and references. Up to 100 CVE IDs per call. For bulk lookups of more than 10 IDs, use brief: true \u2014 full records for 100 CVEs can exceed 1MB and exhaust context budgets.",
           "is_mutating": false,
           "property_keys": [
             "brief",
@@ -460,7 +519,7 @@
                     },
                     "maxItems": 100,
                     "minItems": 1,
-                    "description": "An array of CVE IDs — at least 1, up to 100 per call."
+                    "description": "An array of CVE IDs \u2014 at least 1, up to 100 per call."
                   }
                 ],
                 "description": "One CVE ID or an array of up to 100 CVE IDs to fetch."
@@ -513,12 +572,31 @@
               "returned"
             ]
           },
-          "description_hash": "sha256:c14bb8b40344ffe64a9ebaaf3d11f0f1cae0c93455cf8feeeeb57ebdb9227933"
+          "description_hash": "sha256:c14bb8b40344ffe64a9ebaaf3d11f0f1cae0c93455cf8feeeeb57ebdb9227933",
+          "parameters": [
+            {
+              "name": "brief",
+              "type": "boolean",
+              "description": "When true, returns trimmed records (ID, status, top CVSS score, KEV name, published date) instead of full detail. Recommended for batches of more than 10 IDs.",
+              "default": false
+            },
+            {
+              "name": "cveIds",
+              "type": "string",
+              "description": "One CVE ID or an array of up to 100 CVE IDs to fetch."
+            },
+            {
+              "name": "includeReferences",
+              "type": "boolean",
+              "description": "When false, omits the references array to reduce response size.",
+              "default": true
+            }
+          ]
         },
         {
           "name": "nvd_get_cve_history",
           "canonical_hash": "sha256:10b6e3ca8c42b62e13e655a29537caf283bf25171b3e7d2e755116379005e5c3",
-          "description": "Retrieve the change history for a single CVE — CVSS score revisions, reference additions, status transitions (e.g., \"Received\" → \"Analyzed\"), and CPE configuration updates. Use when tracking a CVE's escalation or investigating when a score changed. For the current record, call nvd_get_cve instead. The NVD history endpoint is significantly slower than other NVD endpoints, especially without an API key — set NVD_API_KEY for reliable operation.",
+          "description": "Retrieve the change history for a single CVE \u2014 CVSS score revisions, reference additions, status transitions (e.g., \"Received\" \u2192 \"Analyzed\"), and CPE configuration updates. Use when tracking a CVE's escalation or investigating when a score changed. For the current record, call nvd_get_cve instead. The NVD history endpoint is significantly slower than other NVD endpoints, especially without an API key \u2014 set NVD_API_KEY for reliable operation.",
           "is_mutating": false,
           "property_keys": [
             "cveId",
@@ -632,12 +710,31 @@
               "offset"
             ]
           },
-          "description_hash": "sha256:9abd4c0d15639ff17027ad3a82b62d0fd2f19b8e0945eab91b31538075666cb5"
+          "description_hash": "sha256:9abd4c0d15639ff17027ad3a82b62d0fd2f19b8e0945eab91b31538075666cb5",
+          "parameters": [
+            {
+              "name": "cveId",
+              "type": "string",
+              "description": "CVE identifier to retrieve history for (e.g., \"CVE-2021-44228\")."
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum number of change events to return (default 20, max 2000).",
+              "default": 20
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Zero-based offset for paginating through change events.",
+              "default": 0
+            }
+          ]
         },
         {
           "name": "nvd_search_cpes",
           "canonical_hash": "sha256:b831d668b7843da7fe28cdd0e6c01359b669d447c9f26236a706255624cca7b3",
-          "description": "Search the NVD CPE (Common Platform Enumeration) dictionary by product keyword or partial match string. Returns CPE names, human-readable titles, and deprecation status. Use before nvd_audit_cpe to resolve the correct CPE name for a product — CPE strings are precise identifiers (e.g., cpe:2.3:a:apache:http_server:2.4.51:*:*:*:*:*:*:*) and must match exactly to audit the right product.",
+          "description": "Search the NVD CPE (Common Platform Enumeration) dictionary by product keyword or partial match string. Returns CPE names, human-readable titles, and deprecation status. Use before nvd_audit_cpe to resolve the correct CPE name for a product \u2014 CPE strings are precise identifiers (e.g., cpe:2.3:a:apache:http_server:2.4.51:*:*:*:*:*:*:*) and must match exactly to audit the right product.",
           "is_mutating": false,
           "property_keys": [
             "cpeMatchString",
@@ -731,12 +828,30 @@
               "returned"
             ]
           },
-          "description_hash": "sha256:34e31f3f52e5e4e36c8a50f7ab61f5e1784584479bccba9314bb86bf96226f1a"
+          "description_hash": "sha256:34e31f3f52e5e4e36c8a50f7ab61f5e1784584479bccba9314bb86bf96226f1a",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum number of CPE entries to return (default 20, max 10000). If totalResults > returned, narrow the keyword for a more specific result.",
+              "default": 20
+            },
+            {
+              "name": "keyword",
+              "type": "string",
+              "description": "Product name or vendor keyword (e.g., \"apache http server\", \"openssl\", \"nginx\"). At least one of keyword or cpeMatchString is required."
+            },
+            {
+              "name": "cpeMatchString",
+              "type": "string",
+              "description": "Partial CPEv2.3 pattern (e.g., \"cpe:2.3:a:apache:http_server\"). At least one of keyword or cpeMatchString is required."
+            }
+          ]
         },
         {
           "name": "nvd_search_cves",
           "canonical_hash": "sha256:5a572ae391d886031f928ec3effa936a79a89c033d82c83347108567d40bb850",
-          "description": "Search CVEs by keyword, severity, CWE, date range, or CISA KEV status. The primary discovery tool for vulnerability surveillance and triage workflows. pubDays and lastModDays are convenience shorthands that expand to date pairs; values over 120 days are clamped to the NVD maximum and reported in queryMeta. Returns brief summaries — call nvd_get_cve for full detail on specific IDs. At least one filter is recommended; omitting all filters returns CVEs in default NVD index order (oldest first by CVE ID).",
+          "description": "Search CVEs by keyword, severity, CWE, date range, or CISA KEV status. The primary discovery tool for vulnerability surveillance and triage workflows. pubDays and lastModDays are convenience shorthands that expand to date pairs; values over 120 days are clamped to the NVD maximum and reported in queryMeta. Returns brief summaries \u2014 call nvd_get_cve for full detail on specific IDs. At least one filter is recommended; omitting all filters returns CVEs in default NVD index order (oldest first by CVE ID).",
           "is_mutating": false,
           "property_keys": [
             "cweId",
@@ -887,7 +1002,7 @@
                         },
                         "score": {
                           "type": "number",
-                          "description": "Highest base score (0.0–10.0)."
+                          "description": "Highest base score (0.0\u201310.0)."
                         },
                         "fromVersion": {
                           "type": "string",
@@ -967,12 +1082,99 @@
               "offset"
             ]
           },
-          "description_hash": "sha256:538aaa6625853f9e7589ec7a1c8ee06d483843c561ab1229e27f1676959150d9"
+          "description_hash": "sha256:538aaa6625853f9e7589ec7a1c8ee06d483843c561ab1229e27f1676959150d9",
+          "parameters": [
+            {
+              "name": "cweId",
+              "type": "string",
+              "description": "Filter by CWE weakness ID (e.g., \"CWE-79\", \"NVD-CWE-Other\")."
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum number of results to return (default 20, max 2000).",
+              "default": 20
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Zero-based page offset for pagination.",
+              "default": 0
+            },
+            {
+              "name": "kevOnly",
+              "type": "boolean",
+              "description": "When true, filters results to CVEs in the CISA Known Exploited Vulnerabilities catalog.",
+              "default": false
+            },
+            {
+              "name": "keyword",
+              "type": "string",
+              "description": "Full-text search across CVE descriptions (AND-semantics across words)."
+            },
+            {
+              "name": "pubDays",
+              "type": "integer",
+              "description": "CVEs published in the last N days (max 120; values over 120 are clamped). Mutually exclusive with pubStartDate/pubEndDate."
+            },
+            {
+              "name": "severity",
+              "type": "string",
+              "description": "Filter to CVEs at this CVSS severity level or above.",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ]
+            },
+            {
+              "name": "noRejected",
+              "type": "boolean",
+              "description": "When true (default), excludes CVEs with REJECT/Rejected status.",
+              "default": true
+            },
+            {
+              "name": "pubEndDate",
+              "type": "string",
+              "description": "ISO 8601 datetime for publication range end. Both pubStartDate and pubEndDate required together."
+            },
+            {
+              "name": "lastModDays",
+              "type": "integer",
+              "description": "CVEs last modified in the last N days (max 120; values over 120 are clamped). Mutually exclusive with lastModStartDate/lastModEndDate."
+            },
+            {
+              "name": "pubStartDate",
+              "type": "string",
+              "description": "ISO 8601 datetime for publication range start. Both pubStartDate and pubEndDate required together. Mutually exclusive with pubDays."
+            },
+            {
+              "name": "lastModEndDate",
+              "type": "string",
+              "description": "ISO 8601 datetime for last-modified range end. Both required together."
+            },
+            {
+              "name": "severityVersion",
+              "type": "string",
+              "description": "CVSS version to use for the severity filter. Default: v3 (maps to cvssV3Severity).",
+              "default": "v3",
+              "enum": [
+                "v2",
+                "v3",
+                "v4"
+              ]
+            },
+            {
+              "name": "lastModStartDate",
+              "type": "string",
+              "description": "ISO 8601 datetime for last-modified range start. Both required together. Mutually exclusive with lastModDays."
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

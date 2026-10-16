@@ -38,7 +38,7 @@
         {
           "name": "add_monitor",
           "canonical_hash": "sha256:830f4fc2f1d8dcd922be0bf77917c16f61f6d7b4195c3bfcc18c54c57f3c611d",
-          "description": "Add a domain to ongoing certificate monitoring with expiry alerts. Requires authentication (the user runs /mcp once).\nIf the plan's monitor limit is reached, the response's structuredContent carries a limit-reached payload — when relaying it, LEAD with `recommended_upgrade` (typically Starter, $9.99/mo), mention `also_available` tiers in a single closing line, and offer removing an existing monitor as the free alternative. Don't dump a full tier comparison; that's choice paralysis at the moment of action.\n",
+          "description": "Add a domain to ongoing certificate monitoring with expiry alerts. Requires authentication (the user runs /mcp once).\nIf the plan's monitor limit is reached, the response's structuredContent carries a limit-reached payload \u2014 when relaying it, LEAD with `recommended_upgrade` (typically Starter, $9.99/mo), mention `also_available` tiers in a single closing line, and offer removing an existing monitor as the free alternative. Don't dump a full tier comparison; that's choice paralysis at the moment of action.\n",
           "is_mutating": false,
           "property_keys": [
             "domain"
@@ -73,7 +73,14 @@
               }
             }
           },
-          "description_hash": "sha256:4bccf89f8bd038d4c722ae8d9c4e0766b81aa0f2d5dabbc9b850130c4230b0c4"
+          "description_hash": "sha256:4bccf89f8bd038d4c722ae8d9c4e0766b81aa0f2d5dabbc9b850130c4230b0c4",
+          "parameters": [
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Hostname to monitor (e.g. example.com). No scheme, no path."
+            }
+          ]
         },
         {
           "name": "add_monitors",
@@ -130,12 +137,20 @@
               "results"
             ]
           },
-          "description_hash": "sha256:17fe5d77dba848eaa411a3901419e9dfcd96d088dab38e3ab1315d9c110c0e5d"
+          "description_hash": "sha256:17fe5d77dba848eaa411a3901419e9dfcd96d088dab38e3ab1315d9c110c0e5d",
+          "parameters": [
+            {
+              "name": "domains",
+              "type": "array",
+              "description": "List of hostnames to monitor",
+              "items_type": "string"
+            }
+          ]
         },
         {
           "name": "check_certificate_propagation",
           "canonical_hash": "sha256:b9807f7cb63e2a3ea268ab09d05a1dbeb892768d62396d9ad7c3b82b463dc671",
-          "description": "Check whether the DNS TXT records for a certificate order have propagated (Cloudflare/Google/Quad9). Step 2 of issuance — poll until all_found is true, then call finalize_certificate. Returns per-record resolver results.",
+          "description": "Check whether the DNS TXT records for a certificate order have propagated (Cloudflare/Google/Quad9). Step 2 of issuance \u2014 poll until all_found is true, then call finalize_certificate. Returns per-record resolver results.",
           "is_mutating": false,
           "property_keys": [
             "order_id"
@@ -169,12 +184,19 @@
               }
             }
           },
-          "description_hash": "sha256:9d5bba34695d0f434e631dc4d76c9435ca49aa48927534d4536637d274c306b9"
+          "description_hash": "sha256:9d5bba34695d0f434e631dc4d76c9435ca49aa48927534d4536637d274c306b9",
+          "parameters": [
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "The order_id from create_certificate."
+            }
+          ]
         },
         {
           "name": "create_certificate",
           "canonical_hash": "sha256:283764db15be3d89d646247469d315f04e3fe697c7d0b2a3c28fbd89868ca51e",
-          "description": "Start issuing a FREE 90-day Let's Encrypt certificate for a domain (no account required). Step 1 of 3.\nPick a validation method with `challenge`: \"dns-01\" (default; publish a TXT record; covers apex + www) or \"http-01\" (serve a file over HTTP on port 80; issues the exact domain only). dns-01 with a DNS-provider API token is the most automatable; http-01 suits a server you control on port 80.\nReturns an order_id plus either dns_records (dns-01) or http_files (http-01) to put in place. Next: poll `check_certificate_propagation` until all_found, then call `finalize_certificate`.\nStrongly prefer the CSR path at finalize (the private key never leaves the user's machine). Issuing automatically offers the user ongoing monitoring by email once it completes — don't add a monitor manually afterward.\n",
+          "description": "Start issuing a FREE 90-day Let's Encrypt certificate for a domain (no account required). Step 1 of 3.\nPick a validation method with `challenge`: \"dns-01\" (default; publish a TXT record; covers apex + www) or \"http-01\" (serve a file over HTTP on port 80; issues the exact domain only). dns-01 with a DNS-provider API token is the most automatable; http-01 suits a server you control on port 80.\nReturns an order_id plus either dns_records (dns-01) or http_files (http-01) to put in place. Next: poll `check_certificate_propagation` until all_found, then call `finalize_certificate`.\nStrongly prefer the CSR path at finalize (the private key never leaves the user's machine). Issuing automatically offers the user ongoing monitoring by email once it completes \u2014 don't add a monitor manually afterward.\n",
           "is_mutating": false,
           "property_keys": [
             "challenge",
@@ -263,12 +285,43 @@
               "challenge"
             ]
           },
-          "description_hash": "sha256:04e5fb1f3cbcbde502849b8214ff3e65ef193d32475fe5151d85c484136a673f"
+          "description_hash": "sha256:04e5fb1f3cbcbde502849b8214ff3e65ef193d32475fe5151d85c484136a673f",
+          "parameters": [
+            {
+              "name": "email",
+              "type": "string",
+              "description": "Contact email for Let's Encrypt expiry notices and the monitoring handoff."
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Apex domain, no scheme/www (e.g. example.com)."
+            },
+            {
+              "name": "challenge",
+              "type": "string",
+              "description": "Validation method: dns-01 (default) or http-01.",
+              "enum": [
+                "dns-01",
+                "http-01"
+              ]
+            },
+            {
+              "name": "client_id",
+              "type": "string",
+              "description": "Optional anonymous install id from ~/.config/tlsradar/install_id (funnel attribution). If omitted, the response's install_id is a fresh one to save there."
+            },
+            {
+              "name": "marketing_consent",
+              "type": "boolean",
+              "description": "Only true if the user explicitly opts in to a free account + reminder email. Default false."
+            }
+          ]
         },
         {
           "name": "export_monitors",
           "canonical_hash": "sha256:f77f71ab08df83a9b9c4ccf97ee9bd83e7cfc5e1406d3ce8f5dc65162f2bd3fb",
-          "description": "Dump the user's monitors as a JSON structure suitable for backup, migration, or infrastructure-as-code workflows. Tokens and PII are NEVER included — only domain configuration.",
+          "description": "Dump the user's monitors as a JSON structure suitable for backup, migration, or infrastructure-as-code workflows. Tokens and PII are NEVER included \u2014 only domain configuration.",
           "is_mutating": false,
           "property_keys": [],
           "required_keys": [],
@@ -300,12 +353,13 @@
               "teams"
             ]
           },
-          "description_hash": "sha256:60ea22dfed7c9bf01bfb6f5e804c25925cc6caadc81094ebc8290f5b3b550446"
+          "description_hash": "sha256:60ea22dfed7c9bf01bfb6f5e804c25925cc6caadc81094ebc8290f5b3b550446",
+          "parameters": []
         },
         {
           "name": "finalize_certificate",
           "canonical_hash": "sha256:fa908deabe61a05008e47a519bae54ca47de93a2f028df779e9580f852fc5b10",
-          "description": "Finalize and issue a certificate order in one call: validates the DNS challenges, waits for Let's Encrypt, and returns the issued cert. Step 3 of issuance — call after check_certificate_propagation reports all_found.\nSTRONGLY PREFER passing csr_pem (generate the key + CSR locally with openssl so the private key never leaves the machine). Returns leaf_pem/chain_pem/fullchain_pem. If you must, pass a passphrase instead to get a PKCS#12 bundle — but a CSR is safer.\nIf it replies \"still validating\", DNS hasn't fully propagated: re-check check_certificate_propagation and call again.\nNeeds a locally-generated CSR (csr_pem) — requires a local shell with openssl. On a surface without one (e.g. a Claude.ai custom connector) this can't complete; it returns guidance to finish in Claude Code/Cowork or the web form. Scanning and monitoring work everywhere.\nOn success the structuredContent carries a `handoff` object — relay `handoff.message` to the user and do NOT separately call add_monitor; the cert→monitoring handoff is automatic and server-side.\n",
+          "description": "Finalize and issue a certificate order in one call: validates the DNS challenges, waits for Let's Encrypt, and returns the issued cert. Step 3 of issuance \u2014 call after check_certificate_propagation reports all_found.\nSTRONGLY PREFER passing csr_pem (generate the key + CSR locally with openssl so the private key never leaves the machine). Returns leaf_pem/chain_pem/fullchain_pem. If you must, pass a passphrase instead to get a PKCS#12 bundle \u2014 but a CSR is safer.\nIf it replies \"still validating\", DNS hasn't fully propagated: re-check check_certificate_propagation and call again.\nNeeds a locally-generated CSR (csr_pem) \u2014 requires a local shell with openssl. On a surface without one (e.g. a Claude.ai custom connector) this can't complete; it returns guidance to finish in Claude Code/Cowork or the web form. Scanning and monitoring work everywhere.\nOn success the structuredContent carries a `handoff` object \u2014 relay `handoff.message` to the user and do NOT separately call add_monitor; the cert\u2192monitoring handoff is automatic and server-side.\n",
           "is_mutating": false,
           "property_keys": [
             "csr_pem",
@@ -327,7 +381,7 @@
             "properties": {
               "csr_pem": {
                 "type": "string",
-                "description": "PEM CERTIFICATE REQUEST covering exactly {domain, www.domain}. Preferred — key stays local."
+                "description": "PEM CERTIFICATE REQUEST covering exactly {domain, www.domain}. Preferred \u2014 key stays local."
               },
               "order_id": {
                 "type": "string",
@@ -335,7 +389,7 @@
               },
               "passphrase": {
                 "type": "string",
-                "description": "Fallback only: ≥8 chars, protects a returned PKCS#12 bundle. Omit when using csr_pem."
+                "description": "Fallback only: \u22658 chars, protects a returned PKCS#12 bundle. Omit when using csr_pem."
               },
               "resume_token": {
                 "type": "string",
@@ -376,7 +430,34 @@
               }
             }
           },
-          "description_hash": "sha256:64bf5e0ef8501f1656cc6b9d4221cfd73e777b96e89fd06493b55fea06214305"
+          "description_hash": "sha256:64bf5e0ef8501f1656cc6b9d4221cfd73e777b96e89fd06493b55fea06214305",
+          "parameters": [
+            {
+              "name": "csr_pem",
+              "type": "string",
+              "description": "PEM CERTIFICATE REQUEST covering exactly {domain, www.domain}. Preferred \u2014 key stays local."
+            },
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "The order_id from create_certificate."
+            },
+            {
+              "name": "passphrase",
+              "type": "string",
+              "description": "Fallback only: \u22658 chars, protects a returned PKCS#12 bundle. Omit when using csr_pem."
+            },
+            {
+              "name": "resume_token",
+              "type": "string",
+              "description": "Optional. The resume_token from create_certificate; pass it to finalize an order whose row Beacon already purged (~24h)."
+            },
+            {
+              "name": "max_wait_seconds",
+              "type": "integer",
+              "description": "How long to wait for validation server-side. Default 60, capped at 75."
+            }
+          ]
         },
         {
           "name": "get_account",
@@ -409,7 +490,8 @@
               "email"
             ]
           },
-          "description_hash": "sha256:4316c0bec333c1e356b3162db8af8e39381049d236e264d1fba2a14fbbe254a2"
+          "description_hash": "sha256:4316c0bec333c1e356b3162db8af8e39381049d236e264d1fba2a14fbbe254a2",
+          "parameters": []
         },
         {
           "name": "get_certificate_status",
@@ -447,7 +529,14 @@
               }
             }
           },
-          "description_hash": "sha256:5b014011fda198b73d631c0a1267093cd94dd1d3e9277eb72a749c0319d06c15"
+          "description_hash": "sha256:5b014011fda198b73d631c0a1267093cd94dd1d3e9277eb72a749c0319d06c15",
+          "parameters": [
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "The order_id from create_certificate."
+            }
+          ]
         },
         {
           "name": "get_scan_history",
@@ -529,7 +618,20 @@
               "count"
             ]
           },
-          "description_hash": "sha256:50e6b518966ca3e75371a181c6b343bdfdcf4e4c9e7af24035360ba22bd7edb3"
+          "description_hash": "sha256:50e6b518966ca3e75371a181c6b343bdfdcf4e4c9e7af24035360ba22bd7edb3",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max results to return",
+              "default": 10
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Domain name as it appears in list_monitors"
+            }
+          ]
         },
         {
           "name": "import_monitors",
@@ -570,7 +672,14 @@
               }
             }
           },
-          "description_hash": "sha256:637ce6fbed45e787aba1e0e929c57a706d2788710405e44f56775ecc9eaf4b3f"
+          "description_hash": "sha256:637ce6fbed45e787aba1e0e929c57a706d2788710405e44f56775ecc9eaf4b3f",
+          "parameters": [
+            {
+              "name": "payload",
+              "type": "object",
+              "description": "Export payload, version 1.0. Use the `export` tool to generate one."
+            }
+          ]
         },
         {
           "name": "invite_team_member",
@@ -632,12 +741,34 @@
               "role"
             ]
           },
-          "description_hash": "sha256:f9ca88974ff337c240ae80ce5842ea0106ed58b97a8b498a09e0aeb6f433ba8c"
+          "description_hash": "sha256:f9ca88974ff337c240ae80ce5842ea0106ed58b97a8b498a09e0aeb6f433ba8c",
+          "parameters": [
+            {
+              "name": "role",
+              "type": "string",
+              "description": "Invitee role: guest or admin. Defaults to guest.",
+              "default": "guest",
+              "enum": [
+                "guest",
+                "admin"
+              ]
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "description": "Email address of the person to invite"
+            },
+            {
+              "name": "team_id",
+              "type": "string",
+              "description": "Team UUID; defaults to the current team"
+            }
+          ]
         },
         {
           "name": "list_expiring_certificates",
           "canonical_hash": "sha256:defe4bce09fade72ade82dceb0ba7cea2924928e581cc7f996930a6dd03fbaab",
-          "description": "Return monitored certificates expiring within N days. Defaults to 30.\nIf the response's structuredContent includes a `nudge` object, the user is watching enough soon-to-expire certs to benefit from a higher tier — mention it casually ONCE (lead with `nudge.recommended_upgrade`); skip it if it doesn't fit.\n",
+          "description": "Return monitored certificates expiring within N days. Defaults to 30.\nIf the response's structuredContent includes a `nudge` object, the user is watching enough soon-to-expire certs to benefit from a higher tier \u2014 mention it casually ONCE (lead with `nudge.recommended_upgrade`); skip it if it doesn't fit.\n",
           "is_mutating": false,
           "property_keys": [
             "within"
@@ -684,12 +815,20 @@
               "count"
             ]
           },
-          "description_hash": "sha256:2d9568e4756ac2dc7de712aeae30aca34ff361d7f84b92fc54497f7fe61f2363"
+          "description_hash": "sha256:2d9568e4756ac2dc7de712aeae30aca34ff361d7f84b92fc54497f7fe61f2363",
+          "parameters": [
+            {
+              "name": "within",
+              "type": "integer",
+              "description": "Days from now to look ahead",
+              "default": 30
+            }
+          ]
         },
         {
           "name": "list_monitors",
           "canonical_hash": "sha256:e30307827035f0ae863424bcea2050bb94e392b536e61fc3326eba47b0430a25",
-          "description": "List all certificates currently being monitored across the user's teams.\nIf the response's structuredContent includes a `nudge` object, the user is at their monitor cap — surface it casually ONCE (lead with `nudge.recommended_upgrade`, mention `nudge.also_available` in one closing line); don't force it if it doesn't fit the conversation.\n",
+          "description": "List all certificates currently being monitored across the user's teams.\nIf the response's structuredContent includes a `nudge` object, the user is at their monitor cap \u2014 surface it casually ONCE (lead with `nudge.recommended_upgrade`, mention `nudge.also_available` in one closing line); don't force it if it doesn't fit the conversation.\n",
           "is_mutating": false,
           "property_keys": [],
           "required_keys": [],
@@ -747,12 +886,13 @@
               "count"
             ]
           },
-          "description_hash": "sha256:1f6acde7ca0cfd2b7261bae6e34ce6fb40e060da140dceff0c5338ea559b0078"
+          "description_hash": "sha256:1f6acde7ca0cfd2b7261bae6e34ce6fb40e060da140dceff0c5338ea559b0078",
+          "parameters": []
         },
         {
           "name": "register_beacon_order",
           "canonical_hash": "sha256:633df50152de78c7727be0562b2e3c3135d7606534dbcc74ae56061a0f8598f9",
-          "description": "OBSOLETE — do not call. The cert→monitoring handoff is server-side now (issue via create_certificate, which records the order itself). This tool is kept only so old plugin versions that still call it don't error; it remains idempotent and harmless.",
+          "description": "OBSOLETE \u2014 do not call. The cert\u2192monitoring handoff is server-side now (issue via create_certificate, which records the order itself). This tool is kept only so old plugin versions that still call it don't error; it remains idempotent and harmless.",
           "is_mutating": false,
           "property_keys": [
             "domain",
@@ -784,7 +924,7 @@
               },
               "webhook_secret": {
                 "type": "string",
-                "description": "Per-order HMAC secret Beacon returned (used to verify the subsequent webhook). Optional — without it, this server can't verify webhooks for the order and will drop them."
+                "description": "Per-order HMAC secret Beacon returned (used to verify the subsequent webhook). Optional \u2014 without it, this server can't verify webhooks for the order and will drop them."
               }
             }
           },
@@ -810,7 +950,29 @@
               "domain"
             ]
           },
-          "description_hash": "sha256:8734c6d384c84b9f565bc56105db172403cd17f671310db8e25a1d53cfa13e2f"
+          "description_hash": "sha256:8734c6d384c84b9f565bc56105db172403cd17f671310db8e25a1d53cfa13e2f",
+          "parameters": [
+            {
+              "name": "email",
+              "type": "string",
+              "description": "Contact email the user gave Beacon"
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Domain the cert was requested for"
+            },
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "The order_id from beacon.create_order"
+            },
+            {
+              "name": "webhook_secret",
+              "type": "string",
+              "description": "Per-order HMAC secret Beacon returned (used to verify the subsequent webhook). Optional \u2014 without it, this server can't verify webhooks for the order and will drop them."
+            }
+          ]
         },
         {
           "name": "remove_monitor",
@@ -850,12 +1012,24 @@
               "removed_address"
             ]
           },
-          "description_hash": "sha256:77a87395528579614d57ee0f16ef0e017662681f0bbda978f72235767c3f517e"
+          "description_hash": "sha256:77a87395528579614d57ee0f16ef0e017662681f0bbda978f72235767c3f517e",
+          "parameters": [
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Domain to stop monitoring"
+            },
+            {
+              "name": "host_id",
+              "type": "string",
+              "description": "UUID of the host (alternative to domain)"
+            }
+          ]
         },
         {
           "name": "renew_certificate",
           "canonical_hash": "sha256:303800a5683365dd134f4d9dcd925aa229ea37ff448791254d92eaa1b3caccd3",
-          "description": "Renew a certificate by cloning a recent order (requires the original order_id; Beacon purges orders after ~24h). Returns a new order_id and fresh DNS TXT records — then poll check_certificate_propagation and call finalize_certificate. If you don't have an order_id (the usual case at 90-day renewal time), call create_certificate for the domain instead; that IS the renewal.",
+          "description": "Renew a certificate by cloning a recent order (requires the original order_id; Beacon purges orders after ~24h). Returns a new order_id and fresh DNS TXT records \u2014 then poll check_certificate_propagation and call finalize_certificate. If you don't have an order_id (the usual case at 90-day renewal time), call create_certificate for the domain instead; that IS the renewal.",
           "is_mutating": false,
           "property_keys": [
             "order_id"
@@ -899,7 +1073,14 @@
               }
             }
           },
-          "description_hash": "sha256:77819e2c55a90f40554584bd334ec56986986be7c7bcd2511f6e835a6e16c2ed"
+          "description_hash": "sha256:77819e2c55a90f40554584bd334ec56986986be7c7bcd2511f6e835a6e16c2ed",
+          "parameters": [
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "The original order_id to clone. If you don't have one, use create_certificate instead."
+            }
+          ]
         },
         {
           "name": "scan_domain",
@@ -974,12 +1155,23 @@
               "share_url"
             ]
           },
-          "description_hash": "sha256:16fc137fb2eeb62ddea03873538c6c7d78ed2edd885f2b989ad9d1dccb2dedc6"
+          "description_hash": "sha256:16fc137fb2eeb62ddea03873538c6c7d78ed2edd885f2b989ad9d1dccb2dedc6",
+          "parameters": [
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Hostname to scan (e.g. example.com). No scheme, no path."
+            },
+            {
+              "name": "client_id",
+              "type": "string",
+              "description": "Optional anonymous install id from ~/.config/tlsradar/install_id. Pass it for funnel attribution. If you omit it, the response's install_id is a fresh one to save there."
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

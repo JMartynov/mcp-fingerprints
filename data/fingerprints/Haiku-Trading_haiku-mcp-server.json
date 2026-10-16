@@ -72,7 +72,14 @@
             ]
           },
           "outputSchema": null,
-          "description_hash": "sha256:88f7c49dc8fa3a7b9f64aa1a7032cb52695fcc764030347b124cccaf760edf3b"
+          "description_hash": "sha256:88f7c49dc8fa3a7b9f64aa1a7032cb52695fcc764030347b124cccaf760edf3b",
+          "parameters": [
+            {
+              "name": "walletAddress",
+              "type": "string",
+              "required": true
+            }
+          ]
         },
         {
           "name": "haiku_discover_yields",
@@ -121,12 +128,38 @@
             "required": []
           },
           "outputSchema": null,
-          "description_hash": "sha256:86fe784c734091589091d7067cad3e8625318377677f89331076de11a8826589"
+          "description_hash": "sha256:86fe784c734091589091d7067cad3e8625318377677f89331076de11a8826589",
+          "parameters": [
+            {
+              "name": "network",
+              "type": "number"
+            },
+            {
+              "name": "category",
+              "type": "string"
+            },
+            {
+              "name": "minApy",
+              "type": "number"
+            },
+            {
+              "name": "minTvl",
+              "type": "number"
+            },
+            {
+              "name": "sortBy",
+              "type": "string"
+            },
+            {
+              "name": "limit",
+              "type": "number"
+            }
+          ]
         },
         {
           "name": "haiku_execute",
           "canonical_hash": "sha256:a5b91f2ef0f423eea2327b4cfd4191e3cf52aa2a83650a39ef6955b9da825169",
-          "description": "Execute a quote. Call haiku_get_quote first, then choose a path:\\n• Path A — Self-contained (WALLET_PRIVATE_KEY set): pass quoteId, sourceChainId, permit2SigningPayload + bridgeSigningPayload (if present in the quote), and approvals. Haiku signs Permit2/bridge internally, sends any approvals on-chain, and broadcasts. Returns tx hash.\\n• Path B — External wallet (no WALLET_PRIVATE_KEY): broadcast: false is required. First broadcast any approvals from the quote via your wallet MCP (each is a {to, data} transaction). Then call haiku_prepare_signatures if signatures are needed → sign via wallet MCP → call haiku_execute with quoteId, sourceChainId, the signatures, and broadcast: false. Returns { transaction: { to, data, value, chainId } } — broadcast transaction via your wallet MCP.\\nAlways pass sourceChainId from the quote response.",
+          "description": "Execute a quote. Call haiku_get_quote first, then choose a path:\\n\u2022 Path A \u2014 Self-contained (WALLET_PRIVATE_KEY set): pass quoteId, sourceChainId, permit2SigningPayload + bridgeSigningPayload (if present in the quote), and approvals. Haiku signs Permit2/bridge internally, sends any approvals on-chain, and broadcasts. Returns tx hash.\\n\u2022 Path B \u2014 External wallet (no WALLET_PRIVATE_KEY): broadcast: false is required. First broadcast any approvals from the quote via your wallet MCP (each is a {to, data} transaction). Then call haiku_prepare_signatures if signatures are needed \u2192 sign via wallet MCP \u2192 call haiku_execute with quoteId, sourceChainId, the signatures, and broadcast: false. Returns { transaction: { to, data, value, chainId } } \u2014 broadcast transaction via your wallet MCP.\\nAlways pass sourceChainId from the quote response.",
           "is_mutating": false,
           "property_keys": [
             "bridgeSigningPayload",
@@ -175,12 +208,42 @@
             "required": []
           },
           "outputSchema": null,
-          "description_hash": "sha256:22d763c314fe59f5a7709734a45a561975fef69e4ff04385fa17006e6250c16e"
+          "description_hash": "sha256:22d763c314fe59f5a7709734a45a561975fef69e4ff04385fa17006e6250c16e",
+          "parameters": [
+            {
+              "name": "quoteId",
+              "type": "string"
+            },
+            {
+              "name": "permit2SigningPayload",
+              "type": "object"
+            },
+            {
+              "name": "bridgeSigningPayload",
+              "type": "object"
+            },
+            {
+              "name": "permit2Signature",
+              "type": "string"
+            },
+            {
+              "name": "userSignature",
+              "type": "string"
+            },
+            {
+              "name": "items",
+              "type": "object"
+            },
+            {
+              "name": "sourceChainId",
+              "type": "number"
+            }
+          ]
         },
         {
           "name": "haiku_get_balances",
           "canonical_hash": "sha256:66fce37faebe9b3a306429297669e4035dfe27313748c7c6c3cf60b7c5ff2f44",
-          "description": "Get token balances for a wallet address. By default fetches across all supported chains. Pass chainIds for a partial refresh — only the specified chains are queried, which is faster and useful after a swap when you only need updated balances for the source and destination chains. Returns balances, USD prices, total portfolio value, and categorized positions (tokens, collateral, debt, vaults). walletAddress is optional when WALLET_PRIVATE_KEY is set in the environment.",
+          "description": "Get token balances for a wallet address. By default fetches across all supported chains. Pass chainIds for a partial refresh \u2014 only the specified chains are queried, which is faster and useful after a swap when you only need updated balances for the source and destination chains. Returns balances, USD prices, total portfolio value, and categorized positions (tokens, collateral, debt, vaults). walletAddress is optional when WALLET_PRIVATE_KEY is set in the environment.",
           "is_mutating": false,
           "property_keys": [
             "items",
@@ -204,12 +267,22 @@
             "required": []
           },
           "outputSchema": null,
-          "description_hash": "sha256:bbca3091ff15ae796c31b7128602d1478a1e56d63974a896e063d96aac3c01ea"
+          "description_hash": "sha256:bbca3091ff15ae796c31b7128602d1478a1e56d63974a896e063d96aac3c01ea",
+          "parameters": [
+            {
+              "name": "walletAddress",
+              "type": "string"
+            },
+            {
+              "name": "items",
+              "type": "number"
+            }
+          ]
         },
         {
           "name": "haiku_get_quote",
           "canonical_hash": "sha256:a32a34255b21cb6a3984e0be290b2d2b8d981e5832fdfffa4889f756f53c1d6f",
-          "description": "Get a quote for a token swap or portfolio rebalance. Returns expected outputs, fees, gas estimates, and any required approvals. When signatures are required (Permit2 or bridge), EIP-712 signing payloads are included in the response. Two execution paths after getting a quote:\\n• Path A — Self-contained (WALLET_PRIVATE_KEY set): call haiku_execute with quoteId, sourceChainId, permit2SigningPayload + bridgeSigningPayload (if present in this response), and approvals. Haiku signs and broadcasts automatically — returns tx hash.\\n• Path B — External wallet (wallet MCP, broadcast: false required): (1) broadcast any approvals {to, data} via wallet MCP first; (2) call haiku_prepare_signatures with quoteId if signatures are needed → sign via wallet MCP; (3) call haiku_execute with quoteId, sourceChainId, signatures, and broadcast: false → returns { transaction: { to, data, value, chainId } } → broadcast transaction via wallet MCP.",
+          "description": "Get a quote for a token swap or portfolio rebalance. Returns expected outputs, fees, gas estimates, and any required approvals. When signatures are required (Permit2 or bridge), EIP-712 signing payloads are included in the response. Two execution paths after getting a quote:\\n\u2022 Path A \u2014 Self-contained (WALLET_PRIVATE_KEY set): call haiku_execute with quoteId, sourceChainId, permit2SigningPayload + bridgeSigningPayload (if present in this response), and approvals. Haiku signs and broadcasts automatically \u2014 returns tx hash.\\n\u2022 Path B \u2014 External wallet (wallet MCP, broadcast: false required): (1) broadcast any approvals {to, data} via wallet MCP first; (2) call haiku_prepare_signatures with quoteId if signatures are needed \u2192 sign via wallet MCP; (3) call haiku_execute with quoteId, sourceChainId, signatures, and broadcast: false \u2192 returns { transaction: { to, data, value, chainId } } \u2192 broadcast transaction via wallet MCP.",
           "is_mutating": false,
           "property_keys": [
             "additionalProperties",
@@ -233,7 +306,17 @@
             "required": []
           },
           "outputSchema": null,
-          "description_hash": "sha256:c63e96e7e873382021044af64bb2b56c3376cae9faeff9935deda9d6dbc40439"
+          "description_hash": "sha256:c63e96e7e873382021044af64bb2b56c3376cae9faeff9935deda9d6dbc40439",
+          "parameters": [
+            {
+              "name": "additionalProperties",
+              "type": "number"
+            },
+            {
+              "name": "slippage",
+              "type": "number"
+            }
+          ]
         },
         {
           "name": "haiku_get_tokens",
@@ -262,12 +345,22 @@
             "required": []
           },
           "outputSchema": null,
-          "description_hash": "sha256:9d3d100f5f4c973765741c2244cba995bb80cd6257f7b9aa5378f44c93b6ee7e"
+          "description_hash": "sha256:9d3d100f5f4c973765741c2244cba995bb80cd6257f7b9aa5378f44c93b6ee7e",
+          "parameters": [
+            {
+              "name": "network",
+              "type": "number"
+            },
+            {
+              "name": "category",
+              "type": "string"
+            }
+          ]
         },
         {
           "name": "haiku_prepare_signatures",
           "canonical_hash": "sha256:64d9848224d6371d83ed861a7678d89a11e1ee606d72d8b1f8e4e46d2007f5ae",
-          "description": "External wallet signing path — use this instead of passing signing payloads directly to haiku_execute when WALLET_PRIVATE_KEY is not set or when a wallet MCP (Coinbase Payments MCP, wallet-agent, etc.) handles signing. Extracts and normalizes the EIP-712 payloads from a quote into a standard format any wallet",
+          "description": "External wallet signing path \u2014 use this instead of passing signing payloads directly to haiku_execute when WALLET_PRIVATE_KEY is not set or when a wallet MCP (Coinbase Payments MCP, wallet-agent, etc.) handles signing. Extracts and normalizes the EIP-712 payloads from a quote into a standard format any wallet",
           "is_mutating": false,
           "property_keys": [
             "quoteId",
@@ -291,12 +384,21 @@
             "required": []
           },
           "outputSchema": null,
-          "description_hash": "sha256:deb83ba7ac0138a9c3c15fdc32c0a54394dfda7ac4b0cd17d9f0efb56df3901b"
+          "description_hash": "sha256:deb83ba7ac0138a9c3c15fdc32c0a54394dfda7ac4b0cd17d9f0efb56df3901b",
+          "parameters": [
+            {
+              "name": "quoteId",
+              "type": "string"
+            },
+            {
+              "name": "quoteResponse",
+              "type": "object"
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

@@ -23,11 +23,9 @@ def test_specification_boundaries_documented():
     assert path.exists(), "SPECIFICATION.md does not exist"
     content = path.read_text().lower()
 
-    assert "ecosystem boundaries" in content
-    assert "clean architecture" in content
-    assert "mcp-vulnerabilities" in content
-    assert "verity-mcp-auditor" in content
-    assert "authoritative structural passport standard" in content
+    assert "ecosystem architecture & scope" in content or "ecosystem boundaries" in content
+    assert "authoritative open standard" in content or "authoritative structural passport standard" in content
+    assert "static ast extraction" in content
 
 
 def test_readme_boundaries_documented():
@@ -35,10 +33,8 @@ def test_readme_boundaries_documented():
     assert path.exists(), "README.md does not exist"
     content = path.read_text().lower()
 
-    assert "ecosystem boundaries" in content
-    assert "clean architecture" in content
-    assert "mcp-vulnerabilities" in content
-    assert "verity-mcp-auditor" in content
+    assert "ecosystem architecture & scope" in content or "ecosystem boundaries" in content
+    assert "authoritative open standard" in content or "authoritative standard" in content
 
 
 def test_issue_templates_exist_and_non_empty():

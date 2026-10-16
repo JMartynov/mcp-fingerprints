@@ -386,12 +386,13 @@
             "properties": {}
           },
           "outputSchema": null,
-          "description_hash": "sha256:5d8f68eee228822f375a4984aee46a813ef80bd835cb1c78fe1eb4a804952c70"
+          "description_hash": "sha256:5d8f68eee228822f375a4984aee46a813ef80bd835cb1c78fe1eb4a804952c70",
+          "parameters": []
         },
         {
           "name": "GoogleDrive_CheckFileAccess",
           "canonical_hash": "sha256:c285145f3d0370a1ad1d8c3b5485447bd7a94f9075323bfdb817029256e7959c",
-          "description": "Check whether this app can already read each of several Drive files, in one batched\npre-flight call, before attempting to read them.\n\nUse this when the user references multiple files so any that are not yet accessible can\nbe granted together in a single picker step, instead of hitting a separate access error\nand grant prompt for each one. Each input may be a bare file id or a full Google\nDrive/Workspace URL (documents, spreadsheets, slides, PDFs, images, folders — any type).\n\nReturns ``files`` (a per-id list with ``accessible``, the ``title`` and ``mime_type``\nwhen the file was read, and a ``reason`` when not usable), ``all_accessible`` (true only\nwhen every id is already accessible), ``connected_account_email`` (the connected Google\naccount, empty when unknown), and a ``grant`` block. ``grant`` is empty when nothing needs\ngranting; otherwise it lists the ungranted ids (``ungranted_ids``) plus, when the inline\npicker is enabled, a single picker URL covering them all.\n\nA ``reason`` of ``not_accessible_or_not_found`` is either a file not granted to this app\nyet or one that does not exist (indistinguishable here) — the picker resolves the former.\n``invalid_reference`` is an input that is not a Drive id or link at all; ask the user to\nre-check it. ``error`` is a transient server-side failure (a timeout or 5xx) that the\npicker cannot fix; the same inputs may be retried later.",
+          "description": "Check whether this app can already read each of several Drive files, in one batched\npre-flight call, before attempting to read them.\n\nUse this when the user references multiple files so any that are not yet accessible can\nbe granted together in a single picker step, instead of hitting a separate access error\nand grant prompt for each one. Each input may be a bare file id or a full Google\nDrive/Workspace URL (documents, spreadsheets, slides, PDFs, images, folders \u2014 any type).\n\nReturns ``files`` (a per-id list with ``accessible``, the ``title`` and ``mime_type``\nwhen the file was read, and a ``reason`` when not usable), ``all_accessible`` (true only\nwhen every id is already accessible), ``connected_account_email`` (the connected Google\naccount, empty when unknown), and a ``grant`` block. ``grant`` is empty when nothing needs\ngranting; otherwise it lists the ungranted ids (``ungranted_ids``) plus, when the inline\npicker is enabled, a single picker URL covering them all.\n\nA ``reason`` of ``not_accessible_or_not_found`` is either a file not granted to this app\nyet or one that does not exist (indistinguishable here) \u2014 the picker resolves the former.\n``invalid_reference`` is an input that is not a Drive id or link at all; ask the user to\nre-check it. ``error`` is a transient server-side failure (a timeout or 5xx) that the\npicker cannot fix; the same inputs may be retried later.",
           "is_mutating": false,
           "property_keys": [
             "files"
@@ -487,7 +488,15 @@
               "grant"
             ]
           },
-          "description_hash": "sha256:2198dc61b056a198626162de4b971abc0e2f1ef5e7974d911ee6d4b9c704fd0f"
+          "description_hash": "sha256:2198dc61b056a198626162de4b971abc0e2f1ef5e7974d911ee6d4b9c704fd0f",
+          "parameters": [
+            {
+              "name": "files",
+              "type": "array",
+              "description": "The files to check access for, each given as a bare Drive file id or a full Google Drive/Workspace URL (the id is extracted from the URL). Provide at most 50 per call; split larger lists across multiple calls.",
+              "items_type": "string"
+            }
+          ]
         },
         {
           "name": "GoogleDrive_CreateFolder",
@@ -545,7 +554,24 @@
               }
             }
           },
-          "description_hash": "sha256:a15cf13b31b8f7c507488f0182c85093e8c22653f718b661878db02429903335"
+          "description_hash": "sha256:a15cf13b31b8f7c507488f0182c85093e8c22653f718b661878db02429903335",
+          "parameters": [
+            {
+              "name": "folder_name",
+              "type": "string",
+              "description": "The name of the new folder to create"
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If creating in a shared drive and using a parent folder path, provide the shared drive ID. Not needed when using folder IDs or creating in My Drive. Defaults to None."
+            },
+            {
+              "name": "parent_folder_path_or_id",
+              "type": "string",
+              "description": "The parent folder path like folder/subfolder or folder ID where to create. If None, creates at the root of My Drive. If providing a path, it will be resolved within My Drive by default. Do not include the folder to create in this path. Defaults to None."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_DownloadFile",
@@ -606,7 +632,19 @@
               }
             }
           },
-          "description_hash": "sha256:0e7142398f21532d379ba900bb5e1a0aea7bedcd71f2695260d386a935b7b6a3"
+          "description_hash": "sha256:0e7142398f21532d379ba900bb5e1a0aea7bedcd71f2695260d386a935b7b6a3",
+          "parameters": [
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The file path like folder/subfolder/filename or the file ID of the file to download Folders NOT supported. If providing a path, it will be resolved within 'My Drive' by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and using a path, provide the shared drive ID. Not needed when using file IDs. Defaults to None (uses 'My Drive')."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_DownloadFileChunk",
@@ -688,12 +726,34 @@
               }
             }
           },
-          "description_hash": "sha256:e47a0a9a0df3393a9a47bde39eb6f96c07c77485602d834cafaf2a206a314605"
+          "description_hash": "sha256:e47a0a9a0df3393a9a47bde39eb6f96c07c77485602d834cafaf2a206a314605",
+          "parameters": [
+            {
+              "name": "chunk_size",
+              "type": "integer",
+              "description": "The size of the chunk to download in bytes. Max 5MB (5242880). Defaults to 5MB (5242880)."
+            },
+            {
+              "name": "start_byte",
+              "type": "integer",
+              "description": "The starting byte position for this chunk (0-indexed)."
+            },
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The file path like folder/subfolder/filename or the file ID to download a chunk from. If providing a path, it will be resolved within 'My Drive' by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and using a path, provide the shared drive ID. Not needed when using file IDs. Defaults to None (uses 'My Drive')."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_GenerateGoogleFilePickerUrl",
           "canonical_hash": "sha256:e75739c06b5313b837213986f1baafa0c25e36730985464ee31ad0276975201e",
-          "description": "Generate a URL where the user can grant this app access to specific Drive files.\n\nOpens Google's first-party Drive picker. The user selects which files to share\nwith this application — it is not a sign-in or credential prompt. By default the picker\nshows files of all types; pass ``file_types`` to restrict it to specific types.\n\nUse this when a prior tool reported that a file was not found or access was denied,\nand the user expects the file to exist. After the user completes the picker flow,\nretry the prior tool.",
+          "description": "Generate a URL where the user can grant this app access to specific Drive files.\n\nOpens Google's first-party Drive picker. The user selects which files to share\nwith this application \u2014 it is not a sign-in or credential prompt. By default the picker\nshows files of all types; pass ``file_types`` to restrict it to specific types.\n\nUse this when a prior tool reported that a file was not found or access was denied,\nand the user expects the file to exist. After the user completes the picker flow,\nretry the prior tool.",
           "is_mutating": false,
           "property_keys": [
             "file_types"
@@ -739,7 +799,15 @@
               }
             }
           },
-          "description_hash": "sha256:17c81c2bf79189e96105b19c998a9ce22425ef1daa1dc2e2cf2413beaae5e488"
+          "description_hash": "sha256:17c81c2bf79189e96105b19c998a9ce22425ef1daa1dc2e2cf2413beaae5e488",
+          "parameters": [
+            {
+              "name": "file_types",
+              "type": "array",
+              "description": "Restrict the picker to these Google Drive file types. Defaults to None, which lets the user pick files of any type.",
+              "items_type": "string"
+            }
+          ]
         },
         {
           "name": "GoogleDrive_GetFileTreeStructure",
@@ -848,7 +916,35 @@
               }
             }
           },
-          "description_hash": "sha256:8a09a6449e1acd458b95a8bf12858756bb5850ad83f64156ccdd2288c74be861"
+          "description_hash": "sha256:8a09a6449e1acd458b95a8bf12858756bb5850ad83f64156ccdd2288c74be861",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "The number of files and folders to list. Defaults to None, which will list all files and folders."
+            },
+            {
+              "name": "order_by",
+              "type": "array",
+              "description": "Sort order. Defaults to listing the most recently modified documents first",
+              "items_type": "string"
+            },
+            {
+              "name": "include_shared_drives",
+              "type": "boolean",
+              "description": "Whether to include shared drives in the file tree structure. Defaults to False."
+            },
+            {
+              "name": "restrict_to_shared_drive_id",
+              "type": "string",
+              "description": "If provided, only include files from this shared drive in the file tree structure. Defaults to None, which will include files and folders from all drives."
+            },
+            {
+              "name": "include_organization_domain_documents",
+              "type": "boolean",
+              "description": "Whether to include documents from the organization's domain. This is applicable to admin users who have permissions to view organization-wide documents in a Google Workspace account. Defaults to False."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_ListFilePermissions",
@@ -992,7 +1088,30 @@
               "total_people"
             ]
           },
-          "description_hash": "sha256:a83a8673bb802a6ffd8d15f8e908dc25f6628b4929d21a58fbb260716b256841"
+          "description_hash": "sha256:a83a8673bb802a6ffd8d15f8e908dc25f6628b4929d21a58fbb260716b256841",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum number of user/group collaborators to include in the `people` list (1-500). Regardless of this cap, `general_access` reflects the entire file. Defaults to 100."
+            },
+            {
+              "name": "roles",
+              "type": "array",
+              "description": "Filter the `people` list to those holding one of these roles. For 'who can write?' pass [owner, writer]; for 'who can comment?' pass [owner, writer, commenter]. When provided, `total_people` reflects the count MATCHING the filter (not the whole ACL). Defaults to None (no filter).",
+              "items_type": "string"
+            },
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The file path like folder/subfolder/filename or the file ID to inspect. If providing a path, it will be resolved within My Drive by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and using a path, provide the shared drive ID. Not needed when using file IDs. Defaults to None (uses My Drive)."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_MoveFile",
@@ -1053,7 +1172,29 @@
               }
             }
           },
-          "description_hash": "sha256:b8d3f99adf74df705b13ae9eef8b3b415232a72b2f85b866d84a1561d2cce194"
+          "description_hash": "sha256:b8d3f99adf74df705b13ae9eef8b3b415232a72b2f85b866d84a1561d2cce194",
+          "parameters": [
+            {
+              "name": "new_filename",
+              "type": "string",
+              "description": "Optional new name for the file after moving. If None, keeps the original name. Defaults to None."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If working with paths in a shared drive, provide the shared drive ID. Not needed when using IDs. Defaults to None (uses My Drive)."
+            },
+            {
+              "name": "source_file_path_or_id",
+              "type": "string",
+              "description": "The source file path like folder/subfolder/filename or the file ID of the file to move. If providing a path, it will be resolved within 'My Drive' by default."
+            },
+            {
+              "name": "destination_folder_path_or_id",
+              "type": "string",
+              "description": "The path to the file's parent folder (exclude the file to be moved) or parent folder ID to move the file into. If None, moves to the root of the drive. Defaults to None."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_RemoveAllCollaborators",
@@ -1295,7 +1436,30 @@
               "total_removed"
             ]
           },
-          "description_hash": "sha256:0f239440b73efb919d24398897516b701716bda2be7378b19d58a6a319c46ec8"
+          "description_hash": "sha256:0f239440b73efb919d24398897516b701716bda2be7378b19d58a6a319c46ec8",
+          "parameters": [
+            {
+              "name": "except_people",
+              "type": "array",
+              "description": "Emails or names of people (or groups) to preserve. The file owner and the caller are always preserved automatically. Defaults to None (remove everyone else).",
+              "items_type": "string"
+            },
+            {
+              "name": "include_groups",
+              "type": "boolean",
+              "description": "Whether to also remove group permissions. Defaults to False because the Drive API does not expose group membership -- the tool cannot verify the caller isn't a member of a group it's about to delete, so removing a group can lock the caller out even though the tool preserves their personal email. Opt in with True when you have independently confirmed group-removal is safe."
+            },
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The file path like folder/subfolder/filename or the file ID. If providing a path, it will be resolved within My Drive by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and using a path, provide the shared drive ID. Not needed when using file IDs. Defaults to None (uses My Drive)."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_RenameFile",
@@ -1344,7 +1508,24 @@
               }
             }
           },
-          "description_hash": "sha256:df84d10904dc0d5d3dd444c927859e5712598eabd3b1d82fbcc60b74a21d32a0"
+          "description_hash": "sha256:df84d10904dc0d5d3dd444c927859e5712598eabd3b1d82fbcc60b74a21d32a0",
+          "parameters": [
+            {
+              "name": "new_filename",
+              "type": "string",
+              "description": "The new name for the file"
+            },
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The path like folder/subfolder/filename or the file ID to rename. If providing a path, it will be resolved within 'My Drive' by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and you're using a path (not ID), provide the shared drive ID to resolve the path within that drive. Not needed when using file IDs. Defaults to None (searches 'My Drive')."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_RevokeFileAccess",
@@ -1612,12 +1793,30 @@
               "total_revoked"
             ]
           },
-          "description_hash": "sha256:7e6d9229293eb465518bd73c0e01bd1d3fbf39b84cf1fc266c0f84aa43a6941f"
+          "description_hash": "sha256:7e6d9229293eb465518bd73c0e01bd1d3fbf39b84cf1fc266c0f84aa43a6941f",
+          "parameters": [
+            {
+              "name": "people",
+              "type": "array",
+              "description": "Emails or names of people (or groups) to remove access from. Emails match exactly; names use case-insensitive matching on display name, then first/last name token.",
+              "items_type": "string"
+            },
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The file path like folder/subfolder/filename or the file ID. If providing a path, it will be resolved within My Drive by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and using a path, provide the shared drive ID. Not needed when using file IDs. Defaults to None (uses My Drive)."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_SearchDrive",
           "canonical_hash": "sha256:c9d596a91ee6c42c0ceb844fb74c57b86ce49083f99a8b457b97a28b332f5ba1",
-          "description": "Search the user's entire Google Drive, including files they created or\nreceived directly in Drive — not only files created through this app.\n\nReads across the user's whole Drive, so it requires broad read access to\ntheir files. The provided 'query' should contain only the search terms; the\ntool builds the full Drive query for you, matching file names and contents.",
+          "description": "Search the user's entire Google Drive, including files they created or\nreceived directly in Drive \u2014 not only files created through this app.\n\nReads across the user's whole Drive, so it requires broad read access to\ntheir files. The provided 'query' should contain only the search terms; the\ntool builds the full Drive query for you, matching file names and contents.",
           "is_mutating": false,
           "property_keys": [
             "file_types",
@@ -1647,7 +1846,7 @@
               },
               "query": {
                 "type": "string",
-                "description": "The terms to search for in Google Drive. The tool builds the full Drive query for you, matching file names and file contents — provide only the search terms, not Drive query syntax."
+                "description": "The terms to search for in Google Drive. The tool builds the full Drive query for you, matching file names and file contents \u2014 provide only the search terms, not Drive query syntax."
               },
               "order_by": {
                 "type": "array",
@@ -1815,7 +2014,46 @@
               }
             }
           },
-          "description_hash": "sha256:95cc3c90828627aa1793403098e7ba39a9b1e86b7c11be2c64b985ef3f5ef449"
+          "description_hash": "sha256:95cc3c90828627aa1793403098e7ba39a9b1e86b7c11be2c64b985ef3f5ef449",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "The maximum number of search results to return (1-50). Defaults to 20."
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "The terms to search for in Google Drive. The tool builds the full Drive query for you, matching file names and file contents \u2014 provide only the search terms, not Drive query syntax."
+            },
+            {
+              "name": "order_by",
+              "type": "array",
+              "description": "Sort order for search results. Defaults to listing the most recently modified documents first. If the query contains 'fullText', then the order_by will be ignored.",
+              "items_type": "string"
+            },
+            {
+              "name": "file_types",
+              "type": "array",
+              "description": "Filter by specific file types. Defaults to None, which includes all file types.",
+              "items_type": "string"
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If provided, search only within this shared drive. Defaults to None (searches My Drive and optionally all shared drives)."
+            },
+            {
+              "name": "folder_path_or_id",
+              "type": "string",
+              "description": "Search only within this specific folder. Provide either a path like folder/subfolder or a folder ID. If None, searches across all accessible locations. Defaults to None."
+            },
+            {
+              "name": "include_shared_drives",
+              "type": "boolean",
+              "description": "If True and shared_drive_id is not set, include all shared drives in search. Defaults to False (My Drive only)."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_SearchFiles",
@@ -2024,7 +2262,51 @@
               }
             }
           },
-          "description_hash": "sha256:673342a676ba10811b4deaeb88ef9f36e3499d6a966f345207e838c5dcb5f388"
+          "description_hash": "sha256:673342a676ba10811b4deaeb88ef9f36e3499d6a966f345207e838c5dcb5f388",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "The maximum number of search results to return. Defaults to 50."
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "The exact search query to send to the Google Drive API to find files in Google Drive. The tool will construct the query for you. Will search for filenames and file contents that match the provided query."
+            },
+            {
+              "name": "order_by",
+              "type": "array",
+              "description": "Sort order for search results. Defaults to listing the most recently modified documents first. If the query contains 'fullText', then the order_by will be ignored.",
+              "items_type": "string"
+            },
+            {
+              "name": "file_types",
+              "type": "array",
+              "description": "Filter by specific file types. Defaults to None, which includes all file types.",
+              "items_type": "string"
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If provided, search only within this shared drive. Defaults to None (searches My Drive and optionally all shared drives)."
+            },
+            {
+              "name": "folder_path_or_id",
+              "type": "string",
+              "description": "Search only within this specific folder. Provide either a path like folder/subfolder or a folder ID. If None, searches across all accessible locations. Defaults to None."
+            },
+            {
+              "name": "include_shared_drives",
+              "type": "boolean",
+              "description": "If True and shared_drive_id is not set, include all shared drives in search. Defaults to False (My Drive only)."
+            },
+            {
+              "name": "include_organization_domain_documents",
+              "type": "boolean",
+              "description": "Whether to include documents from the organization's domain. This is applicable to admin users who have permissions to view organization-wide documents in a Google Workspace account. Defaults to False."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_SetGeneralAccess",
@@ -2166,7 +2448,44 @@
               "web_view_link"
             ]
           },
-          "description_hash": "sha256:7d78e7e7b21aa651d7a80616f463ab6068e8a5d628a281e86f5f0042bc7dfabd"
+          "description_hash": "sha256:7d78e7e7b21aa651d7a80616f463ab6068e8a5d628a281e86f5f0042bc7dfabd",
+          "parameters": [
+            {
+              "name": "role",
+              "type": "string",
+              "description": "The role granted via the link when access is 'domain' or 'anyone'. Ignored when access is 'restricted'. Defaults to reader (view-only). Constrained to reader/commenter/writer -- Drive rejects owner and organizer roles on link permissions.",
+              "enum": [
+                "reader",
+                "commenter",
+                "writer"
+              ]
+            },
+            {
+              "name": "access",
+              "type": "string",
+              "description": "The new General access setting. 'restricted' removes link sharing, 'domain' shares with the caller's Google Workspace domain, 'anyone' makes it public with the link. Defaults to 'restricted'.",
+              "enum": [
+                "restricted",
+                "domain",
+                "anyone"
+              ]
+            },
+            {
+              "name": "allow_discovery",
+              "type": "boolean",
+              "description": "Whether the file should be discoverable through search. Only meaningful when access is 'domain' or 'anyone'. Defaults to False."
+            },
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The file path like folder/subfolder/filename or the file ID. If providing a path, it will be resolved within My Drive by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and using a path, provide the shared drive ID. Not needed when using file IDs. Defaults to None (uses My Drive)."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_ShareFile",
@@ -2257,7 +2576,46 @@
               }
             }
           },
-          "description_hash": "sha256:e1d4d4899da90c8a69bd31a37c09cb50a8d7952e1740b9d764dbf367868dc7fc"
+          "description_hash": "sha256:e1d4d4899da90c8a69bd31a37c09cb50a8d7952e1740b9d764dbf367868dc7fc",
+          "parameters": [
+            {
+              "name": "role",
+              "type": "string",
+              "description": "The permission role to grant. Defaults to reader (view-only).",
+              "enum": [
+                "reader",
+                "commenter",
+                "writer",
+                "owner"
+              ]
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "description": "Optional message to include in the notification email. Defaults to None."
+            },
+            {
+              "name": "email_addresses",
+              "type": "array",
+              "description": "List of email addresses like user@domain.com to share with",
+              "items_type": "string"
+            },
+            {
+              "name": "file_path_or_id",
+              "type": "string",
+              "description": "The file path like folder/subfolder/filename or the file ID to share. If providing a path, it will be resolved within My Drive by default."
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If the file is in a shared drive and using a path, provide the shared drive ID. Not needed when using file IDs. Defaults to None (uses My Drive)."
+            },
+            {
+              "name": "send_notification_email",
+              "type": "boolean",
+              "description": "Whether to send an email notification to the recipients. Defaults to True."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_UploadFile",
@@ -2340,7 +2698,47 @@
               }
             }
           },
-          "description_hash": "sha256:abcc85cdd330a222a7ee9410d779a5c5ed4579cd26c177e70b6efb093e018372"
+          "description_hash": "sha256:abcc85cdd330a222a7ee9410d779a5c5ed4579cd26c177e70b6efb093e018372",
+          "parameters": [
+            {
+              "name": "file_name",
+              "type": "string",
+              "description": "The name for the uploaded file"
+            },
+            {
+              "name": "mime_type",
+              "type": "string",
+              "description": "The file type. If not provided, will be inferred from the URL or Content-Type header. Supported: text (txt, csv, json, html, md), pdf, images (png, jpeg, gif). Defaults to None (auto-detect).",
+              "enum": [
+                "text/plain",
+                "text/csv",
+                "application/json",
+                "text/html",
+                "text/markdown",
+                "application/pdf",
+                "image/png",
+                "image/jpeg",
+                "image/gif",
+                "image/webp",
+                "image/svg+xml"
+              ]
+            },
+            {
+              "name": "source_url",
+              "type": "string",
+              "description": "The public download URL to fetch the file content from. The tool will download from this URL and upload to Google Drive"
+            },
+            {
+              "name": "shared_drive_id",
+              "type": "string",
+              "description": "If uploading to a folder in a shared drive using a path, provide the shared drive ID. Not needed when using folder IDs or uploading to My Drive. Defaults to None ('My Drive')"
+            },
+            {
+              "name": "destination_folder_path_or_id",
+              "type": "string",
+              "description": "The folder path like folder/subfolder or folder ID where to upload. If None, uploads to the root of 'My Drive'. If providing a path, it will be resolved within 'My Drive' by default. Defaults to None."
+            }
+          ]
         },
         {
           "name": "GoogleDrive_WhoAmI",
@@ -2398,12 +2796,12 @@
               }
             }
           },
-          "description_hash": "sha256:47f137fd649c862dbfae6d6b66e7074fd32b470421865ebe673215a1bd6e201d"
+          "description_hash": "sha256:47f137fd649c862dbfae6d6b66e7074fd32b470421865ebe673215a1bd6e201d",
+          "parameters": []
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

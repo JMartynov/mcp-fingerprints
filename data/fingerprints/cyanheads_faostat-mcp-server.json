@@ -101,7 +101,7 @@
               },
               "canvas_id": {
                 "type": "string",
-                "description": "Canvas ID holding the merged set — pass to faostat_dataframe_query / _describe."
+                "description": "Canvas ID holding the merged set \u2014 pass to faostat_dataframe_query / _describe."
               },
               "item_query": {
                 "type": "string",
@@ -328,7 +328,35 @@
               "resolvedItemCodes"
             ]
           },
-          "description_hash": "sha256:790d37da90bc1b0ddf44e122d6c15efd93d7aa0d3fff3e219f373e566d972766"
+          "description_hash": "sha256:790d37da90bc1b0ddf44e122d6c15efd93d7aa0d3fff3e219f373e566d972766",
+          "parameters": [
+            {
+              "name": "top_n",
+              "type": "integer",
+              "description": "Number of top producers / exporters / importers to return. Max 50.",
+              "default": 10
+            },
+            {
+              "name": "year_end",
+              "type": "integer",
+              "description": "Inclusive end year for the trend (e.g. 2022)."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "Canvas ID from a prior call to stage onto. Omit to start a fresh canvas."
+            },
+            {
+              "name": "item_query",
+              "type": "string",
+              "description": "Commodity name to profile (e.g. \"maize\", \"wheat\", \"coffee green\")."
+            },
+            {
+              "name": "year_start",
+              "type": "integer",
+              "description": "Inclusive start year for the trend (e.g. 1990)."
+            }
+          ]
         },
         {
           "name": "faostat_dataframe_describe",
@@ -422,7 +450,7 @@
                           },
                           "type": {
                             "type": "string",
-                            "description": "Canvas column type (VARCHAR, BIGINT, DOUBLE, …)."
+                            "description": "Canvas column type (VARCHAR, BIGINT, DOUBLE, \u2026)."
                           }
                         },
                         "description": "One column declaration.",
@@ -441,12 +469,24 @@
               "tables"
             ]
           },
-          "description_hash": "sha256:73cdbe0c06fa3b0e2f4d8e7548e452f750de87a8f96080a8071eeefdea49da4a"
+          "description_hash": "sha256:73cdbe0c06fa3b0e2f4d8e7548e452f750de87a8f96080a8071eeefdea49da4a",
+          "parameters": [
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Optional table name (faostat_xxxxxxxx) to describe a single staged table. Omit to list all."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "Optional canvas ID from a prior faostat_query_observations / faostat_commodity_profile call. Omit to list the tables staged in this session (the common case)."
+            }
+          ]
         },
         {
           "name": "faostat_dataframe_query",
           "canonical_hash": "sha256:a1d10c74903ac7fecd1aedb8f170c6f9379f25cb40215759668935782096151f",
-          "description": "Run a single-statement SELECT against the canvas tables staged by faostat_query_observations and faostat_commodity_profile (table names look like faostat_xxxxxxxx). Use this for cross-country and cross-item aggregation, GROUP BY rankings, joins, and time-series analysis over the full result set the inline preview only sampled. Standard DuckDB SQL — joins, aggregates, window functions, CTEs all work. Read-only: writes, DDL, DROP, COPY, PRAGMA, ATTACH, and external-file table functions are rejected; system catalogs (information_schema, sqlite_master, duckdb_*) are denied — list staged tables via faostat_dataframe_describe. Every row carries its data-quality `flag` (A=Official, E=Estimated, I=Imputed, …) — keep it in projections and honor it in interpretation.",
+          "description": "Run a single-statement SELECT against the canvas tables staged by faostat_query_observations and faostat_commodity_profile (table names look like faostat_xxxxxxxx). Use this for cross-country and cross-item aggregation, GROUP BY rankings, joins, and time-series analysis over the full result set the inline preview only sampled. Standard DuckDB SQL \u2014 joins, aggregates, window functions, CTEs all work. Read-only: writes, DDL, DROP, COPY, PRAGMA, ATTACH, and external-file table functions are rejected; system catalogs (information_schema, sqlite_master, duckdb_*) are denied \u2014 list staged tables via faostat_dataframe_describe. Every row carries its data-quality `flag` (A=Official, E=Estimated, I=Imputed, \u2026) \u2014 keep it in projections and honor it in interpretation.",
           "is_mutating": false,
           "property_keys": [
             "canvas_id",
@@ -516,7 +556,25 @@
               "rows"
             ]
           },
-          "description_hash": "sha256:b09944f0c1db3f95584763e710d7f48ee59959e764d39a4067f35d8fda508822"
+          "description_hash": "sha256:b09944f0c1db3f95584763e710d7f48ee59959e764d39a4067f35d8fda508822",
+          "parameters": [
+            {
+              "name": "sql",
+              "type": "string",
+              "description": "Single-statement read-only SELECT against staged faostat_<id> tables. Columns: area_code, area, item_code, item, element_code, element, year, unit, value, flag. CAST(value AS DOUBLE) for arithmetic."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "Optional canvas ID from a prior faostat_query_observations / faostat_commodity_profile call. Omit to query the tables staged in this session (the common case)."
+            },
+            {
+              "name": "row_limit",
+              "type": "integer",
+              "description": "Hard cap on rows in the response. Default 1000, max 10000.",
+              "default": 1000
+            }
+          ]
         },
         {
           "name": "faostat_list_domains",
@@ -567,7 +625,7 @@
                   "properties": {
                     "code": {
                       "type": "string",
-                      "description": "Domain code — the key for every query (e.g. \"QCL\")."
+                      "description": "Domain code \u2014 the key for every query (e.g. \"QCL\")."
                     },
                     "name": {
                       "type": "string",
@@ -630,12 +688,25 @@
               "indexedCount"
             ]
           },
-          "description_hash": "sha256:8dad6c0ed9005f4e5d2d3ceb34977f8a57c5c671fed94f7d71139295b0efdc1c"
+          "description_hash": "sha256:8dad6c0ed9005f4e5d2d3ceb34977f8a57c5c671fed94f7d71139295b0efdc1c",
+          "parameters": [
+            {
+              "name": "topic",
+              "type": "string",
+              "description": "Case-insensitive substring filter over domain code, name, and topic (e.g. \"trade\", \"emissions\", \"QCL\"). Omit to list the full catalog."
+            },
+            {
+              "name": "indexed_only",
+              "type": "boolean",
+              "description": "When true, return only domains indexed in the local mirror (queryable now).",
+              "default": false
+            }
+          ]
         },
         {
           "name": "faostat_query_observations",
           "canonical_hash": "sha256:73ec050b8d0cf5c5e8de7c117384f4ac650b8fd9fd1558eaf6bdff6dcbfab4fe",
-          "description": "Query a FAOSTAT domain's data cube by area(s), item(s), element(s), and year range, returning observations (area, item, element, year, value, unit, and the data-quality flag). Resolve codes first with faostat_resolve_codes — the cube is unqueryable without them. Aggregate regions (World, continents, economic groupings) are EXCLUDED by default so a naive SUM does not double-count a region with its member countries; set include_aggregates=true to get the regional roll-ups, or pass explicit area_codes to query exactly what you name. Small result sets return inline; large ones spill to a DataCanvas table (returned canvas_id + table_name) for GROUP BY / ranking / time-series analysis via faostat_dataframe_query. Every row carries its flag (A=Official, E=Estimated, I=Imputed, B=break, X=external) — honor it; never treat estimated/imputed values as official.",
+          "description": "Query a FAOSTAT domain's data cube by area(s), item(s), element(s), and year range, returning observations (area, item, element, year, value, unit, and the data-quality flag). Resolve codes first with faostat_resolve_codes \u2014 the cube is unqueryable without them. Aggregate regions (World, continents, economic groupings) are EXCLUDED by default so a naive SUM does not double-count a region with its member countries; set include_aggregates=true to get the regional roll-ups, or pass explicit area_codes to query exactly what you name. Small result sets return inline; large ones spill to a DataCanvas table (returned canvas_id + table_name) for GROUP BY / ranking / time-series analysis via faostat_dataframe_query. Every row carries its flag (A=Official, E=Estimated, I=Imputed, B=break, X=external) \u2014 honor it; never treat estimated/imputed values as official.",
           "is_mutating": false,
           "property_keys": [
             "area_codes",
@@ -692,7 +763,7 @@
                   "maximum": 9007199254740991,
                   "minimum": -9007199254740991
                 },
-                "description": "Area codes from faostat_resolve_codes. When set, aggregates are NOT auto-excluded — the codes are honored verbatim."
+                "description": "Area codes from faostat_resolve_codes. When set, aggregates are NOT auto-excluded \u2014 the codes are honored verbatim."
               },
               "item_codes": {
                 "type": "array",
@@ -721,7 +792,7 @@
               "include_aggregates": {
                 "type": "boolean",
                 "default": false,
-                "description": "When false (default), exclude aggregate-region rows (codes ≥ 5000) so sums are not double-counted. Set true for World/continent/grouping roll-ups. Ignored when explicit area_codes are passed."
+                "description": "When false (default), exclude aggregate-region rows (codes \u2265 5000) so sums are not double-counted. Set true for World/continent/grouping roll-ups. Ignored when explicit area_codes are passed."
               }
             }
           },
@@ -742,7 +813,7 @@
               },
               "canvas_id": {
                 "type": "string",
-                "description": "Canvas ID holding the staged result — pass to faostat_dataframe_query / _describe."
+                "description": "Canvas ID holding the staged result \u2014 pass to faostat_dataframe_query / _describe."
               },
               "table_name": {
                 "type": "string",
@@ -831,7 +902,7 @@
                       "description": "Element code."
                     }
                   },
-                  "description": "One observation. The flag is load-bearing — never drop or ignore it.",
+                  "description": "One observation. The flag is load-bearing \u2014 never drop or ignore it.",
                   "additionalProperties": false
                 },
                 "description": "Inline observations (preview when the full set spilled to a canvas table)."
@@ -844,12 +915,64 @@
               "totalCount"
             ]
           },
-          "description_hash": "sha256:3a96442a0a8d62e02c9ceb67decac7e534260e01eeba46253c14c2666c755e5b"
+          "description_hash": "sha256:3a96442a0a8d62e02c9ceb67decac7e534260e01eeba46253c14c2666c755e5b",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max observations returned inline when the result does not spill. Max 1000.",
+              "default": 200
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "FAOSTAT domain code (e.g. \"QCL\"). Must be indexed locally."
+            },
+            {
+              "name": "year_end",
+              "type": "integer",
+              "description": "Inclusive end year (e.g. 2022)."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "Canvas ID from a prior call to stage onto. Omit to start a fresh canvas (a new id is returned)."
+            },
+            {
+              "name": "area_codes",
+              "type": "array",
+              "description": "Area codes from faostat_resolve_codes. When set, aggregates are NOT auto-excluded \u2014 the codes are honored verbatim.",
+              "items_type": "integer"
+            },
+            {
+              "name": "item_codes",
+              "type": "array",
+              "description": "Item codes from faostat_resolve_codes.",
+              "items_type": "integer"
+            },
+            {
+              "name": "year_start",
+              "type": "integer",
+              "description": "Inclusive start year (e.g. 2000)."
+            },
+            {
+              "name": "element_codes",
+              "type": "array",
+              "description": "Element codes from faostat_resolve_codes (e.g. 5510 Production).",
+              "items_type": "integer"
+            },
+            {
+              "name": "include_aggregates",
+              "type": "boolean",
+              "description": "When false (default), exclude aggregate-region rows (codes \u2265 5000) so sums are not double-counted. Set true for World/continent/grouping roll-ups. Ignored when explicit area_codes are passed.",
+              "default": false
+            }
+          ]
         },
         {
           "name": "faostat_resolve_codes",
           "canonical_hash": "sha256:cfe88992d22e95428b1ff24e5ed86cc34d2a5a3fb2efd5b2b80d1b64396098bc",
-          "description": "Resolve human terms to the opaque integer codes faostat_query_observations needs, within a dimension: areas (countries/regions), items (commodities), or elements (metrics like production, yield, import quantity). Pass `query` for fuzzy full-text matching (\"maize\" → item 56), `name_contains` for a substring filter, or `code` for an exact-code lookup; omit all three to list the whole dimension. Every area match is flagged `country` or `aggregate` — aggregates (World, continents, economic groupings; codes ≥ 5000) double-count if summed with their member countries, so resolve before querying and exclude aggregates unless you want the regional roll-up.",
+          "description": "Resolve human terms to the opaque integer codes faostat_query_observations needs, within a dimension: areas (countries/regions), items (commodities), or elements (metrics like production, yield, import quantity). Pass `query` for fuzzy full-text matching (\"maize\" \u2192 item 56), `name_contains` for a substring filter, or `code` for an exact-code lookup; omit all three to list the whole dimension. Every area match is flagged `country` or `aggregate` \u2014 aggregates (World, continents, economic groupings; codes \u2265 5000) double-count if summed with their member countries, so resolve before querying and exclude aggregates unless you want the regional roll-up.",
           "is_mutating": false,
           "property_keys": [
             "code",
@@ -983,12 +1106,49 @@
               "truncated"
             ]
           },
-          "description_hash": "sha256:c6817d7deb15b58f1edb71e4679f6e54dbb421d8158c01f1036f368859b138ef"
+          "description_hash": "sha256:c6817d7deb15b58f1edb71e4679f6e54dbb421d8158c01f1036f368859b138ef",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "integer",
+              "description": "Exact code lookup. Takes precedence over `query`/`name_contains` when provided."
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum matches to return (max 200).",
+              "default": 50
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Full-text search term, FTS5-matched against the dimension labels with prefix matching (e.g. \"wheat\", \"import quantity\"). Relevance-ranked."
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "FAOSTAT domain code to verify the index is ready (e.g. \"QCL\"). Dimension code lists (areas, items, elements) are shared across all indexed domains."
+            },
+            {
+              "name": "dimension",
+              "type": "string",
+              "description": "Which dimension to resolve: \"area\" (countries/regions), \"item\" (commodities), or \"element\" (metrics).",
+              "enum": [
+                "area",
+                "item",
+                "element"
+              ]
+            },
+            {
+              "name": "name_contains",
+              "type": "string",
+              "description": "Case-insensitive substring filter over the label. Used only when `query` is omitted."
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }
