@@ -1013,3 +1013,248 @@ Use `uv run mcp-fingerprints validate-protocol <path-to-test-server-binary>`. Th
 
 ### 5. Live Acceptance Test Plan
 Ensure Docker is running locally. Run `uv run mcp-fingerprints probe --sandbox=docker <test-server-image>`. Verify the probe successfully extracts tools and cleanly exits. Verify via `docker ps` that no lingering containers remain.
+
+---
+
+## 33. Pure Structural Models, ParameterMetadata & Protocol Annotations Schema
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoPQ`
+- **Category**: Schema & Core Models
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Define high-fidelity, pure structural data models representing MCP tools, parameters, resources, prompts, and protocol annotations without any security or vulnerability fields. Expand `src/mcp_fingerprints/models.py` to introduce `ParameterMetadata` (parameter name, JSON Schema type, description, required boolean, default value, enum values, nested properties/items), `PromptDefinition` (name, description, arguments), `ResourceDefinition` (uri, name, mimeType, description), and `ProtocolAnnotations` (readOnly, destructive, idempotency, streaming). Purge any residual security attributes (`threat_score`, `risk_level`, `cve_refs`) from the core fingerprint models to enforce Clean Architecture ecosystem boundaries. Update `schemas/fingerprint_v1.json` and ensure full bidirectional serialization/deserialization.
+
+### 2. Target Files & Documentation to Update
+- `src/mcp_fingerprints/models.py`
+- `src/mcp_fingerprints/schema_validator.py`
+- `schemas/fingerprint_v1.json`
+- `tests/test_models.py`
+- `docs/schema_specification.md`
+- `README.md`
+
+### 3. EULIS Implementation & Branch Review Workflow
+- Branch: `jules/review-task33`
+- Implementation PR: `jules-gate pr --skip-ci`
+- Offload Mode 2 EULIS Code Review: `jules-gate review-branch`
+- Review verification: check `docs/reviews/review_task33.md`
+- Test verification: run test suite via isolated subagent (`jules-gate verify`)
+- Merge: `jules-gate pr-merge --skip-ci`
+
+### 4. Clear Acceptance Criteria
+- [ ] Structural models (`ParameterMetadata`, `PromptDefinition`, `ResourceDefinition`, `ProtocolAnnotations`) implemented in `models.py`.
+- [ ] All residual security attributes (`risk_score`, `threat_level`, `cve_refs`) purged from structural models.
+- [ ] `schemas/fingerprint_v1.json` updated with pure structural schema definitions and validated against standard draft-07 / 2020-12 meta-schemas.
+- [ ] Bidirectional JSON serialization and deserialization roundtrip tests pass in `tests/test_models.py`.
+- [ ] Schema validator in `schema_validator.py` validates new structural models with zero regressions.
+- [ ] Documentation updated in `docs/schema_specification.md` and `README.md`.
+
+
+---
+
+## 34. Deep Python & TS/JS AST Parameter, Prompt, Resource & Env Extractor
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoTI`
+- **Category**: AST & Introspection Engine
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Deepen the static AST extraction engine (`src/mcp_fingerprints/ast_parser.py` and `doc_parser.py`) for both Python and TypeScript/JavaScript MCP server implementations. For Python, inspect AST nodes of `@mcp.tool()` or `FastMCP.tool` functions to extract type annotations, default parameter values, docstrings (Sphinx, Google, NumPy styles), prompt definitions (`@mcp.prompt()`), static resources (`@mcp.resource()`), and accessed environment variables (`os.environ`, `os.getenv`). For TypeScript/JavaScript, parse `server.tool(...)`, `McpServer`, and Zod schema objects (`z.object({...})`) to extract detailed parameter types, descriptions, `.optional()`, `.default(...)`, and `process.env` references.
+
+### 2. Target Files & Documentation to Update
+- `src/mcp_fingerprints/ast_parser.py`
+- `src/mcp_fingerprints/doc_parser.py`
+- `tests/test_ast_parser.py`
+- `tests/fixtures/python_servers/`
+- `tests/fixtures/ts_servers/`
+- `docs/ast_extraction_guide.md`
+
+### 3. EULIS Implementation & Branch Review Workflow
+- Branch: `jules/review-task34`
+- Implementation PR: `jules-gate pr --skip-ci`
+- Offload Mode 2 EULIS Code Review: `jules-gate review-branch`
+- Review verification: check `docs/reviews/review_task34.md`
+- Test verification: run test suite via isolated subagent (`jules-gate verify`)
+- Merge: `jules-gate pr-merge --skip-ci`
+
+### 4. Clear Acceptance Criteria
+- [ ] Python AST parser extracts parameter type hints, default values, and required constraints from tool definitions.
+- [ ] Docstring parser extracts per-parameter descriptions across Google, Sphinx, and NumPy docstring conventions.
+- [ ] Prompt templates (`@mcp.prompt()`) and Resource definitions (`@mcp.resource()`) extracted into `PromptDefinition` and `ResourceDefinition`.
+- [ ] Environment variable accesses (`os.environ`, `os.getenv`, `process.env`) detected and recorded in `required_env_vars`.
+- [ ] TypeScript/JavaScript AST parser extracts Zod schemas and tool parameters from `McpServer` and `server.tool`.
+- [ ] 100% test pass on sample Python and TS fixtures in `tests/test_ast_parser.py`.
+
+
+---
+
+## 35. Multi-File Registry & Tarball Synchronizer Enrichment
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoW8`
+- **Category**: Ingestion & Package Discovery
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Enhance repository synchronizer and package ingestion engine (`src/mcp_fingerprints/synchronizer.py`, `ingestion_engine.py`, `monorepo_prober.py`) to support distributed, multi-file server packages and tarball unpacking. When analyzing npm `.tgz` or PyPI `.tar.gz`/`.whl` archives, safely unpack them into an ephemeral sandboxed directory with zip-slip path traversal guards. Traverse multi-file module import hierarchies (following relative imports and barrel exports like `index.ts` / `__init__.py`) to discover tools, prompts, and resources split across multiple source files or nested subpackages.
+
+### 2. Target Files & Documentation to Update
+- `src/mcp_fingerprints/synchronizer.py`
+- `src/mcp_fingerprints/ingestion_engine.py`
+- `src/mcp_fingerprints/monorepo_prober.py`
+- `tests/test_synchronizer.py`
+- `tests/test_monorepo_prober.py`
+- `docs/synchronization_pipeline.md`
+
+### 3. EULIS Implementation & Branch Review Workflow
+- Branch: `jules/review-task35`
+- Implementation PR: `jules-gate pr --skip-ci`
+- Offload Mode 2 EULIS Code Review: `jules-gate review-branch`
+- Review verification: check `docs/reviews/review_task35.md`
+- Test verification: run test suite via isolated subagent (`jules-gate verify`)
+- Merge: `jules-gate pr-merge --skip-ci`
+
+### 4. Clear Acceptance Criteria
+- [ ] Safe in-memory/ephemeral tarball and wheel unpacker with zip-slip path traversal (`..`) prevention.
+- [ ] Multi-file AST walker traverses internal module imports to discover tools declared across helper files.
+- [ ] Monorepo package prober isolates sub-projects within pnpm/npm/lerna workspaces without cross-contamination.
+- [ ] Synchronizer successfully extracts complete multi-file tool catalogs from sample npm and PyPI tarball packages.
+- [ ] Comprehensive unit tests in `tests/test_synchronizer.py` and `tests/test_monorepo_prober.py`.
+
+
+---
+
+## 36. Security Module Purge & Pure Structural CLI/TUI Refactoring
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoak`
+- **Category**: CLI & Architecture Governance
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Purge residual security and vulnerability scanning modules (`security_classifier.py`, `sarif_exporter.py`, etc., which are being migrated to `mcp-vulnerabilities`). Refactor the CLI (`src/mcp_fingerprints/cli.py`) and TUI (`src/mcp_fingerprints/tui.py`) to concentrate solely on pure structural MCP passport introspection, schema inspection, AST diffing, protocol validation, and registry browsing. Remove `--audit-risk`, `--sarif`, and CVE search commands, replacing them with deprecation notices directing users to `mcp-vulnerabilities`.
+
+### 2. Target Files & Documentation to Update
+- `src/mcp_fingerprints/cli.py`
+- `src/mcp_fingerprints/tui.py`
+- `src/mcp_fingerprints/security_classifier.py (purged/deprecated)`
+- `src/mcp_fingerprints/sarif_exporter.py (purged/deprecated)`
+- `tests/test_cli.py`
+- `tests/test_tui.py`
+- `docs/cli_reference.md`
+- `README.md`
+
+### 3. EULIS Implementation & Branch Review Workflow
+- Branch: `jules/review-task36`
+- Implementation PR: `jules-gate pr --skip-ci`
+- Offload Mode 2 EULIS Code Review: `jules-gate review-branch`
+- Review verification: check `docs/reviews/review_task36.md`
+- Test verification: run test suite via isolated subagent (`jules-gate verify`)
+- Merge: `jules-gate pr-merge --skip-ci`
+
+### 4. Clear Acceptance Criteria
+- [ ] Deprecated security classification and SARIF modules removed or replaced with clear migration warnings pointing to `mcp-vulnerabilities`.
+- [ ] CLI commands (`inspect`, `diff`, `schema`, `validate-protocol`, `browse`) refactored for pure structural analysis.
+- [ ] TUI terminal browser renders rich parameter tables, prompt arguments, and resource trees without security ratings.
+- [ ] Unit tests in `tests/test_cli.py` and `tests/test_tui.py` updated and 100% passing.
+- [ ] Documentation updated in `docs/cli_reference.md` and `README.md`.
+
+
+---
+
+## 37. Enriched Non-Security Web Catalog & Interactive Parameter Inspector UI
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPodc`
+- **Category**: Static Web Directory
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`, `web/catalog.json`) to showcase enriched structural metadata. Implement an interactive tool parameter inspector drawer/modal in the browser that allows users to drill down into any server, view full JSON Schema parameter definitions, types, required flags, default values, docstrings, prompt templates, and resource endpoints. Strip all vulnerability scores, CVE badges, and threat filters from the catalog UI. Optimize `src/mcp_fingerprints/snapshot.py` to compile an efficient, non-bloated `catalog.json`.
+
+### 2. Target Files & Documentation to Update
+- `web/index.html`
+- `web/app.js`
+- `web/style.css`
+- `src/mcp_fingerprints/snapshot.py`
+- `tests/test_web_catalog.py`
+- `docs/web_catalog.md`
+
+### 3. EULIS Implementation & Branch Review Workflow
+- Branch: `jules/review-task37`
+- Implementation PR: `jules-gate pr --skip-ci`
+- Offload Mode 2 EULIS Code Review: `jules-gate review-branch`
+- Review verification: check `docs/reviews/review_task37.md`
+- Test verification: run test suite via isolated subagent (`jules-gate verify`)
+- Merge: `jules-gate pr-merge --skip-ci`
+
+### 4. Clear Acceptance Criteria
+- [ ] Interactive tool parameter inspector drawer/modal implemented with clean responsive CSS.
+- [ ] Parameter type badges, required indicators, default values, and docstrings rendered clearly.
+- [ ] Prompt templates and resource URIs displayed in dedicated tabs or expandable accordions.
+- [ ] All security risk badges, CVE indicators, and vulnerability filters removed from the UI.
+- [ ] `snapshot.py` generates minified, high-performance `catalog.json` for 5,000+ servers.
+- [ ] Browser search, filtering, and copy client configuration snippets verified functional.
+
+
+---
+
+## 38. Passport Dataset Sanitization, Sync-State Reset & Documentation Purification
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPogo`
+- **Category**: Data Governance & Operations
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Sanitize the existing passport dataset in `data/` by writing an automated migration script (`scripts/sanitize_passports.py`) that strips all legacy security fields, risk scores, and vulnerability annotations, ensuring every passport strictly conforms to the pure structural schema. Cleanly reset the sync tracking state (`data/sync_state.json`) to allow a fresh, idempotent re-sync. Purify all repository documentation, architectural diagrams, and README files to firmly establish `mcp-fingerprints` as the canonical structural source of truth.
+
+### 2. Target Files & Documentation to Update
+- `data/ (passport JSON files)`
+- `scripts/sanitize_passports.py`
+- `data/sync_state.json`
+- `src/mcp_fingerprints/partitioner.py`
+- `docs/architecture.md`
+- `docs/dataset_spec.md`
+- `README.md`
+
+### 3. EULIS Implementation & Branch Review Workflow
+- Branch: `jules/review-task38`
+- Implementation PR: `jules-gate pr --skip-ci`
+- Offload Mode 2 EULIS Code Review: `jules-gate review-branch`
+- Review verification: check `docs/reviews/review_task38.md`
+- Test verification: run test suite via isolated subagent (`jules-gate verify`)
+- Merge: `jules-gate pr-merge --skip-ci`
+
+### 4. Clear Acceptance Criteria
+- [ ] Automated migration script `scripts/sanitize_passports.py` created and tested.
+- [ ] All passport records in `data/` sanitized, with 0 legacy security fields remaining.
+- [ ] `sync_state.json` cleanly reset to trigger idempotent structural re-sync.
+- [ ] All sanitized passports validate against `schemas/fingerprint_v1.json` via `schema_validator.py`.
+- [ ] Architecture diagrams and documentation in `docs/` and `README.md` purified.
+
+
+---
+
+## 39. Sync Update Delta Tracker, What's New Web Page (web/updates.html) & PyPI Auto-Release Hardening
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPokY`
+- **Category**: Ingestion & Release Engineering
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Implement an automated sync update delta tracker (`src/mcp_fingerprints/delta_tracker.py`) that executes at the conclusion of daily ingestion cycles. It detects newly discovered MCP servers, version upgrades, new tools, and modified parameter signatures, saving the results in a rolling history log (`data/updates_history.json`). Create a dedicated static 'What's New' page (`web/updates.html` + `web/updates.js`) providing an ecosystem change feed. Harden `.github/workflows/daily_sync.yml` and `.github/workflows/release.yml` to automatically trigger a PyPI release when substantive fingerprint updates exceed release thresholds.
+
+### 2. Target Files & Documentation to Update
+- `src/mcp_fingerprints/delta_tracker.py`
+- `web/updates.html`
+- `web/updates.js`
+- `.github/workflows/daily_sync.yml`
+- `.github/workflows/release.yml`
+- `tests/test_delta_tracker.py`
+- `docs/releases_and_updates.md`
+
+### 3. EULIS Implementation & Branch Review Workflow
+- Branch: `jules/review-task39`
+- Implementation PR: `jules-gate pr --skip-ci`
+- Offload Mode 2 EULIS Code Review: `jules-gate review-branch`
+- Review verification: check `docs/reviews/review_task39.md`
+- Test verification: run test suite via isolated subagent (`jules-gate verify`)
+- Merge: `jules-gate pr-merge --skip-ci`
+
+### 4. Clear Acceptance Criteria
+- [ ] `DeltaTracker` accurately computes additions, version bumps, and signature changes between sync runs.
+- [ ] `data/updates_history.json` tracks chronological delta records with timestamps and commit hashes.
+- [ ] `web/updates.html` presents a responsive timeline of ecosystem arrivals with filtering and search.
+- [ ] Daily sync workflow commits update logs and conditionally triggers PyPI release pipeline.
+- [ ] Unit tests in `tests/test_delta_tracker.py` pass with 100% coverage.
+
