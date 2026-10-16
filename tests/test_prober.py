@@ -102,21 +102,6 @@ class TestMcpStdioProber(unittest.TestCase):
                         ),
                     ),
                 ),
-                security_profile={
-                    "has_known_vulnerabilities": True,
-                    "max_cvss_score": 8.5,
-                    "vulnerable_versions": ["1.0.0"],
-                    "advisories": [
-                        {
-                            "id": "CVE-2026-TEST",
-                            "severity": "HIGH",
-                            "cvss_score": 8.5,
-                            "summary": "Information disclosure in lookup_user",
-                            "fixed_version": "1.0.1",
-                            "affected_versions": ["1.0.0"],
-                        }
-                    ],
-                },
             )
             matcher.register_package(spec)
 
