@@ -70,6 +70,8 @@ def compute_updates(old_passports: dict[str, Any], new_passports: dict[str, Any]
                 tool_list.append({
                     "name": t["name"],
                     "desc": (t.get("description") or "")[:120],
+                    "description": t.get("description") or "",
+                    "parameters": t.get("parameters", [])
                 })
                 
         conn = None

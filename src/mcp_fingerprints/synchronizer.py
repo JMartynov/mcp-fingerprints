@@ -23,7 +23,6 @@ from typing import Any
 from mcp_fingerprints.ast_parser import (
     parse_mcp_source_code,
     parse_typescript_mcp_ast,
-    parse_python_mcp_ast,
     parse_python_mcp_ast_bundle,
 )
 from mcp_fingerprints.monorepo_prober import match_monorepo_subpackage_dir
@@ -604,7 +603,7 @@ class PassportSynchronizer:
                                                 aggregated_tools.append(tool)
                             except Exception:
                                 continue
-            except urllib.error.HTTPError as e:
+            except urllib.error.HTTPError:
                 pass
             except Exception:
                 pass
