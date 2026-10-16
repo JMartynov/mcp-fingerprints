@@ -331,3 +331,25 @@ def dispatch_drift_webhook(
     except Exception as e:
         logger.warning("Failed to dispatch webhook: %s", e)
         return False
+
+
+def extract_package_from_server_config(server_conf: dict[str, Any], server_key: str) -> str:
+    """Infer the likely package name from a client's server configuration block."""
+    args = server_conf.get("args", [])
+    cmd = server_conf.get("command", "")
+
+    # Handle Zed format where command is a dict
+    if isinstance(cmd, dict):
+        args = cmd.get("args", [])
+        cmd = cmd.get("path", "")
+
+    # Check args for package names (e.g. npx -y @scope/pkg or uvx pkg)
+    for arg in args:
+        if isinstance(arg, str):
+            if arg.startswith("@") and "/" in arg:
+                return arg
+            if not arg.startswith("-") and not arg.endswith((".js", ".ts", ".py", ".json")):
+                return arg
+
+    return server_key
+

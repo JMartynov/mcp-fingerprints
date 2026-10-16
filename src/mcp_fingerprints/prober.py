@@ -12,7 +12,6 @@ from typing import Any
 
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import FingerprintMatchResult
-from mcp_fingerprints.sandbox_drivers import get_sandbox_runner, BaseSandboxRunner
 
 logger = logging.getLogger("mcp_fingerprints.prober")
 
@@ -44,12 +43,8 @@ class ProbeReport:
 class McpStdioProber:
     """Probes a running or launchable MCP server over stdio JSON-RPC 2.0."""
 
-    def __init__(self, matcher: FingerprintMatcher | None = None, sandbox: str | BaseSandboxRunner = "auto") -> None:
+    def __init__(self, matcher: FingerprintMatcher | None = None, **kwargs: Any) -> None:
         self.matcher = matcher or FingerprintMatcher()
-        if isinstance(sandbox, BaseSandboxRunner):
-            self.runner = sandbox
-        else:
-            self.runner = get_sandbox_runner(sandbox)
 
     @staticmethod
     def _read_jsonrpc_response(process: subprocess.Popen, timeout: float = 5.0) -> dict[str, Any] | None:
@@ -116,15 +111,9 @@ class McpStdioProber:
     ) -> ProbeReport:
         """Launch command, conduct MCP handshake, query capabilities, and audit security."""
         proc = None
-        cleanup = None
         try:
-            if hasattr(self.runner, "prepare"):
-                cleanup = self.runner.prepare(command, timeout)
-            
-            sandbox_command = self.runner.wrap_command(command)
-            
             proc = subprocess.Popen(
-                sandbox_command,
+                command,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -192,8 +181,6 @@ class McpStdioProber:
                     proc.wait(timeout=1.0)
                 except Exception:
                     proc.kill()
-            if cleanup:
-                cleanup()
 
         # Match against knowledge base
         match_result = self.matcher.match(

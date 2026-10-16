@@ -9,8 +9,6 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from mcp_fingerprints.security_classifier import classify_server_security_profile
-
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
@@ -37,10 +35,7 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
 
     # Determine security risk strictly from static tool capabilities
     sec_profile = passport.get("security_profile")
-    if not sec_profile and versions:
-        sec_profile = classify_server_security_profile(versions)
-
-    risk_tier = sec_profile.get("highest_risk_tier", "low") if sec_profile else "low"
+    risk_tier = sec_profile.get("highest_risk_tier", "low") if isinstance(sec_profile, dict) else "low"
 
     # Default install / run command
     conn = None

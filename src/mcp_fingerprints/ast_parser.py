@@ -213,6 +213,15 @@ def _extract_field_details(
         if isinstance(default_node, ast.Constant):
             res["default"] = default_node.value
             res["has_default"] = True
+        elif isinstance(default_node, ast.List):
+            res["default"] = [e.value for e in default_node.elts if isinstance(e, ast.Constant)]
+            res["has_default"] = True
+        elif isinstance(default_node, ast.Dict):
+            res["default"] = {}
+            res["has_default"] = True
+        elif isinstance(default_node, (ast.Tuple, ast.Set)):
+            res["default"] = []
+            res["has_default"] = True
         elif isinstance(default_node, ast.Call):
             func_name = getattr(default_node.func, "id", None) or getattr(default_node.func, "attr", None)
             if func_name == "Field":
@@ -395,6 +404,61 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        is_tool_class = False
+        for base in node.bases:
+            base_name = getattr(base, "id", getattr(base, "attr", None))
+            if base_name in ("BaseTool", "Tool"):
+                is_tool_class = True
+                break
+
+        if is_tool_class:
+            name = None
+            desc = ""
+            args_schema_name = None
+            properties: dict[str, Any] = {}
+            required: list[str] = []
+
+            for item in node.body:
+                if isinstance(item, ast.Assign):
+                    for target in item.targets:
+                        if isinstance(target, ast.Name):
+                            if target.id == "name" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                                name = item.value.value
+                            elif target.id == "description" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                                desc = item.value.value
+                            elif target.id == "args_schema" and isinstance(item.value, ast.Name):
+                                args_schema_name = item.value.id
+                elif isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                    if item.target.id == "name" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                        name = item.value.value
+                    elif item.target.id == "description" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                        desc = item.value.value
+                    elif item.target.id == "args_schema" and isinstance(item.value, ast.Name):
+                        args_schema_name = item.value.id
+
+            if not name:
+                name = node.name
+
+            if args_schema_name and args_schema_name in self.pydantic_models:
+                model_info = self.pydantic_models[args_schema_name]
+                properties = dict(model_info.get("properties", {}))
+                required = list(model_info.get("required", []))
+
+            self.extracted_tools.append({
+                "name": name,
+                "description": desc or name,
+                "inputSchema": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": sorted(required),
+                },
+                "property_keys": sorted(properties.keys()),
+                "required_keys": sorted(required),
+            })
+
+        self.generic_visit(node)
+
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._process_function(node)
         self.generic_visit(node)
@@ -441,6 +505,10 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
             if dec_name in ("tool", "mcp_tool") or (isinstance(func_node, ast.Attribute) and func_node.attr == "tool"):
                 is_tool = True
+            elif isinstance(func_node, ast.Attribute) and func_node.attr in ("tool", "register"):
+                val_id = getattr(func_node.value, "id", "")
+                if "tool" in val_id or "server" in val_id or "mcp" in val_id:
+                    is_tool = True
             elif dec_name in ("prompt", "mcp_prompt") or (isinstance(func_node, ast.Attribute) and func_node.attr == "prompt"):
                 is_prompt = True
             elif dec_name in ("resource", "mcp_resource") or (isinstance(func_node, ast.Attribute) and func_node.attr == "resource"):
@@ -620,6 +688,30 @@ def parse_python_mcp_ast(code: str) -> AstBundleResult:
 
 
 
+def _extract_balanced_braces(text: str, start_pos: int = 0) -> str:
+    """Extract content inside the first balanced pair of curly braces '{' ... '}' starting at start_pos."""
+    start_idx = text.find("{", start_pos)
+    if start_idx == -1:
+        return ""
+    depth = 0
+    in_quote: str | None = None
+    for i in range(start_idx, len(text)):
+        ch = text[i]
+        if in_quote:
+            if ch == in_quote:
+                in_quote = None
+            continue
+        if ch in ("'", '"', "`"):
+            in_quote = ch
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start_idx + 1 : i]
+    return ""
+
+
 def _parse_balanced_zod_schema(zod_body: str) -> tuple[dict[str, Any], list[str]]:
     """Balanced-delimiter parser for Zod object schema definitions.
 
@@ -690,10 +782,13 @@ def _parse_balanced_zod_schema(zod_body: str) -> tuple[dict[str, Any], list[str]
         items_dict = None
         if "z.object" in expr:
             stype = "object"
-            obj_m = re.search(r"z\.object\s*\(\s*\{([\s\S]*)\}\s*\)", expr)
-            if obj_m:
-                nested_props, _ = _parse_balanced_zod_schema(obj_m.group(1))
-                outer_expr = expr[obj_m.end():]
+            z_idx = expr.find("z.object")
+            brace_body = _extract_balanced_braces(expr, z_idx)
+            if brace_body:
+                nested_props, _ = _parse_balanced_zod_schema(brace_body)
+                first_brace = expr.find("{", z_idx)
+                closing_brace = first_brace + len(brace_body) + 1
+                outer_expr = expr[closing_brace:]
         elif re.search(r"z\.(?:array|list)", expr):
             stype = "array"
             arr_inner = re.search(r"z\.(?:array|list)\s*\(\s*z\.([a-zA-Z0-9]+)", expr)
@@ -783,16 +878,21 @@ def parse_typescript_mcp_ast(code: str) -> AstBundleResult:
 
     # Pattern 1: server.tool("name", "desc", { schema }, handler) or server.tool("name", { schema }, handler)
     tool_call_regex = re.compile(
-        r'(?:server|mcp|app)\.tool\s*\(\s*["\']([^"\']+)["\']\s*,\s*(?:["\'`]([^"\'`]+)["\'`]\s*,\s*)?(?:z\.object\s*\(\s*\{([\s\S]*?)\}\s*\)|\{([\s\S]*?)\})\s*,\s*(?:async\s*)?\(',
+        r'(?:server|mcp|app)\.tool\s*\(\s*["\']([^"\']+)["\']\s*(?:,\s*["\'`]([^"\'`]+)["\'`])?\s*(?:,\s*|\))',
         re.MULTILINE,
     )
 
     for match in tool_call_regex.finditer(code):
         tool_name = match.group(1)
         tool_desc = match.group(2) or tool_name
-        zod_body = match.group(3) or match.group(4) or ""
-        properties, required = _parse_balanced_zod_schema(zod_body)
-        add_tool(tool_name, tool_desc, properties, required)
+        start_pos = match.end()
+        rest = code[start_pos : start_pos + 100].lstrip()
+        if rest.startswith("{") or rest.startswith("z.object"):
+            zod_body = _extract_balanced_braces(code, start_pos)
+            properties, required = _parse_balanced_zod_schema(zod_body)
+            add_tool(tool_name, tool_desc, properties, required)
+        else:
+            add_tool(tool_name, tool_desc, {}, [])
 
     # Pattern 2: server.registerTool("name", { title: "...", description: "...", inputSchema: { ... } }, handler)
     register_tool_regex = re.compile(
@@ -809,19 +909,13 @@ def parse_typescript_mcp_ast(code: str) -> AstBundleResult:
         t_desc = desc_m.group(1) if desc_m else t_name
         properties = {}
         required = []
-        schema_m = re.search(r'inputSchema\s*:\s*\{([\s\S]*?)\}\s*(?:,|\})', chunk)
-        if schema_m:
-            properties, required = _parse_balanced_zod_schema(schema_m.group(1))
+        schema_pos = chunk.find("inputSchema")
+        if schema_pos != -1:
+            schema_body = _extract_balanced_braces(chunk, schema_pos)
+            if schema_body:
+                properties, required = _parse_balanced_zod_schema(schema_body)
 
         add_tool(t_name, t_desc, properties, required)
-
-    # Pattern 3: Bundled JS with ListToolsRequestSchema handlers
-    # e.g. server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [ ... ] }))
-    list_tools_match = re.search(r'ListToolsRequestSchema[\s\S]*?tools\s*:\s*\[([\s\S]*?)\]\s*\}', code)
-    if list_tools_match:
-        tools_chunk = list_tools_match.group(1)
-        for t_match in re.finditer(r'\{[^{}]*name\s*:\s*["\']([^"\']+)["\'][^{}]*description\s*:\s*["\']([^"\']*)["\']', tools_chunk):
-            add_tool(t_match.group(1), t_match.group(2), {}, [])
 
     # Pattern 4: Object literal array declaration [{ name: "...", description: "...", inputSchema: ... }]
     # E.g. tools = [{ name: "read_file", ... }]

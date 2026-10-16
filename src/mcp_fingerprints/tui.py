@@ -202,35 +202,12 @@ class MCPCatalogBrowser:
                 p = self.filtered_passports[idx]
                 pkg = p.get("package_name", "Unknown")[: list_width - 2]
 
-                # Check badges for risk
-                risk = "Low"
-                security = p.get("security_profile", {})
-                if security:
-                    risk = security.get("risk_tier", "Low")
-
-                badge = "[L]"
-                color = 3
-                if risk == "Critical":
-                    badge = "[C]"
-                    color = 4
-                elif risk == "High":
-                    badge = "[H]"
-                    color = 4
-                elif risk == "Medium":
-                    badge = "[M]"
-                    color = 5
-
                 if idx == self.selected_index:
                     self.safe_attron(self.safe_color_pair(6))
                     self.stdscr.addstr(list_y + i, 0, pkg.ljust(list_width))
                     self.safe_attroff(self.safe_color_pair(6))
                 else:
                     self.stdscr.addstr(list_y + i, 0, pkg.ljust(list_width))
-                    self.safe_attron(self.safe_color_pair(color))
-                    # draw badge at end if fits
-                    if list_width > len(pkg) + 5:
-                        self.stdscr.addstr(list_y + i, list_width - 5, badge)
-                    self.safe_attroff(self.safe_color_pair(color))
 
         for i in range(list_height):
             self.stdscr.addstr(list_y + i, list_width, "|")
@@ -245,12 +222,10 @@ class MCPCatalogBrowser:
             lines.append(f"Package: {p.get('package_name', 'Unknown')}")
             lines.append(f"Ecosystem: {p.get('ecosystem', 'Unknown')}")
             lines.append(f"Description: {p.get('description', '')}")
+            if p.get("author"):
+                lines.append(f"Author: {p.get('author')}")
             if p.get("repository_url"):
                 lines.append(f"Repository: {p.get('repository_url')}")
-
-            security = p.get("security_profile", {})
-            if security:
-                lines.append(f"Risk Tier: {security.get('risk_tier', 'Unknown')}")
 
             lines.append("")
 
