@@ -52,7 +52,7 @@ async def calc(expr: str, *, precise: bool = True, num_runs: int) -> float:
         self.assertEqual(tools, [])
 
     def test_parse_typescript_mcp_sdk(self) -> None:
-        ts_code = '''
+        ts_code = """
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 
 const server = new Server({ name: "ts-server", version: "1.0.0" });
@@ -68,7 +68,7 @@ server.tool(
     return { id: "123" };
   }
 );
-'''
+"""
         tools = parse_typescript_mcp_ast(ts_code)
         self.assertGreaterEqual(len(tools), 1)
         t = tools[0]
@@ -77,7 +77,7 @@ server.tool(
         self.assertIn("username", t["property_keys"])
 
     def test_parse_typescript_register_tool(self) -> None:
-        ts_code = '''
+        ts_code = """
 server.registerTool(
   "create_entities",
   {
@@ -89,15 +89,18 @@ server.registerTool(
   },
   async ({ entities }) => {}
 );
-'''
+"""
         tools = parse_typescript_mcp_ast(ts_code)
         self.assertEqual(len(tools), 1)
         self.assertEqual(tools[0]["name"], "create_entities")
-        self.assertEqual(tools[0]["description"], "Create multiple new entities in the knowledge graph")
+        self.assertEqual(
+            tools[0]["description"],
+            "Create multiple new entities in the knowledge graph",
+        )
         self.assertIn("entities", tools[0]["property_keys"])
 
     def test_parse_typescript_tool_definitions_array(self) -> None:
-        ts_code = '''
+        ts_code = """
 export const TOOL_DEFINITIONS = [
   {
     name: 'list_proxies',
@@ -110,16 +113,18 @@ export const TOOL_DEFINITIONS = [
     description: 'Purchase proxy traffic'
   }
 ];
-'''
+"""
         tools = parse_typescript_mcp_ast(ts_code)
         self.assertEqual(len(tools), 2)
         self.assertEqual(tools[0]["name"], "list_proxies")
-        self.assertEqual(tools[0]["description"], "List all available proxies for account")
+        self.assertEqual(
+            tools[0]["description"], "List all available proxies for account"
+        )
         self.assertEqual(tools[1]["name"], "buy_proxy")
         self.assertEqual(tools[1]["description"], "Purchase proxy traffic")
 
     def test_parse_python_low_level_tool_constructor(self) -> None:
-        py_code = '''
+        py_code = """
 from mcp.types import Tool
 
 @server.list_tools()
@@ -131,7 +136,7 @@ async def handle_list_tools():
             inputSchema={"type": "object", "properties": {"repo": {"type": "string"}}, "required": ["repo"]}
         )
     ]
-'''
+"""
         tools = parse_python_mcp_ast(py_code)
         self.assertEqual(len(tools), 1)
         self.assertEqual(tools[0]["name"], "git_status")

@@ -5,9 +5,8 @@ from __future__ import annotations
 import io
 import json
 import tarfile
-import urllib.error
 import zipfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -63,7 +62,7 @@ class MockResponse:
 
     def decode(self, *args, **kwargs):
         return self._data.decode(*args, **kwargs)
-        
+
     def __enter__(self):
         return self
 
@@ -75,8 +74,14 @@ class MockResponse:
 def test_pypi_extractor_wheel_in_memory(mock_urlopen, synchronizer):
     pypi_json = {
         "urls": [
-            {"packagetype": "sdist", "url": "https://pypi.org/files/my_package-1.0.0.tar.gz"},
-            {"packagetype": "bdist_wheel", "url": "https://pypi.org/files/my_package-1.0.0-py3-none-any.whl"},
+            {
+                "packagetype": "sdist",
+                "url": "https://pypi.org/files/my_package-1.0.0.tar.gz",
+            },
+            {
+                "packagetype": "bdist_wheel",
+                "url": "https://pypi.org/files/my_package-1.0.0-py3-none-any.whl",
+            },
         ]
     }
 
@@ -112,7 +117,10 @@ def hello_world(name: str) -> str:
 def test_pypi_extractor_sdist_in_memory(mock_urlopen, synchronizer):
     pypi_json = {
         "urls": [
-            {"packagetype": "sdist", "url": "https://pypi.org/files/my_package-1.0.0.tar.gz"},
+            {
+                "packagetype": "sdist",
+                "url": "https://pypi.org/files/my_package-1.0.0.tar.gz",
+            },
         ]
     }
 
@@ -148,7 +156,10 @@ def add_numbers(a: int, b: int) -> int:
 def test_pypi_extractor_size_guard(mock_urlopen, synchronizer):
     pypi_json = {
         "urls": [
-            {"packagetype": "bdist_wheel", "url": "https://pypi.org/files/big_package-1.0.0-py3-none-any.whl"},
+            {
+                "packagetype": "bdist_wheel",
+                "url": "https://pypi.org/files/big_package-1.0.0-py3-none-any.whl",
+            },
         ]
     }
 
@@ -158,7 +169,9 @@ def test_pypi_extractor_size_guard(mock_urlopen, synchronizer):
     def side_effect(req, *args, **kwargs):
         if req.full_url == "https://pypi.org/pypi/big_package/json":
             return MockResponse(json.dumps(pypi_json).encode("utf-8"))
-        elif req.full_url == "https://pypi.org/files/big_package-1.0.0-py3-none-any.whl":
+        elif (
+            req.full_url == "https://pypi.org/files/big_package-1.0.0-py3-none-any.whl"
+        ):
             return MockResponse(large_payload)
         raise ValueError(f"Unexpected URL: {req.full_url}")
 
@@ -166,4 +179,3 @@ def test_pypi_extractor_size_guard(mock_urlopen, synchronizer):
 
     tools = synchronizer._extract_tools_from_pypi_package("big_package")
     assert tools == []  # Rejected gracefully due to size limit
-

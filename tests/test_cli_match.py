@@ -11,7 +11,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 from mcp_fingerprints.cli import main
-from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint, ToolContractSignature
+from mcp_fingerprints.models import (
+    ServerPackageSpec,
+    VersionFingerprint,
+    ToolContractSignature,
+)
 
 
 class TestCliMatch(unittest.TestCase):
@@ -35,13 +39,21 @@ class TestCliMatch(unittest.TestCase):
                             name="add",
                             description="Add two numbers",
                             canonical_hash="sha256:1111111111111111111111111111111111111111111111111111111111111111",
-                            input_schema={"type": "object", "properties": {"a": {"type": "number"}, "b": {"type": "number"}}},
+                            input_schema={
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "number"},
+                                    "b": {"type": "number"},
+                                },
+                            },
                         ),
                     ),
                 ),
             ),
         )
-        (self.out_dir / "test-calculator.json").write_text(json.dumps(spec.to_dict()), encoding="utf-8")
+        (self.out_dir / "test-calculator.json").write_text(
+            json.dumps(spec.to_dict()), encoding="utf-8"
+        )
 
     def tearDown(self) -> None:
         self.tmpdir.cleanup()
@@ -52,14 +64,27 @@ class TestCliMatch(unittest.TestCase):
             {
                 "name": "add",
                 "description": "Add two numbers",
-                "inputSchema": {"type": "object", "properties": {"a": {"type": "number"}, "b": {"type": "number"}}},
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"a": {"type": "number"}, "b": {"type": "number"}},
+                },
             }
         ]
         stdin_buf = io.StringIO(json.dumps(input_tools))
         stdout_buf = io.StringIO()
 
-        test_args = ["mcp_fingerprints.cli", "match", "--dir", str(self.out_dir), "--json"]
-        with patch.object(sys, "argv", test_args), patch.object(sys, "stdin", stdin_buf), patch.object(sys, "stdout", stdout_buf):
+        test_args = [
+            "mcp_fingerprints.cli",
+            "match",
+            "--dir",
+            str(self.out_dir),
+            "--json",
+        ]
+        with (
+            patch.object(sys, "argv", test_args),
+            patch.object(sys, "stdin", stdin_buf),
+            patch.object(sys, "stdout", stdout_buf),
+        ):
             main()
 
         output = stdout_buf.getvalue()
@@ -72,19 +97,40 @@ class TestCliMatch(unittest.TestCase):
     def test_cli_match_file_human_report(self) -> None:
         """Verify CLI match with --input-file outputs human-readable report."""
         tools_file = self.out_dir / "observed.json"
-        tools_file.write_text(json.dumps({
-            "tools": [
+        tools_file.write_text(
+            json.dumps(
                 {
-                    "name": "add",
-                    "description": "Add two numbers",
-                    "inputSchema": {"type": "object", "properties": {"a": {"type": "number"}, "b": {"type": "number"}}},
+                    "tools": [
+                        {
+                            "name": "add",
+                            "description": "Add two numbers",
+                            "inputSchema": {
+                                "type": "object",
+                                "properties": {
+                                    "a": {"type": "number"},
+                                    "b": {"type": "number"},
+                                },
+                            },
+                        }
+                    ]
                 }
-            ]
-        }), encoding="utf-8")
+            ),
+            encoding="utf-8",
+        )
 
         stdout_buf = io.StringIO()
-        test_args = ["mcp_fingerprints.cli", "match", "--dir", str(self.out_dir), "--input-file", str(tools_file)]
-        with patch.object(sys, "argv", test_args), patch.object(sys, "stdout", stdout_buf):
+        test_args = [
+            "mcp_fingerprints.cli",
+            "match",
+            "--dir",
+            str(self.out_dir),
+            "--input-file",
+            str(tools_file),
+        ]
+        with (
+            patch.object(sys, "argv", test_args),
+            patch.object(sys, "stdout", stdout_buf),
+        ):
             main()
 
         output = stdout_buf.getvalue()

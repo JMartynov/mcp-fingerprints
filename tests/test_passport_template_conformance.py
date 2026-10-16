@@ -91,7 +91,9 @@ def validate_against_template(data: dict[str, Any], path_desc: str) -> list[str]
     # 1. Top-Level Required Fields
     for field_name, expected_type in PASSPORT_TEMPLATE["required_fields"].items():
         if field_name not in data:
-            errors.append(f"{path_desc}: Missing required top-level field '{field_name}'")
+            errors.append(
+                f"{path_desc}: Missing required top-level field '{field_name}'"
+            )
         elif not isinstance(data[field_name], expected_type):
             errors.append(
                 f"{path_desc}: Field '{field_name}' must be {expected_type}, got {type(data[field_name])}"
@@ -108,11 +110,15 @@ def validate_against_template(data: dict[str, Any], path_desc: str) -> list[str]
     # 3. PURL & Ecosystem Format
     purl = data.get("purl", "")
     if purl and not PURL_REGEX.match(purl):
-        errors.append(f"{path_desc}: PURL '{purl}' does not match standard RFC PURL regex")
+        errors.append(
+            f"{path_desc}: PURL '{purl}' does not match standard RFC PURL regex"
+        )
 
     eco = data.get("ecosystem", "").lower()
     if eco and eco not in PASSPORT_TEMPLATE["allowed_ecosystems"]:
-        errors.append(f"{path_desc}: Ecosystem '{eco}' not in allowed list {PASSPORT_TEMPLATE['allowed_ecosystems']}")
+        errors.append(
+            f"{path_desc}: Ecosystem '{eco}' not in allowed list {PASSPORT_TEMPLATE['allowed_ecosystems']}"
+        )
 
     # 4. Versions Validation
     versions = data.get("versions", [])
@@ -132,8 +138,12 @@ def validate_against_template(data: dict[str, Any], path_desc: str) -> list[str]
                     errors.append(f"{v_desc}: Field '{vf_name}' must be {vf_type}")
 
             toolset_hash = ver.get("toolset_canonical_hash", "")
-            if toolset_hash and not (SHA256_REGEX.match(toolset_hash) or len(toolset_hash) == 64):
-                errors.append(f"{v_desc}: Invalid toolset_canonical_hash '{toolset_hash}'")
+            if toolset_hash and not (
+                SHA256_REGEX.match(toolset_hash) or len(toolset_hash) == 64
+            ):
+                errors.append(
+                    f"{v_desc}: Invalid toolset_canonical_hash '{toolset_hash}'"
+                )
 
             # Validate Tool Signatures
             tools = ver.get("tool_signatures", [])
@@ -144,15 +154,23 @@ def validate_against_template(data: dict[str, Any], path_desc: str) -> list[str]
                         errors.append(f"{t_desc}: Must be a dictionary")
                         continue
 
-                    for tf_name, tf_type in TOOL_SIGNATURE_TEMPLATE["required_fields"].items():
+                    for tf_name, tf_type in TOOL_SIGNATURE_TEMPLATE[
+                        "required_fields"
+                    ].items():
                         if tf_name not in tool:
-                            errors.append(f"{t_desc}: Missing required field '{tf_name}'")
+                            errors.append(
+                                f"{t_desc}: Missing required field '{tf_name}'"
+                            )
                         elif not isinstance(tool[tf_name], tf_type):
-                            errors.append(f"{t_desc}: Field '{tf_name}' must be {tf_type}")
+                            errors.append(
+                                f"{t_desc}: Field '{tf_name}' must be {tf_type}"
+                            )
 
                     t_hash = tool.get("canonical_hash", "")
                     if t_hash and not (SHA256_REGEX.match(t_hash) or len(t_hash) == 64):
-                        errors.append(f"{t_desc}: Invalid tool canonical_hash '{t_hash}'")
+                        errors.append(
+                            f"{t_desc}: Invalid tool canonical_hash '{t_hash}'"
+                        )
 
     return errors
 
@@ -163,7 +181,9 @@ def test_template_conformance_individual_files():
         pytest.skip(f"Data directory {DATA_DIR} does not exist")
 
     passport_files = list(DATA_DIR.glob("*.json"))
-    assert len(passport_files) >= 3000, f"Expected >= 3,000 passports, found {len(passport_files)}"
+    assert len(passport_files) >= 3000, (
+        f"Expected >= 3,000 passports, found {len(passport_files)}"
+    )
 
     all_errors: list[str] = []
     for pf in passport_files:
@@ -177,7 +197,10 @@ def test_template_conformance_individual_files():
         except Exception as exc:
             all_errors.append(f"{pf.name}: JSON parse error {exc}")
 
-    assert len(all_errors) == 0, f"Template violations in {len(all_errors)} items:\n" + "\n".join(all_errors[:10])
+    assert len(all_errors) == 0, (
+        f"Template violations in {len(all_errors)} items:\n"
+        + "\n".join(all_errors[:10])
+    )
 
 
 def test_template_conformance_snapshot_payload():
@@ -198,4 +221,7 @@ def test_template_conformance_snapshot_payload():
         if errs:
             all_errors.extend(errs)
 
-    assert len(all_errors) == 0, f"Snapshot template violations in {len(all_errors)} items:\n" + "\n".join(all_errors[:10])
+    assert len(all_errors) == 0, (
+        f"Snapshot template violations in {len(all_errors)} items:\n"
+        + "\n".join(all_errors[:10])
+    )

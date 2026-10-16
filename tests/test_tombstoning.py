@@ -50,7 +50,9 @@ def test_github_404_raises_archive_not_found(tmp_path: Path):
             fp=None,
         )
         with pytest.raises(ArchiveNotFoundError):
-            sync._extract_ast_tools_from_github("owner/deleted", repo_url="https://github.com/owner/deleted")
+            sync._extract_ast_tools_from_github(
+                "owner/deleted", repo_url="https://github.com/owner/deleted"
+            )
 
 
 def test_merge_and_enrich_handles_archive_not_found(tmp_path: Path):
@@ -61,7 +63,11 @@ def test_merge_and_enrich_handles_archive_not_found(tmp_path: Path):
         ecosystem="github",
         repository_url="https://github.com/test-org/deleted-repo",
     )
-    with patch.object(sync, "_extract_ast_tools_from_github", side_effect=ArchiveNotFoundError("Repo 404")):
+    with patch.object(
+        sync,
+        "_extract_ast_tools_from_github",
+        side_effect=ArchiveNotFoundError("Repo 404"),
+    ):
         spec = sync.merge_and_enrich_passport(
             package_name="test-org/deleted-repo",
             ecosystem="github",
@@ -89,7 +95,11 @@ def test_hydrate_zero_tool_servers_marks_tombstone(tmp_path: Path):
     pkg_file.parent.mkdir(parents=True, exist_ok=True)
     FingerprintGenerator.save_spec_to_file(spec, pkg_file)
 
-    with patch.object(sync, "_extract_tools_from_npm_tarball", side_effect=ArchiveNotFoundError("npm 404")):
+    with patch.object(
+        sync,
+        "_extract_tools_from_npm_tarball",
+        side_effect=ArchiveNotFoundError("npm 404"),
+    ):
         enriched = sync.enrich_zero_tool_passports(limit=10, max_workers=1)
         assert enriched == 1
 

@@ -1,5 +1,4 @@
 import json
-import pytest
 from mcp_fingerprints.openapi_parser import parse_openapi_spec
 
 
@@ -59,20 +58,27 @@ def test_parse_openapi_3_spec():
 
 
 def test_parse_swagger_2_spec():
-    spec_json = json.dumps({
-        "swagger": "2.0",
-        "info": {"title": "Legacy Swagger", "version": "1.0.0"},
-        "paths": {
-            "/items": {
-                "get": {
-                    "summary": "List items",
-                    "parameters": [
-                        {"name": "limit", "in": "query", "type": "integer", "required": False}
-                    ],
+    spec_json = json.dumps(
+        {
+            "swagger": "2.0",
+            "info": {"title": "Legacy Swagger", "version": "1.0.0"},
+            "paths": {
+                "/items": {
+                    "get": {
+                        "summary": "List items",
+                        "parameters": [
+                            {
+                                "name": "limit",
+                                "in": "query",
+                                "type": "integer",
+                                "required": False,
+                            }
+                        ],
+                    }
                 }
-            }
-        },
-    })
+            },
+        }
+    )
 
     tools = parse_openapi_spec(spec_json)
     assert len(tools) == 1
@@ -112,4 +118,3 @@ paths:
     get_tool = next(t for t in tools if t["name"] == "getOrders")
     assert get_tool["description"] == "Retrieve orders"
     assert "status" in get_tool["inputSchema"]["properties"]
-

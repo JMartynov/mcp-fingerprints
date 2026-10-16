@@ -1,121 +1,140 @@
-    let catalog = [];
-    let filteredCatalog = [];
-    let activeEco = "all";
-    let activeQuery = "";
-    let selectedServers = new Map();
-    let activeModalClient = "claude";
+let catalog = [];
+let filteredCatalog = [];
+let activeEco = "all";
+let activeQuery = "";
+let selectedServers = new Map();
+let activeModalClient = "claude";
 
-    // Virtualization variables
-    let scrollTicking = false;
-    const CARD_HEIGHT = 280;
-    const GAP = 20; // 1.25rem = 20px
-    let columns = 1;
-    let scrollTop = 0;
-    let viewportHeight = window.innerHeight;
+// Virtualization variables
+let scrollTicking = false;
+const CARD_HEIGHT = 280;
+const GAP = 20; // 1.25rem = 20px
+let columns = 1;
+let scrollTop = 0;
+let viewportHeight = window.innerHeight;
 
-    window.addEventListener('resize', () => {
-      viewportHeight = window.innerHeight;
-      updateGridMetrics();
+window.addEventListener("resize", () => {
+  viewportHeight = window.innerHeight;
+  updateGridMetrics();
+  renderVirtual();
+});
+
+window.addEventListener("scroll", () => {
+  scrollTop = window.scrollY;
+  if (!scrollTicking) {
+    window.requestAnimationFrame(() => {
       renderVirtual();
+      scrollTicking = false;
     });
+    scrollTicking = true;
+  }
+});
 
-    window.addEventListener('scroll', () => {
-      scrollTop = window.scrollY;
-      if (!scrollTicking) {
-        window.requestAnimationFrame(() => {
-          renderVirtual();
-          scrollTicking = false;
-        });
-        scrollTicking = true;
-      }
-    });
+function updateGridMetrics() {
+  const grid = document.getElementById("serverGrid");
+  if (!grid) return;
+  const gridWidth = grid.clientWidth;
+  const cardMinWidth = 350;
+  columns = Math.max(1, Math.floor((gridWidth + GAP) / (cardMinWidth + GAP)));
+}
 
-    function updateGridMetrics() {
-      const grid = document.getElementById("serverGrid");
-      if (!grid) return;
-      const gridWidth = grid.clientWidth;
-      const cardMinWidth = 350;
-      columns = Math.max(1, Math.floor((gridWidth + GAP) / (cardMinWidth + GAP)));
-    }
+function getVisibleRange(
+  scrollTop,
+  containerHeight,
+  itemHeight,
+  itemCount,
+  columns,
+) {
+  const buffer = 2; // Buffer rows
+  const totalItemHeight = itemHeight + GAP;
+  const startRow = Math.max(
+    0,
+    Math.floor(scrollTop / totalItemHeight) - buffer,
+  );
+  const visibleRows = Math.ceil(containerHeight / totalItemHeight) + buffer * 2;
 
-    function getVisibleRange(scrollTop, containerHeight, itemHeight, itemCount, columns) {
-      const buffer = 2; // Buffer rows
-      const totalItemHeight = itemHeight + GAP;
-      const startRow = Math.max(0, Math.floor(scrollTop / totalItemHeight) - buffer);
-      const visibleRows = Math.ceil(containerHeight / totalItemHeight) + (buffer * 2);
-      
-      const startIndex = startRow * columns;
-      const endIndex = Math.min(itemCount, startIndex + (visibleRows * columns));
-      
-      return { startIndex, endIndex };
-    }
+  const startIndex = startRow * columns;
+  const endIndex = Math.min(itemCount, startIndex + visibleRows * columns);
 
-    function renderVirtual() {
-      if (!filteredCatalog.length) return;
-      
-      const grid = document.getElementById("serverGrid");
-      updateGridMetrics();
-      
-      const totalRows = Math.ceil(filteredCatalog.length / columns);
-      const totalHeight = totalRows * (CARD_HEIGHT + GAP) - GAP;
-      grid.style.height = `${totalHeight}px`;
+  return { startIndex, endIndex };
+}
 
-      const { startIndex, endIndex } = getVisibleRange(scrollTop, viewportHeight, CARD_HEIGHT, filteredCatalog.length, columns);
-      
-      const existingCards = new Map();
-      Array.from(grid.children).forEach(child => {
-        existingCards.set(child.getAttribute('data-index'), child);
-      });
+function renderVirtual() {
+  if (!filteredCatalog.length) return;
 
-      const newIndices = new Set();
-      
-      for (let i = startIndex; i < endIndex; i++) {
-        newIndices.add(i.toString());
-        const item = filteredCatalog[i];
-        
-        const row = Math.floor(i / columns);
-        const col = i % columns;
-        
-        const top = row * (CARD_HEIGHT + GAP);
-        const width = `calc(${100 / columns}% - ${((columns - 1) * GAP) / columns}px)`;
-        const left = `calc(${col} * (${width} + ${GAP}px))`;
+  const grid = document.getElementById("serverGrid");
+  updateGridMetrics();
 
-        let card = existingCards.get(i.toString());
-        if (!card) {
-          card = document.createElement("div");
-          card.className = "card";
-          card.setAttribute('data-index', i.toString());
-          
-          const safeKey = item.name.replace(/[@/_]/g, "-");
-          card.id = 'server-' + safeKey;
-          const displayedTools = item.tools.slice(0, 6);
+  const totalRows = Math.ceil(filteredCatalog.length / columns);
+  const totalHeight = totalRows * (CARD_HEIGHT + GAP) - GAP;
+  grid.style.height = `${totalHeight}px`;
 
-          const isChecked = selectedServers.has(item.name) ? 'checked' : '';
-          card.innerHTML = `
+  const { startIndex, endIndex } = getVisibleRange(
+    scrollTop,
+    viewportHeight,
+    CARD_HEIGHT,
+    filteredCatalog.length,
+    columns,
+  );
+
+  const existingCards = new Map();
+  Array.from(grid.children).forEach((child) => {
+    existingCards.set(child.getAttribute("data-index"), child);
+  });
+
+  const newIndices = new Set();
+
+  for (let i = startIndex; i < endIndex; i++) {
+    newIndices.add(i.toString());
+    const item = filteredCatalog[i];
+
+    const row = Math.floor(i / columns);
+    const col = i % columns;
+
+    const top = row * (CARD_HEIGHT + GAP);
+    const width = `calc(${100 / columns}% - ${((columns - 1) * GAP) / columns}px)`;
+    const left = `calc(${col} * (${width} + ${GAP}px))`;
+
+    let card = existingCards.get(i.toString());
+    if (!card) {
+      card = document.createElement("div");
+      card.className = "card";
+      card.setAttribute("data-index", i.toString());
+
+      const safeKey = item.name.replace(/[@/_]/g, "-");
+      card.id = "server-" + safeKey;
+      const displayedTools = item.tools.slice(0, 6);
+
+      const isChecked = selectedServers.has(item.name) ? "checked" : "";
+      card.innerHTML = `
             <div>
               <div class="card-header">
                 <div class="card-title">
                   <label class="checkbox-container" style="color:var(--text); font-size:1.15rem; font-weight:700;">
                     <input type="checkbox" class="server-checkbox" data-name="${item.name}" ${isChecked} onchange="toggleSelection('${item.name}')">
-                    ${item.name}
+                    <span style="cursor:pointer;" onclick="openInspectorModal('${item.name}')" title="Click for details">${item.name}</span>
                   </label>
                 </div>
                 <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                   <span class="badge badge-eco">${item.ecosystem}</span>
-                  <span class="badge badge-${item.risk_tier}">${item.risk_tier}</span>
+                  
                 </div>
               </div>
               <div class="card-desc">${item.description || "No description provided."}</div>
               
-              ${item.tool_count > 0 ? `
+              ${
+                item.tool_count > 0
+                  ? `
                 <div class="tools-section">
                   <div class="tools-label">Tools (${item.tool_count})</div>
                   <div class="tool-tags">
-                    ${displayedTools.map(t => `<span class="tool-tag">${t.name}</span>`).join("")}
+                    ${displayedTools.map((t) => `<span class="tool-tag">${t.name}</span>`).join("")}
                     ${item.tool_count > 6 ? `<span class="tool-tag">+${item.tool_count - 6} more</span>` : ""}
                   </div>
                 </div>
-              ` : `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 0.5rem;">Zero static tools recorded</div>`}
+              `
+                  : `<div style="font-size:0.8rem; color:var(--text-muted); margin-bottom: 0.5rem;">Zero static tools recorded</div>`
+              }
             </div>
 
             <div class="card-actions">
@@ -125,318 +144,469 @@
               <button class="btn-copy" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cline', this)">Cline</button>
             </div>
           `;
-          grid.appendChild(card);
-        }
-        
-        card.style.top = `${top}px`;
-        card.style.left = left;
-        card.style.width = width;
-        card.style.height = `${CARD_HEIGHT}px`;
-      }
-      
-      existingCards.forEach((card, index) => {
-        if (!newIndices.has(index)) {
-          card.remove();
-        }
-      });
+      grid.appendChild(card);
     }
 
-    async function loadCatalog() {
-      try {
-        const resp = await fetch("catalog.json");
-        if (!resp.ok) throw new Error("Catalog file not found");
-        catalog = await resp.json();
-      } catch (err) {
-        console.warn("Could not load catalog.json, using fallback sample data:", err);
-        catalog = [
-          {
-            name: "@modelcontextprotocol/server-filesystem",
-            ecosystem: "npm",
-            version: "1.0.0",
-            description: "Direct local filesystem reader and writer toolset for Claude and Cursor.",
-            tool_count: 5,
-            tools: [{name: "read_file"}, {name: "write_file"}, {name: "list_directory"}],
-            risk_tier: "low",
-            command: "npx -y @modelcontextprotocol/server-filesystem"
-          },
-          {
-            name: "postgres-mcp-server",
-            ecosystem: "pypi",
-            version: "1.2.0",
-            description: "Execute read and write SQL statements against PostgreSQL databases.",
-            tool_count: 4,
-            tools: [{name: "execute_query"}, {name: "list_tables"}],
-            risk_tier: "high",
-            command: "uvx postgres-mcp-server"
-          }
-        ];
-      }
-      render();
+    card.style.top = `${top}px`;
+    card.style.left = left;
+    card.style.width = width;
+    card.style.height = `${CARD_HEIGHT}px`;
+  }
+
+  existingCards.forEach((card, index) => {
+    if (!newIndices.has(index)) {
+      card.remove();
     }
+  });
+}
 
-    function render() {
-      const q = activeQuery.toLowerCase().trim();
-      filteredCatalog = catalog.filter(item => {
-        if (activeEco !== "all" && item.ecosystem.toLowerCase() !== activeEco) return false;
-        if (!q) return true;
-        if (item.name.toLowerCase().includes(q)) return true;
-        if (item.description.toLowerCase().includes(q)) return true;
-        return item.tools.some(t => t.name.toLowerCase().includes(q));
-      });
+async function loadCatalog() {
+  try {
+    const resp = await fetch("catalog.json");
+    if (!resp.ok) throw new Error("Catalog file not found");
+    catalog = await resp.json();
+  } catch (err) {
+    console.warn(
+      "Could not load catalog.json, using fallback sample data:",
+      err,
+    );
+    catalog = [
+      {
+        name: "@modelcontextprotocol/server-filesystem",
+        ecosystem: "npm",
+        version: "1.0.0",
+        description:
+          "Direct local filesystem reader and writer toolset for Claude and Cursor.",
+        tool_count: 5,
+        tools: [
+          { name: "read_file" },
+          { name: "write_file" },
+          { name: "list_directory" },
+        ],
+        command: "npx -y @modelcontextprotocol/server-filesystem",
+      },
+      {
+        name: "postgres-mcp-server",
+        ecosystem: "pypi",
+        version: "1.2.0",
+        description:
+          "Execute read and write SQL statements against PostgreSQL databases.",
+        tool_count: 4,
+        tools: [{ name: "execute_query" }, { name: "list_tables" }],
+        command: "uvx postgres-mcp-server",
+      },
+    ];
+  }
+  render();
+}
 
-      document.getElementById("metricsDisplay").innerText = 
-        `Showing ${filteredCatalog.length.toLocaleString()} of ${catalog.length.toLocaleString()} MCP servers`;
+function render() {
+  const q = activeQuery.toLowerCase().trim();
+  filteredCatalog = catalog.filter((item) => {
+    if (activeEco !== "all" && item.ecosystem.toLowerCase() !== activeEco)
+      return false;
+    if (!q) return true;
+    if (item.name.toLowerCase().includes(q)) return true;
+    if (item.description.toLowerCase().includes(q)) return true;
+    return item.tools.some((t) => t.name.toLowerCase().includes(q));
+  });
 
-      const grid = document.getElementById("serverGrid");
-      grid.innerHTML = "";
-      
-      updateGridMetrics();
-      renderVirtual();
-    }
+  document.getElementById("metricsDisplay").innerText =
+    `Showing ${filteredCatalog.length.toLocaleString()} of ${catalog.length.toLocaleString()} MCP servers`;
 
-    function copyConfig(name, eco, cmd, client, btn) {
-      const safeKey = name.replace(/[@/_]/g, "-");
-      const parts = cmd.split(" ");
-      const command = parts[0] || (eco === "pypi" ? "uvx" : "npx");
-      const args = parts.slice(1);
+  const grid = document.getElementById("serverGrid");
+  grid.innerHTML = "";
 
-      let payload = {};
-      if (client === "claude" || client === "cursor") {
-        payload = {
-          mcpServers: {
-            [safeKey]: { command, args }
-          }
-        };
-      } else if (client === "cline") {
-        payload = {
-          mcpServers: {
-            [safeKey]: { command, args, disabled: false, autoApprove: [] }
-          }
-        };
-      }
+  updateGridMetrics();
+  renderVirtual();
+}
 
-      navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
-        showToast();
-        btn.classList.add("copied");
-        setTimeout(() => btn.classList.remove("copied"), 1500);
-      });
-    }
+function copyConfig(name, eco, cmd, client, btn) {
+  const safeKey = name.replace(/[@/_]/g, "-");
+  const parts = cmd.split(" ");
+  const command = parts[0] || (eco === "pypi" ? "uvx" : "npx");
+  const args = parts.slice(1);
 
-    function showToast() {
-      const t = document.getElementById("toast");
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2000);
-    }
+  let payload = {};
+  if (
+    client === "claude" ||
+    client === "cursor" ||
+    client === "zed" ||
+    client === "windsurf"
+  ) {
+    payload = {
+      mcpServers: {
+        [safeKey]: { command, args },
+      },
+    };
+  } else if (client === "cline") {
+    payload = {
+      mcpServers: {
+        [safeKey]: { command, args, disabled: false, autoApprove: [] },
+      },
+    };
+  }
 
-    function updateURLState() {
-      const url = new URL(window.location);
-      if (activeQuery) {
-        url.searchParams.set('q', activeQuery);
+  navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(() => {
+    showToast();
+    btn.classList.add("copied");
+    setTimeout(() => btn.classList.remove("copied"), 1500);
+  });
+}
+
+function showToast() {
+  const t = document.getElementById("toast");
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+function updateURLState() {
+  const url = new URL(window.location);
+  if (activeQuery) {
+    url.searchParams.set("q", activeQuery);
+  } else {
+    url.searchParams.delete("q");
+  }
+  if (activeEco !== "all") {
+    url.searchParams.set("eco", activeEco);
+  } else {
+    url.searchParams.delete("eco");
+  }
+  history.replaceState(null, "", url);
+}
+
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  activeQuery = e.target.value;
+  updateURLState();
+  render();
+});
+
+document.querySelectorAll(".filter-btn").forEach((btn) => {
+  btn.addEventListener("click", (e) => {
+    document
+      .querySelectorAll(".filter-btn")
+      .forEach((b) => b.classList.remove("active"));
+    e.target.classList.add("active");
+    activeEco = e.target.getAttribute("data-val");
+    updateURLState();
+    render();
+  });
+});
+
+function initFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+
+  const q = params.get("q") || hashParams.get("q");
+  const eco = params.get("eco") || hashParams.get("eco");
+
+  if (q) {
+    activeQuery = q;
+    document.getElementById("searchInput").value = q;
+  }
+
+  if (eco) {
+    activeEco = eco;
+    document.querySelectorAll(".filter-btn").forEach((b) => {
+      if (b.getAttribute("data-val") === eco) {
+        b.classList.add("active");
       } else {
-        url.searchParams.delete('q');
+        b.classList.remove("active");
       }
-      if (activeEco !== 'all') {
-        url.searchParams.set('eco', activeEco);
-      } else {
-        url.searchParams.delete('eco');
-      }
-      history.replaceState(null, '', url);
-    }
-
-    document.getElementById("searchInput").addEventListener("input", e => {
-      activeQuery = e.target.value;
-      updateURLState();
-      render();
     });
+  }
+}
 
-    document.querySelectorAll(".filter-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-        e.target.classList.add("active");
-        activeEco = e.target.getAttribute("data-val");
-        updateURLState();
-        render();
-      });
+initFromURL();
+loadCatalog().then(() => {
+  const params = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const targetServer = params.get("server") || hashParams.get("server");
+
+  if (targetServer) {
+    setTimeout(() => {
+      const el = document.getElementById(
+        "server-" + targetServer.replace(/[@/_]/g, "-"),
+      );
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("highlight-card");
+        setTimeout(() => el.classList.remove("highlight-card"), 2000);
+      }
+    }, 100);
+  }
+});
+
+function toggleSelection(name) {
+  if (selectedServers.has(name)) {
+    selectedServers.delete(name);
+  } else {
+    const item = catalog.find((i) => i.name === name);
+    if (item) selectedServers.set(name, item);
+  }
+  updateDrawer();
+}
+
+function updateDrawer() {
+  const drawer = document.getElementById("bottomDrawer");
+  const count = document.getElementById("selectedCount");
+  count.innerText = selectedServers.size;
+  if (selectedServers.size > 0) {
+    drawer.classList.add("show");
+  } else {
+    drawer.classList.remove("show");
+  }
+}
+
+function detectCollisions() {
+  const toolMap = new Map();
+  const collisions = new Map();
+
+  selectedServers.forEach((server) => {
+    if (!server.tools) return;
+    server.tools.forEach((tool) => {
+      if (!toolMap.has(tool.name)) {
+        toolMap.set(tool.name, [server.name]);
+      } else {
+        const servers = toolMap.get(tool.name);
+        servers.push(server.name);
+        collisions.set(tool.name, servers);
+      }
     });
+  });
 
-    function initFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      
-      const q = params.get('q') || hashParams.get('q');
-      const eco = params.get('eco') || hashParams.get('eco');
-      
-      if (q) {
-        activeQuery = q;
-        document.getElementById('searchInput').value = q;
-      }
-      
-      if (eco) {
-        activeEco = eco;
-        document.querySelectorAll('.filter-btn').forEach(b => {
-          if (b.getAttribute('data-val') === eco) {
-            b.classList.add('active');
-          } else {
-            b.classList.remove('active');
-          }
-        });
-      }
-    }
+  return collisions;
+}
 
-    initFromURL();
-    loadCatalog().then(() => {
-        const params = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(window.location.hash.slice(1));
-        const targetServer = params.get('server') || hashParams.get('server');
-        
-        if (targetServer) {
-            setTimeout(() => {
-                const el = document.getElementById('server-' + targetServer.replace(/[@/_]/g, "-"));
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    el.classList.add('highlight-card');
-                    setTimeout(() => el.classList.remove('highlight-card'), 2000);
-                }
-            }, 100);
-        }
+function updateCollisionUI(collisions) {
+  const warningDiv = document.getElementById("collisionWarning");
+  const listElement = document.getElementById("collisionList");
+
+  if (collisions.size > 0) {
+    listElement.innerHTML = "";
+    collisions.forEach((servers, toolName) => {
+      const li = document.createElement("li");
+      li.innerHTML = `Tool <code>${toolName}</code> is declared in: ${servers.join(", ")}`;
+      listElement.appendChild(li);
     });
+    warningDiv.classList.add("show");
+  } else {
+    warningDiv.classList.remove("show");
+  }
+}
 
-    function toggleSelection(name) {
-      if (selectedServers.has(name)) {
-        selectedServers.delete(name);
-      } else {
-        const item = catalog.find(i => i.name === name);
-        if (item) selectedServers.set(name, item);
-      }
-      updateDrawer();
+function generateCombinedConfig(client) {
+  let mcpServers = {};
+
+  selectedServers.forEach((item) => {
+    const safeKey = item.name.replace(/[@/_]/g, "-");
+    const parts = (item.command || "").split(" ");
+    const command = parts[0] || (item.ecosystem === "pypi" ? "uvx" : "npx");
+    const args = parts.slice(1);
+
+    if (
+      client === "claude" ||
+      client === "cursor" ||
+      client === "zed" ||
+      client === "windsurf"
+    ) {
+      mcpServers[safeKey] = { command, args };
+    } else if (client === "cline") {
+      mcpServers[safeKey] = { command, args, disabled: false, autoApprove: [] };
+    } else if (client === "docker") {
+      mcpServers[safeKey] = {
+        command: "docker",
+        args: ["run", "-i", "--rm", item.name],
+      };
     }
+  });
 
-    function updateDrawer() {
-      const drawer = document.getElementById("bottomDrawer");
-      const count = document.getElementById("selectedCount");
-      count.innerText = selectedServers.size;
-      if (selectedServers.size > 0) {
-        drawer.classList.add("show");
-      } else {
-        drawer.classList.remove("show");
-      }
+  return { mcpServers };
+}
+
+function updateConfigOutput() {
+  const config = generateCombinedConfig(activeModalClient);
+  document.getElementById("configOutput").innerText = JSON.stringify(
+    config,
+    null,
+    2,
+  );
+}
+
+function switchTab(client) {
+  activeModalClient = client;
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    if (btn.getAttribute("data-client") === client) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
     }
+  });
+  updateConfigOutput();
+}
 
-    function detectCollisions() {
-      const toolMap = new Map();
-      const collisions = new Map();
+function openConfigModal() {
+  const collisions = detectCollisions();
+  updateCollisionUI(collisions);
+  updateConfigOutput();
+  document.getElementById("configModal").classList.add("show");
+}
 
-      selectedServers.forEach(server => {
-        if (!server.tools) return;
-        server.tools.forEach(tool => {
-          if (!toolMap.has(tool.name)) {
-            toolMap.set(tool.name, [server.name]);
-          } else {
-            const servers = toolMap.get(tool.name);
-            servers.push(server.name);
-            collisions.set(tool.name, servers);
-          }
+function closeConfigModal() {
+  document.getElementById("configModal").classList.remove("show");
+}
+
+function copyCombinedConfig() {
+  const text = document.getElementById("configOutput").innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast();
+  });
+}
+
+function downloadCombinedConfig() {
+  const text = document.getElementById("configOutput").innerText;
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "config.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function copyShareLink(name, btn) {
+  const url = new URL(window.location);
+  url.searchParams.set("server", name);
+  navigator.clipboard.writeText(url.toString()).then(() => {
+    showToast();
+    btn.classList.add("copied");
+    setTimeout(() => btn.classList.remove("copied"), 1500);
+  });
+}
+
+// --- Interactive Server & Tool Parameter Inspector ---
+function openInspectorModal(serverName) {
+  const item = catalog.find((i) => i.name === serverName);
+  if (!item) return;
+
+  document.getElementById("inspectorTitle").innerText = item.name;
+  const body = document.getElementById("inspectorBody");
+
+  let html = `<div class="inspector-header-info">`;
+
+  if (item.repository_url) {
+    html += `<div class="inspector-meta-item"><strong>Repo:</strong> <a href="${item.repository_url}" target="_blank">${item.repository_url}</a></div>`;
+  }
+  if (item.homepage_url) {
+    html += `<div class="inspector-meta-item"><strong>Home:</strong> <a href="${item.homepage_url}" target="_blank">${item.homepage_url}</a></div>`;
+  }
+  if (item.author) {
+    html += `<div class="inspector-meta-item"><strong>Author:</strong> ${item.author}</div>`;
+  }
+  if (item.license) {
+    html += `<div class="inspector-meta-item"><strong>License:</strong> ${item.license}</div>`;
+  }
+  if (item.latest_version) {
+    html += `<div class="inspector-meta-item"><strong>Version:</strong> ${item.latest_version}</div>`;
+  }
+  if (item.required_env_vars && item.required_env_vars.length > 0) {
+    html += `<div class="inspector-meta-item"><strong>Required Env:</strong> ${item.required_env_vars.join(", ")}</div>`;
+  }
+
+  html += `</div>`; // end header-info
+
+  html += `<div style="margin-bottom: 1.5rem;">${item.description || "No description available."}</div>`;
+
+  // Tools
+  if (item.tools && item.tools.length > 0) {
+    html += `<h3 style="margin-bottom: 1rem; color: var(--text);">Tools (${item.tools.length})</h3>`;
+    item.tools.forEach((tool) => {
+      html += `<div class="tool-detail-card">
+            <div class="tool-detail-title">${tool.name}</div>
+            <div class="tool-detail-desc">${tool.description || "No description provided."}</div>`;
+
+      if (tool.parameters && tool.parameters.length > 0) {
+        html += `<table class="schema-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Default</th>
+                  <th>Enum</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>`;
+        tool.parameters.forEach((p) => {
+          html += `<tr>
+                <td class="param-name">${p.name}</td>
+                <td>${p.type || ""}${p.items_type ? ` of ${p.items_type}` : ""}</td>
+                <td>${p.required ? "Yes" : "No"}</td>
+                <td>${p.default !== undefined && p.default !== null ? JSON.stringify(p.default) : ""}</td>
+                <td>${p.enum ? p.enum.join(", ") : ""}</td>
+                <td>${p.description || ""}</td>
+              </tr>`;
         });
-      });
-
-      return collisions;
-    }
-
-    function updateCollisionUI(collisions) {
-      const warningDiv = document.getElementById("collisionWarning");
-      const listElement = document.getElementById("collisionList");
-      
-      if (collisions.size > 0) {
-        listElement.innerHTML = "";
-        collisions.forEach((servers, toolName) => {
-          const li = document.createElement("li");
-          li.innerHTML = `Tool <code>${toolName}</code> is declared in: ${servers.join(", ")}`;
-          listElement.appendChild(li);
-        });
-        warningDiv.classList.add("show");
+        html += `</tbody></table>`;
       } else {
-        warningDiv.classList.remove("show");
+        html += `<div style="font-size: 0.85rem; color: var(--text-muted);">No parameters defined.</div>`;
       }
-    }
+      html += `</div>`;
+    });
+  }
 
-    function generateCombinedConfig(client) {
-      let mcpServers = {};
-      
-      selectedServers.forEach(item => {
-        const safeKey = item.name.replace(/[@/_]/g, "-");
-        const parts = (item.command || "").split(" ");
-        const command = parts[0] || (item.ecosystem === "pypi" ? "uvx" : "npx");
-        const args = parts.slice(1);
-        
-        if (client === "claude" || client === "cursor" || client === "zed" || client === "windsurf") {
-          mcpServers[safeKey] = { command, args };
-        } else if (client === "cline") {
-          mcpServers[safeKey] = { command, args, disabled: false, autoApprove: [] };
-        } else if (client === "docker") {
-           mcpServers[safeKey] = {
-             command: "docker",
-             args: ["run", "-i", "--rm", item.name]
-           };
-        }
-      });
-      
-      return { mcpServers };
-    }
+  // Prompts
+  if (item.prompts && item.prompts.length > 0) {
+    html += `<h3 style="margin-bottom: 1rem; color: var(--text); margin-top: 2rem;">Prompts (${item.prompts.length})</h3>`;
+    item.prompts.forEach((p) => {
+      html += `<div class="tool-detail-card">
+            <div class="tool-detail-title">${p.name}</div>
+            <div class="tool-detail-desc">${p.description || "No description provided."}</div>
+          </div>`;
+    });
+  }
 
-    function updateConfigOutput() {
-      const config = generateCombinedConfig(activeModalClient);
-      document.getElementById("configOutput").innerText = JSON.stringify(config, null, 2);
-    }
+  // Resources
+  if (item.resources && item.resources.length > 0) {
+    html += `<h3 style="margin-bottom: 1rem; color: var(--text); margin-top: 2rem;">Resources (${item.resources.length})</h3>`;
+    item.resources.forEach((r) => {
+      html += `<div class="tool-detail-card">
+            <div class="tool-detail-title">${r.name || r.uri_template || "Unnamed Resource"}</div>
+            <div class="tool-detail-desc">${r.description || "No description provided."}</div>
+            ${r.uri_template ? `<div style="font-size:0.85rem; color:var(--text-muted);">URI Template: <code>${r.uri_template}</code></div>` : ""}
+          </div>`;
+    });
+  }
 
-    function switchTab(client) {
-      activeModalClient = client;
-      document.querySelectorAll(".tab-btn").forEach(btn => {
-        if (btn.getAttribute("data-client") === client) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      });
-      updateConfigOutput();
-    }
+  // 1-click config copies
+  html += `<h3 style="margin-bottom: 1rem; color: var(--text); margin-top: 2rem;">Export Configuration</h3>`;
+  html += `<div class="copy-buttons-group">
+        <button class="btn-copy" style="max-width: 150px; padding: 0.6rem;" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'claude', this)">Copy for Claude</button>
+        <button class="btn-copy" style="max-width: 150px; padding: 0.6rem;" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cursor', this)">Copy for Cursor</button>
+        <button class="btn-copy" style="max-width: 150px; padding: 0.6rem;" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'cline', this)">Copy for Cline</button>
+        <button class="btn-copy" style="max-width: 150px; padding: 0.6rem;" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'zed', this)">Copy for Zed</button>
+        <button class="btn-copy" style="max-width: 150px; padding: 0.6rem;" onclick="copyConfig('${item.name}', '${item.ecosystem}', '${item.command}', 'windsurf', this)">Copy for Windsurf</button>
+      </div>`;
 
-    function openConfigModal() {
-      const collisions = detectCollisions();
-      updateCollisionUI(collisions);
-      updateConfigOutput();
-      document.getElementById("configModal").classList.add("show");
-    }
+  body.innerHTML = html;
+  document.getElementById("inspectorModal").classList.add("show");
+}
 
-    function closeConfigModal() {
-      document.getElementById("configModal").classList.remove("show");
-    }
+function closeInspectorModal() {
+  document.getElementById("inspectorModal").classList.remove("show");
+}
 
-    function copyCombinedConfig() {
-      const text = document.getElementById("configOutput").innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        showToast();
-      });
-    }
-
-    function downloadCombinedConfig() {
-      const text = document.getElementById("configOutput").innerText;
-      const blob = new Blob([text], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "config.json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function copyShareLink(name, btn) {
-      const url = new URL(window.location);
-      url.searchParams.set('server', name);
-      navigator.clipboard.writeText(url.toString()).then(() => {
-        showToast();
-        btn.classList.add("copied");
-        setTimeout(() => btn.classList.remove("copied"), 1500);
-      });
-    }
+// Close modal if clicked outside of content
+window.onclick = function (event) {
+  const modal = document.getElementById("inspectorModal");
+  if (event.target == modal) {
+    closeInspectorModal();
+  }
+  const configModal = document.getElementById("configModal");
+  if (event.target == configModal) {
+    closeConfigModal();
+  }
+};

@@ -1,5 +1,4 @@
 import os
-import pytest
 
 TASK_FILES = [
     "task_24_resilient_network_ingestion.md",
@@ -21,27 +20,30 @@ REQUIRED_SECTIONS = [
     "5. Live Acceptance Test Plan",
 ]
 
+
 def test_wave_8_task_files_exist_and_valid():
     for filename in TASK_FILES:
         filepath = os.path.join("docs", "tasks", filename)
         assert os.path.exists(filepath), f"{filename} does not exist"
-        
+
         size = os.path.getsize(filepath)
         assert size > 500, f"{filename} is empty or too small ({size} bytes)"
-        
+
         with open(filepath, "r") as f:
             content = f.read()
             for section in REQUIRED_SECTIONS:
                 assert section in content, f"{filename} is missing section: {section}"
 
+
 def test_roadmap_board_specifications_updated():
     roadmap_path = os.path.join("docs", "tasks", "roadmap_board_specifications.md")
-    assert os.path.exists(roadmap_path), "roadmap_board_specifications.md does not exist"
-    
+    assert os.path.exists(roadmap_path), (
+        "roadmap_board_specifications.md does not exist"
+    )
+
     with open(roadmap_path, "r") as f:
         content = f.read()
-        
+
         for task_num in range(24, 33):
             header = f"## {task_num}."
             assert header in content, f"Task {task_num} not found in roadmap"
-            

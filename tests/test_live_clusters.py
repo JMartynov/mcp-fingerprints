@@ -42,7 +42,9 @@ class TestLiveClustersIntegration(unittest.TestCase):
         """
         _require_live_integration()
         # 1. Fetch live entry from Official Registry
-        reg_data, _ = fetch_json("https://registry.modelcontextprotocol.io/v0.1/servers")
+        reg_data, _ = fetch_json(
+            "https://registry.modelcontextprotocol.io/v0.1/servers"
+        )
         self.assertIsNotNone(reg_data, "Official Registry API should be reachable")
         self.assertIn("servers", reg_data)
         servers = reg_data.get("servers", [])
@@ -97,7 +99,9 @@ class TestLiveClustersIntegration(unittest.TestCase):
         npm_data, _ = fetch_json(f"https://registry.npmjs.org/{pkg_name}")
         self.assertIsNotNone(npm_data, "npm registry should return metadata")
         self.assertEqual(npm_data.get("name"), pkg_name)
-        self.assertNotIn("tools", npm_data, "npm registry does not store runtime tool definitions")
+        self.assertNotIn(
+            "tools", npm_data, "npm registry does not store runtime tool definitions"
+        )
 
         # 2. Fetch live runtime tool signatures from Smithery API for brave
         smithery_data, _ = fetch_json("https://api.smithery.ai/servers/brave")

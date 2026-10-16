@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint, ToolContractSignature
+from mcp_fingerprints.models import (
+    ServerPackageSpec,
+    VersionFingerprint,
+    ToolContractSignature,
+)
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.prober import McpStdioProber
 
@@ -67,13 +70,19 @@ class TestMcpStdioProber(unittest.TestCase):
     """Test suite verifying McpStdioProber communication, matching, and vulnerability auditing."""
 
     def test_build_package_command(self) -> None:
-        cmd_npm = McpStdioProber.build_package_command("@modelcontextprotocol/server-brave", ecosystem="npm")
+        cmd_npm = McpStdioProber.build_package_command(
+            "@modelcontextprotocol/server-brave", ecosystem="npm"
+        )
         self.assertEqual(cmd_npm, ["npx", "-y", "@modelcontextprotocol/server-brave"])
 
-        cmd_pypi = McpStdioProber.build_package_command("mcp-server-git", ecosystem="pypi")
+        cmd_pypi = McpStdioProber.build_package_command(
+            "mcp-server-git", ecosystem="pypi"
+        )
         self.assertEqual(cmd_pypi, ["python", "-m", "mcp_server_git"])
 
-        cmd_uvx = McpStdioProber.build_package_command("some-custom-pypi", ecosystem="pypi")
+        cmd_uvx = McpStdioProber.build_package_command(
+            "some-custom-pypi", ecosystem="pypi"
+        )
         self.assertEqual(cmd_uvx, ["uvx", "some-custom-pypi"])
 
     def test_probe_live_mock_mcp_server(self) -> None:
@@ -97,7 +106,10 @@ class TestMcpStdioProber(unittest.TestCase):
                                 name="lookup_user",
                                 description="Look up user details",
                                 canonical_hash="sha256:2222222222222222222222222222222222222222222222222222222222222222",
-                                input_schema={"type": "object", "properties": {"user_id": {"type": "string"}}},
+                                input_schema={
+                                    "type": "object",
+                                    "properties": {"user_id": {"type": "string"}},
+                                },
                             ),
                         ),
                     ),
@@ -120,7 +132,6 @@ class TestMcpStdioProber(unittest.TestCase):
             self.assertTrue(report.match_result.matched)
             self.assertEqual(report.match_result.package_name, "user-service-mcp")
             self.assertEqual(report.match_result.matched_version, "1.0.0")
-
 
 
 if __name__ == "__main__":

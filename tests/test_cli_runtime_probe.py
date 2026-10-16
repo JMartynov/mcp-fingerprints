@@ -1,7 +1,6 @@
 """Unit tests for the CLI runtime sandbox probe integration."""
 
 import json
-from pathlib import Path
 from unittest.mock import patch
 from mcp_fingerprints.synchronizer import PassportSynchronizer
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
@@ -20,7 +19,9 @@ def test_probe_runtime_passports_success(tmp_path):
                 version="1.0.0",
                 toolset_canonical_hash="sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                 capabilities={"tools": False},
-                connections=({"type": "stdio", "command": "npx", "args": ["-y", "test-server"]},),
+                connections=(
+                    {"type": "stdio", "command": "npx", "args": ["-y", "test-server"]},
+                ),
             ),
         ),
     )
@@ -36,7 +37,9 @@ def test_probe_runtime_passports_success(tmp_path):
     ]
 
     sync = PassportSynchronizer(output_dir=passport_dir)
-    with patch("mcp_fingerprints.synchronizer.probe_mcp_server_stdio", return_value=mock_tools):
+    with patch(
+        "mcp_fingerprints.synchronizer.probe_mcp_server_stdio", return_value=mock_tools
+    ):
         count = sync.probe_runtime_passports(limit=10, timeout=2.0)
 
     assert count == 1
@@ -63,7 +66,13 @@ def test_probe_runtime_passports_unsafe_command_skipped(tmp_path):
             VersionFingerprint(
                 version="1.0.0",
                 toolset_canonical_hash="sha256:empty",
-                connections=({"type": "stdio", "command": "bash", "args": ["-c", "echo exploit"]},),
+                connections=(
+                    {
+                        "type": "stdio",
+                        "command": "bash",
+                        "args": ["-c", "echo exploit"],
+                    },
+                ),
             ),
         ),
     )

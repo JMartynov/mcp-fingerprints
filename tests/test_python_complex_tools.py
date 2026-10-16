@@ -1,5 +1,5 @@
-import pytest
 from mcp_fingerprints.ast_parser import parse_python_mcp_ast
+
 
 def test_extract_basetool_class():
     code = """
@@ -25,6 +25,7 @@ class WeatherTool(BaseTool):
     assert "unit" in tools[0]["inputSchema"]["properties"]
     assert "location" in tools[0]["inputSchema"]["required"]
 
+
 def test_extract_tool_decorator():
     code = """
 @tool
@@ -46,6 +47,7 @@ def third_tool():
     assert tools[2]["name"] == "custom"
     assert tools[2]["description"] == "custom desc"
 
+
 def test_extract_tool_manager_register():
     code = """
 @tool_manager.register("some_tool", description="A tool")
@@ -59,6 +61,7 @@ def my_tool(x: int):
     assert "x" in tools[0]["inputSchema"]["properties"]
     assert "x" in tools[0]["inputSchema"]["required"]
 
+
 def test_extract_tool_class_without_args_schema():
     code = """
 class SimpleTool(Tool):
@@ -70,6 +73,7 @@ class SimpleTool(Tool):
     assert tools[0]["name"] == "simple"
     assert tools[0]["description"] == "A simple tool"
     assert tools[0]["inputSchema"]["properties"] == {}
+
 
 def test_extract_tool_class_with_annassign():
     code = """

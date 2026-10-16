@@ -31,7 +31,7 @@ Here are the tools:
         "days": {"type": "number"},
     }
     assert tools[0]["inputSchema"]["required"] == ["location", "days"]
-    
+
     assert tools[1]["name"] == "calculate"
     assert tools[1]["description"] == "Perform calculation"
     assert tools[1]["inputSchema"]["properties"] == {
@@ -51,7 +51,7 @@ def test_parse_markdown_lists():
 """
     tools = parse_markdown_tool_docs(content)
     assert len(tools) == 2
-    
+
     assert tools[0]["name"] == "search"
     assert tools[0]["description"] == "Search the web"
     assert tools[0]["inputSchema"]["properties"] == {
@@ -59,7 +59,7 @@ def test_parse_markdown_lists():
         "max_results": {"type": "number"},
     }
     assert tools[0]["inputSchema"]["required"] == ["query", "max_results"]
-    
+
     assert tools[1]["name"] == "read_file"
     assert tools[1]["description"] == "Read a file"
     assert tools[1]["inputSchema"]["properties"] == {}
@@ -78,7 +78,7 @@ No tools yet.
 def test_fallback_integration_capability_tagging(tmp_path):
     package_name = "test/fallback_pkg"
     repo_url = "https://github.com/test/fallback_pkg"
-    
+
     spec = ServerPackageSpec(
         package_name=package_name,
         purl="pkg:generic/test%2Ffallback_pkg",
@@ -103,30 +103,34 @@ def test_fallback_integration_capability_tagging(tmp_path):
             ),
         ),
     )
-    
+
     j_file = tmp_path / "fallback_pkg.json"
     with open(j_file, "w") as f:
         json.dump(spec.to_dict(), f)
-    
+
     syncer = PassportSynchronizer(output_dir=tmp_path)
     syncer._extract_ast_tools_from_github = MagicMock(return_value=[])
-    
+
     def mock_extract_readme(pkg_name, r_url):
         if pkg_name == package_name:
-            return [{
-                "name": "fake_tool",
-                "description": "fake",
-                "inputSchema": {"type": "object", "properties": {}, "required": []},
-            }]
+            return [
+                {
+                    "name": "fake_tool",
+                    "description": "fake",
+                    "inputSchema": {"type": "object", "properties": {}, "required": []},
+                }
+            ]
         return []
-        
-    syncer._extract_tools_from_github_readme = MagicMock(side_effect=mock_extract_readme)
-    
+
+    syncer._extract_tools_from_github_readme = MagicMock(
+        side_effect=mock_extract_readme
+    )
+
     syncer.enrich_zero_tool_passports(limit=1, max_workers=1)
-    
+
     with open(j_file, "r") as f:
         updated_spec = ServerPackageSpec.from_dict(json.load(f))
-        
+
     assert len(updated_spec.versions) > 0
     updated_version = next(v for v in updated_spec.versions if v.version == "1.0.0")
     assert len(updated_version.tool_signatures) == 1

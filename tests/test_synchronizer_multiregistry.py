@@ -9,7 +9,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint, ToolContractSignature
+from mcp_fingerprints.models import (
+    ServerPackageSpec,
+    VersionFingerprint,
+    ToolContractSignature,
+)
 from mcp_fingerprints.synchronizer import PassportSynchronizer
 
 
@@ -41,7 +45,9 @@ class TestSynchronizerMultiRegistry(unittest.TestCase):
                     ),
                 ),
             )
-            passport_path.write_text(json.dumps(initial_spec.to_dict()), encoding="utf-8")
+            passport_path.write_text(
+                json.dumps(initial_spec.to_dict()), encoding="utf-8"
+            )
 
             # Mock PyPI API response announcing version 0.2.0
             mock_pypi_response = {
@@ -53,7 +59,10 @@ class TestSynchronizerMultiRegistry(unittest.TestCase):
             }
 
             sync = PassportSynchronizer(output_dir=out_dir)
-            with patch("mcp_fingerprints.synchronizer.fetch_json", return_value=(mock_pypi_response, None)):
+            with patch(
+                "mcp_fingerprints.synchronizer.fetch_json",
+                return_value=(mock_pypi_response, None),
+            ):
                 updated_count = sync.update_existing_passports()
 
             self.assertEqual(updated_count, 1)
@@ -92,7 +101,9 @@ class TestSynchronizerMultiRegistry(unittest.TestCase):
                     ),
                 ),
             )
-            passport_path.write_text(json.dumps(initial_spec.to_dict()), encoding="utf-8")
+            passport_path.write_text(
+                json.dumps(initial_spec.to_dict()), encoding="utf-8"
+            )
 
             # Mock Smithery API response with new version 1.1.0 and live verified tools
             mock_smithery_detail = {
@@ -102,13 +113,19 @@ class TestSynchronizerMultiRegistry(unittest.TestCase):
                     {
                         "name": "calculate",
                         "description": "Perform calculation",
-                        "inputSchema": {"type": "object", "properties": {"x": {"type": "number"}}},
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {"x": {"type": "number"}},
+                        },
                     }
                 ],
             }
 
             sync = PassportSynchronizer(output_dir=out_dir)
-            with patch("mcp_fingerprints.synchronizer.fetch_json", return_value=(mock_smithery_detail, None)):
+            with patch(
+                "mcp_fingerprints.synchronizer.fetch_json",
+                return_value=(mock_smithery_detail, None),
+            ):
                 updated_count = sync.update_existing_passports()
 
             self.assertEqual(updated_count, 1)
@@ -119,7 +136,9 @@ class TestSynchronizerMultiRegistry(unittest.TestCase):
             version_map = {v.version: v for v in updated_spec.versions}
             self.assertIn("1.1.0", version_map)
             # Live tools from registry must have verified_tools = True
-            self.assertTrue(version_map["1.1.0"].capabilities.get("verified_tools", False))
+            self.assertTrue(
+                version_map["1.1.0"].capabilities.get("verified_tools", False)
+            )
             self.assertEqual(len(version_map["1.1.0"].tool_signatures), 1)
 
     def test_ast_tool_extraction_and_enrichment(self) -> None:
@@ -141,7 +160,9 @@ class TestSynchronizerMultiRegistry(unittest.TestCase):
                     ),
                 ),
             )
-            passport_path.write_text(json.dumps(initial_spec.to_dict()), encoding="utf-8")
+            passport_path.write_text(
+                json.dumps(initial_spec.to_dict()), encoding="utf-8"
+            )
 
             sample_server_code = b"""
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -171,14 +192,19 @@ server.tool(
             sync = PassportSynchronizer(output_dir=out_dir)
 
             # Mock urlopen: return MockResponse for source file URL, 404 otherwise
-            def mock_urlopen(req: object, *args: object, **kwargs: object) -> MockResponse:
+            def mock_urlopen(
+                req: object, *args: object, **kwargs: object
+            ) -> MockResponse:
                 url_str = req.full_url if hasattr(req, "full_url") else str(req)
                 if "src/index.ts" in url_str:
                     return MockResponse(sample_server_code, status=200)
                 raise Exception("Not Found")
 
             with patch("urllib.request.urlopen", side_effect=mock_urlopen):
-                with patch("mcp_fingerprints.synchronizer.fetch_json", return_value=(None, None)):
+                with patch(
+                    "mcp_fingerprints.synchronizer.fetch_json",
+                    return_value=(None, None),
+                ):
                     enriched_count = sync.enrich_zero_tool_passports(limit=5)
 
             self.assertEqual(enriched_count, 1)
@@ -193,7 +219,9 @@ server.tool(
             self.assertTrue(v0.capabilities.get("verified_tools", False))
             self.assertEqual(len(v0.tool_signatures), 1)
             self.assertEqual(v0.tool_signatures[0].name, "query_weather")
-            self.assertEqual(v0.tool_signatures[0].description, "Get current weather for location")
+            self.assertEqual(
+                v0.tool_signatures[0].description, "Get current weather for location"
+            )
             self.assertNotEqual(
                 v0.toolset_canonical_hash,
                 "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -201,13 +229,19 @@ server.tool(
 
     def test_github_token_header_injection(self) -> None:
         """Verify GITHUB_TOKEN or GH_TOKEN adds Authorization Bearer header."""
-        with patch.dict(os.environ, {"GITHUB_TOKEN": "ghp_test_secret_token_123"}, clear=True):
+        with patch.dict(
+            os.environ, {"GITHUB_TOKEN": "ghp_test_secret_token_123"}, clear=True
+        ):
             headers = PassportSynchronizer._get_github_headers()
-            self.assertEqual(headers.get("Authorization"), "Bearer ghp_test_secret_token_123")
+            self.assertEqual(
+                headers.get("Authorization"), "Bearer ghp_test_secret_token_123"
+            )
             self.assertEqual(headers.get("Accept"), "application/vnd.github.v3+json")
 
             raw_headers = PassportSynchronizer._get_github_headers(raw=True)
-            self.assertEqual(raw_headers.get("Authorization"), "Bearer ghp_test_secret_token_123")
+            self.assertEqual(
+                raw_headers.get("Authorization"), "Bearer ghp_test_secret_token_123"
+            )
             self.assertNotIn("Accept", raw_headers)
 
         with patch.dict(os.environ, {"GH_TOKEN": "ghp_alt_token_456"}, clear=True):
