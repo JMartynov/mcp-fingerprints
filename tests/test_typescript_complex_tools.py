@@ -1,4 +1,3 @@
-import pytest
 from mcp_fingerprints.ast_parser import parse_typescript_mcp_ast
 
 
@@ -43,7 +42,10 @@ def test_typescript_description_with_commas():
     tools = parse_typescript_mcp_ast(code)
     assert len(tools) == 1
     assert tools[0]["name"] == "format_code"
-    assert tools[0]["description"] == "Format code, organize imports, and remove unused variables"
+    assert (
+        tools[0]["description"]
+        == "Format code, organize imports, and remove unused variables"
+    )
     assert "file_path" in tools[0]["inputSchema"]["properties"]
     assert tools[0]["inputSchema"]["required"] == ["file_path"]
 

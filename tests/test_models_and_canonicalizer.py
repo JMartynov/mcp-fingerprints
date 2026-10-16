@@ -5,19 +5,13 @@ Verifies VC-33.1, VC-33.2, VC-33.3, and VC-33.4.
 
 from __future__ import annotations
 
-import json
 from typing import get_args
 
 from mcp_fingerprints.canonicalizer import (
-    build_version_fingerprint,
-    compute_sha256,
-    compute_toolset_canonical_hash,
     extract_tool_signature,
 )
 from mcp_fingerprints.models import (
     ParameterMetadata,
-    PromptSignature,
-    ResourceSignature,
     ServerPackageSpec,
     ToolContractSignature,
     TransportType,

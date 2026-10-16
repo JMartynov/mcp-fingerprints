@@ -1,5 +1,8 @@
-import pytest
-from mcp_fingerprints.ast_parser import parse_jvm_mcp_code, parse_dotnet_mcp_code, parse_mcp_source_code
+from mcp_fingerprints.ast_parser import (
+    parse_jvm_mcp_code,
+    parse_dotnet_mcp_code,
+    parse_mcp_source_code,
+)
 
 
 def test_parse_jvm_mcp_code():
@@ -25,7 +28,7 @@ public class McpTools {
 """
     tools = parse_jvm_mcp_code(code)
     assert len(tools) == 3
-    
+
     t1 = next(t for t in tools if t["name"] == "my_tool")
     assert t1["description"] == "my tool description"
     assert t1["inputSchema"]["properties"]["paramName"]["type"] == "string"
@@ -65,7 +68,7 @@ var t = new McpTool("new_tool", "new desc");
 """
     tools = parse_dotnet_mcp_code(code)
     assert len(tools) == 4
-    
+
     t1 = next(t for t in tools if t["name"] == "csharp_tool")
     assert t1["description"] == "csharp desc"
     assert t1["inputSchema"]["properties"]["name"]["type"] == "string"
@@ -96,7 +99,7 @@ def test_parse_mcp_source_code_jvm_dotnet():
         public void dispatchedJava() {}
     }
     """
-    
+
     csharp_code = """
     using ModelContextProtocol;
     namespace MyCompany {
@@ -106,11 +109,11 @@ def test_parse_mcp_source_code_jvm_dotnet():
         }
     }
     """
-    
+
     res1 = parse_mcp_source_code(java_code, language="java")
     assert len(res1) == 1
     assert res1[0]["name"] == "dispatched_java"
-    
+
     res2 = parse_mcp_source_code(csharp_code, language="cs")
     assert len(res2) == 1
     assert res2[0]["name"] == "dispatched_csharp"

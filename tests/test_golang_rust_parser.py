@@ -1,5 +1,9 @@
-import pytest
-from mcp_fingerprints.ast_parser import parse_golang_mcp_code, parse_rust_mcp_code, parse_mcp_source_code
+from mcp_fingerprints.ast_parser import (
+    parse_golang_mcp_code,
+    parse_rust_mcp_code,
+    parse_mcp_source_code,
+)
+
 
 def test_parse_golang_mcp_code():
     code = """
@@ -34,7 +38,7 @@ func main() {
 """
     tools = parse_golang_mcp_code(code)
     assert len(tools) == 2
-    
+
     t1 = next(t for t in tools if t["name"] == "example_tool")
     assert t1["description"] == "An example tool that does something."
     assert t1["inputSchema"]["type"] == "object"
@@ -79,12 +83,24 @@ fn setup() {
 """
     tools = parse_rust_mcp_code(code)
     assert len(tools) == 5
-    
-    assert any(t["name"] == "hello_world" and t["description"] == "Says hello to the world" for t in tools)
+
+    assert any(
+        t["name"] == "hello_world" and t["description"] == "Says hello to the world"
+        for t in tools
+    )
     assert any(t["name"] == "no_desc" and t["description"] == "no_desc" for t in tools)
-    assert any(t["name"] == "macro_tool" and t["description"] == "Macro description" for t in tools)
-    assert any(t["name"] == "struct_tool" and t["description"] == "Struct description" for t in tools)
-    assert any(t["name"] == "reverse_struct" and t["description"] == "reverse struct desc" for t in tools)
+    assert any(
+        t["name"] == "macro_tool" and t["description"] == "Macro description"
+        for t in tools
+    )
+    assert any(
+        t["name"] == "struct_tool" and t["description"] == "Struct description"
+        for t in tools
+    )
+    assert any(
+        t["name"] == "reverse_struct" and t["description"] == "reverse struct desc"
+        for t in tools
+    )
 
 
 def test_parse_mcp_source_code_dispatch():
@@ -92,17 +108,17 @@ def test_parse_mcp_source_code_dispatch():
     package main
     mcp.NewTool("dispatched_go", mcp.WithDescription("test go dispatch"))
     """
-    
+
     rust_code = """
     fn main() {
         let t = Tool { name: "dispatched_rust".into(), description: "test rust dispatch".into() };
     }
     """
-    
+
     res1 = parse_mcp_source_code(go_code, language="go")
     assert len(res1) == 1
     assert res1[0]["name"] == "dispatched_go"
-    
+
     res2 = parse_mcp_source_code(rust_code, language="rust")
     assert len(res2) == 1
     assert res2[0]["name"] == "dispatched_rust"

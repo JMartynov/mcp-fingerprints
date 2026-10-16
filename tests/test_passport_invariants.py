@@ -148,7 +148,9 @@ def test_invariant_toolset_canonical_hash_tool_order_independent() -> None:
 # ==============================================================================
 
 
-def test_invariant_offline_cross_source_merger_combines_smithery_and_npm(tmp_path: Path) -> None:
+def test_invariant_offline_cross_source_merger_combines_smithery_and_npm(
+    tmp_path: Path,
+) -> None:
     """Invariant: Offline merge preserves Smithery tools and npm version history in one passport."""
     syncer = PassportSynchronizer(output_dir=tmp_path)
 
@@ -182,7 +184,9 @@ def test_invariant_offline_cross_source_merger_combines_smithery_and_npm(tmp_pat
         },
         "versions": {
             "0.1.0": {"dependencies": {"@modelcontextprotocol/sdk": "^0.1.0"}},
-            "0.6.2": {"dependencies": {"@modelcontextprotocol/sdk": "^1.0.0", "pg": "^8.13.1"}},
+            "0.6.2": {
+                "dependencies": {"@modelcontextprotocol/sdk": "^1.0.0", "pg": "^8.13.1"}
+            },
         },
     }
 
@@ -353,7 +357,10 @@ def test_invariant_detects_web_signature_updates_and_schema_drift() -> None:
             "properties": {
                 "query": {"type": "string", "description": "SQL query expression"},
                 "limit": {"type": "integer", "default": 50},
-                "timeout": {"type": "number", "description": "Execution timeout in seconds"},
+                "timeout": {
+                    "type": "number",
+                    "description": "Execution timeout in seconds",
+                },
             },
             "required": ["query"],
         },
@@ -414,7 +421,10 @@ def test_invariant_detects_tool_addition_and_removal_in_updated_releases() -> No
             "name": "delete_user",
             "inputSchema": {
                 "type": "object",
-                "properties": {"user_id": {"type": "string"}, "force": {"type": "boolean"}},
+                "properties": {
+                    "user_id": {"type": "string"},
+                    "force": {"type": "boolean"},
+                },
                 "required": ["user_id"],
             },
         },
@@ -482,4 +492,3 @@ def test_invariant_legacy_vulnerability_fields_stripped() -> None:
     out = spec.to_dict()
     assert "security_profile" not in out
     assert out.get("author") == "SecTeam"
-

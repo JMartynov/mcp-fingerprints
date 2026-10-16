@@ -23,25 +23,25 @@ class TestSynchronizerEnrichment(unittest.TestCase):
         tar_buf = io.BytesIO()
         with tarfile.open(fileobj=tar_buf, mode="w:gz") as tar:
             # File 1: package/dist/file1.js
-            code1 = b'''
+            code1 = b"""
 server.tool("tool_alpha", "First tool", { query: z.string() }, async () => {});
-'''
+"""
             info1 = tarfile.TarInfo(name="package/dist/file1.js")
             info1.size = len(code1)
             tar.addfile(info1, io.BytesIO(code1))
 
             # File 2: package/dist/file2.js
-            code2 = b'''
+            code2 = b"""
 server.tool("tool_beta", "Second tool", { count: z.number() }, async () => {});
-'''
+"""
             info2 = tarfile.TarInfo(name="package/dist/file2.js")
             info2.size = len(code2)
             tar.addfile(info2, io.BytesIO(code2))
 
             # File 3: package/src/file3.ts
-            code3 = b'''
+            code3 = b"""
 server.tool("tool_gamma", "Third tool", { flag: z.boolean() }, async () => {});
-'''
+"""
             info3 = tarfile.TarInfo(name="package/src/file3.ts")
             info3.size = len(code3)
             tar.addfile(info3, io.BytesIO(code3))
@@ -71,13 +71,13 @@ server.tool("tool_gamma", "Third tool", { flag: z.boolean() }, async () => {});
         with zipfile.ZipFile(zip_buf, mode="w") as zf:
             zf.writestr(
                 "mypkg/models.py",
-                '''
+                """
 from pydantic import BaseModel, Field
 
 class SearchQuery(BaseModel):
     query_text: str = Field(description="Search terms")
     limit: int = Field(default=20, description="Max results")
-''',
+""",
             )
             zf.writestr(
                 "mypkg/server.py",
@@ -168,13 +168,17 @@ def health_check() -> str:
             package_name="my-mcp-server",
             ecosystem="pypi",
             pypi_data=pypi_data,
-            pre_extracted_tools=[{"name": "test_tool", "description": "A test tool", "inputSchema": {}}],
+            pre_extracted_tools=[
+                {"name": "test_tool", "description": "A test tool", "inputSchema": {}}
+            ],
             auto_cross_resolve=False,
         )
 
         self.assertIsNotNone(spec)
         self.assertEqual(spec.author, "Alice Montgomery")
-        self.assertEqual(spec.repository_url, "https://github.com/alice-montgomery/my-mcp-server")
+        self.assertEqual(
+            spec.repository_url, "https://github.com/alice-montgomery/my-mcp-server"
+        )
         self.assertEqual(spec.description, "An MCP server for PyPI testing")
 
     def test_vc35_2_package_metadata_enrichment_npm(self) -> None:
@@ -201,7 +205,9 @@ def health_check() -> str:
             package_name="@alice/npm-mcp-tool",
             ecosystem="npm",
             npm_data=npm_data,
-            pre_extracted_tools=[{"name": "test_tool", "description": "A test tool", "inputSchema": {}}],
+            pre_extracted_tools=[
+                {"name": "test_tool", "description": "A test tool", "inputSchema": {}}
+            ],
             auto_cross_resolve=False,
         )
 

@@ -142,7 +142,9 @@ def test_matcher_layer2_topology_fuzzy_match() -> None:
             "description": "Custom developer modified description for read queries",
             "inputSchema": {
                 "type": "object",
-                "properties": {"query": {"type": "string", "description": "Modified desc"}},
+                "properties": {
+                    "query": {"type": "string", "description": "Modified desc"}
+                },
                 "required": ["query"],
             },
         },
@@ -173,7 +175,10 @@ def test_matcher_unknown_server_returns_unmatched() -> None:
     foreign_tools = [
         {
             "name": "quantum_teleport_qubit",
-            "inputSchema": {"type": "object", "properties": {"qubit_id": {"type": "string"}}},
+            "inputSchema": {
+                "type": "object",
+                "properties": {"qubit_id": {"type": "string"}},
+            },
         }
     ]
 

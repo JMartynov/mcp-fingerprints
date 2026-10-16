@@ -16,7 +16,7 @@ logger = logging.getLogger("mcp_fingerprints.web_catalog")
 
 
 def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
-    """Compile a compact, high-efficiency catalog entry for the static web dashboard."""
+    """Compile an enriched catalog entry for the static web dashboard."""
     pkg_name = passport.get("package_name", "unknown")
     ecosystem = passport.get("ecosystem", "generic")
     versions = passport.get("versions", [])
@@ -29,21 +29,44 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
             tools.append(
                 {
                     "name": t["name"],
-                    "desc": (t.get("description") or "")[:120],
+                    "description": t.get("description") or "",
+                    "canonical_hash": t.get("canonical_hash") or "",
+                    "annotations": t.get("annotations") or {},
+                    "parameters": t.get("parameters") or [],
                 }
             )
 
-    # Determine security risk strictly from static tool capabilities
-    sec_profile = passport.get("security_profile")
-    risk_tier = sec_profile.get("highest_risk_tier", "low") if isinstance(sec_profile, dict) else "low"
+    prompts = []
+    prompt_sigs = latest_v.get("prompt_signatures", [])
+    for p in prompt_sigs:
+        if isinstance(p, dict) and "name" in p:
+            prompts.append(
+                {"name": p["name"], "description": p.get("description") or ""}
+            )
+
+    resources = []
+    resource_sigs = latest_v.get("resource_signatures", [])
+    for r in resource_sigs:
+        if isinstance(r, dict) and ("name" in r or "uri_template" in r):
+            resources.append(
+                {
+                    "name": r.get("name") or "",
+                    "uri_template": r.get("uri_template") or "",
+                    "description": r.get("description") or "",
+                }
+            )
 
     # Default install / run command
     conn = None
     connections = latest_v.get("connections", [])
+    transports = []
     for c in connections:
-        if c.get("type") in ("stdio", "sse"):
+        if c.get("type"):
+            transports.append(c["type"])
+        if not conn and c.get("type") in ("stdio", "sse"):
             conn = c
-            break
+
+    transports = list(dict.fromkeys(transports))  # Deduplicate
 
     if conn and conn.get("type") == "sse":
         install_cmd = conn.get("url") or ""
@@ -62,15 +85,35 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
         install_cmd = pkg_name
         conn_type = "generic"
 
+    author = passport.get("author") or ""
+    if not author and "repository_url" in passport:
+        # Simple fallback for github repos
+        repo = passport["repository_url"]
+        if "github.com/" in repo:
+            parts = repo.split("github.com/")
+            if len(parts) > 1:
+                author = parts[1].split("/")[0]
+
     return {
         "name": pkg_name,
         "ecosystem": ecosystem,
         "version": latest_v.get("version", "1.0.0"),
+        "latest_version": latest_v.get("version", "1.0.0"),
+        "release_date": latest_v.get("release_date") or "",
+        "total_versions": len(versions),
+        "versions_summary": len(versions),
         "description": passport.get("description") or "",
         "repository_url": passport.get("repository_url") or "",
+        "homepage_url": passport.get("homepage_url") or "",
+        "author": author,
+        "license": passport.get("license") or "",
         "tool_count": len(tools),
         "tools": tools,
-        "risk_tier": risk_tier,
+        "prompts": prompts,
+        "resources": resources,
+        "toolset_canonical_hash": latest_v.get("toolset_canonical_hash") or "",
+        "transports": transports,
+        "required_env_vars": latest_v.get("required_env_vars") or [],
         "connection_type": conn_type,
         "command": install_cmd,
         "is_verified": latest_v.get("capabilities", {}).get("runtime_verified", False)
@@ -88,7 +131,7 @@ def compile_web_catalog(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     import time
-    
+
     catalog: list[dict[str, Any]] = []
 
     for f in p_dir.rglob("*.json"):
@@ -105,17 +148,20 @@ def compile_web_catalog(
 
     target_json = out_dir / "catalog.json"
     target_json.write_text(json.dumps(catalog, separators=(",", ":")), encoding="utf-8")
-    
+
     sw_path = out_dir / "sw.js"
     if sw_path.exists():
         version_str = str(int(time.time()))
         sw_content = sw_path.read_text(encoding="utf-8")
         import re
-        sw_content = re.sub(r'mcp-catalog-v[0-9a-zA-Z_]+', f'mcp-catalog-v{version_str}', sw_content)
-        sw_content = sw_content.replace('__CACHE_VERSION__', version_str)
+
+        sw_content = re.sub(
+            r"mcp-catalog-v[0-9a-zA-Z_]+", f"mcp-catalog-v{version_str}", sw_content
+        )
+        sw_content = sw_content.replace("__CACHE_VERSION__", version_str)
         sw_path.write_text(sw_content, encoding="utf-8")
         logger.info(f"Injected cache version {version_str} into sw.js")
-    
+
     logger.info("Compiled %d server catalog entries into %s", len(catalog), target_json)
     return target_json
 

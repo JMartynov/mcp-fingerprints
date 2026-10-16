@@ -1,6 +1,5 @@
 """Unit tests for ingestion hardening and malformed tool sanitization."""
 
-import pytest
 from mcp_fingerprints.validator import sanitize_tool_definition
 from mcp_fingerprints.models import ToolContractSignature
 from mcp_fingerprints.ast_parser import parse_python_mcp_ast, parse_typescript_mcp_ast

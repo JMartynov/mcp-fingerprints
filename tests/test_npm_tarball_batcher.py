@@ -3,7 +3,7 @@
 import io
 import json
 import tarfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -63,16 +63,18 @@ def test_npm_tarball_nested_dist_extraction(mock_urlopen, synchronizer):
                     "tarball": "https://registry.npmjs.org/my-pkg/-/my-pkg-1.0.0.tgz"
                 }
             }
-        }
+        },
     }
 
     server_code = """
 server.tool("dist_tool", "Dist tool description", { query: z.string() }, async () => {});
 """
-    tar_bytes = build_mock_tarball({
-        "package/package.json": '{"name": "my-pkg", "version": "1.0.0"}',
-        "package/dist/index.js": server_code,
-    })
+    tar_bytes = build_mock_tarball(
+        {
+            "package/package.json": '{"name": "my-pkg", "version": "1.0.0"}',
+            "package/dist/index.js": server_code,
+        }
+    )
 
     def side_effect(req, *args, **kwargs):
         if req.full_url == "https://registry.npmjs.org/my-pkg":
@@ -100,16 +102,18 @@ def test_npm_tarball_build_and_bin_fallback(mock_urlopen, synchronizer):
                     "tarball": "https://registry.npmjs.org/cli-pkg/-/cli-pkg-1.0.0.tgz"
                 }
             }
-        }
+        },
     }
 
     server_code = """
 server.tool("cli_cmd", "Execute CLI command", { cmd: z.string() }, async () => {});
 """
-    tar_bytes = build_mock_tarball({
-        "package/package.json": '{"name": "cli-pkg", "version": "1.0.0"}',
-        "package/bin/index.js": server_code,
-    })
+    tar_bytes = build_mock_tarball(
+        {
+            "package/package.json": '{"name": "cli-pkg", "version": "1.0.0"}',
+            "package/bin/index.js": server_code,
+        }
+    )
 
     def side_effect(req, *args, **kwargs):
         if req.full_url == "https://registry.npmjs.org/cli-pkg":

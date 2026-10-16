@@ -1,11 +1,9 @@
 import io
 import json
 import tarfile
-import pytest
 from unittest.mock import patch, MagicMock
 
 from mcp_fingerprints.synchronizer import PassportSynchronizer
-from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
 
 
 def test_detect_remote_gateway_hardcoded():
@@ -49,11 +47,13 @@ def test_detect_remote_gateway_no_match():
 
 def test_merge_and_enrich_passport_with_remote_gateway():
     syncer = PassportSynchronizer(output_dir="data/test_fingerprints")
-    gateway_conns = [{
-        "type": "streamable-http",
-        "deploymentUrl": "https://mcp.apiguru.app/mcp",
-        "configSchema": {},
-    }]
+    gateway_conns = [
+        {
+            "type": "streamable-http",
+            "deploymentUrl": "https://mcp.apiguru.app/mcp",
+            "configSchema": {},
+        }
+    ]
     gateway_caps = {"proxy_gateway": True, "remote_endpoint": True}
 
     npm_data = {
@@ -101,14 +101,18 @@ def test_detect_remote_gateway_from_npm_tarball_mocked():
     tar_bytes = tar_buf.getvalue()
 
     metadata_resp = MagicMock()
-    metadata_resp.read.return_value = json.dumps({
-        "dist-tags": {"latest": "1.0.0"},
-        "versions": {
-            "1.0.0": {
-                "dist": {"tarball": "https://registry.npmjs.org/trident-mcp/-/trident-mcp-1.0.0.tgz"}
-            }
+    metadata_resp.read.return_value = json.dumps(
+        {
+            "dist-tags": {"latest": "1.0.0"},
+            "versions": {
+                "1.0.0": {
+                    "dist": {
+                        "tarball": "https://registry.npmjs.org/trident-mcp/-/trident-mcp-1.0.0.tgz"
+                    }
+                }
+            },
         }
-    }).encode("utf-8")
+    ).encode("utf-8")
     metadata_resp.__enter__.return_value = metadata_resp
     metadata_resp.__exit__.return_value = False
 

@@ -5,7 +5,6 @@ from __future__ import annotations
 import unittest
 from mcp_fingerprints.ast_parser import (
     AstBundleResult,
-    FastMcpAstVisitor,
     parse_python_mcp_ast,
     parse_python_mcp_ast_bundle,
     parse_typescript_mcp_ast,
@@ -33,8 +32,14 @@ def search_docs(query: str, limit: int = 10) -> str:
         self.assertEqual(len(res_google), 1)
         tool = res_google[0]
         self.assertEqual(tool["name"], "search_docs")
-        self.assertEqual(tool["inputSchema"]["properties"]["query"]["description"], "The search term to find.")
-        self.assertEqual(tool["inputSchema"]["properties"]["limit"]["description"], "Max results to return.")
+        self.assertEqual(
+            tool["inputSchema"]["properties"]["query"]["description"],
+            "The search term to find.",
+        )
+        self.assertEqual(
+            tool["inputSchema"]["properties"]["limit"]["description"],
+            "Max results to return.",
+        )
         self.assertEqual(tool["inputSchema"]["properties"]["limit"]["default"], 10)
         self.assertEqual(tool["inputSchema"]["required"], ["query"])
 
@@ -50,7 +55,10 @@ def fetch_item(item_id: str) -> str:
 '''
         res_sphinx = parse_python_mcp_ast(code_sphinx)
         self.assertEqual(len(res_sphinx), 1)
-        self.assertEqual(res_sphinx[0]["inputSchema"]["properties"]["item_id"]["description"], "Unique identifier for the item.")
+        self.assertEqual(
+            res_sphinx[0]["inputSchema"]["properties"]["item_id"]["description"],
+            "Unique identifier for the item.",
+        )
 
         # NumPy style
         code_numpy = '''
@@ -67,7 +75,10 @@ def compute_matrix(rows: int) -> str:
 '''
         res_numpy = parse_python_mcp_ast(code_numpy)
         self.assertEqual(len(res_numpy), 1)
-        self.assertEqual(res_numpy[0]["inputSchema"]["properties"]["rows"]["description"], "Number of rows to generate.")
+        self.assertEqual(
+            res_numpy[0]["inputSchema"]["properties"]["rows"]["description"],
+            "Number of rows to generate.",
+        )
 
     def test_vc34_1_python_pydantic_field_and_annotated(self) -> None:
         """Verify Pydantic Field, Annotated, Literal enum, and List item types."""
@@ -100,19 +111,21 @@ def filter_articles(filters: FilterModel) -> str:
         self.assertEqual(props["tags"]["items"], {"type": "string"})
 
         self.assertEqual(props["score_threshold"]["type"], "number")
-        self.assertEqual(props["score_threshold"]["description"], "Minimum confidence score")
+        self.assertEqual(
+            props["score_threshold"]["description"], "Minimum confidence score"
+        )
         self.assertEqual(props["score_threshold"]["default"], 0.75)
 
     def test_vc34_1_cross_file_pydantic_bundle(self) -> None:
         """Verify cross-file Pydantic model resolution in parse_python_mcp_ast_bundle."""
         files = {
-            "models.py": '''
+            "models.py": """
 from pydantic import BaseModel, Field
 
 class DeployConfig(BaseModel):
     env_name: str = Field(description="Deployment environment name")
     replicas: int = Field(default=3, description="Target replica count")
-''',
+""",
             "server.py": '''
 import os
 from mcp.server.fastmcp import FastMCP
@@ -136,7 +149,7 @@ def get_status() -> str:
     """Get current status resource."""
     secret = os.environ["STATUS_SECRET"]
     return "ok"
-'''
+''',
         }
         res = parse_python_mcp_ast_bundle(files)
         self.assertIsInstance(res, AstBundleResult)
@@ -144,7 +157,10 @@ def get_status() -> str:
         tool = res.tools[0]
         self.assertEqual(tool["name"], "deploy_service")
         self.assertIn("env_name", tool["inputSchema"]["properties"])
-        self.assertEqual(tool["inputSchema"]["properties"]["env_name"]["description"], "Deployment environment name")
+        self.assertEqual(
+            tool["inputSchema"]["properties"]["env_name"]["description"],
+            "Deployment environment name",
+        )
         self.assertIn("replicas", tool["inputSchema"]["properties"])
         self.assertEqual(tool["inputSchema"]["properties"]["replicas"]["default"], 3)
 
@@ -160,7 +176,7 @@ def get_status() -> str:
 
     def test_vc34_2_typescript_balanced_zod_parser(self) -> None:
         """Verify balanced Zod schema parser with .describe(), .default(), .enum(), .optional(), z.array(), and nested z.object()."""
-        ts_code = '''
+        ts_code = """
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
@@ -185,13 +201,15 @@ server.tool(
     return { content: [{ type: "text", text: "Cluster created" }] };
   }
 );
-'''
+"""
         res = parse_typescript_mcp_ast(ts_code)
         self.assertIsInstance(res, AstBundleResult)
         self.assertEqual(len(res.tools), 1)
         tool = res.tools[0]
         self.assertEqual(tool["name"], "provision_cluster")
-        self.assertEqual(tool["description"], "Provision a new cloud Kubernetes cluster")
+        self.assertEqual(
+            tool["description"], "Provision a new cloud Kubernetes cluster"
+        )
 
         props = tool["inputSchema"]["properties"]
         self.assertEqual(props["region"]["type"], "string")
@@ -205,7 +223,9 @@ server.tool(
         self.assertEqual(props["vpc"]["type"], "object")
         self.assertEqual(props["vpc"]["description"], "VPC configuration")
         self.assertIn("cidr", props["vpc"]["properties"])
-        self.assertEqual(props["vpc"]["properties"]["cidr"]["description"], "CIDR block")
+        self.assertEqual(
+            props["vpc"]["properties"]["cidr"]["description"], "CIDR block"
+        )
         self.assertIn("enableDns", props["vpc"]["properties"])
         self.assertEqual(props["vpc"]["properties"]["enableDns"]["default"], True)
 
@@ -226,7 +246,7 @@ server.tool(
 
     def test_vc34_2_typescript_bundled_js_list_tools(self) -> None:
         """Verify bundled JS ListToolsRequestSchema handler extraction."""
-        js_code = '''
+        js_code = """
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -242,7 +262,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     ]
   };
 });
-'''
+"""
         res = parse_typescript_mcp_ast(js_code)
         self.assertEqual(len(res.tools), 2)
         names = [t["name"] for t in res.tools]

@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+
 def validate_passports(data_dir: str = "data/fingerprints") -> int:
     try:
         from mcp_fingerprints.schema_validator import PassportSchemaValidator
@@ -18,14 +19,18 @@ def validate_passports(data_dir: str = "data/fingerprints") -> int:
 
     valid, invalid, errors = PassportSchemaValidator.validate_directory(dir_path)
     if invalid > 0 or errors:
-        print(f"Validation FAILED: {invalid} invalid passports detected ({valid} valid).")
+        print(
+            f"Validation FAILED: {invalid} invalid passports detected ({valid} valid)."
+        )
         for err in errors[:20]:
             print(f"  - {err}")
         if len(errors) > 20:
             print(f"  ... and {len(errors) - 20} more errors.")
         return 1
 
-    print(f"Validation SUCCESS: All {valid} passports are valid and conform to schema invariants.")
+    print(
+        f"Validation SUCCESS: All {valid} passports are valid and conform to schema invariants."
+    )
     return 0
 
 

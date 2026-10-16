@@ -37,7 +37,9 @@ def test_build_catalog_entry_npm():
     assert entry["tools"][0]["name"] == "tool_one"
     assert entry["command"] == "node dist/index.js"
     assert entry["is_verified"] is True
-    assert entry["risk_tier"] == "low"
+    assert "risk_tier" not in entry
+    assert entry["transports"] == ["stdio"]
+    assert entry["total_versions"] == 1
 
 
 def test_compile_web_catalog(tmp_path):
@@ -126,3 +128,99 @@ def test_web_app_js_multi_server_logic():
     assert "function generateCombinedConfig(client)" in js_content
     assert "mcpServers[safeKey] = { command, args };" in js_content
     assert "downloadCombinedConfig" in js_content
+
+
+def test_build_catalog_entry_full_features():
+    passport = {
+        "package_name": "test-full",
+        "ecosystem": "generic",
+        "repository_url": "https://github.com/someuser/test-full",
+        "versions": [
+            {
+                "version": "2.0.0",
+                "prompt_signatures": [
+                    {"name": "test_prompt", "description": "prompt desc"}
+                ],
+                "resource_signatures": [
+                    {
+                        "name": "test_res",
+                        "uri_template": "res://test",
+                        "description": "res desc",
+                    }
+                ],
+                "connections": [{"type": "sse", "url": "https://example.com/sse"}],
+            }
+        ],
+    }
+
+    entry = build_catalog_entry(passport)
+    assert entry["author"] == "someuser"
+    assert entry["connection_type"] == "sse"
+    assert entry["command"] == "https://example.com/sse"
+    assert len(entry["prompts"]) == 1
+    assert entry["prompts"][0]["name"] == "test_prompt"
+    assert len(entry["resources"]) == 1
+    assert entry["resources"][0]["uri_template"] == "res://test"
+
+
+def test_compile_web_catalog_exception_and_sw_injection(tmp_path):
+    passports_dir = tmp_path / "passports"
+    passports_dir.mkdir(parents=True)
+    web_dir = tmp_path / "web"
+    web_dir.mkdir(parents=True)
+
+    # invalid json
+    (passports_dir / "invalid.json").write_text("not-json", encoding="utf-8")
+
+    sw_content = "const CACHE_NAME = 'mcp-catalog-v1234'; __CACHE_VERSION__"
+    (web_dir / "sw.js").write_text(sw_content, encoding="utf-8")
+
+    compile_web_catalog(passports_dir, web_dir)
+
+    sw_updated = (web_dir / "sw.js").read_text(encoding="utf-8")
+    assert "__CACHE_VERSION__" not in sw_updated
+    assert "mcp-catalog-v" in sw_updated
+
+
+def test_cli_main(monkeypatch, tmp_path):
+    import sys
+    from scripts.generate_web_catalog import main
+
+    passports_dir = tmp_path / "passports"
+    passports_dir.mkdir(parents=True)
+    web_dir = tmp_path / "web"
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "generate_web_catalog.py",
+            "--passports-dir",
+            str(passports_dir),
+            "--output-dir",
+            str(web_dir),
+        ],
+    )
+    main()
+
+    assert (web_dir / "catalog.json").exists()
+
+
+def test_build_catalog_entry_generic_command():
+    passport = {"package_name": "unknown-pkg", "ecosystem": "other", "versions": []}
+
+    entry = build_catalog_entry(passport)
+    assert entry["connection_type"] == "generic"
+    assert entry["command"] == "unknown-pkg"
+
+
+def test_compile_web_catalog_ignore_sync_state(tmp_path):
+    passports_dir = tmp_path / "passports"
+    passports_dir.mkdir(parents=True)
+    web_dir = tmp_path / "web"
+    web_dir.mkdir(parents=True)
+
+    (passports_dir / "sync_state.json").write_text('{"foo": "bar"}', encoding="utf-8")
+
+    compile_web_catalog(passports_dir, web_dir)
+    # The coverage on continue will be hit.

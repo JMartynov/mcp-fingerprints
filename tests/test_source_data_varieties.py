@@ -7,21 +7,14 @@ and manifest configurations without dropping critical data.
 
 from __future__ import annotations
 
-import json
-import pytest
 
 from mcp_fingerprints.canonicalizer import (
-    build_version_fingerprint,
     extract_tool_signature,
-    compute_toolset_canonical_hash,
 )
 from mcp_fingerprints.crawler import FingerprintGenerator
-from mcp_fingerprints.distance import jaccard_similarity
 from mcp_fingerprints.models import (
     PromptSignature,
     ResourceSignature,
-    ServerPackageSpec,
-    ToolContractSignature,
 )
 
 
@@ -128,7 +121,11 @@ def test_variant_prompts_with_rich_arguments():
         "description": "Generates EXPLAIN ANALYZE recommendations",
         "arguments": [
             {"name": "query_text", "description": "Raw SQL query", "required": True},
-            {"name": "engine", "description": "Database engine name", "required": False},
+            {
+                "name": "engine",
+                "description": "Database engine name",
+                "required": False,
+            },
         ],
     }
     sig = PromptSignature.from_dict(prompt_data)
@@ -169,7 +166,15 @@ def test_variant_mutating_tool_detection():
     ]
     # delete_table and execute_query are mutating
     sigs = [
-        extract_tool_signature({"name": t["name"], "description": t["description"], "is_mutating": any(v in t["name"] for v in ("delete", "execute", "write", "update"))})
+        extract_tool_signature(
+            {
+                "name": t["name"],
+                "description": t["description"],
+                "is_mutating": any(
+                    v in t["name"] for v in ("delete", "execute", "write", "update")
+                ),
+            }
+        )
         for t in tools
     ]
     assert sigs[0].is_mutating is True
@@ -186,7 +191,12 @@ def test_variant_version_drift_and_evolution():
         ecosystem="npm",
         purl="pkg:npm/%40test/mcp-server",
         version="1.0.0",
-        tools=[{"name": "read_data", "inputSchema": {"properties": {"key": {"type": "string"}}}}],
+        tools=[
+            {
+                "name": "read_data",
+                "inputSchema": {"properties": {"key": {"type": "string"}}},
+            }
+        ],
     )
     assert len(spec.versions) == 1
     assert len(spec.versions[0].tool_signatures) == 1
@@ -196,8 +206,16 @@ def test_variant_version_drift_and_evolution():
         existing_spec=spec,
         version="2.0.0",
         tools=[
-            {"name": "read_data", "inputSchema": {"properties": {"key": {"type": "string"}}}},
-            {"name": "write_data", "inputSchema": {"properties": {"key": {"type": "string"}, "val": {"type": "string"}}}},
+            {
+                "name": "read_data",
+                "inputSchema": {"properties": {"key": {"type": "string"}}},
+            },
+            {
+                "name": "write_data",
+                "inputSchema": {
+                    "properties": {"key": {"type": "string"}, "val": {"type": "string"}}
+                },
+            },
         ],
     )
     assert len(spec_v2.versions) == 2

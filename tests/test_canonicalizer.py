@@ -1,10 +1,10 @@
-import pytest
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
     compute_toolset_canonical_hash,
 )
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
+
 
 def test_prune_nameless_tools() -> None:
     tools = [
@@ -13,7 +13,10 @@ def test_prune_nameless_tools() -> None:
         {"name": "   ", "description": "Whitespace string name"},
         {"description": "Missing name key"},
         {"name": None, "description": "None name"},
-        {"name": 123, "description": "Non-string name"},  # str(123) is "123", so it will actually be kept. Wait, bool(123 and str(123).strip()) -> bool(123 and "123") -> True.
+        {
+            "name": 123,
+            "description": "Non-string name",
+        },  # str(123) is "123", so it will actually be kept. Wait, bool(123 and str(123).strip()) -> bool(123 and "123") -> True.
     ]
 
     # Let's adjust the test to just the things that should be pruned.
@@ -38,7 +41,7 @@ def test_prune_nameless_tools() -> None:
         package_name="test-package",
         purl="pkg:npm/test-package",
         ecosystem="npm",
-        versions=(version_fingerprint,)
+        versions=(version_fingerprint,),
     )
 
     is_valid, errors = PassportSchemaValidator.validate_passport_dict(spec.to_dict())

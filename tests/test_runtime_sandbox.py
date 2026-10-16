@@ -1,6 +1,10 @@
 import os
 import sys
-from mcp_fingerprints.runtime_sandbox import probe_mcp_server_stdio, sanitize_environment
+from mcp_fingerprints.runtime_sandbox import (
+    probe_mcp_server_stdio,
+    sanitize_environment,
+)
+
 
 def test_sanitize_environment():
     # Set up some dummy environment variables
@@ -12,13 +16,13 @@ def test_sanitize_environment():
     os.environ["SAFE_VAR"] = "safe"
 
     safe_env = sanitize_environment({"EXTRA_SAFE": "extra", "AWS_REGION": "us-east-1"})
-    
+
     assert "SAFE_VAR" in safe_env
     assert safe_env["SAFE_VAR"] == "safe"
     assert "EXTRA_SAFE" in safe_env
     assert safe_env["EXTRA_SAFE"] == "extra"
     assert "PATH" in safe_env
-    
+
     # Check that dangerous variables are stripped
     assert "AWS_ACCESS_KEY_ID" not in safe_env
     assert "GITHUB_TOKEN" not in safe_env
@@ -26,7 +30,7 @@ def test_sanitize_environment():
     assert "ANTHROPIC_API_KEY" not in safe_env
     assert "SSH_AUTH_SOCK" not in safe_env
     assert "AWS_REGION" not in safe_env
-    
+
     # Cleanup
     del os.environ["AWS_ACCESS_KEY_ID"]
     del os.environ["GITHUB_TOKEN"]
@@ -34,6 +38,7 @@ def test_sanitize_environment():
     del os.environ["ANTHROPIC_API_KEY"]
     del os.environ["SSH_AUTH_SOCK"]
     del os.environ["SAFE_VAR"]
+
 
 def test_successful_handshake():
     # A simple mock MCP server
@@ -83,14 +88,18 @@ write_message({
     assert tools[0]["description"] == "A test tool"
     assert tools[0]["inputSchema"] == {"type": "object", "properties": {}}
 
+
 def test_timeout_handling():
     mock_script = """
 import time
 time.sleep(10)
 """
     # Use a short timeout
-    tools = probe_mcp_server_stdio([sys.executable, "-c", mock_script], timeout_seconds=0.5)
+    tools = probe_mcp_server_stdio(
+        [sys.executable, "-c", mock_script], timeout_seconds=0.5
+    )
     assert tools == []
+
 
 def test_malformed_json():
     mock_script = """
@@ -102,8 +111,11 @@ sys.stdout.write("Not a json string\\n")
 sys.stdout.flush()
 """
     # Process might exit or hang depending on reading, but our code should just handle non-json and timeout or exit
-    tools = probe_mcp_server_stdio([sys.executable, "-c", mock_script], timeout_seconds=0.5)
+    tools = probe_mcp_server_stdio(
+        [sys.executable, "-c", mock_script], timeout_seconds=0.5
+    )
     assert tools == []
+
 
 def test_missing_binary():
     tools = probe_mcp_server_stdio(["/path/to/nonexistent/binary"])
