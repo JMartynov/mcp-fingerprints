@@ -3,8 +3,142 @@
 from __future__ import annotations
 
 import ast
+import json
+import logging
 import re
 from typing import Any
+
+logger = logging.getLogger("mcp_fingerprints.ast_parser")
+
+
+class AstBundleResult(list):
+    """Result list of extracted MCP tools with bundle-level properties for prompts, resources, and env vars."""
+
+    def __init__(
+        self,
+        tools: list[dict[str, Any]] | None = None,
+        prompts: list[dict[str, Any]] | None = None,
+        resources: list[dict[str, Any]] | None = None,
+        env_vars: set[str] | list[str] | tuple[str, ...] | None = None,
+    ) -> None:
+        raw_tools = list(tools or [])
+        super().__init__(raw_tools)
+        self.tools = raw_tools
+        self.prompts = list(prompts or [])
+        self.resources = list(resources or [])
+        self.env_vars = tuple(sorted(set(env_vars or ())))
+        self.required_env_vars = self.env_vars
+
+    def __getitem__(self, key: Any) -> Any:
+        if isinstance(key, str):
+            if key == "tools":
+                return self.tools
+            if key == "prompts":
+                return self.prompts
+            if key == "resources":
+                return self.resources
+            if key in ("env_vars", "required_env_vars"):
+                return list(self.env_vars)
+        return super().__getitem__(key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key == "tools":
+            return self.tools
+        if key == "prompts":
+            return self.prompts
+        if key == "resources":
+            return self.resources
+        if key in ("env_vars", "required_env_vars"):
+            return list(self.env_vars)
+        return default
+
+
+def _extract_param_descriptions_from_docstring(docstring: str) -> dict[str, str]:
+    """Parse parameter descriptions from Google, Sphinx, or NumPy docstring conventions."""
+    if not docstring or not docstring.strip():
+        return {}
+    descriptions: dict[str, str] = {}
+    lines = docstring.split("\n")
+
+    # 1. Sphinx style: :param <name>: <desc> or :param <type> <name>: <desc>
+    for line in lines:
+        m = re.search(r":param\s+(?:[a-zA-Z0-9_\[\],\s]+\s+)?([a-zA-Z0-9_]+)\s*:\s*(.+)", line.strip())
+        if m:
+            descriptions[m.group(1)] = m.group(2).strip()
+
+    # 2. Google style:
+    # Args: / Arguments: / Parameters:
+    in_google_args = False
+    current_arg = None
+    arg_lines: list[str] = []
+
+    for line in lines:
+        stripped = line.strip()
+        lower = stripped.lower()
+        if lower in ("args:", "arguments:", "parameters:"):
+            in_google_args = True
+            current_arg = None
+            continue
+        if in_google_args:
+            if stripped and not line.startswith((" ", "\t")):
+                in_google_args = False
+                if current_arg and arg_lines:
+                    descriptions.setdefault(current_arg, " ".join(arg_lines).strip())
+                current_arg = None
+                arg_lines = []
+                continue
+
+            m = re.match(r"^\s*([a-zA-Z0-9_]+)(?:\s*\([^)]*\))?\s*:\s*(.*)", line)
+            if m:
+                if current_arg and arg_lines:
+                    descriptions.setdefault(current_arg, " ".join(arg_lines).strip())
+                current_arg = m.group(1)
+                arg_lines = [m.group(2).strip()] if m.group(2).strip() else []
+            elif current_arg and stripped:
+                arg_lines.append(stripped)
+
+    if current_arg and arg_lines:
+        descriptions.setdefault(current_arg, " ".join(arg_lines).strip())
+
+    # 3. NumPy style:
+    # Parameters
+    # ----------
+    in_numpy_params = False
+    numpy_header_seen = False
+    curr_np_arg = None
+    curr_np_lines: list[str] = []
+
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.lower() == "parameters" and idx + 1 < len(lines) and lines[idx + 1].strip().startswith("---"):
+            in_numpy_params = True
+            numpy_header_seen = True
+            continue
+        if numpy_header_seen and line.strip().startswith("---"):
+            numpy_header_seen = False
+            continue
+        if in_numpy_params:
+            if stripped and not line.startswith((" ", "\t")) and ":" not in stripped:
+                in_numpy_params = False
+                if curr_np_arg and curr_np_lines:
+                    descriptions.setdefault(curr_np_arg, " ".join(curr_np_lines).strip())
+                curr_np_arg = None
+                curr_np_lines = []
+                continue
+
+            m = re.match(r"^\s*([a-zA-Z0-9_]+)\s*:\s*(.*)", line)
+            if m:
+                if curr_np_arg and curr_np_lines:
+                    descriptions.setdefault(curr_np_arg, " ".join(curr_np_lines).strip())
+                curr_np_arg = m.group(1)
+                curr_np_lines = []
+            elif curr_np_arg and stripped:
+                curr_np_lines.append(stripped)
+
+    if curr_np_arg and curr_np_lines:
+        descriptions.setdefault(curr_np_arg, " ".join(curr_np_lines).strip())
+
+    return descriptions
 
 
 def _python_type_to_schema_type(annotation_node: ast.expr | None) -> str:
@@ -26,17 +160,33 @@ def _python_type_to_schema_type(annotation_node: ast.expr | None) -> str:
         if id_str in ("dict", "mapping", "object"):
             return "object"
     elif isinstance(annotation_node, ast.Subscript):
-        if isinstance(annotation_node.value, ast.Name):
-            id_str = annotation_node.value.id.lower()
-            if id_str in ("list", "sequence", "set", "iterable"):
-                return "array"
-            if id_str in ("dict", "mapping"):
-                return "object"
-            if id_str in ("optional", "union"):
-                # Inspect slice argument
-                slice_val = annotation_node.slice
-                if isinstance(slice_val, ast.Name):
-                    return _python_type_to_schema_type(slice_val)
+        val_node = annotation_node.value
+        val_id = ""
+        if isinstance(val_node, ast.Name):
+            val_id = val_node.id.lower()
+        elif isinstance(val_node, ast.Attribute):
+            val_id = val_node.attr.lower()
+
+        if val_id in ("list", "sequence", "set", "iterable"):
+            return "array"
+        if val_id in ("dict", "mapping"):
+            return "object"
+        if val_id in ("optional", "union"):
+            slice_val = annotation_node.slice
+            if isinstance(slice_val, ast.Tuple) and slice_val.elts:
+                non_none = [e for e in slice_val.elts if not (isinstance(e, ast.Constant) and e.value is None)]
+                if non_none:
+                    return _python_type_to_schema_type(non_none[0])
+            elif isinstance(slice_val, ast.expr):
+                return _python_type_to_schema_type(slice_val)
+        if val_id == "annotated":
+            slice_val = annotation_node.slice
+            if isinstance(slice_val, ast.Tuple) and slice_val.elts:
+                return _python_type_to_schema_type(slice_val.elts[0])
+            elif isinstance(slice_val, ast.expr):
+                return _python_type_to_schema_type(slice_val)
+        if val_id == "literal":
+            return "string"
     elif isinstance(annotation_node, ast.Constant):
         val = str(annotation_node.value).lower()
         if val in ("str", "int", "float", "bool", "list", "dict"):
@@ -44,149 +194,130 @@ def _python_type_to_schema_type(annotation_node: ast.expr | None) -> str:
     return "string"
 
 
+def _extract_field_details(
+    annotation_node: ast.expr | None,
+    default_node: ast.expr | None = None,
+) -> dict[str, Any]:
+    """Extract schema type, description, default, enum, and items type from AST annotation and default nodes."""
+    res: dict[str, Any] = {
+        "type": "string",
+        "description": None,
+        "default": None,
+        "has_default": False,
+        "enum": None,
+        "items": None,
+    }
+
+    # 1. Inspect default node
+    if default_node is not None:
+        if isinstance(default_node, ast.Constant):
+            res["default"] = default_node.value
+            res["has_default"] = True
+        elif isinstance(default_node, ast.Call):
+            func_name = getattr(default_node.func, "id", None) or getattr(default_node.func, "attr", None)
+            if func_name == "Field":
+                if default_node.args:
+                    first_arg = default_node.args[0]
+                    if isinstance(first_arg, ast.Constant) and first_arg.value is not Ellipsis:
+                        res["default"] = first_arg.value
+                        res["has_default"] = True
+                    elif isinstance(first_arg, ast.Constant) and first_arg.value is Ellipsis:
+                        res["has_default"] = False
+                for kw in default_node.keywords:
+                    if kw.arg == "description" and isinstance(kw.value, ast.Constant):
+                        res["description"] = kw.value.value
+                    elif kw.arg == "default" and isinstance(kw.value, ast.Constant):
+                        if kw.value.value is not Ellipsis:
+                            res["default"] = kw.value.value
+                            res["has_default"] = True
+
+    # 2. Inspect annotation node
+    if annotation_node is not None:
+        res["type"] = _python_type_to_schema_type(annotation_node)
+
+        if isinstance(annotation_node, ast.Subscript):
+            val_id = getattr(annotation_node.value, "id", None) or getattr(annotation_node.value, "attr", None)
+            if val_id == "Literal":
+                res["type"] = "string"
+                slice_node = annotation_node.slice
+                enum_vals: list[Any] = []
+                if isinstance(slice_node, ast.Tuple):
+                    for elt in slice_node.elts:
+                        if isinstance(elt, ast.Constant):
+                            enum_vals.append(elt.value)
+                elif isinstance(slice_node, ast.Constant):
+                    enum_vals.append(slice_node.value)
+                if enum_vals:
+                    res["enum"] = tuple(enum_vals)
+
+            elif val_id in ("list", "List", "sequence", "Sequence"):
+                res["type"] = "array"
+                slice_node = annotation_node.slice
+                if isinstance(slice_node, ast.expr):
+                    item_type = _python_type_to_schema_type(slice_node)
+                    res["items"] = {"type": item_type}
+
+            elif val_id == "Annotated":
+                slice_node = annotation_node.slice
+                if isinstance(slice_node, ast.Tuple) and slice_node.elts:
+                    res["type"] = _python_type_to_schema_type(slice_node.elts[0])
+                    for extra in slice_node.elts[1:]:
+                        if isinstance(extra, ast.Call):
+                            extra_func = getattr(extra.func, "id", None) or getattr(extra.func, "attr", None)
+                            if extra_func == "Field":
+                                for kw in extra.keywords:
+                                    if kw.arg == "description" and isinstance(kw.value, ast.Constant):
+                                        res["description"] = kw.value.value
+                                    elif kw.arg == "default" and isinstance(kw.value, ast.Constant):
+                                        if kw.value.value is not Ellipsis:
+                                            res["default"] = kw.value.value
+                                            res["has_default"] = True
+
+    return res
+
+
 class FastMcpAstVisitor(ast.NodeVisitor):
-    """AST Visitor extracting @mcp.tool() and @fastmcp.tool() decorated functions."""
+    """AST Visitor extracting tools, prompts, resources, environment variables, and Pydantic models."""
 
-    def __init__(self) -> None:
+    def __init__(self, pydantic_models: dict[str, dict[str, Any]] | None = None) -> None:
         self.extracted_tools: list[dict[str, Any]] = []
-        self.pydantic_models: dict[str, dict[str, Any]] = {}
+        self.extracted_prompts: list[dict[str, Any]] = []
+        self.extracted_resources: list[dict[str, Any]] = []
+        self.extracted_env_vars: set[str] = set()
+        self.pydantic_models: dict[str, dict[str, Any]] = dict(pydantic_models or {})
 
-    def visit_Module(self, node: ast.Module) -> None:
-        """First pass to find Pydantic models."""
-        for stmt in node.body:
-            if isinstance(stmt, ast.ClassDef):
-                is_pydantic = False
-                for base in stmt.bases:
-                    if isinstance(base, ast.Name) and base.id == "BaseModel":
-                        is_pydantic = True
-                        break
-                    elif isinstance(base, ast.Attribute) and base.attr == "BaseModel":
-                        is_pydantic = True
-                        break
-                
-                fields: dict[str, dict[str, str]] = {}
-                required: list[str] = []
-                has_annotations = False
-                
-                for item in stmt.body:
-                    if isinstance(item, ast.AnnAssign):
-                        has_annotations = True
-                        if isinstance(item.target, ast.Name):
-                            field_name = item.target.id
-                            schema_type = _python_type_to_schema_type(item.annotation)
-                            fields[field_name] = {"type": schema_type}
-                            # Check if it has a default value
-                            if item.value is None:
-                                required.append(field_name)
-                
-                if is_pydantic or has_annotations:
-                    self.pydantic_models[stmt.name] = {
-                        "properties": fields,
-                        "required": required
-                    }
-                    
-        self.generic_visit(node)
-
-    @staticmethod
-    def _is_tool_decorator(decorator: ast.expr) -> tuple[bool, str | None, str | None]:
-        """Check if decorator matches @mcp.tool, @app.tool, @fastmcp.tool, or @tool()."""
-        is_tool = False
-        custom_name = None
-        custom_desc = None
-
-        if isinstance(decorator, ast.Call):
-            func_node = decorator.func
-            
-            # The first positional argument might be the custom name in @tool_manager.register("some_tool")
-            if decorator.args and isinstance(decorator.args[0], ast.Constant) and isinstance(decorator.args[0].value, str):
-                custom_name = decorator.args[0].value
-
-            # Extract keywords like name="...", description="..."
-            for kw in decorator.keywords:
-                if kw.arg == "name" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
-                    custom_name = kw.value.value
-                elif kw.arg == "description" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
-                    custom_desc = kw.value.value
-        else:
-            func_node = decorator
-
-        if isinstance(func_node, ast.Attribute):
-            if func_node.attr == "tool":
-                is_tool = True
-            elif func_node.attr == "register" and getattr(func_node.value, "id", None) == "tool_manager":
-                is_tool = True
-        elif isinstance(func_node, ast.Name):
-            if func_node.id in ("tool", "mcp_tool"):
-                is_tool = True
-
-        return is_tool, custom_name, custom_desc
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        is_tool_class = False
-        if node.name.endswith("Tool"):
-            is_tool_class = True
-        for base in node.bases:
-            if isinstance(base, ast.Name) and base.id in ("BaseTool", "Tool"):
-                is_tool_class = True
-            elif isinstance(base, ast.Attribute) and base.attr in ("BaseTool", "Tool"):
-                is_tool_class = True
-
-        if is_tool_class:
-            name = None
-            desc = ast.get_docstring(node) or ""
-            args_schema_name = None
-
-            for item in node.body:
-                if isinstance(item, ast.Assign):
-                    for target in item.targets:
-                        if isinstance(target, ast.Name):
-                            if target.id == "name" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
-                                name = item.value.value
-                            elif target.id == "description" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
-                                desc = item.value.value
-                            elif target.id == "args_schema" and isinstance(item.value, ast.Name):
-                                args_schema_name = item.value.id
-                elif isinstance(item, ast.AnnAssign):
-                    if isinstance(item.target, ast.Name):
-                        if item.target.id == "name" and item.value is not None and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
-                            name = item.value.value
-                        elif item.target.id == "description" and item.value is not None and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
-                            desc = item.value.value
-
-            if name and not any(t["name"] == name for t in self.extracted_tools):
-                properties = {}
-                required = []
-                if args_schema_name and args_schema_name in self.pydantic_models:
-                    model_info = self.pydantic_models[args_schema_name]
-                    properties = model_info["properties"]
-                    required = model_info["required"]
-
-                self.extracted_tools.append({
-                    "name": name,
-                    "description": desc or name,
-                    "inputSchema": {
-                        "type": "object",
-                        "properties": properties,
-                        "required": sorted(required),
-                    },
-                    "property_keys": sorted(properties.keys()),
-                    "required_keys": sorted(required),
-                })
-
+    def visit_Subscript(self, node: ast.Subscript) -> None:
+        """Capture os.environ['VAR']."""
+        val = node.value
+        if (isinstance(val, ast.Attribute) and val.attr == "environ") or (isinstance(val, ast.Name) and val.id == "environ"):
+            if isinstance(node.slice, ast.Constant) and isinstance(node.slice.value, str):
+                self.extracted_env_vars.add(node.slice.value)
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
-        """Handle low-level Tool(name="...", description="...", inputSchema={...}) or types.Tool(...)."""
+        """Capture os.getenv('VAR') or os.environ.get('VAR') and low-level Tool definitions."""
+        func = node.func
+        if isinstance(func, ast.Attribute):
+            if func.attr == "getenv" and node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                self.extracted_env_vars.add(node.args[0].value)
+            elif func.attr == "get" and isinstance(func.value, (ast.Attribute, ast.Name)) and getattr(func.value, "attr", getattr(func.value, "id", None)) == "environ":
+                if node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                    self.extracted_env_vars.add(node.args[0].value)
+        elif isinstance(func, ast.Name):
+            if func.id == "getenv" and node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                self.extracted_env_vars.add(node.args[0].value)
+
+        # Handle low-level Tool(name="...", description="...", inputSchema={...})
         is_tool_call = False
-        if isinstance(node.func, ast.Name) and node.func.id in ("Tool", "types_Tool"):
+        if isinstance(func, ast.Name) and func.id in ("Tool", "types_Tool"):
             is_tool_call = True
-        elif isinstance(node.func, ast.Attribute) and node.func.attr == "Tool":
+        elif isinstance(func, ast.Attribute) and func.attr == "Tool":
             is_tool_call = True
 
         if is_tool_call:
             name = None
             desc = ""
-            properties: dict[str, dict[str, str]] = {}
+            properties: dict[str, Any] = {}
             required: list[str] = []
 
             for kw in node.keywords:
@@ -220,6 +351,50 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
+    def visit_Module(self, node: ast.Module) -> None:
+        """First pass to discover Pydantic models."""
+        for stmt in node.body:
+            if isinstance(stmt, ast.ClassDef):
+                is_pydantic = False
+                for base in stmt.bases:
+                    if isinstance(base, ast.Name) and base.id == "BaseModel":
+                        is_pydantic = True
+                        break
+                    elif isinstance(base, ast.Attribute) and base.attr == "BaseModel":
+                        is_pydantic = True
+                        break
+
+                fields: dict[str, dict[str, Any]] = {}
+                required: list[str] = []
+                has_annotations = False
+
+                for item in stmt.body:
+                    if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                        has_annotations = True
+                        field_name = item.target.id
+                        details = _extract_field_details(item.annotation, item.value)
+                        field_schema: dict[str, Any] = {"type": details["type"]}
+                        if details["description"]:
+                            field_schema["description"] = details["description"]
+                        if details["has_default"]:
+                            field_schema["default"] = details["default"]
+                        if details["enum"]:
+                            field_schema["enum"] = list(details["enum"])
+                        if details["items"]:
+                            field_schema["items"] = details["items"]
+
+                        fields[field_name] = field_schema
+                        if not details["has_default"]:
+                            required.append(field_name)
+
+                if is_pydantic or has_annotations:
+                    self.pydantic_models[stmt.name] = {
+                        "properties": fields,
+                        "required": required,
+                    }
+
+        self.generic_visit(node)
+
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._process_function(node)
         self.generic_visit(node)
@@ -229,112 +404,366 @@ class FastMcpAstVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _process_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
-        tool_found = False
-        extracted_name = None
-        extracted_desc = None
+        docstring = ast.get_docstring(node) or ""
+        doc_param_descs = _extract_param_descriptions_from_docstring(docstring)
+
+        is_tool = False
+        is_prompt = False
+        is_resource = False
+        custom_name = None
+        custom_desc = None
+        custom_uri = None
+        tool_annotations: dict[str, bool] = {}
 
         for dec in node.decorator_list:
-            is_tool, c_name, c_desc = self._is_tool_decorator(dec)
-            if is_tool:
-                tool_found = True
-                if c_name:
-                    extracted_name = c_name
-                if c_desc:
-                    extracted_desc = c_desc
+            func_node = dec.func if isinstance(dec, ast.Call) else dec
+            dec_name = getattr(func_node, "attr", getattr(func_node, "id", None))
 
-        if not tool_found:
-            return
+            # Check args/keywords for Call decorators
+            if isinstance(dec, ast.Call):
+                if dec.args and isinstance(dec.args[0], ast.Constant) and isinstance(dec.args[0].value, str):
+                    if dec_name == "resource":
+                        custom_uri = dec.args[0].value
+                    else:
+                        custom_name = dec.args[0].value
 
-        tool_name = extracted_name or node.name
-        docstring = ast.get_docstring(node) or ""
-        tool_desc = extracted_desc or docstring.strip().split("\n")[0] or tool_name
+                for kw in dec.keywords:
+                    if kw.arg == "name" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                        custom_name = kw.value.value
+                    elif kw.arg == "description" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                        custom_desc = kw.value.value
+                    elif kw.arg == "uri" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                        custom_uri = kw.value.value
+                    elif kw.arg == "annotations" and isinstance(kw.value, ast.Dict):
+                        for k, v in zip(kw.value.keys, kw.value.values):
+                            if isinstance(k, ast.Constant) and isinstance(k.value, str) and isinstance(v, ast.Constant):
+                                tool_annotations[k.value] = bool(v.value)
 
-        # Extract arguments and inputSchema
-        properties: dict[str, dict[str, str]] = {}
-        required: list[str] = []
+            if dec_name in ("tool", "mcp_tool") or (isinstance(func_node, ast.Attribute) and func_node.attr == "tool"):
+                is_tool = True
+            elif dec_name in ("prompt", "mcp_prompt") or (isinstance(func_node, ast.Attribute) and func_node.attr == "prompt"):
+                is_prompt = True
+            elif dec_name in ("resource", "mcp_resource") or (isinstance(func_node, ast.Attribute) and func_node.attr == "resource"):
+                is_resource = True
 
-        # Process function positional arguments (excluding 'self', 'cls', 'ctx', 'context')
-        for arg in node.args.args:
-            arg_name = arg.arg
-            if arg_name in ("self", "cls", "ctx", "context"):
-                continue
+        name = custom_name or node.name
+        desc = custom_desc or (docstring.strip().split("\n")[0] if docstring else name)
 
-            is_model = False
-            if getattr(arg, "annotation", None) and isinstance(arg.annotation, ast.Name):
-                type_name = arg.annotation.id
-                if type_name in self.pydantic_models:
-                    model_info = self.pydantic_models[type_name]
+        # 1. Handle Prompt Extraction
+        if is_prompt:
+            prompt_args = []
+            for arg in node.args.args:
+                if arg.arg in ("self", "cls", "ctx", "context"):
+                    continue
+                p_desc = doc_param_descs.get(arg.arg, "")
+                prompt_args.append({
+                    "name": arg.arg,
+                    "description": p_desc,
+                    "required": True,
+                })
+            self.extracted_prompts.append({
+                "name": name,
+                "description": desc,
+                "arguments": prompt_args,
+            })
+
+        # 2. Handle Resource Extraction
+        if is_resource:
+            self.extracted_resources.append({
+                "uri_template": custom_uri or f"resource://{name}",
+                "name": name,
+                "description": desc,
+                "mime_type": "text/plain",
+            })
+
+        # 3. Handle Tool Extraction
+        if is_tool:
+            properties: dict[str, Any] = {}
+            required: list[str] = []
+
+            # Map positional defaults
+            num_defaults = len(node.args.defaults)
+            args_without_defaults = len(node.args.args) - num_defaults
+
+            for idx, arg in enumerate(node.args.args):
+                arg_name = arg.arg
+                if arg_name in ("self", "cls", "ctx", "context"):
+                    continue
+
+                default_node = None
+                if idx >= args_without_defaults:
+                    default_node = node.args.defaults[idx - args_without_defaults]
+
+                # Check if annotation references a Pydantic model
+                if arg.annotation and isinstance(arg.annotation, ast.Name) and arg.annotation.id in self.pydantic_models:
+                    model_info = self.pydantic_models[arg.annotation.id]
                     properties.update(model_info["properties"])
                     required.extend(model_info["required"])
-                    is_model = True
+                    continue
 
-            if not is_model:
-                schema_type = _python_type_to_schema_type(arg.annotation)
-                properties[arg_name] = {"type": schema_type}
+                details = _extract_field_details(arg.annotation, default_node)
+                p_desc = details["description"] or doc_param_descs.get(arg_name)
 
-                # Check if arg has a default value (non-required)
-                num_defaults = len(node.args.defaults)
-                args_without_defaults = len(node.args.args) - num_defaults
-                arg_idx = node.args.args.index(arg)
-                if arg_idx < args_without_defaults:
+                prop_dict: dict[str, Any] = {"type": details["type"]}
+                if p_desc:
+                    prop_dict["description"] = p_desc
+                if details["has_default"]:
+                    prop_dict["default"] = details["default"]
+                if details["enum"]:
+                    prop_dict["enum"] = list(details["enum"])
+                if details["items"]:
+                    prop_dict["items"] = details["items"]
+
+                properties[arg_name] = prop_dict
+                if not details["has_default"]:
                     required.append(arg_name)
 
-        # Process keyword-only arguments
-        for idx, kwarg in enumerate(node.args.kwonlyargs):
-            kwarg_name = kwarg.arg
-            if kwarg_name in ("self", "cls", "ctx", "context"):
-                continue
+            # Keyword-only arguments
+            for idx, kwarg in enumerate(node.args.kwonlyargs):
+                kwarg_name = kwarg.arg
+                if kwarg_name in ("self", "cls", "ctx", "context"):
+                    continue
 
-            is_model = False
-            if getattr(kwarg, "annotation", None) and isinstance(kwarg.annotation, ast.Name):
-                type_name = kwarg.annotation.id
-                if type_name in self.pydantic_models:
-                    model_info = self.pydantic_models[type_name]
+                default_node = None
+                if idx < len(node.args.kw_defaults):
+                    default_node = node.args.kw_defaults[idx]
+
+                if kwarg.annotation and isinstance(kwarg.annotation, ast.Name) and kwarg.annotation.id in self.pydantic_models:
+                    model_info = self.pydantic_models[kwarg.annotation.id]
                     properties.update(model_info["properties"])
                     required.extend(model_info["required"])
-                    is_model = True
+                    continue
 
-            if not is_model:
-                schema_type = _python_type_to_schema_type(kwarg.annotation)
-                properties[kwarg_name] = {"type": schema_type}
-                if idx >= len(node.args.kw_defaults) or node.args.kw_defaults[idx] is None:
+                details = _extract_field_details(kwarg.annotation, default_node)
+                p_desc = details["description"] or doc_param_descs.get(kwarg_name)
+
+                prop_dict = {"type": details["type"]}
+                if p_desc:
+                    prop_dict["description"] = p_desc
+                if details["has_default"]:
+                    prop_dict["default"] = details["default"]
+                if details["enum"]:
+                    prop_dict["enum"] = list(details["enum"])
+                if details["items"]:
+                    prop_dict["items"] = details["items"]
+
+                properties[kwarg_name] = prop_dict
+                if not details["has_default"]:
                     required.append(kwarg_name)
 
-        input_schema = {
-            "type": "object",
-            "properties": properties,
-            "required": sorted(required),
-        }
+            self.extracted_tools.append({
+                "name": name,
+                "description": desc,
+                "inputSchema": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": sorted(required),
+                },
+                "property_keys": sorted(properties.keys()),
+                "required_keys": sorted(required),
+                "annotations": tool_annotations,
+            })
 
-        self.extracted_tools.append({
-            "name": tool_name,
-            "description": tool_desc,
-            "inputSchema": input_schema,
-            "property_keys": sorted(properties.keys()),
-            "required_keys": sorted(required),
-        })
+
+def parse_python_mcp_ast_bundle(files: dict[str, str]) -> AstBundleResult:
+    """Parse multiple Python source files simultaneously, resolving cross-file Pydantic models.
+
+    Aggregates extracted tools, prompts, resources, and required environment variables across
+    all files in the bundle.
+    """
+    aggregated_models: dict[str, dict[str, Any]] = {}
+    parsed_trees: dict[str, ast.Module] = {}
+
+    # Pass 1: Parse AST and collect Pydantic models across all files
+    for fname, code in files.items():
+        try:
+            tree = ast.parse(code)
+            parsed_trees[fname] = tree
+            pre_visitor = FastMcpAstVisitor()
+            pre_visitor.visit(tree)
+            aggregated_models.update(pre_visitor.pydantic_models)
+        except Exception as exc:
+            logger.debug("Failed to parse AST for %s: %s", fname, exc)
+
+    # Pass 2: Extract tools, prompts, resources, and env vars using aggregated models
+    all_tools: list[dict[str, Any]] = []
+    all_prompts: list[dict[str, Any]] = []
+    all_resources: list[dict[str, Any]] = []
+    all_env_vars: set[str] = set()
+    seen_tool_names: set[str] = set()
+
+    for fname, tree in parsed_trees.items():
+        visitor = FastMcpAstVisitor(pydantic_models=aggregated_models)
+        try:
+            visitor.visit(tree)
+            for t in visitor.extracted_tools:
+                if t["name"] not in seen_tool_names:
+                    seen_tool_names.add(t["name"])
+                    all_tools.append(t)
+            all_prompts.extend(visitor.extracted_prompts)
+            all_resources.extend(visitor.extracted_resources)
+            all_env_vars.update(visitor.extracted_env_vars)
+        except Exception as exc:
+            logger.debug("Failed visiting AST for %s: %s", fname, exc)
+
+    return AstBundleResult(
+        tools=all_tools,
+        prompts=all_prompts,
+        resources=all_resources,
+        env_vars=all_env_vars,
+    )
 
 
-def parse_python_mcp_ast(code: str) -> list[dict[str, Any]]:
+def parse_python_mcp_ast(code: str) -> AstBundleResult:
     """Parse Python source code and return statically extracted MCP tool definitions."""
-    try:
-        tree = ast.parse(code)
-    except Exception:
-        return []
-
-    visitor = FastMcpAstVisitor()
-    try:
-        visitor.visit(tree)
-    except Exception:
-        pass
-    return visitor.extracted_tools
+    return parse_python_mcp_ast_bundle({"<stdin>": code})
 
 
 
-def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
+def _parse_balanced_zod_schema(zod_body: str) -> tuple[dict[str, Any], list[str]]:
+    """Balanced-delimiter parser for Zod object schema definitions.
+
+    Accurately handles nested z.object({...}), z.array(...), .describe(...), .default(...),
+    .enum([...]), and .optional().
+    """
+    properties: dict[str, Any] = {}
+    required: list[str] = []
+
+    raw_props: list[str] = []
+    current: list[str] = []
+    paren_depth = 0
+    brace_depth = 0
+    bracket_depth = 0
+    in_quote: str | None = None
+
+    for ch in zod_body:
+        if in_quote:
+            current.append(ch)
+            if ch == in_quote:
+                in_quote = None
+            continue
+
+        if ch in ("'", '"', "`"):
+            in_quote = ch
+            current.append(ch)
+        elif ch == "(":
+            paren_depth += 1
+            current.append(ch)
+        elif ch == ")":
+            paren_depth = max(0, paren_depth - 1)
+            current.append(ch)
+        elif ch == "{":
+            brace_depth += 1
+            current.append(ch)
+        elif ch == "}":
+            brace_depth = max(0, brace_depth - 1)
+            current.append(ch)
+        elif ch == "[":
+            bracket_depth += 1
+            current.append(ch)
+        elif ch == "]":
+            bracket_depth = max(0, bracket_depth - 1)
+            current.append(ch)
+        elif ch == "," and paren_depth == 0 and brace_depth == 0 and bracket_depth == 0:
+            prop_str = "".join(current).strip()
+            if prop_str:
+                raw_props.append(prop_str)
+            current = []
+        else:
+            current.append(ch)
+
+    if current:
+        prop_str = "".join(current).strip()
+        if prop_str:
+            raw_props.append(prop_str)
+
+    for item in raw_props:
+        if ":" not in item:
+            continue
+        parts = item.split(":", 1)
+        p_name = parts[0].strip()
+        expr = parts[1].strip()
+
+        outer_expr = expr
+        stype = "string"
+        nested_props = None
+        items_dict = None
+        if "z.object" in expr:
+            stype = "object"
+            obj_m = re.search(r"z\.object\s*\(\s*\{([\s\S]*)\}\s*\)", expr)
+            if obj_m:
+                nested_props, _ = _parse_balanced_zod_schema(obj_m.group(1))
+                outer_expr = expr[obj_m.end():]
+        elif re.search(r"z\.(?:array|list)", expr):
+            stype = "array"
+            arr_inner = re.search(r"z\.(?:array|list)\s*\(\s*z\.([a-zA-Z0-9]+)", expr)
+            if arr_inner:
+                inner_name = arr_inner.group(1).lower()
+                i_type = "number" if inner_name in ("number", "int") else ("boolean" if inner_name in ("bool", "boolean") else "string")
+                items_dict = {"type": i_type}
+            else:
+                items_dict = {"type": "string"}
+        elif re.search(r"z\.(?:number|int|float)", expr):
+            stype = "number"
+        elif re.search(r"z\.(?:boolean|bool)", expr):
+            stype = "boolean"
+
+        prop_dict: dict[str, Any] = {"type": stype}
+        if items_dict:
+            prop_dict["items"] = items_dict
+        if nested_props:
+            prop_dict["properties"] = nested_props
+
+        # Parse .describe("...")
+        desc_m = re.search(r'\.describe\s*\(\s*["\'`]([^"\'`]+)["\'`]\s*\)', outer_expr)
+        if desc_m:
+            prop_dict["description"] = desc_m.group(1)
+
+        # Parse .default(...)
+        default_m = re.search(r'\.default\s*\(\s*([^)]+)\s*\)', outer_expr)
+        has_default = False
+        if default_m:
+            raw_def = default_m.group(1).strip()
+            has_default = True
+            if raw_def.startswith(('"', "'", "`")) and raw_def.endswith(('"', "'", "`")):
+                prop_dict["default"] = raw_def[1:-1]
+            elif raw_def.lower() in ("true", "false"):
+                prop_dict["default"] = raw_def.lower() == "true"
+            else:
+                try:
+                    prop_dict["default"] = int(raw_def) if "." not in raw_def else float(raw_def)
+                except ValueError:
+                    prop_dict["default"] = raw_def
+
+        # Parse .enum([...]) or z.enum([...])
+        enum_m = re.search(r'\.(?:enum|nativeEnum)\s*\(\s*\[([^\]]+)\]\s*\)', expr)
+        if not enum_m:
+            enum_m = re.search(r'z\.enum\s*\(\s*\[([^\]]+)\]\s*\)', expr)
+        if enum_m:
+            raw_enum_items = [re.sub(r'["\'`\s]', '', x) for x in enum_m.group(1).split(',')]
+            prop_dict["enum"] = [x for x in raw_enum_items if x]
+
+        properties[p_name] = prop_dict
+
+        # Determine if required: not optional and no default
+        is_optional = ".optional()" in outer_expr
+        if not is_optional and not has_default:
+            required.append(p_name)
+
+    return properties, required
+
+
+def parse_typescript_mcp_ast(code: str) -> AstBundleResult:
     """Statically extract MCP tool definitions from TypeScript/JavaScript source code."""
     extracted: list[dict[str, Any]] = []
     seen_names: set[str] = set()
+    env_vars: set[str] = set()
+
+    # Capture process.env variables
+    for m in re.finditer(r'process\.env\.([a-zA-Z_][a-zA-Z0-9_]*)', code):
+        env_vars.add(m.group(1))
+    for m in re.finditer(r'process\.env\[["\']([a-zA-Z_][a-zA-Z0-9_]*)["\']\]', code):
+        env_vars.add(m.group(1))
 
     def add_tool(name: str, desc: str, props: dict[str, Any], req: list[str]) -> None:
         if not name or name in seen_names:
@@ -354,39 +783,15 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
 
     # Pattern 1: server.tool("name", "desc", { schema }, handler) or server.tool("name", { schema }, handler)
     tool_call_regex = re.compile(
-        r'(?:server|mcp|app)\.tool\s*\(\s*["\']([^"\']+)["\']\s*,\s*(?:["\'`]([^"\'`]+)["\'`]\s*,\s*)?(?:z\.object\s*\(\s*\{([^}]*)\}\s*\)|\{([^}]*)\})',
-        re.DOTALL | re.MULTILINE,
+        r'(?:server|mcp|app)\.tool\s*\(\s*["\']([^"\']+)["\']\s*,\s*(?:["\'`]([^"\'`]+)["\'`]\s*,\s*)?(?:z\.object\s*\(\s*\{([\s\S]*?)\}\s*\)|\{([\s\S]*?)\})\s*,\s*(?:async\s*)?\(',
+        re.MULTILINE,
     )
 
     for match in tool_call_regex.finditer(code):
         tool_name = match.group(1)
         tool_desc = match.group(2) or tool_name
         zod_body = match.group(3) or match.group(4) or ""
-
-        properties: dict[str, dict[str, str]] = {}
-        required: list[str] = []
-
-        if zod_body:
-            # Parse property key and type (e.g., query: z.string().describe(...))
-            prop_lines = zod_body.split(",")
-            for line in prop_lines:
-                p_match = re.search(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', line)
-                if p_match:
-                    p_name = p_match.group(1)
-                    p_ztype = p_match.group(2).lower()
-                    stype = "string"
-                    if p_ztype in ("number", "int", "float"):
-                        stype = "number"
-                    elif p_ztype in ("boolean", "bool"):
-                        stype = "boolean"
-                    elif p_ztype in ("array", "list"):
-                        stype = "array"
-                    elif p_ztype in ("object", "record"):
-                        stype = "object"
-                    properties[p_name] = {"type": stype}
-                    if "optional" not in line:
-                        required.append(p_name)
-
+        properties, required = _parse_balanced_zod_schema(zod_body)
         add_tool(tool_name, tool_desc, properties, required)
 
     # Pattern 2: server.registerTool("name", { title: "...", description: "...", inputSchema: { ... } }, handler)
@@ -399,66 +804,55 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
         if t_name in seen_names:
             continue
         start_idx = m.end() - 1
-        chunk = code[start_idx : start_idx + 1500]
+        chunk = code[start_idx : start_idx + 2500]
         desc_m = re.search(r'description\s*:\s*["\'`]([^"\'`]+)["\'`]', chunk)
         t_desc = desc_m.group(1) if desc_m else t_name
         properties = {}
         required = []
-        schema_m = re.search(r'inputSchema\s*:\s*\{([^{}]*?(?:\{[^{}]*\}[^{}]*?)*)\}', chunk, re.DOTALL)
+        schema_m = re.search(r'inputSchema\s*:\s*\{([\s\S]*?)\}\s*(?:,|\})', chunk)
         if schema_m:
-            schema_chunk = schema_m.group(1)
-            for pm in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', schema_chunk):
-                pname = pm.group(1)
-                ptype = pm.group(2).lower()
-                
-                stype = "string"
-                if ptype in ("number", "int", "float"):
-                    stype = "number"
-                elif ptype in ("boolean", "bool"):
-                    stype = "boolean"
-                elif ptype in ("array", "list"):
-                    stype = "array"
-                elif ptype in ("object", "record"):
-                    stype = "object"
-                    
-                properties[pname] = {"type": stype}
-                
-                line_match = re.search(rf'{pname}\s*:\s*z\.[^,]+', schema_chunk)
-                if line_match and "optional" not in line_match.group(0):
-                    required.append(pname)
+            properties, required = _parse_balanced_zod_schema(schema_m.group(1))
 
         add_tool(t_name, t_desc, properties, required)
 
-    # Pattern 3: Object literal array declaration [{ name: "...", description: "...", inputSchema: ... }]
+    # Pattern 3: Bundled JS with ListToolsRequestSchema handlers
+    # e.g. server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [ ... ] }))
+    list_tools_match = re.search(r'ListToolsRequestSchema[\s\S]*?tools\s*:\s*\[([\s\S]*?)\]\s*\}', code)
+    if list_tools_match:
+        tools_chunk = list_tools_match.group(1)
+        for t_match in re.finditer(r'\{[^{}]*name\s*:\s*["\']([^"\']+)["\'][^{}]*description\s*:\s*["\']([^"\']*)["\']', tools_chunk):
+            add_tool(t_match.group(1), t_match.group(2), {}, [])
+
+    # Pattern 4: Object literal array declaration [{ name: "...", description: "...", inputSchema: ... }]
     # E.g. tools = [{ name: "read_file", ... }]
     for match in re.finditer(r'(?:\{|,)\s*name\s*:\s*["\']([a-zA-Z0-9_\-]+)["\']', code):
         t_name = match.group(1)
         if t_name in seen_names or t_name.startswith("$"):
             continue
-            
+
         pre_code = code[max(0, match.start() - 40) : match.start()]
         if "new Server" in pre_code or "new McpServer" in pre_code:
             continue
 
         start_idx = match.start()
         chunk = code[start_idx : start_idx + 2500]
-        
+
         # Isolate this object up to next tool definition if possible
         next_tool_match = re.search(r'(?:\{|,)\s*name\s*:\s*["\']', chunk[10:])
         if next_tool_match:
             chunk = chunk[:next_tool_match.start() + 10]
-            
+
         desc_m = re.search(
             r'description\s*:\s*([\'"`].*?[\'"`](?:\s*\+\s*[\'"`].*?[\'"`])*)',
             chunk,
             re.DOTALL,
         )
         schema_m = re.search(r'(?:inputSchema|parameters)\s*:\s*\{', chunk)
-        
+
         # Must have either description or inputSchema/parameters to be a tool definition
         if not desc_m and not schema_m:
             continue
-            
+
         # Ignore server metadata objects ({ name: "server", version: "1.0.0" })
         if re.search(r'\bversion\s*:\s*["\']', chunk) and not schema_m:
             continue
@@ -469,10 +863,10 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
             t_desc = re.sub(r'\s+', ' ', cleaned_desc).strip('\'"` \n') or t_name
         else:
             t_desc = t_name
-            
+
         properties = {}
         required = []
-        
+
         if schema_m:
             schema_chunk = chunk[schema_m.end() - 1 :]
             for p_match in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*\{([^{}]+)\}', schema_chunk, re.DOTALL):
@@ -481,7 +875,7 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
                 t_match = re.search(r'type\s*:\s*["\']([^"\']+)["\']', p_body)
                 if t_match:
                     properties[p_name] = {"type": t_match.group(1)}
-            
+
             for z_match in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*z\.([a-zA-Z0-9]+)', schema_chunk):
                 p_name = z_match.group(1)
                 p_ztype = z_match.group(2).lower()
@@ -507,7 +901,7 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
 
         add_tool(t_name, t_desc, properties, required)
 
-    # Pattern 4: Standalone / helper function tool declarations:
+    # Pattern 5: Standalone / helper function tool declarations:
     helper_tool_regex = re.compile(
         r'(?<!\.)\b(?:tool|createTool|defineTool)\s*\(\s*["\']([a-zA-Z0-9_\-]+)["\']\s*(?:,\s*(?:["\'`]([^"\'`]+)["\'`]|z\.object|\{))?',
         re.MULTILINE,
@@ -525,13 +919,13 @@ def parse_typescript_mcp_ast(code: str) -> list[dict[str, Any]]:
             c_name = cm.group(1)
             if c_name not in seen_names and c_name.lower() not in ignored_names:
                 add_tool(c_name, f"Execute {c_name}", {}, [])
-                
+
         for im in re.finditer(r'(?:request\.params\.name|params\.name|\bname)\s*===\s*["\']([a-zA-Z0-9_\-]+)["\']', code):
             i_name = im.group(1)
             if i_name not in seen_names and i_name.lower() not in ignored_names:
                 add_tool(i_name, f"Execute {i_name}", {}, [])
 
-    return extracted
+    return AstBundleResult(tools=extracted, env_vars=env_vars)
 
 
 def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
