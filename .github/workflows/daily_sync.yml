@@ -73,7 +73,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
           # Check if there are changes in data/fingerprints/
-          FINGERPRINT_CHANGES=$(git status --porcelain data/fingerprints/)
+          FINGERPRINT_CHANGES=$(git status --porcelain data/fingerprints/ | grep -v "sync_state.json" | grep -v "index.json" | grep -v ".passport_index.pickle" || true)
           
           git add data/fingerprints/ passports.json.gz web/catalog.json
           [ -f data/embeddings.npz ] && git add data/embeddings.npz data/.embeddings_hash || true
@@ -83,7 +83,9 @@ jobs:
               # Bump version
               NEW_VERSION=$(python scripts/bump_version.py --dry-run)
               python scripts/bump_version.py --apply
-              git add pyproject.toml src/mcp_fingerprints/__init__.py
+              PYTHONPATH=src:. python scripts/generate_web_catalog.py
+              python scripts/generate_sync_updates.py --old previous_passports.json.gz --new passports.json.gz --version "${NEW_VERSION}"
+              git add pyproject.toml src/mcp_fingerprints/__init__.py web/catalog.json web/sw.js web/updates/
               git commit -m "chore(release): bump version to v${NEW_VERSION} and sync MCP fingerprints"
               git tag "v${NEW_VERSION}"
               echo "release_created=true" >> "$GITHUB_OUTPUT"
