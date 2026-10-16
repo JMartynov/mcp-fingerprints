@@ -20,7 +20,12 @@ import time
 from pathlib import Path
 from typing import Any
 
-from mcp_fingerprints.ast_parser import parse_mcp_source_code, parse_typescript_mcp_ast, parse_python_mcp_ast
+from mcp_fingerprints.ast_parser import (
+    parse_mcp_source_code,
+    parse_typescript_mcp_ast,
+    parse_python_mcp_ast,
+    parse_python_mcp_ast_bundle,
+)
 from mcp_fingerprints.monorepo_prober import match_monorepo_subpackage_dir
 from mcp_fingerprints.openapi_parser import parse_openapi_spec
 from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
@@ -337,16 +342,18 @@ class PassportSynchronizer:
         if target_type == "wheel":
             import zipfile
             try:
+                py_files: dict[str, str] = {}
                 with zipfile.ZipFile(buf, "r") as zf:
                     for name in zf.namelist():
                         if name.endswith(".py") and not name.split("/")[-1].startswith("test"):
                             code = zf.read(name).decode("utf-8", errors="ignore")
-                            tools = parse_python_mcp_ast(code)
-                            for t in tools:
-                                sanitized = sanitize_tool_definition(t)
-                                if sanitized and sanitized.get("name") not in seen_tool_names:
-                                    seen_tool_names.add(sanitized.get("name"))
-                                    extracted_tools.append(sanitized)
+                            py_files[name] = code
+                bundle_res = parse_python_mcp_ast_bundle(py_files)
+                for t in bundle_res.tools:
+                    sanitized = sanitize_tool_definition(t)
+                    if sanitized and sanitized.get("name") not in seen_tool_names:
+                        seen_tool_names.add(sanitized.get("name"))
+                        extracted_tools.append(sanitized)
 
             except zipfile.BadZipFile as e:
                 logger.warning(f"Zip error extracting {package_name}: {e}")
@@ -354,6 +361,7 @@ class PassportSynchronizer:
             import tarfile
             try:
                 buf.seek(0)
+                py_files = {}
                 with tarfile.open(fileobj=buf, mode="r:gz") as tar:
                     for member in tar.getmembers():
                         if not member.isfile():
@@ -363,12 +371,13 @@ class PassportSynchronizer:
                             f_obj = tar.extractfile(member)
                             if f_obj:
                                 code = f_obj.read().decode("utf-8", errors="ignore")
-                                tools = parse_python_mcp_ast(code)
-                                for t in tools:
-                                    sanitized = sanitize_tool_definition(t)
-                                    if sanitized and sanitized.get("name") not in seen_tool_names:
-                                        seen_tool_names.add(sanitized.get("name"))
-                                        extracted_tools.append(sanitized)
+                                py_files[name] = code
+                bundle_res = parse_python_mcp_ast_bundle(py_files)
+                for t in bundle_res.tools:
+                    sanitized = sanitize_tool_definition(t)
+                    if sanitized and sanitized.get("name") not in seen_tool_names:
+                        seen_tool_names.add(sanitized.get("name"))
+                        extracted_tools.append(sanitized)
 
             except tarfile.TarError as e:
                 logger.warning(f"Tar error extracting {package_name}: {e}")
@@ -464,8 +473,8 @@ class PassportSynchronizer:
                                         seen_tool_names.add(sanitized.get("name"))
                                         extracted_tools.append(sanitized)
 
-                                if extracted_tools:
-                                    return extracted_tools
+                if extracted_tools:
+                    return extracted_tools
 
                 if not extracted_tools:
                     spec_suffixes = (
@@ -816,6 +825,7 @@ class PassportSynchronizer:
         desc = ""
         repo_url = None
         license_str = None
+        author = existing_spec.author if existing_spec else None
         keywords: list[str] = []
         aliases: list[str] = [package_name]
         dist_tags: dict[str, str] = {}
@@ -843,6 +853,8 @@ class PassportSynchronizer:
                     c for c in (smithery_data.get("connections") or []) if isinstance(c, dict)
                 ]
             desc = smithery_data.get("description") or smithery_data.get("displayName") or ""
+            if not author:
+                author = smithery_data.get("author") or smithery_data.get("publisher")
             repo_url = (
                 smithery_data.get("deploymentUrl") or f"https://smithery.ai/servers/{package_name}"
             )
@@ -858,7 +870,8 @@ class PassportSynchronizer:
                 desc = npm_data.get("description", "")
             license_str = npm_data.get("license")
             author_obj = npm_data.get("author")
-            (author_obj.get("name") if isinstance(author_obj, dict) else str(author_obj or ""))
+            if not author and author_obj:
+                author = author_obj.get("name") if isinstance(author_obj, dict) else str(author_obj or "")
             repo_raw = npm_data.get("homepage") or npm_data.get("bugs", {}).get("url")
             if repo_raw:
                 repo_url = repo_raw
@@ -910,8 +923,19 @@ class PassportSynchronizer:
             if not desc:
                 desc = info.get("summary", "")
             license_str = info.get("license")
-            info.get("author")
-            repo_url = info.get("home_page") or info.get("project_url")
+            if not author:
+                author = info.get("author") or info.get("author_email")
+            if not repo_url:
+                proj_urls = info.get("project_urls") or {}
+                for key in ("Repository", "Source", "Source Code", "GitHub", "Homepage", "Home"):
+                    for p_key, p_val in proj_urls.items():
+                        if p_key.lower() == key.lower() and p_val:
+                            repo_url = p_val
+                            break
+                    if repo_url:
+                        break
+                if not repo_url:
+                    repo_url = info.get("home_page") or info.get("project_url")
             releases = pypi_data.get("releases", {})
             latest_v = info.get("version", "1.0.0")
             for v_str, r_list in releases.items():
@@ -950,6 +974,8 @@ class PassportSynchronizer:
         if official_registry_data:
             sources.append("official_registry")
             srv = official_registry_data.get("server", {})
+            if not author:
+                author = srv.get("author")
             if not desc:
                 desc = srv.get("description", "")
             title = srv.get("title")
@@ -1151,6 +1177,7 @@ class PassportSynchronizer:
             display_name=clean_pkg_name,
             description=desc,
             repository_url=repo_url,
+            author=author,
             license=license_str,
             keywords=tuple(sorted(set(keywords))),
             aliases=tuple(sorted(set(aliases))),
@@ -1887,6 +1914,7 @@ class PassportSynchronizer:
                     description=spec.description,
                     repository_url=spec.repository_url,
                     homepage_url=spec.homepage_url,
+                    author=spec.author,
                     license=spec.license,
                     keywords=spec.keywords,
                     aliases=spec.aliases,
