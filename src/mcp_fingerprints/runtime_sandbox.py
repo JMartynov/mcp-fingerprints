@@ -112,7 +112,7 @@ def probe_mcp_server_stdio(
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "VerityAuditor", "version": "1.0"},
+                "clientInfo": {"name": "McpFingerprints", "version": "1.0"},
             },
         }
         process.stdin.write(json.dumps(init_req) + "\n")

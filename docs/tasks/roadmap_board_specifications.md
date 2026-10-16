@@ -1019,7 +1019,7 @@ Ensure Docker is running locally. Run `uv run mcp-fingerprints probe --sandbox=d
 ## 33. Pure Structural Models, ParameterMetadata & Protocol Annotations Schema
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoPQ`
 - **Category**: Schema & Core Models
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 Define high-fidelity, pure structural data models representing MCP tools, parameters, resources, prompts, and protocol annotations without any security or vulnerability fields. Expand `src/mcp_fingerprints/models.py` to introduce `ParameterMetadata` (parameter name, JSON Schema type, description, required boolean, default value, enum values, nested properties/items), `PromptDefinition` (name, description, arguments), `ResourceDefinition` (uri, name, mimeType, description), and `ProtocolAnnotations` (readOnly, destructive, idempotency, streaming). Purge any residual security attributes (`threat_score`, `risk_level`, `cve_refs`) from the core fingerprint models to enforce Clean Architecture ecosystem boundaries. Update `schemas/fingerprint_v1.json` and ensure full bidirectional serialization/deserialization.
@@ -1041,12 +1041,12 @@ Define high-fidelity, pure structural data models representing MCP tools, parame
 - Merge: `jules-gate pr-merge --skip-ci`
 
 ### 4. Clear Acceptance Criteria
-- [ ] Structural models (`ParameterMetadata`, `PromptDefinition`, `ResourceDefinition`, `ProtocolAnnotations`) implemented in `models.py`.
-- [ ] All residual security attributes (`risk_score`, `threat_level`, `cve_refs`) purged from structural models.
-- [ ] `schemas/fingerprint_v1.json` updated with pure structural schema definitions and validated against standard draft-07 / 2020-12 meta-schemas.
-- [ ] Bidirectional JSON serialization and deserialization roundtrip tests pass in `tests/test_models.py`.
-- [ ] Schema validator in `schema_validator.py` validates new structural models with zero regressions.
-- [ ] Documentation updated in `docs/schema_specification.md` and `README.md`.
+- [x] Structural models (`ParameterMetadata`, `PromptDefinition`, `ResourceDefinition`, `ProtocolAnnotations`) implemented in `models.py`.
+- [x] All residual security attributes (`risk_score`, `threat_level`, `cve_refs`) purged from structural models.
+- [x] `schemas/fingerprint_v1.json` updated with pure structural schema definitions and validated against standard draft-07 / 2020-12 meta-schemas.
+- [x] Bidirectional JSON serialization and deserialization roundtrip tests pass in `tests/test_models.py`.
+- [x] Schema validator in `schema_validator.py` validates new structural models with zero regressions.
+- [x] Documentation updated in `docs/schema_specification.md` and `README.md`.
 
 
 ---
@@ -1054,7 +1054,7 @@ Define high-fidelity, pure structural data models representing MCP tools, parame
 ## 34. Deep Python & TS/JS AST Parameter, Prompt, Resource & Env Extractor
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoTI`
 - **Category**: AST & Introspection Engine
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 Deepen the static AST extraction engine (`src/mcp_fingerprints/ast_parser.py` and `doc_parser.py`) for both Python and TypeScript/JavaScript MCP server implementations. For Python, inspect AST nodes of `@mcp.tool()` or `FastMCP.tool` functions to extract type annotations, default parameter values, docstrings (Sphinx, Google, NumPy styles), prompt definitions (`@mcp.prompt()`), static resources (`@mcp.resource()`), and accessed environment variables (`os.environ`, `os.getenv`). For TypeScript/JavaScript, parse `server.tool(...)`, `McpServer`, and Zod schema objects (`z.object({...})`) to extract detailed parameter types, descriptions, `.optional()`, `.default(...)`, and `process.env` references.
@@ -1076,12 +1076,12 @@ Deepen the static AST extraction engine (`src/mcp_fingerprints/ast_parser.py` an
 - Merge: `jules-gate pr-merge --skip-ci`
 
 ### 4. Clear Acceptance Criteria
-- [ ] Python AST parser extracts parameter type hints, default values, and required constraints from tool definitions.
-- [ ] Docstring parser extracts per-parameter descriptions across Google, Sphinx, and NumPy docstring conventions.
-- [ ] Prompt templates (`@mcp.prompt()`) and Resource definitions (`@mcp.resource()`) extracted into `PromptDefinition` and `ResourceDefinition`.
-- [ ] Environment variable accesses (`os.environ`, `os.getenv`, `process.env`) detected and recorded in `required_env_vars`.
-- [ ] TypeScript/JavaScript AST parser extracts Zod schemas and tool parameters from `McpServer` and `server.tool`.
-- [ ] 100% test pass on sample Python and TS fixtures in `tests/test_ast_parser.py`.
+- [x] Python AST parser extracts parameter type hints, default values, and required constraints from tool definitions.
+- [x] Docstring parser extracts per-parameter descriptions across Google, Sphinx, and NumPy docstring conventions.
+- [x] Prompt templates (`@mcp.prompt()`) and Resource definitions (`@mcp.resource()`) extracted into `PromptDefinition` and `ResourceDefinition`.
+- [x] Environment variable accesses (`os.environ`, `os.getenv`, `process.env`) detected and recorded in `required_env_vars`.
+- [x] TypeScript/JavaScript AST parser extracts Zod schemas and tool parameters from `McpServer` and `server.tool`.
+- [x] 100% test pass on sample Python and TS fixtures in `tests/test_ast_parser.py`.
 
 
 ---
@@ -1089,7 +1089,7 @@ Deepen the static AST extraction engine (`src/mcp_fingerprints/ast_parser.py` an
 ## 35. Multi-File Registry & Tarball Synchronizer Enrichment
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoW8`
 - **Category**: Ingestion & Package Discovery
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 Enhance repository synchronizer and package ingestion engine (`src/mcp_fingerprints/synchronizer.py`, `ingestion_engine.py`, `monorepo_prober.py`) to support distributed, multi-file server packages and tarball unpacking. When analyzing npm `.tgz` or PyPI `.tar.gz`/`.whl` archives, safely unpack them into an ephemeral sandboxed directory with zip-slip path traversal guards. Traverse multi-file module import hierarchies (following relative imports and barrel exports like `index.ts` / `__init__.py`) to discover tools, prompts, and resources split across multiple source files or nested subpackages.
@@ -1111,11 +1111,11 @@ Enhance repository synchronizer and package ingestion engine (`src/mcp_fingerpri
 - Merge: `jules-gate pr-merge --skip-ci`
 
 ### 4. Clear Acceptance Criteria
-- [ ] Safe in-memory/ephemeral tarball and wheel unpacker with zip-slip path traversal (`..`) prevention.
-- [ ] Multi-file AST walker traverses internal module imports to discover tools declared across helper files.
-- [ ] Monorepo package prober isolates sub-projects within pnpm/npm/lerna workspaces without cross-contamination.
-- [ ] Synchronizer successfully extracts complete multi-file tool catalogs from sample npm and PyPI tarball packages.
-- [ ] Comprehensive unit tests in `tests/test_synchronizer.py` and `tests/test_monorepo_prober.py`.
+- [x] Safe in-memory/ephemeral tarball and wheel unpacker with zip-slip path traversal (`..`) prevention.
+- [x] Multi-file AST walker traverses internal module imports to discover tools declared across helper files.
+- [x] Monorepo package prober isolates sub-projects within pnpm/npm/lerna workspaces without cross-contamination.
+- [x] Synchronizer successfully extracts complete multi-file tool catalogs from sample npm and PyPI tarball packages.
+- [x] Comprehensive unit tests in `tests/test_synchronizer.py` and `tests/test_monorepo_prober.py`.
 
 
 ---
@@ -1123,7 +1123,7 @@ Enhance repository synchronizer and package ingestion engine (`src/mcp_fingerpri
 ## 36. Security Module Purge & Pure Structural CLI/TUI Refactoring
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPoak`
 - **Category**: CLI & Architecture Governance
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 Purge residual security and vulnerability scanning modules (`security_classifier.py`, `sarif_exporter.py`, etc., which are being migrated to `mcp-vulnerabilities`). Refactor the CLI (`src/mcp_fingerprints/cli.py`) and TUI (`src/mcp_fingerprints/tui.py`) to concentrate solely on pure structural MCP passport introspection, schema inspection, AST diffing, protocol validation, and registry browsing. Remove `--audit-risk`, `--sarif`, and CVE search commands, replacing them with deprecation notices directing users to `mcp-vulnerabilities`.
@@ -1147,11 +1147,11 @@ Purge residual security and vulnerability scanning modules (`security_classifier
 - Merge: `jules-gate pr-merge --skip-ci`
 
 ### 4. Clear Acceptance Criteria
-- [ ] Deprecated security classification and SARIF modules removed or replaced with clear migration warnings pointing to `mcp-vulnerabilities`.
-- [ ] CLI commands (`inspect`, `diff`, `schema`, `validate-protocol`, `browse`) refactored for pure structural analysis.
-- [ ] TUI terminal browser renders rich parameter tables, prompt arguments, and resource trees without security ratings.
-- [ ] Unit tests in `tests/test_cli.py` and `tests/test_tui.py` updated and 100% passing.
-- [ ] Documentation updated in `docs/cli_reference.md` and `README.md`.
+- [x] Deprecated security classification and SARIF modules removed or replaced with clear migration warnings pointing to `mcp-vulnerabilities`.
+- [x] CLI commands (`inspect`, `diff`, `schema`, `validate-protocol`, `browse`) refactored for pure structural analysis.
+- [x] TUI terminal browser renders rich parameter tables, prompt arguments, and resource trees without security ratings.
+- [x] Unit tests in `tests/test_cli.py` and `tests/test_tui.py` updated and 100% passing.
+- [x] Documentation updated in `docs/cli_reference.md` and `README.md`.
 
 
 ---
@@ -1159,7 +1159,7 @@ Purge residual security and vulnerability scanning modules (`security_classifier
 ## 37. Enriched Non-Security Web Catalog & Interactive Parameter Inspector UI
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPodc`
 - **Category**: Static Web Directory
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`, `web/catalog.json`) to showcase enriched structural metadata. Implement an interactive tool parameter inspector drawer/modal in the browser that allows users to drill down into any server, view full JSON Schema parameter definitions, types, required flags, default values, docstrings, prompt templates, and resource endpoints. Strip all vulnerability scores, CVE badges, and threat filters from the catalog UI. Optimize `src/mcp_fingerprints/snapshot.py` to compile an efficient, non-bloated `catalog.json`.
@@ -1181,12 +1181,12 @@ Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`
 - Merge: `jules-gate pr-merge --skip-ci`
 
 ### 4. Clear Acceptance Criteria
-- [ ] Interactive tool parameter inspector drawer/modal implemented with clean responsive CSS.
-- [ ] Parameter type badges, required indicators, default values, and docstrings rendered clearly.
-- [ ] Prompt templates and resource URIs displayed in dedicated tabs or expandable accordions.
-- [ ] All security risk badges, CVE indicators, and vulnerability filters removed from the UI.
-- [ ] `snapshot.py` generates minified, high-performance `catalog.json` for 5,000+ servers.
-- [ ] Browser search, filtering, and copy client configuration snippets verified functional.
+- [x] Interactive tool parameter inspector drawer/modal implemented with clean responsive CSS.
+- [x] Parameter type badges, required indicators, default values, and docstrings rendered clearly.
+- [x] Prompt templates and resource URIs displayed in dedicated tabs or expandable accordions.
+- [x] All security risk badges, CVE indicators, and vulnerability filters removed from the UI.
+- [x] `snapshot.py` generates minified, high-performance `catalog.json` for 5,000+ servers.
+- [x] Browser search, filtering, and copy client configuration snippets verified functional.
 
 
 ---
@@ -1194,7 +1194,7 @@ Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`
 ## 38. Passport Dataset Sanitization, Sync-State Reset & Documentation Purification
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPogo`
 - **Category**: Data Governance & Operations
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 Sanitize the existing passport dataset in `data/` by writing an automated migration script (`scripts/sanitize_passports.py`) that strips all legacy security fields, risk scores, and vulnerability annotations, ensuring every passport strictly conforms to the pure structural schema. Cleanly reset the sync tracking state (`data/sync_state.json`) to allow a fresh, idempotent re-sync. Purify all repository documentation, architectural diagrams, and README files to firmly establish `mcp-fingerprints` as the canonical structural source of truth.
@@ -1217,11 +1217,11 @@ Sanitize the existing passport dataset in `data/` by writing an automated migrat
 - Merge: `jules-gate pr-merge --skip-ci`
 
 ### 4. Clear Acceptance Criteria
-- [ ] Automated migration script `scripts/sanitize_passports.py` created and tested.
-- [ ] All passport records in `data/` sanitized, with 0 legacy security fields remaining.
-- [ ] `sync_state.json` cleanly reset to trigger idempotent structural re-sync.
-- [ ] All sanitized passports validate against `schemas/fingerprint_v1.json` via `schema_validator.py`.
-- [ ] Architecture diagrams and documentation in `docs/` and `README.md` purified.
+- [x] Automated migration script `scripts/sanitize_passports.py` created and tested.
+- [x] All passport records in `data/` sanitized, with 0 legacy security fields remaining.
+- [x] `sync_state.json` cleanly reset to trigger idempotent structural re-sync.
+- [x] All sanitized passports validate against `schemas/fingerprint_v1.json` via `schema_validator.py`.
+- [x] Architecture diagrams and documentation in `docs/` and `README.md` purified.
 
 
 ---
@@ -1229,7 +1229,7 @@ Sanitize the existing passport dataset in `data/` by writing an automated migrat
 ## 39. Sync Update Delta Tracker, What's New Web Page (web/updates.html) & PyPI Auto-Release Hardening
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBPokY`
 - **Category**: Ingestion & Release Engineering
-- **Status**: Todo
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 Implement an automated sync update delta tracker (`src/mcp_fingerprints/delta_tracker.py`) that executes at the conclusion of daily ingestion cycles. It detects newly discovered MCP servers, version upgrades, new tools, and modified parameter signatures, saving the results in a rolling history log (`data/updates_history.json`). Create a dedicated static 'What's New' page (`web/updates.html` + `web/updates.js`) providing an ecosystem change feed. Harden `.github/workflows/daily_sync.yml` and `.github/workflows/release.yml` to automatically trigger a PyPI release when substantive fingerprint updates exceed release thresholds.
@@ -1252,9 +1252,9 @@ Implement an automated sync update delta tracker (`src/mcp_fingerprints/delta_tr
 - Merge: `jules-gate pr-merge --skip-ci`
 
 ### 4. Clear Acceptance Criteria
-- [ ] `DeltaTracker` accurately computes additions, version bumps, and signature changes between sync runs.
-- [ ] `data/updates_history.json` tracks chronological delta records with timestamps and commit hashes.
-- [ ] `web/updates.html` presents a responsive timeline of ecosystem arrivals with filtering and search.
-- [ ] Daily sync workflow commits update logs and conditionally triggers PyPI release pipeline.
-- [ ] Unit tests in `tests/test_delta_tracker.py` pass with 100% coverage.
+- [x] `DeltaTracker` accurately computes additions, version bumps, and signature changes between sync runs.
+- [x] `data/updates_history.json` tracks chronological delta records with timestamps and commit hashes.
+- [x] `web/updates.html` presents a responsive timeline of ecosystem arrivals with filtering and search.
+- [x] Daily sync workflow commits update logs and conditionally triggers PyPI release pipeline.
+- [x] Unit tests in `tests/test_delta_tracker.py` pass with 100% coverage.
 

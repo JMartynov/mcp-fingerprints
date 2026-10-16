@@ -100,11 +100,12 @@ function renderGrid(servers) {
       return `<span class="update-badge ${cssClass}">${b}</span>`;
     }).join('');
 
+
     card.innerHTML = `
       <div class="update-badges">${badgesHtml}</div>
       <div class="card-header">
         <div>
-          <div class="card-title">${escapeHtml(server.name)}</div>
+          <div class="card-title" style="cursor:pointer; text-decoration:underline; color:var(--accent);" onclick="event.stopPropagation(); openInspectorModal('${server.name.replace(/'/g, "\'")}')">${escapeHtml(server.name)}</div>
           <div class="card-meta">
             <span class="badge-eco">${escapeHtml(server.ecosystem)}</span>
             <span class="badge-ver">v${escapeHtml(server.version)}</span>
@@ -121,6 +122,7 @@ function renderGrid(servers) {
         </div>
       </div>
     `;
+
     serverGrid.appendChild(card);
   });
 }
@@ -285,3 +287,119 @@ window.downloadCombinedConfig = function() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+
+// --- Interactive Server & Tool Parameter Inspector ---
+window.openInspectorModal = function(serverName) {
+  const item = updateData.find((i) => i.name === serverName);
+  if (!item) return;
+
+  document.getElementById("inspectorTitle").innerText = item.name;
+  const body = document.getElementById("inspectorBody");
+
+  let html = `<div class="inspector-header-info">`;
+
+  if (item.repository_url) {
+    html += `<div class="inspector-meta-item"><strong>Repo:</strong> <a href="${item.repository_url}" target="_blank">${item.repository_url}</a></div>`;
+  }
+  if (item.homepage_url) {
+    html += `<div class="inspector-meta-item"><strong>Home:</strong> <a href="${item.homepage_url}" target="_blank">${item.homepage_url}</a></div>`;
+  }
+  if (item.author) {
+    html += `<div class="inspector-meta-item"><strong>Author:</strong> ${item.author}</div>`;
+  }
+  if (item.license) {
+    html += `<div class="inspector-meta-item"><strong>License:</strong> ${item.license}</div>`;
+  }
+  if (item.version) {
+    html += `<div class="inspector-meta-item"><strong>Version:</strong> ${item.version}</div>`;
+  }
+  if (item.required_env_vars && item.required_env_vars.length > 0) {
+    html += `<div class="inspector-meta-item"><strong>Required Env:</strong> ${item.required_env_vars.join(", ")}</div>`;
+  }
+
+  html += `</div>`; // end header-info
+
+  html += `<div style="margin-bottom: 1.5rem;">${escapeHtml(item.description || "No description available.")}</div>`;
+
+  // Tools
+  if (item.tools && item.tools.length > 0) {
+    html += `<h3 style="margin-bottom: 1rem; color: var(--text);">Tools (${item.tools.length})</h3>`;
+    item.tools.forEach((tool) => {
+      html += `<div class="tool-detail-card">
+            <div class="tool-detail-title">${escapeHtml(tool.name)}</div>
+            <div class="tool-detail-desc">${escapeHtml(tool.description || tool.desc || "No description provided.")}</div>`;
+
+      if (tool.parameters && tool.parameters.length > 0) {
+        html += `<table class="schema-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Default</th>
+                  <th>Enum</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>`;
+        tool.parameters.forEach((p) => {
+          html += `<tr>
+                <td class="param-name">${escapeHtml(p.name)}</td>
+                <td>${escapeHtml(p.type || "")}${p.items_type ? ` of ${escapeHtml(p.items_type)}` : ""}</td>
+                <td>${p.required ? "Yes" : "No"}</td>
+                <td>${p.default !== undefined && p.default !== null ? escapeHtml(JSON.stringify(p.default)) : ""}</td>
+                <td>${p.enum ? escapeHtml(p.enum.join(", ")) : ""}</td>
+                <td>${escapeHtml(p.description || "")}</td>
+              </tr>`;
+        });
+        html += `</tbody></table>`;
+      } else {
+        html += `<div style="font-size: 0.85rem; color: var(--text-muted);">No parameters defined.</div>`;
+      }
+      html += `</div>`;
+    });
+  }
+
+  // Prompts
+  if (item.prompts && item.prompts.length > 0) {
+    html += `<h3 style="margin-bottom: 1rem; color: var(--text); margin-top: 2rem;">Prompts (${item.prompts.length})</h3>`;
+    item.prompts.forEach((p) => {
+      html += `<div class="tool-detail-card">
+            <div class="tool-detail-title">${escapeHtml(p.name)}</div>
+            <div class="tool-detail-desc">${escapeHtml(p.description || "No description provided.")}</div>
+          </div>`;
+    });
+  }
+
+  // Resources
+  if (item.resources && item.resources.length > 0) {
+    html += `<h3 style="margin-bottom: 1rem; color: var(--text); margin-top: 2rem;">Resources (${item.resources.length})</h3>`;
+    item.resources.forEach((r) => {
+      html += `<div class="tool-detail-card">
+            <div class="tool-detail-title">${escapeHtml(r.name || r.uri_template || "Unnamed Resource")}</div>
+            <div class="tool-detail-desc">${escapeHtml(r.description || "No description provided.")}</div>
+            ${r.uri_template ? `<div style="font-size:0.85rem; color:var(--text-muted);">URI Template: <code>${escapeHtml(r.uri_template)}</code></div>` : ""}
+          </div>`;
+    });
+  }
+
+  body.innerHTML = html;
+  document.getElementById("inspectorModal").classList.add("show");
+}
+
+window.closeInspectorModal = function() {
+  document.getElementById("inspectorModal").classList.remove("show");
+}
+
+// Close modal if clicked outside of content
+window.addEventListener("click", function(event) {
+  const modal = document.getElementById("inspectorModal");
+  if (event.target == modal) {
+    closeInspectorModal();
+  }
+  const configModal = document.getElementById("configModal");
+  if (event.target == configModal) {
+    closeConfigModal();
+  }
+});
