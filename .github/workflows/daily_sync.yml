@@ -111,11 +111,22 @@ jobs:
             fi
             
             if [ -n "$FINGERPRINT_CHANGES" ]; then
-              gh release create "v${NEW_VERSION}" --title "v${NEW_VERSION}: Automated Fingerprint Sync Release" --generate-notes
+              gh release create "v${NEW_VERSION}" passports.json.gz --title "v${NEW_VERSION}: Automated Fingerprint Sync Release" --generate-notes
             fi
           else
             echo "release_created=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Trigger Downstream mcp-vulnerabilities Sync
+        if: steps.commit_push.outputs.release_created == 'true'
+        env:
+          TRIGGER_TOKEN: ${{ secrets.REPO_DISPATCH_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          curl -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${TRIGGER_TOKEN}" \
+            https://api.github.com/repos/JMartynov/mcp-vulnerabilities/dispatches \
+            -d "{\"event_type\": \"upstream_fingerprints_updated\", \"client_payload\": {\"fingerprints_version\": \"${{ steps.commit_push.outputs.new_version }}\"}}" || true
 
   pypi-release:
     needs: sync-mcp-passports
