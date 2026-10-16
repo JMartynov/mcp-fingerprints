@@ -14,8 +14,6 @@ from mcp_fingerprints.config_exporter import (
     export_all_client_configs,
     export_client_config,
 )
-from mcp_fingerprints.conflict_detector import audit_client_config, format_audit_report
-from mcp_fingerprints.conflict_resolver import resolve_client_config
 from mcp_fingerprints.drift_detector import (
     compare_passports_for_drift,
     dispatch_drift_webhook,
@@ -25,7 +23,6 @@ from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.prober import McpStdioProber
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
-from mcp_fingerprints.sarif_exporter import generate_sarif
 from mcp_fingerprints.search import format_search_results, search_passports
 from mcp_fingerprints.snapshot import build_snapshot
 from mcp_fingerprints.synchronizer import PassportSynchronizer
@@ -142,12 +139,6 @@ def main() -> None:
         default=50,
         help="Maximum servers to probe in runtime handshake (default: 50)",
     )
-    sync_p.add_argument(
-        "--sandbox",
-        choices=["auto", "docker", "incus", "incus-vm", "host"],
-        default="auto",
-        help="Sandbox runtime to use for probes",
-    )
 
     # Match
     match_p = subparsers.add_parser(
@@ -197,12 +188,6 @@ def main() -> None:
     )
     probe_p.add_argument(
         "--json", action="store_true", help="Output full probe report as JSON"
-    )
-    probe_p.add_argument(
-        "--sandbox",
-        choices=["auto", "docker", "incus", "incus-vm", "host"],
-        default="auto",
-        help="Sandbox runtime to use for probes",
     )
     probe_p.add_argument(
         "cmd",
@@ -303,65 +288,6 @@ def main() -> None:
         "--server", help="Server name/alias (overrides package name for config key)"
     )
 
-    # Audit Config
-    audit_p = subparsers.add_parser(
-        "audit-config",
-        help="Audit MCP client configuration for tool collisions and security shadowing",
-    )
-    audit_p.add_argument(
-        "config_file",
-        help="Path to client config file (e.g. claude_desktop_config.json, settings.json)",
-    )
-    audit_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
-    )
-    audit_p.add_argument(
-        "--json", action="store_true", help="Output audit report as JSON (deprecated, use --format json)"
-    )
-    audit_p.add_argument(
-        "--format", choices=["text", "json", "sarif"], default="text", help="Output format"
-    )
-
-    # Resolve Config
-    resolve_p = subparsers.add_parser(
-        "resolve-config", help="Automated conflict resolver and namespacing"
-    )
-    resolve_p.add_argument("config_file", help="Path to client config file")
-    resolve_p.add_argument(
-        "--strategy",
-        choices=["prefix", "priority", "report"],
-        default="prefix",
-        help="Resolution strategy (prefix, priority, report)",
-    )
-    resolve_p.add_argument(
-        "--output", help="Optional file path to output sanitized configuration"
-    )
-    resolve_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
-    )
-    resolve_p.add_argument(
-        "--json", action="store_true", help="Output resolution result as JSON"
-    )
-
-    # SBOM
-    sbom_p = subparsers.add_parser(
-        "sbom",
-        help="Generate a Software Bill of Materials (SBOM) for an MCP Server Package",
-    )
-    sbom_p.add_argument("package_name", help="Package name to generate SBOM for")
-    sbom_p.add_argument(
-        "--format",
-        choices=["cyclonedx"],
-        default="cyclonedx",
-        help="SBOM format to output",
-    )
-    sbom_p.add_argument(
-        "--output", help="Optional file path to write the SBOM to"
-    )
-    sbom_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
-    )
-
     # Validate Protocol
     validate_p = subparsers.add_parser(
         "validate-protocol", help="Validate server JSON-RPC 2.0 and MCP Protocol conformance"
@@ -430,7 +356,7 @@ def main() -> None:
                 args.runtime_limit,
             )
             probed = sync.probe_runtime_passports(
-                limit=args.runtime_limit, timeout=args.runtime_timeout, sandbox=args.sandbox
+                limit=args.runtime_limit, timeout=args.runtime_timeout
             )
             logger.info("Successfully runtime-verified %d servers.", probed)
 
@@ -542,7 +468,7 @@ def main() -> None:
 
         matcher = FingerprintMatcher()
         matcher.load_from_directory(args.dir)
-        prober = McpStdioProber(matcher, sandbox=args.sandbox)
+        prober = McpStdioProber(matcher)
 
         report = prober.probe(
             command=cmd,
@@ -693,62 +619,6 @@ def main() -> None:
             logger.error("TUI exited with error: %s", e)
             sys.exit(1)
 
-    elif args.command == "resolve-config":
-        try:
-            result = resolve_client_config(
-                config_path=args.config_file,
-                strategy=args.strategy,
-                output_path=args.output,
-                passports_dir=args.dir,
-            )
-        except Exception as e:
-            logger.error("Failed to resolve configuration conflicts: %s", e)
-            print(f"ERROR: {e}")
-            sys.exit(1)
-
-        if args.json:
-            print(json.dumps(result.resolved_config, indent=2))
-        else:
-            print("==================================================")
-            print("         MCP CONFLICT RESOLUTION REPORT           ")
-            print("==================================================")
-            print(f"Strategy used:      {result.strategy_used}")
-            print(f"Modifications made: {len(result.modifications_made)}")
-            for mod in result.modifications_made:
-                print(f"  - {mod}")
-
-            if not result.audit_report.is_clean and result.strategy_used == "report":
-                print("\nAudit Report Summary:")
-                print(format_audit_report(result.audit_report))
-
-            print("==================================================")
-            if not args.output:
-                print("\nResolved Config Preview:")
-                print(json.dumps(result.resolved_config, indent=2))
-
-    elif args.command == "audit-config":
-        try:
-            report = audit_client_config(args.config_file, passports_dir=args.dir)
-        except Exception as e:
-            logger.error("Failed to audit configuration: %s", e)
-            print(f"ERROR: {e}")
-            sys.exit(1)
-
-        output_format = args.format if hasattr(args, "format") and args.format else "text"
-        if args.json:
-            output_format = "json"
-
-        if output_format == "json":
-            print(json.dumps(report.to_dict(), indent=2))
-        elif output_format == "sarif":
-            sarif_data = generate_sarif(report, config_path=args.config_file)
-            print(json.dumps(sarif_data, indent=2))
-        else:
-            print(format_audit_report(report))
-
-        if report.has_critical_conflicts:
-            sys.exit(1)
-
     elif args.command == "detect-drift":
         try:
             report = compare_passports_for_drift(args.old, args.new)
@@ -777,43 +647,6 @@ def main() -> None:
                 f.write(out_content)
 
         if args.fail_on_tamper and report.has_tamper_incidents:
-            sys.exit(1)
-
-    elif args.command == "sbom":
-        from mcp_fingerprints.sbom import generate_cyclonedx_sbom
-
-        found = False
-        search_pkg = args.package_name
-
-        for j_file in Path(args.dir).rglob("*.json"):
-            if j_file.name in (
-                "sync_state.json",
-                "index.json",
-                ".passport_index.pickle",
-            ):
-                continue
-            try:
-                content = json.loads(j_file.read_text(encoding="utf-8"))
-                if content.get("package_name") == search_pkg:
-                    spec = ServerPackageSpec.from_dict(content)
-                    
-                    if args.format == "cyclonedx":
-                        sbom_data = generate_cyclonedx_sbom(spec)
-                        sbom_json = json.dumps(sbom_data, indent=2)
-                        
-                        if args.output:
-                            Path(args.output).write_text(sbom_json, encoding="utf-8")
-                            print(f"Wrote SBOM to {args.output}")
-                        else:
-                            print(sbom_json)
-                            
-                    found = True
-                    break
-            except Exception:
-                pass
-
-        if not found:
-            print(f"ERROR: Package '{search_pkg}' not found in passports.")
             sys.exit(1)
 
     elif args.command == "validate-protocol":
