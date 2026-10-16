@@ -40,7 +40,7 @@
         {
           "name": "channel.hints",
           "canonical_hash": "sha256:7c2b59b51fff047258059985f74f20d17e369c752056a9a81ac47237f8e3507f",
-          "description": "Return static per-channel metadata: character limits, Markdown support flags, tag vocabulary, and CTA placement rules. Side effects: read-only; no external HTTP calls; no auth needed. Fully deterministic — returns compile-time adapter constants. Use channel.hints before composing a variant body to understand channel constraints; use post.publish or post.schedule once you have a valid variant.",
+          "description": "Return static per-channel metadata: character limits, Markdown support flags, tag vocabulary, and CTA placement rules. Side effects: read-only; no external HTTP calls; no auth needed. Fully deterministic \u2014 returns compile-time adapter constants. Use channel.hints before composing a variant body to understand channel constraints; use post.publish or post.schedule once you have a valid variant.",
           "is_mutating": false,
           "property_keys": [
             "channel"
@@ -105,12 +105,19 @@
               "browser_only"
             ]
           },
-          "description_hash": "sha256:a2b1b51bd1cbbd2abbf1a2b3248a6718253252d75484656bc85388e58c6e4bd3"
+          "description_hash": "sha256:a2b1b51bd1cbbd2abbf1a2b3248a6718253252d75484656bc85388e58c6e4bd3",
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "string",
+              "description": "Channel platform name, e.g. 'devto', 'reddit', 'hashnode', 'bluesky'. Use the platform prefix only, not the full 'platform:account' form."
+            }
+          ]
         },
         {
           "name": "post.drain",
           "canonical_hash": "sha256:03005e0e0f1c0421f17c0b5f7ef9be08d5b32b97dfb6a26d67e317310cfce0bf",
-          "description": "Fire all scheduled posts due at or before the given time boundary. Side effects: makes external HTTP requests for each due entry; writes results to the YAML backend. Idempotent — already-published (content.id, channel) pairs are skipped; no-op when no entries are due. Safe to call from cron. Use post.drain on a recurring schedule to flush the queue; use post.publish or post.schedule to add new content; use post.status to inspect results after drain runs.",
+          "description": "Fire all scheduled posts due at or before the given time boundary. Side effects: makes external HTTP requests for each due entry; writes results to the YAML backend. Idempotent \u2014 already-published (content.id, channel) pairs are skipped; no-op when no entries are due. Safe to call from cron. Use post.drain on a recurring schedule to flush the queue; use post.publish or post.schedule to add new content; use post.status to inspect results after drain runs.",
           "is_mutating": false,
           "property_keys": [
             "now"
@@ -204,12 +211,19 @@
               "results"
             ]
           },
-          "description_hash": "sha256:c9c5da9d437958546324bc5f1b3b056a2f7f3bef18bf99921a47e2cf0127133f"
+          "description_hash": "sha256:c9c5da9d437958546324bc5f1b3b056a2f7f3bef18bf99921a47e2cf0127133f",
+          "parameters": [
+            {
+              "name": "now",
+              "type": "string",
+              "description": "ISO-8601 datetime boundary, e.g. '2026-05-21T09:00:00Z'; defaults to current UTC time when omitted."
+            }
+          ]
         },
         {
           "name": "post.publish",
           "canonical_hash": "sha256:144853e349318071980d5f8f2187966cc6c974aa9aaa19d069b5d6fa4f73c5e1",
-          "description": "Publish one or more channel variants immediately. Side effects: makes external HTTP requests to each channel platform; writes publish state to the local YAML backend; requires valid credentials in the named profile. Idempotent on (content.id, channel) — re-running with the same IDs returns cached state without re-posting. Use post.publish for immediate-only delivery; use post.schedule when any variant needs a future schedule_at; use post.drain to flush a previously built queue.",
+          "description": "Publish one or more channel variants immediately. Side effects: makes external HTTP requests to each channel platform; writes publish state to the local YAML backend; requires valid credentials in the named profile. Idempotent on (content.id, channel) \u2014 re-running with the same IDs returns cached state without re-posting. Use post.publish for immediate-only delivery; use post.schedule when any variant needs a future schedule_at; use post.drain to flush a previously built queue.",
           "is_mutating": false,
           "property_keys": [
             "content",
@@ -418,7 +432,71 @@
               "results"
             ]
           },
-          "description_hash": "sha256:1f9cbdd53fcbdcc5c35cc0d38b4dacf2b02303ad16c19ad4475c58a09fc619a9"
+          "description_hash": "sha256:1f9cbdd53fcbdcc5c35cc0d38b4dacf2b02303ad16c19ad4475c58a09fc619a9",
+          "parameters": [
+            {
+              "name": "content",
+              "type": "object",
+              "nested_properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Stable identifier, e.g. 'my-post@2026-05-20'. Used as the idempotency key together with channel; must be unique per content piece."
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": [],
+                  "description": "Canonical tag list; each channel adapter normalizes, truncates, or converts to platform tag syntax."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the content piece; used as the post title on most channels."
+                },
+                "author": {
+                  "type": "string",
+                  "description": "Author display name; used in author metadata on channels that accept it."
+                },
+                "body_md": {
+                  "type": "string",
+                  "description": "Full body in Markdown. Each channel adapter converts or truncates to platform requirements."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "Optional subtitle; used on Hashnode and DEV.to subtitle fields; ignored by channels that do not support subtitles."
+                },
+                "cta_block": {
+                  "type": "string",
+                  "description": "Optional call-to-action block appended to the post body on channels that support it; formatted as Markdown."
+                },
+                "cover_image": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Optional URL of a cover image; used as the header image on Hashnode and DEV.to; omit if no image is available."
+                },
+                "canonical_url": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Canonical URL of the authoritative source; set as canonical_url on DEV.to and Hashnode to signal the original for SEO; omit when publishing first to that channel."
+                },
+                "source_task_id": {
+                  "type": "string",
+                  "description": "Optional tracing ID (e.g. Notion task ID); stored in publish state for correlation but never sent to platforms."
+                }
+              }
+            },
+            {
+              "name": "variants",
+              "type": "array",
+              "items_type": "object"
+            },
+            {
+              "name": "profile_name",
+              "type": "string",
+              "description": "Name of the distribution profile (credentials store). Use profile.list to discover available names."
+            }
+          ]
         },
         {
           "name": "post.schedule",
@@ -632,7 +710,71 @@
               "results"
             ]
           },
-          "description_hash": "sha256:96d016e81439a130f79932b3f8c024ef44148b30e27d8eb8a6d37a818472d276"
+          "description_hash": "sha256:96d016e81439a130f79932b3f8c024ef44148b30e27d8eb8a6d37a818472d276",
+          "parameters": [
+            {
+              "name": "content",
+              "type": "object",
+              "nested_properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Stable identifier, e.g. 'my-post@2026-05-20'. Used as the idempotency key together with channel; must be unique per content piece."
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": [],
+                  "description": "Canonical tag list; each channel adapter normalizes, truncates, or converts to platform tag syntax."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the content piece; used as the post title on most channels."
+                },
+                "author": {
+                  "type": "string",
+                  "description": "Author display name; used in author metadata on channels that accept it."
+                },
+                "body_md": {
+                  "type": "string",
+                  "description": "Full body in Markdown. Each channel adapter converts or truncates to platform requirements."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "Optional subtitle; used on Hashnode and DEV.to subtitle fields; ignored by channels that do not support subtitles."
+                },
+                "cta_block": {
+                  "type": "string",
+                  "description": "Optional call-to-action block appended to the post body on channels that support it; formatted as Markdown."
+                },
+                "cover_image": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Optional URL of a cover image; used as the header image on Hashnode and DEV.to; omit if no image is available."
+                },
+                "canonical_url": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Canonical URL of the authoritative source; set as canonical_url on DEV.to and Hashnode to signal the original for SEO; omit when publishing first to that channel."
+                },
+                "source_task_id": {
+                  "type": "string",
+                  "description": "Optional tracing ID (e.g. Notion task ID); stored in publish state for correlation but never sent to platforms."
+                }
+              }
+            },
+            {
+              "name": "variants",
+              "type": "array",
+              "items_type": "object"
+            },
+            {
+              "name": "profile_name",
+              "type": "string",
+              "description": "Name of the distribution profile (credentials store). Use profile.list to discover available names."
+            }
+          ]
         },
         {
           "name": "post.status",
@@ -734,12 +876,24 @@
               "results"
             ]
           },
-          "description_hash": "sha256:9849031972969a309d6642939b7965b2e1200e41e399596f1747c978aeac9490"
+          "description_hash": "sha256:9849031972969a309d6642939b7965b2e1200e41e399596f1747c978aeac9490",
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "string",
+              "description": "Filter to a specific channel slug, e.g. 'devto', 'reddit:ClaudeAI'; omit to return state for all channels."
+            },
+            {
+              "name": "content_id",
+              "type": "string",
+              "description": "Filter to a specific content piece by its stable ID; omit to return state for all content."
+            }
+          ]
         },
         {
           "name": "post.unpublish",
           "canonical_hash": "sha256:efe12ab02115e4b4ba964979e0b3ba3ff94c56bb3881742db769421d4b25710e",
-          "description": "Best-effort delete of a published post on the target platform. Side effects: makes an external HTTP DELETE or update request; DEV.to sets published=false (soft delete); platforms without a delete API return success=false without error. Non-idempotent — calling on an already-deleted URL may return a platform 404. Use post.unpublish to retract a live post; use post.status first to obtain the live_url; use post.publish to re-publish after an unpublish.",
+          "description": "Best-effort delete of a published post on the target platform. Side effects: makes an external HTTP DELETE or update request; DEV.to sets published=false (soft delete); platforms without a delete API return success=false without error. Non-idempotent \u2014 calling on an already-deleted URL may return a platform 404. Use post.unpublish to retract a live post; use post.status first to obtain the live_url; use post.publish to re-publish after an unpublish.",
           "is_mutating": false,
           "property_keys": [
             "channel",
@@ -783,7 +937,19 @@
               "error"
             ]
           },
-          "description_hash": "sha256:506274e2febcaf460fa6dcc96e1b595e4b5f0e7c96458dbdf3a08dd3fb920c37"
+          "description_hash": "sha256:506274e2febcaf460fa6dcc96e1b595e4b5f0e7c96458dbdf3a08dd3fb920c37",
+          "parameters": [
+            {
+              "name": "channel",
+              "type": "string",
+              "description": "Channel slug the post was published to, e.g. 'devto', 'hashnode', 'reddit:ClaudeAI'."
+            },
+            {
+              "name": "live_url",
+              "type": "string",
+              "description": "URL of the live published post to retract, e.g. 'https://dev.to/user/post-slug'."
+            }
+          ]
         },
         {
           "name": "profile.list",
@@ -812,7 +978,8 @@
               "profiles"
             ]
           },
-          "description_hash": "sha256:4a3524e9c6b32af9620879fc5388a837b930c0db4e06c39718c8083e4a8d8089"
+          "description_hash": "sha256:4a3524e9c6b32af9620879fc5388a837b930c0db4e06c39718c8083e4a8d8089",
+          "parameters": []
         },
         {
           "name": "subreddit.list",
@@ -881,7 +1048,14 @@
               "subreddits"
             ]
           },
-          "description_hash": "sha256:c2e3e7b3a32ff55bcdc78c966b08837d65c15dc650decc88e98656bc683cf6e5"
+          "description_hash": "sha256:c2e3e7b3a32ff55bcdc78c966b08837d65c15dc650decc88e98656bc683cf6e5",
+          "parameters": [
+            {
+              "name": "profile_name",
+              "type": "string",
+              "description": "Optional profile name to filter subreddits to those allowed by that profile; omit to return the full catalog."
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
@@ -1020,6 +1194,5 @@
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

@@ -188,7 +188,47 @@
               "aggregations"
             ]
           },
-          "description_hash": "sha256:f133bcaa74cabd0785856476d377a9e1ae8e6d662e00a2b5a54a25c0ffed507f"
+          "description_hash": "sha256:f133bcaa74cabd0785856476d377a9e1ae8e6d662e00a2b5a54a25c0ffed507f",
+          "parameters": [
+            {
+              "name": "filters",
+              "type": "object",
+              "description": "Column filters as key-value pairs. Key format: column_key + suffix (see server instructions for available suffixes). Example: { \"nom_search\": \"Jean\", \"age_lte\": \"30\", \"ville_eq\": \"Paris\" }"
+            },
+            {
+              "name": "datasetId",
+              "type": "string",
+              "description": "The unique dataset ID obtained from search_datasets tool"
+            },
+            {
+              "name": "aggregation",
+              "type": "object",
+              "description": "The aggregation specification to perform on the specified column. Use keys from describe_dataset. If not provided, defaults to counting unique values in the aggregation column.",
+              "nested_properties": {
+                "column": {
+                  "type": "string",
+                  "description": "The column key to aggregate (use keys from describe_dataset)"
+                },
+                "metric": {
+                  "enum": [
+                    "sum",
+                    "avg",
+                    "min",
+                    "max",
+                    "count"
+                  ],
+                  "type": "string",
+                  "description": "Aggregation metric to perform on the column. Available operations are: sum, avg, min, max, count."
+                }
+              }
+            },
+            {
+              "name": "aggregationColumns",
+              "type": "array",
+              "description": "List of column keys to aggregate (use keys from describe_dataset, min 1 column, max 3 columns)",
+              "items_type": "string"
+            }
+          ]
         },
         {
           "name": "calculate_metric",
@@ -281,7 +321,44 @@
               "total"
             ]
           },
-          "description_hash": "sha256:2aa8a59486e2c9a049a37fcd3236aac1fea1ca135ce8cbc95f684d4bf3197b77"
+          "description_hash": "sha256:2aa8a59486e2c9a049a37fcd3236aac1fea1ca135ce8cbc95f684d4bf3197b77",
+          "parameters": [
+            {
+              "name": "metric",
+              "type": "string",
+              "description": "Metric to calculate. Available: avg, sum, min, max (for numbers); min, max, cardinality, value_count (for strings); value_count (for others); stats returns count/min/max/avg/sum; percentiles returns distribution.",
+              "enum": [
+                "avg",
+                "sum",
+                "min",
+                "max",
+                "stats",
+                "value_count",
+                "cardinality",
+                "percentiles"
+              ]
+            },
+            {
+              "name": "filters",
+              "type": "object",
+              "description": "Column filters as key-value pairs. Key format: column_key + suffix (see server instructions for available suffixes). Example: { \"nom_search\": \"Jean\", \"age_lte\": \"30\", \"ville_eq\": \"Paris\" }"
+            },
+            {
+              "name": "fieldKey",
+              "type": "string",
+              "description": "The column key to calculate the metric on (use keys from describe_dataset)"
+            },
+            {
+              "name": "percents",
+              "type": "string",
+              "description": "Comma-separated percentages for percentiles metric (default: \"1,5,25,50,75,95,99\"). Only used when metric is \"percentiles\"."
+            },
+            {
+              "name": "datasetId",
+              "type": "string",
+              "description": "The unique dataset ID obtained from search_datasets or provided by the user"
+            }
+          ]
         },
         {
           "name": "describe_dataset",
@@ -445,7 +522,14 @@
               "sampleLines"
             ]
           },
-          "description_hash": "sha256:329fd344bddfba6376f6196b255c51d9763c68ff38da44e88d5a41f218548248"
+          "description_hash": "sha256:329fd344bddfba6376f6196b255c51d9763c68ff38da44e88d5a41f218548248",
+          "parameters": [
+            {
+              "name": "datasetId",
+              "type": "string",
+              "description": "The unique dataset ID obtained from search_datasets or provided by the user"
+            }
+          ]
         },
         {
           "name": "get_field_values",
@@ -526,7 +610,38 @@
               "values"
             ]
           },
-          "description_hash": "sha256:af2670e0a134b8eaeecd4351ea96359467f0812939ef296a288406222fcd05ac"
+          "description_hash": "sha256:af2670e0a134b8eaeecd4351ea96359467f0812939ef296a288406222fcd05ac",
+          "parameters": [
+            {
+              "name": "size",
+              "type": "number",
+              "description": "Number of values to return (default: 10, max: 1000)"
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort order for the values (default: asc)",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Optional text to filter values (prefix/substring match within this column)"
+            },
+            {
+              "name": "fieldKey",
+              "type": "string",
+              "description": "The column key to get values for (use keys from describe_dataset)"
+            },
+            {
+              "name": "datasetId",
+              "type": "string",
+              "description": "The unique dataset ID obtained from search_datasets or provided by the user"
+            }
+          ]
         },
         {
           "name": "search_data",
@@ -621,7 +736,39 @@
               "lines"
             ]
           },
-          "description_hash": "sha256:5142af927a050b035e41066c37bad14418d02e1e0e0ababa8086a0355b7a41a3"
+          "description_hash": "sha256:5142af927a050b035e41066c37bad14418d02e1e0e0ababa8086a0355b7a41a3",
+          "parameters": [
+            {
+              "name": "next",
+              "type": "string",
+              "description": "URL from a previous search_data response to fetch the next page of results. When provided, all other parameters (query, filters, select, size) are ignored since the URL already contains them."
+            },
+            {
+              "name": "size",
+              "type": "number",
+              "description": "Number of rows to return per page (default: 10, max: 50). Increase when you know you need more results upfront to avoid multiple pagination round-trips."
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "French keywords for full-text search across all dataset columns (simple keywords, not sentences). Do not use with filters parameter. Examples: \"Jean Dupont\", \"Paris\", \"2025\""
+            },
+            {
+              "name": "select",
+              "type": "string",
+              "description": "Optional comma-separated list of column keys to include in the results. Useful when the dataset has many columns to reduce output size. If not provided, all columns are returned. Use column keys from describe_dataset. Format: column1,column2,column3 (No spaces after commas). Example: \"nom,age,ville\""
+            },
+            {
+              "name": "filters",
+              "type": "object",
+              "description": "Column filters as key-value pairs. Key format: column_key + suffix (see server instructions for available suffixes). Example: { \"nom_search\": \"Jean\", \"age_lte\": \"30\", \"ville_eq\": \"Paris\" }"
+            },
+            {
+              "name": "datasetId",
+              "type": "string",
+              "description": "The unique dataset ID obtained from search_datasets or provided by the user"
+            }
+          ]
         },
         {
           "name": "search_datasets",
@@ -641,7 +788,7 @@
               "query": {
                 "type": "string",
                 "minLength": 3,
-                "description": "French keywords for full-text search (simple keywords, not sentences). Examples: \"élus\", \"DPE\", \"entreprises\", \"logement social\""
+                "description": "French keywords for full-text search (simple keywords, not sentences). Examples: \"\u00e9lus\", \"DPE\", \"entreprises\", \"logement social\""
               }
             }
           },
@@ -689,12 +836,18 @@
               "datasets"
             ]
           },
-          "description_hash": "sha256:efe9f77838fead17c8469c11119d1ef648d0b022106c0bcdd1739da575c247a2"
+          "description_hash": "sha256:efe9f77838fead17c8469c11119d1ef648d0b022106c0bcdd1739da575c247a2",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "French keywords for full-text search (simple keywords, not sentences). Examples: \"\u00e9lus\", \"DPE\", \"entreprises\", \"logement social\""
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

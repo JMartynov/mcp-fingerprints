@@ -78,7 +78,7 @@
                       "generous"
                     ],
                     "type": "string",
-                    "description": "Spending multiplier on food and discretionary categories. Default typical (1.0×)."
+                    "description": "Spending multiplier on food and discretionary categories. Default typical (1.0\u00d7)."
                   },
                   "housing_mode": {
                     "enum": [
@@ -114,7 +114,7 @@
                   },
                   "apply_inbound_regime": {
                     "type": "boolean",
-                    "description": "Apply the destination country's special inbound-worker tax regime if available (Italy impatriati, Portugal IFICI, Belgium expat, Poland B2B ryczałt, Greece inbound). Default false. Applies only on the target side."
+                    "description": "Apply the destination country's special inbound-worker tax regime if available (Italy impatriati, Portugal IFICI, Belgium expat, Poland B2B rycza\u0142t, Greece inbound). Default false. Applies only on the target side."
                   },
                   "source_transit_choice": {
                     "enum": [
@@ -393,7 +393,171 @@
               "meta"
             ]
           },
-          "description_hash": "sha256:50a1bd2e13d5416399601e13b3d1a5c8d12bc80c2c184bd05e924c4c04323248"
+          "description_hash": "sha256:50a1bd2e13d5416399601e13b3d1a5c8d12bc80c2c184bd05e924c4c04323248",
+          "parameters": [
+            {
+              "name": "living",
+              "type": "object",
+              "description": "Housing and spending assumptions. Omit to use defaults: rent, 2 bedrooms, typical spending.",
+              "nested_properties": {
+                "bedrooms": {
+                  "type": "integer",
+                  "maximum": 5,
+                  "minimum": 0,
+                  "description": "Bedroom count for the household. Default 2."
+                },
+                "lifestyle": {
+                  "enum": [
+                    "frugal",
+                    "typical",
+                    "generous"
+                  ],
+                  "type": "string",
+                  "description": "Spending multiplier on food and discretionary categories. Default typical (1.0\u00d7)."
+                },
+                "housing_mode": {
+                  "enum": [
+                    "rent",
+                    "own"
+                  ],
+                  "type": "string",
+                  "description": "Whether the household rents or owns. Default rent."
+                }
+              }
+            },
+            {
+              "name": "advanced",
+              "type": "object",
+              "description": "Optional fine-tuning: retirement contribution, age bracket, trips home, transit mode, and inbound tax regime. Omit to use defaults.",
+              "nested_properties": {
+                "age_bracket": {
+                  "enum": [
+                    "18-24",
+                    "25-34",
+                    "35-44",
+                    "45-54",
+                    "55-64"
+                  ],
+                  "type": "string",
+                  "description": "Affects US healthcare premium multipliers. Default 25-34."
+                },
+                "trips_home_per_year": {
+                  "type": "integer",
+                  "maximum": 12,
+                  "minimum": 0,
+                  "description": "Round trips back to source country per year (target-only cost). Default 1."
+                },
+                "apply_inbound_regime": {
+                  "type": "boolean",
+                  "description": "Apply the destination country's special inbound-worker tax regime if available (Italy impatriati, Portugal IFICI, Belgium expat, Poland B2B rycza\u0142t, Greece inbound). Default false. Applies only on the target side."
+                },
+                "source_transit_choice": {
+                  "enum": [
+                    "car",
+                    "transit"
+                  ],
+                  "type": "string",
+                  "description": "Default depends on city; e.g. Seattle defaults to 'car', Oslo defaults to 'transit'."
+                },
+                "target_transit_choice": {
+                  "enum": [
+                    "car",
+                    "transit"
+                  ],
+                  "type": "string",
+                  "description": "Same as above for the target city."
+                },
+                "retirement_contrib_pct": {
+                  "type": "number",
+                  "maximum": 50,
+                  "minimum": 0,
+                  "description": "Percentage of gross diverted to retirement (pre-tax for US 401k). Default 6."
+                }
+              }
+            },
+            {
+              "name": "household",
+              "type": "object",
+              "description": "Family structure: working-age partner and dependent children. Omit for a single person with no kids.",
+              "nested_properties": {
+                "kids_ages": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "maximum": 25,
+                    "minimum": 0
+                  },
+                  "maxItems": 10,
+                  "description": "Ages of dependent children, e.g. [3, 7]. Empty array or omitted if no kids."
+                },
+                "has_partner": {
+                  "type": "boolean",
+                  "description": "Whether the user has a working-age partner. Defaults to false."
+                },
+                "partner_gross_salary": {
+                  "type": "number",
+                  "maximum": 50000000,
+                  "minimum": 0,
+                  "description": "Partner's annual gross salary in the SOURCE city's currency. REQUIRED when has_partner=true."
+                },
+                "partner_works_in_source": {
+                  "type": "boolean",
+                  "description": "Whether the partner currently earns in the source city. REQUIRED when has_partner=true; cityparity does not default this because spouse-per-city working status materially changes the math (e.g. US childcare may exceed a second income, while Nordic subsidies make the second income viable)."
+                },
+                "partner_works_in_target": {
+                  "type": "boolean",
+                  "description": "Whether the partner would earn in the target city after relocation. REQUIRED when has_partner=true."
+                }
+              }
+            },
+            {
+              "name": "source_city",
+              "type": "string",
+              "description": "City slug for the user's current city. Use list_cities to discover valid slugs (e.g. 'nyc', 'seattle', 'tokyo')."
+            },
+            {
+              "name": "target_city",
+              "type": "string",
+              "description": "City slug for the destination city."
+            },
+            {
+              "name": "gross_salary",
+              "type": "number",
+              "description": "User's annual gross salary in the SOURCE city's local currency (e.g. USD for Seattle, NOK for Oslo)."
+            },
+            {
+              "name": "score_weights",
+              "type": "object",
+              "description": "Override the composite-score weights. Defaults: financial 30, healthcare 20, vacation 15, childcare 15, safety_net 20.",
+              "nested_properties": {
+                "vacation": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "childcare": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "financial": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "healthcare": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "safety_net": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                }
+              }
+            }
+          ]
         },
         {
           "name": "get_city_summary",
@@ -503,12 +667,19 @@
               "methodology_url"
             ]
           },
-          "description_hash": "sha256:0bafd77cf348277e36cdd70b513de82b3e9ae99efc25cb862f6c654cc24bc2e2"
+          "description_hash": "sha256:0bafd77cf348277e36cdd70b513de82b3e9ae99efc25cb862f6c654cc24bc2e2",
+          "parameters": [
+            {
+              "name": "city",
+              "type": "string",
+              "description": "City slug. Use list_cities to discover valid slugs."
+            }
+          ]
         },
         {
           "name": "get_inbound_tax_regime",
           "canonical_hash": "sha256:b0b4abd41b3533ebddddadbdb5d292e539d8250c04e0ba36e29e97878b9c65ff",
-          "description": "Look up a city's inbound-worker tax regime, the special reduced-tax schemes for relocating workers that general cost-of-living tools do not surface. Returns null when the country has no modeled regime (most cities). Modeled regimes: Italy impatriati (Milan, Rome), Portugal IFICI (Lisbon, Porto), Belgium expat (Brussels), Poland B2B ryczałt (Warsaw, Kraków), Greece inbound (Athens). Each entry includes the mechanic (reduction percentage or flat rate), duration, income cap if any, and a conservative eligibility hint. Read-only, no side effects; returns a text summary plus structured JSON.",
+          "description": "Look up a city's inbound-worker tax regime, the special reduced-tax schemes for relocating workers that general cost-of-living tools do not surface. Returns null when the country has no modeled regime (most cities). Modeled regimes: Italy impatriati (Milan, Rome), Portugal IFICI (Lisbon, Porto), Belgium expat (Brussels), Poland B2B rycza\u0142t (Warsaw, Krak\u00f3w), Greece inbound (Athens). Each entry includes the mechanic (reduction percentage or flat rate), duration, income cap if any, and a conservative eligibility hint. Read-only, no side effects; returns a text summary plus structured JSON.",
           "is_mutating": false,
           "property_keys": [
             "city"
@@ -616,7 +787,14 @@
               "methodology_url"
             ]
           },
-          "description_hash": "sha256:7641a882d66035e48605d0e76517224a84f571cf04c9a53b8b9a061309173aa8"
+          "description_hash": "sha256:7641a882d66035e48605d0e76517224a84f571cf04c9a53b8b9a061309173aa8",
+          "parameters": [
+            {
+              "name": "city",
+              "type": "string",
+              "description": "City slug. Use list_cities to discover valid slugs. Most cities return regime=null because their country has no special inbound-worker tax regime."
+            }
+          ]
         },
         {
           "name": "get_safety_net",
@@ -730,7 +908,15 @@
               "methodology_url"
             ]
           },
-          "description_hash": "sha256:6f04f2a766a31639b3ffae4728f23db4a193149ba6b7c8a0557f526816d9e9f0"
+          "description_hash": "sha256:6f04f2a766a31639b3ffae4728f23db4a193149ba6b7c8a0557f526816d9e9f0",
+          "parameters": [
+            {
+              "name": "cities",
+              "type": "array",
+              "description": "Array of city slugs (1-20). Use list_cities to discover valid slugs.",
+              "items_type": "string"
+            }
+          ]
         },
         {
           "name": "list_cities",
@@ -805,7 +991,14 @@
               "groups"
             ]
           },
-          "description_hash": "sha256:708c276a593d9552e09b31953e8b1c5be65a72cd6140624eb0e1b47563717867"
+          "description_hash": "sha256:708c276a593d9552e09b31953e8b1c5be65a72cd6140624eb0e1b47563717867",
+          "parameters": [
+            {
+              "name": "country",
+              "type": "string",
+              "description": "Optional case-insensitive country filter. Use the canonical name as stored in city_data.country (e.g. \"Norway\", \"USA\", \"United Kingdom\"). If omitted, returns all countries."
+            }
+          ]
         },
         {
           "name": "rank_cities",
@@ -1112,12 +1305,160 @@
               "methodology_url"
             ]
           },
-          "description_hash": "sha256:3d0942fcda0cc27f53ea3f917a7cb4400b6f17c9d575ef3c77406488a4a84aaa"
+          "description_hash": "sha256:3d0942fcda0cc27f53ea3f917a7cb4400b6f17c9d575ef3c77406488a4a84aaa",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max results to return. Default 10."
+            },
+            {
+              "name": "filter",
+              "type": "object",
+              "description": "Restrict which cities are ranked, by country, region, universal-healthcare flag, or explicit include/exclude slug lists. Omit to rank all supported cities.",
+              "nested_properties": {
+                "region": {
+                  "enum": [
+                    "europe",
+                    "asia",
+                    "north_america",
+                    "south_america",
+                    "oceania"
+                  ],
+                  "type": "string",
+                  "description": "Restrict to one region."
+                },
+                "country": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "description": "Restrict to one country (case-insensitive match against city_data.country, e.g. \"Germany\", \"USA\", \"United Kingdom\")."
+                },
+                "countries": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "maxItems": 50,
+                  "description": "Restrict to multiple countries."
+                },
+                "exclude_cities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "maxItems": 100,
+                  "description": "Skip these specific city slugs from the result."
+                },
+                "include_cities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 64
+                  },
+                  "maxItems": 100,
+                  "description": "Restrict to a specific set of city slugs. Combined with other filters via intersection."
+                },
+                "has_universal_healthcare": {
+                  "type": "boolean",
+                  "description": "If true, only return cities with universal healthcare; if false, only without."
+                }
+              }
+            },
+            {
+              "name": "weights",
+              "type": "object",
+              "description": "Override the composite-score weights. Defaults: financial 30, healthcare 20, vacation 15, childcare 15, safety_net 20.",
+              "nested_properties": {
+                "vacation": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "childcare": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "financial": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "healthcare": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                },
+                "safety_net": {
+                  "type": "number",
+                  "maximum": 100,
+                  "minimum": 0
+                }
+              }
+            },
+            {
+              "name": "scenario",
+              "type": "object",
+              "description": "Override the default ranking scenario. The same scenario is applied to every city so scores are comparable.",
+              "nested_properties": {
+                "bedrooms": {
+                  "type": "integer",
+                  "maximum": 5,
+                  "minimum": 0,
+                  "description": "Default 2."
+                },
+                "kids_ages": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "maximum": 25,
+                    "minimum": 0
+                  },
+                  "maxItems": 10,
+                  "description": "Default []."
+                },
+                "lifestyle": {
+                  "enum": [
+                    "frugal",
+                    "typical",
+                    "generous"
+                  ],
+                  "type": "string",
+                  "description": "Default typical."
+                },
+                "has_partner": {
+                  "type": "boolean",
+                  "description": "Default false."
+                },
+                "housing_mode": {
+                  "enum": [
+                    "rent",
+                    "own"
+                  ],
+                  "type": "string",
+                  "description": "Default rent."
+                },
+                "gross_salary_usd": {
+                  "type": "number",
+                  "maximum": 5000000,
+                  "description": "USD-equivalent salary to model in each city (converts to local currency). Default 100000.",
+                  "exclusiveMinimum": 0
+                },
+                "partner_gross_salary_usd": {
+                  "type": "number",
+                  "maximum": 5000000,
+                  "minimum": 0,
+                  "description": "Required when has_partner=true."
+                }
+              }
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

@@ -126,7 +126,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when no terms matched — how to verify the field name or adjust the count expression. Absent when terms are returned."
+                "description": "Guidance when no terms matched \u2014 how to verify the field name or adjust the count expression. Absent when terms are returned."
               },
               "results": {
                 "type": "array",
@@ -157,11 +157,11 @@
               },
               "truncated": {
                 "type": "boolean",
-                "description": "True when the term list was capped at the limit — more distinct terms may exist."
+                "description": "True when the term list was capped at the limit \u2014 more distinct terms may exist."
               },
               "truncationCeiling": {
                 "type": "number",
-                "description": "Count of the lowest-ranked term returned — omitted terms fall at or below it."
+                "description": "Count of the lowest-ranked term returned \u2014 omitted terms fall at or below it."
               }
             },
             "required": [
@@ -170,12 +170,57 @@
               "termCount"
             ]
           },
-          "description_hash": "sha256:6b44bc1641250f39200b5ec9496b939a2b0be1b58ac52f10bd78e7221001ecdd"
+          "description_hash": "sha256:6b44bc1641250f39200b5ec9496b939a2b0be1b58ac52f10bd78e7221001ecdd",
+          "parameters": [
+            {
+              "name": "count",
+              "type": "string",
+              "description": "Field to count. Append .exact for whole-phrase counting (e.g. \"patient.reaction.reactionmeddrapt.exact\", \"openfda.brand_name.exact\")"
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Number of top terms to return (default 100, max 1000)",
+              "default": 100
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "Filter query to scope the count (e.g. patient.drug.medicinalproduct:\"metformin\")"
+            },
+            {
+              "name": "endpoint",
+              "type": "string",
+              "description": "Full openFDA endpoint path (e.g. \"drug/event\", \"device/classification\")",
+              "enum": [
+                "drug/event",
+                "drug/label",
+                "drug/enforcement",
+                "drug/ndc",
+                "drug/drugsfda",
+                "drug/shortages",
+                "food/event",
+                "food/enforcement",
+                "device/event",
+                "device/510k",
+                "device/pma",
+                "device/recall",
+                "device/enforcement",
+                "device/classification",
+                "device/registrationlisting",
+                "device/udi",
+                "device/covid19serology",
+                "animalandveterinary/event",
+                "tobacco/problem",
+                "other/substance"
+              ]
+            }
+          ]
         },
         {
           "name": "openfda_dataframe_describe",
           "canonical_hash": "sha256:d0bc00b1f4212a99eff7fae1ead5df24e38f28e7bd2b7db76d9bebd74df7e3b7",
-          "description": "List the tables and column schemas on a DataCanvas staged by an openFDA search tool. Call before openfda_dataframe_query to discover the exact table name, column names, and DuckDB types needed for valid SQL. row_count is the full staged result set, not the inline preview count. Columns typed JSON hold nested openFDA objects/arrays — query them with DuckDB json functions.",
+          "description": "List the tables and column schemas on a DataCanvas staged by an openFDA search tool. Call before openfda_dataframe_query to discover the exact table name, column names, and DuckDB types needed for valid SQL. row_count is the full staged result set, not the inline preview count. Columns typed JSON hold nested openFDA objects/arrays \u2014 query them with DuckDB json functions.",
           "is_mutating": false,
           "property_keys": [
             "canvas_id"
@@ -213,7 +258,7 @@
                     },
                     "name": {
                       "type": "string",
-                      "description": "Table or view name — use verbatim in SQL FROM clauses."
+                      "description": "Table or view name \u2014 use verbatim in SQL FROM clauses."
                     },
                     "columns": {
                       "type": "array",
@@ -226,7 +271,7 @@
                         "properties": {
                           "name": {
                             "type": "string",
-                            "description": "Column name — use in SELECT, WHERE, GROUP BY, ORDER BY."
+                            "description": "Column name \u2014 use in SELECT, WHERE, GROUP BY, ORDER BY."
                           },
                           "type": {
                             "type": "string",
@@ -244,7 +289,7 @@
                     },
                     "row_count": {
                       "type": "number",
-                      "description": "Total rows in this table — the full staged set, not the inline preview."
+                      "description": "Total rows in this table \u2014 the full staged set, not the inline preview."
                     }
                   },
                   "description": "A registered table or view on the canvas.",
@@ -254,7 +299,7 @@
               },
               "canvas_id": {
                 "type": "string",
-                "description": "Canvas ID that was described — pass to openfda_dataframe_query."
+                "description": "Canvas ID that was described \u2014 pass to openfda_dataframe_query."
               }
             },
             "required": [
@@ -262,12 +307,19 @@
               "canvas_id"
             ]
           },
-          "description_hash": "sha256:693ce79bfed79b8b8b5522629f36a10fe9e2a8fd2857b588cc240938daa37271"
+          "description_hash": "sha256:693ce79bfed79b8b8b5522629f36a10fe9e2a8fd2857b588cc240938daa37271",
+          "parameters": [
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "Canvas ID from an openFDA search tool response."
+            }
+          ]
         },
         {
           "name": "openfda_dataframe_query",
           "canonical_hash": "sha256:e783227554e84b6ef8e1e3e90b4d4c8783728f6d022bf2024a13c9ef3c4efb46",
-          "description": "Run a read-only SQL SELECT against a DataCanvas table staged by an openFDA search tool (canvas_id + canvas_table in its response when spilled=true). Enables GROUP BY, COUNT/SUM/AVG, time-series, and joins across the full result set without re-paging the API. Call openfda_dataframe_describe first to get the exact table and column names. Scalar fields are stored as text (CAST for numeric math); nested objects/arrays are JSON columns — read them with DuckDB json functions, e.g. json_extract_string(openfda, '$.brand_name[0]'). Only SELECT is allowed — DDL, DML, COPY, and file-reading functions are blocked.",
+          "description": "Run a read-only SQL SELECT against a DataCanvas table staged by an openFDA search tool (canvas_id + canvas_table in its response when spilled=true). Enables GROUP BY, COUNT/SUM/AVG, time-series, and joins across the full result set without re-paging the API. Call openfda_dataframe_describe first to get the exact table and column names. Scalar fields are stored as text (CAST for numeric math); nested objects/arrays are JSON columns \u2014 read them with DuckDB json functions, e.g. json_extract_string(openfda, '$.brand_name[0]'). Only SELECT is allowed \u2014 DDL, DML, COPY, and file-reading functions are blocked.",
           "is_mutating": false,
           "property_keys": [
             "canvas_id",
@@ -298,7 +350,7 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "description": "A result row — keys are the SELECT column names, values the computed data.",
+                  "description": "A result row \u2014 keys are the SELECT column names, values the computed data.",
                   "propertyNames": {
                     "type": "string"
                   },
@@ -308,7 +360,7 @@
               },
               "canvas_id": {
                 "type": "string",
-                "description": "Canvas ID that was queried — reuse for follow-up queries."
+                "description": "Canvas ID that was queried \u2014 reuse for follow-up queries."
               },
               "row_count": {
                 "type": "number",
@@ -321,12 +373,24 @@
               "canvas_id"
             ]
           },
-          "description_hash": "sha256:b2d442ab6eaf12e5f1bd9774aeaada966de08aaa6dee0959ae59d3a2a13c6314"
+          "description_hash": "sha256:b2d442ab6eaf12e5f1bd9774aeaada966de08aaa6dee0959ae59d3a2a13c6314",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "SQL SELECT against the staged table. Use the table name from openfda_dataframe_describe. Example: \"SELECT classification, COUNT(*) AS n FROM spilled_ab12cd34 GROUP BY classification ORDER BY n DESC\"."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "Canvas ID from an openFDA search tool response (the canvas_id field)."
+            }
+          ]
         },
         {
           "name": "openfda_describe_fields",
           "canonical_hash": "sha256:77773c1a74968d0fa64d2d9dabd3b374cc18fcf9cc3a26ce93e29e82293b6d72",
-          "description": "Return the searchable field paths for an openFDA endpoint, grouped by category with type and description. Use before constructing a search query to find the correct dotted field path — field names differ per endpoint and are not discoverable from the tool schema alone.",
+          "description": "Return the searchable field paths for an openFDA endpoint, grouped by category with type and description. Use before constructing a search query to find the correct dotted field path \u2014 field names differ per endpoint and are not discoverable from the tool schema alone.",
           "is_mutating": false,
           "property_keys": [
             "endpoint"
@@ -431,12 +495,41 @@
               "queryTips"
             ]
           },
-          "description_hash": "sha256:e975819d55b6ec43a7a4c3f93ce6d0c3cd61daf4355650ab45e5f1aee18043c3"
+          "description_hash": "sha256:e975819d55b6ec43a7a4c3f93ce6d0c3cd61daf4355650ab45e5f1aee18043c3",
+          "parameters": [
+            {
+              "name": "endpoint",
+              "type": "string",
+              "description": "openFDA endpoint to describe (e.g. \"drug/event\", \"drug/shortages\", \"device/510k\"). Must be one of the cataloged endpoints.",
+              "enum": [
+                "drug/event",
+                "drug/label",
+                "drug/enforcement",
+                "drug/ndc",
+                "drug/drugsfda",
+                "drug/shortages",
+                "food/event",
+                "food/enforcement",
+                "device/event",
+                "device/510k",
+                "device/pma",
+                "device/recall",
+                "device/enforcement",
+                "device/classification",
+                "device/registrationlisting",
+                "device/udi",
+                "device/covid19serology",
+                "animalandveterinary/event",
+                "tobacco/problem",
+                "other/substance"
+              ]
+            }
+          ]
         },
         {
           "name": "openfda_drug_profile",
           "canonical_hash": "sha256:d7e774c7099e4c149de07af86634c0f40314ac2b5f33bc6b037dc2ae7c64a53c",
-          "description": "Resolve one drug name to its FDA identity, then fan out in parallel across the bounded per-drug openFDA endpoints and merge into one profile: identity, label highlights, adverse-event summary, recall history, Drugs@FDA approval, and shortage status. Replaces chaining openfda_get_drug_label, openfda_search_adverse_events, openfda_search_recalls, openfda_search_drug_approvals, and openfda_search_drug_shortages — and reconciles the identifier drift between endpoints that makes that chaining error-prone. Each section is best-effort: a miss returns null rather than failing the call. For deep dives into any one area, use the dedicated tool.",
+          "description": "Resolve one drug name to its FDA identity, then fan out in parallel across the bounded per-drug openFDA endpoints and merge into one profile: identity, label highlights, adverse-event summary, recall history, Drugs@FDA approval, and shortage status. Replaces chaining openfda_get_drug_label, openfda_search_adverse_events, openfda_search_recalls, openfda_search_drug_approvals, and openfda_search_drug_shortages \u2014 and reconciles the identifier drift between endpoints that makes that chaining error-prone. Each section is best-effort: a miss returns null rather than failing the call. For deep dives into any one area, use the dedicated tool.",
           "is_mutating": false,
           "property_keys": [
             "drug"
@@ -451,7 +544,7 @@
               "drug": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Drug name to profile — brand or generic (e.g. \"metformin\", \"Humira\", \"Glucophage\"). Resolved once to canonical FDA identifiers, which then key every sub-query."
+                "description": "Drug name to profile \u2014 brand or generic (e.g. \"metformin\", \"Humira\", \"Glucophage\"). Resolved once to canonical FDA identifiers, which then key every sub-query."
               }
             }
           },
@@ -472,7 +565,7 @@
                   },
                   "fanOutKey": {
                     "type": "string",
-                    "description": "Canonical key the structured sub-queries (recall/enforcement, Drugs@FDA approval, shortage) ran against — the resolved generic name, falling back to a brand name, then the input term. The adverse-event sub-query instead keys off the raw input term to match heterogeneous reporter-entered values."
+                    "description": "Canonical key the structured sub-queries (recall/enforcement, Drugs@FDA approval, shortage) ran against \u2014 the resolved generic name, falling back to a brand name, then the input term. The adverse-event sub-query instead keys off the raw input term to match heterogeneous reporter-entered values."
                   },
                   "resolvedVia": {
                     "enum": [
@@ -517,7 +610,7 @@
                             "type": "null"
                           }
                         ],
-                        "description": "Warnings (truncated) — boxed warning or warnings_and_cautions for Rx labels, falling back to the OTC-monograph warnings section."
+                        "description": "Warnings (truncated) \u2014 boxed warning or warnings_and_cautions for Rx labels, falling back to the OTC-monograph warnings section."
                       },
                       "indications": {
                         "anyOf": [
@@ -715,7 +808,7 @@
                         "type": "null"
                       }
                     ],
-                    "description": "Canonical generic name (openfda.generic_name) — the primary source for meta.fanOutKey."
+                    "description": "Canonical generic name (openfda.generic_name) \u2014 the primary source for meta.fanOutKey."
                   }
                 },
                 "description": "Identity resolved once and reused across every sub-query to avoid identifier drift.",
@@ -827,7 +920,14 @@
               "sectionsFound"
             ]
           },
-          "description_hash": "sha256:5eb9f7ed647716c580ce88e8e0a4c134a2a3c60f2f9b018c1af9996e9b313ad2"
+          "description_hash": "sha256:5eb9f7ed647716c580ce88e8e0a4c134a2a3c60f2f9b018c1af9996e9b313ad2",
+          "parameters": [
+            {
+              "name": "drug",
+              "type": "string",
+              "description": "Drug name to profile \u2014 brand or generic (e.g. \"metformin\", \"Humira\", \"Glucophage\"). Resolved once to canonical FDA identifiers, which then key every sub-query."
+            }
+          ]
         },
         {
           "name": "openfda_get_drug_label",
@@ -859,7 +959,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: effective_time:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: effective_time:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -916,7 +1016,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty or paging overshot — how to broaden filters or correct field names. Absent when results are returned."
+                "description": "Guidance when results are empty or paging overshot \u2014 how to broaden filters or correct field names. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -931,7 +1031,7 @@
               },
               "truncated": {
                 "type": "boolean",
-                "description": "True when more labels matched than this page returned — page with skip for the rest."
+                "description": "True when more labels matched than this page returned \u2014 page with skip for the rest."
               },
               "totalResults": {
                 "type": "number",
@@ -949,7 +1049,31 @@
               "effectiveQuery"
             ]
           },
-          "description_hash": "sha256:7e17f1eecc4d3cb36e61bfcf1f52986ebd2dff857c776fe99af9bd11c7beac25"
+          "description_hash": "sha256:7e17f1eecc4d3cb36e61bfcf1f52986ebd2dff857c776fe99af9bd11c7beac25",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Number of results to skip for pagination (0-25000). Default 0.",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: effective_time:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of results to return (1-1000). Default 5. Labels are large.",
+              "default": 5
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "Query targeting label fields. Examples: openfda.brand_name:\"aspirin\", openfda.generic_name:\"metformin\", openfda.manufacturer_name:\"pfizer\". For a specific revision, pass set_id with the SPL UUID returned in earlier results."
+            }
+          ]
         },
         {
           "name": "openfda_lookup_ndc",
@@ -983,7 +1107,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: listing_expiration_date:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: listing_expiration_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1036,7 +1160,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty — how to broaden filters or correct field names. Absent when results are returned."
+                "description": "Guidance when results are empty \u2014 how to broaden filters or correct field names. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -1047,11 +1171,11 @@
                   },
                   "additionalProperties": {}
                 },
-                "description": "NDC directory records — product_ndc, brand_name, generic_name, labeler_name, dosage_form, route, marketing_category, active_ingredients[], packaging[], listing_expiration_date."
+                "description": "NDC directory records \u2014 product_ndc, brand_name, generic_name, labeler_name, dosage_form, route, marketing_category, active_ingredients[], packaging[], listing_expiration_date."
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -1081,7 +1205,36 @@
               "effectiveQuery"
             ]
           },
-          "description_hash": "sha256:ee3140dd0758f252cc30fe14421a1d55dee426df0739a067040b64a28de3e265"
+          "description_hash": "sha256:ee3140dd0758f252cc30fe14421a1d55dee426df0739a067040b64a28de3e265",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Number of records to skip for pagination (0-25000, default 0)",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: listing_expiration_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000, default 10)",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query. Examples: product_ndc:\"0363-0218\", brand_name:\"aspirin\", generic_name:\"metformin\", openfda.manufacturer_name:\"walgreen\", active_ingredients.name:\"ASPIRIN\""
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         },
         {
           "name": "openfda_search_adverse_events",
@@ -1117,7 +1270,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: receivedate:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: receivedate:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1137,7 +1290,7 @@
                   "device"
                 ],
                 "type": "string",
-                "description": "Product category — each has different field schemas in the response"
+                "description": "Product category \u2014 each has different field schemas in the response"
               },
               "canvas_id": {
                 "type": "string",
@@ -1179,7 +1332,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty or paging overshot — how to broaden filters or adjust the query. Absent when results are returned."
+                "description": "Guidance when results are empty or paging overshot \u2014 how to broaden filters or adjust the query. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -1190,11 +1343,11 @@
                   },
                   "additionalProperties": {}
                 },
-                "description": "Adverse event records — fields vary by category (drug: patient/reactions/drugs, device: device details/event type, food: products/outcomes)"
+                "description": "Adverse event records \u2014 fields vary by category (drug: patient/reactions/drugs, device: device details/event type, food: products/outcomes)"
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -1223,7 +1376,46 @@
               "totalResults"
             ]
           },
-          "description_hash": "sha256:2ad4ae6b62e5e83ee0e0d393a2b0acf3a26392f2f7462faecef92728407fd85d"
+          "description_hash": "sha256:2ad4ae6b62e5e83ee0e0d393a2b0acf3a26392f2f7462faecef92728407fd85d",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Number of records to skip for pagination (0-25000, default 0)",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: receivedate:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000, default 10)",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query. Examples: patient.drug.medicinalproduct:\"aspirin\", patient.reaction.reactionmeddrapt:\"nausea\" AND serious:\"1\". Omit to browse recent."
+            },
+            {
+              "name": "category",
+              "type": "string",
+              "description": "Product category \u2014 each has different field schemas in the response",
+              "enum": [
+                "drug",
+                "food",
+                "device"
+              ]
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         },
         {
           "name": "openfda_search_animal_events",
@@ -1257,7 +1449,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: original_receive_date:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: original_receive_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1310,7 +1502,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty or paging overshot — how to broaden filters or adjust the query. Absent when results are returned."
+                "description": "Guidance when results are empty or paging overshot \u2014 how to broaden filters or adjust the query. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -1325,7 +1517,7 @@
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -1354,12 +1546,41 @@
               "totalResults"
             ]
           },
-          "description_hash": "sha256:f51182d60bafcf50ffa36eeaf2b99369f84ba2ec62947a7b428e44fa88c1bbed"
+          "description_hash": "sha256:f51182d60bafcf50ffa36eeaf2b99369f84ba2ec62947a7b428e44fa88c1bbed",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Number of records to skip for pagination (0-25000, default 0)",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: original_receive_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000, default 10)",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query using field:value syntax. Examples: animal.species:\"Dog\", drug.brand_name:\"Bravecto\", reaction.veddra_term_name:\"Vomiting\", serious_ae:\"true\". Omit to browse recent reports."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         },
         {
           "name": "openfda_search_device_clearances",
           "canonical_hash": "sha256:1e3db668e80d779cf85e81b16ca53a49a41fecd1a34ce63669fb8d8aba4ef154",
-          "description": "Search FDA device premarket notifications — 510(k) clearances and PMA approvals.",
+          "description": "Search FDA device premarket notifications \u2014 510(k) clearances and PMA approvals.",
           "is_mutating": false,
           "property_keys": [
             "canvas_id",
@@ -1390,7 +1611,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: decision_date:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: decision_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1451,7 +1672,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty — how to broaden filters or correct field names. Absent when results are returned."
+                "description": "Guidance when results are empty \u2014 how to broaden filters or correct field names. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -1462,11 +1683,11 @@
                   },
                   "additionalProperties": {}
                 },
-                "description": "510(k) or PMA records — 510(k) carries k_number, device_name, applicant, product_code, decision_date, decision_description, advisory_committee_description; PMA carries pma_number, trade_name, generic_name, supplement_number plus shared applicant/product_code/decision_date/decision_description."
+                "description": "510(k) or PMA records \u2014 510(k) carries k_number, device_name, applicant, product_code, decision_date, decision_description, advisory_committee_description; PMA carries pma_number, trade_name, generic_name, supplement_number plus shared applicant/product_code/decision_date/decision_description."
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -1495,7 +1716,45 @@
               "totalResults"
             ]
           },
-          "description_hash": "sha256:a603c7e72cd6e52f2c85b3065d525c93e8d268c8385912db1f1c726754a34aa5"
+          "description_hash": "sha256:a603c7e72cd6e52f2c85b3065d525c93e8d268c8385912db1f1c726754a34aa5",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Pagination offset (0-25000).",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: decision_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000).",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query. Examples: applicant:\"medtronic\", advisory_committee_description:\"cardiovascular\", product_code:\"DXN\", openfda.device_name:\"catheter\". Omit to browse recent."
+            },
+            {
+              "name": "pathway",
+              "type": "string",
+              "description": "Premarket pathway. 510(k) is the most common; PMA is for higher-risk devices.",
+              "enum": [
+                "510k",
+                "pma"
+              ]
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         },
         {
           "name": "openfda_search_drug_approvals",
@@ -1529,7 +1788,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: submissions.submission_status_date:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: submissions.submission_status_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1582,7 +1841,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty — how to broaden filters or correct field names. Absent when results are returned."
+                "description": "Guidance when results are empty \u2014 how to broaden filters or correct field names. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -1593,11 +1852,11 @@
                   },
                   "additionalProperties": {}
                 },
-                "description": "Drug application records — application_number, sponsor_name, openfda block (brand_name, generic_name, route, product_type, substance_name), products[] (active_ingredients, dosage_form, marketing_status), submissions[] (submission_type, submission_status, submission_status_date, review_priority)."
+                "description": "Drug application records \u2014 application_number, sponsor_name, openfda block (brand_name, generic_name, route, product_type, substance_name), products[] (active_ingredients, dosage_form, marketing_status), submissions[] (submission_type, submission_status, submission_status_date, review_priority)."
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -1626,7 +1885,36 @@
               "totalResults"
             ]
           },
-          "description_hash": "sha256:88ff755d7a2a6f9ef133906b863017ad3e6875bf6791232fdb35656e4128569d"
+          "description_hash": "sha256:88ff755d7a2a6f9ef133906b863017ad3e6875bf6791232fdb35656e4128569d",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Number of records to skip for pagination (0-25000, default 0)",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: submissions.submission_status_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000, default 10)",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query. Examples: openfda.brand_name:\"humira\", sponsor_name:\"pfizer\", submissions.submission_type:\"ORIG\" AND submissions.review_priority:\"PRIORITY\". Omit to browse recent."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         },
         {
           "name": "openfda_search_drug_shortages",
@@ -1660,7 +1948,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: update_date:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: update_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1713,7 +2001,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty — how to broaden filters or correct field names. Absent when results are returned."
+                "description": "Guidance when results are empty \u2014 how to broaden filters or correct field names. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -1728,7 +2016,7 @@
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -1757,7 +2045,36 @@
               "totalResults"
             ]
           },
-          "description_hash": "sha256:2fb22ebe795fef7276d604d4ffd1824f528b26ea88027c27d97bcd1c22ed780b"
+          "description_hash": "sha256:2fb22ebe795fef7276d604d4ffd1824f528b26ea88027c27d97bcd1c22ed780b",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Number of records to skip for pagination (0-25000, default 0)",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: update_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000, default 10)",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query using field:value syntax. Examples: status:\"Current\", therapeutic_category:\"Oncology\", generic_name:\"carboplatin\", company_name:\"pfizer\". Omit to browse all records. Call openfda_describe_fields({ endpoint: \"drug/shortages\" }) for the complete field list."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         },
         {
           "name": "openfda_search_recalls",
@@ -1795,7 +2112,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: report_date:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: report_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1866,7 +2183,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty — how to broaden filters or correct field names. Absent when results are returned."
+                "description": "Guidance when results are empty \u2014 how to broaden filters or correct field names. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -1877,11 +2194,11 @@
                   },
                   "additionalProperties": {}
                 },
-                "description": "Enforcement or recall records — recall_number, classification, recalling_firm, product_description, reason_for_recall, status, voluntary_mandated, distribution_pattern, report_date. Field set varies between enforcement and recall endpoints."
+                "description": "Enforcement or recall records \u2014 recall_number, classification, recalling_firm, product_description, reason_for_recall, status, voluntary_mandated, distribution_pattern, report_date. Field set varies between enforcement and recall endpoints."
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -1910,7 +2227,56 @@
               "totalResults"
             ]
           },
-          "description_hash": "sha256:6e18e7ddcfc9ca5d527abd6c5278f5b889ee704ca504077d84f5c32d6f382a51"
+          "description_hash": "sha256:6e18e7ddcfc9ca5d527abd6c5278f5b889ee704ca504077d84f5c32d6f382a51",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Pagination offset (0-25000).",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: report_date:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000).",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query. Examples: classification:\"Class I\" (also \"Class II\" or \"Class III\"), recalling_firm:\"pfizer\", reason_for_recall:\"undeclared allergen\"."
+            },
+            {
+              "name": "category",
+              "type": "string",
+              "description": "Product category",
+              "enum": [
+                "drug",
+                "food",
+                "device"
+              ]
+            },
+            {
+              "name": "endpoint",
+              "type": "string",
+              "description": "Report type. Default enforcement. The recall endpoint is only available for devices.",
+              "default": "enforcement",
+              "enum": [
+                "enforcement",
+                "recall"
+              ]
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         },
         {
           "name": "openfda_search_tobacco_reports",
@@ -1944,7 +2310,7 @@
               },
               "sort": {
                 "type": "string",
-                "description": "Sort expression (field:asc or field:desc). Example: date_submitted:desc. Invalid or non-sortable fields cause a query error — use a documented field name."
+                "description": "Sort expression (field:asc or field:desc). Example: date_submitted:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
               },
               "limit": {
                 "type": "number",
@@ -1997,7 +2363,7 @@
               },
               "notice": {
                 "type": "string",
-                "description": "Guidance when results are empty or paging overshot — how to broaden filters or adjust the query. Absent when results are returned."
+                "description": "Guidance when results are empty or paging overshot \u2014 how to broaden filters or adjust the query. Absent when results are returned."
               },
               "results": {
                 "type": "array",
@@ -2012,7 +2378,7 @@
               },
               "spilled": {
                 "type": "boolean",
-                "description": "True when the full result set was staged on the canvas — use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
+                "description": "True when the full result set was staged on the canvas \u2014 use canvas_id with openfda_dataframe_query for SQL. False when it fit inline. Absent when canvas is disabled."
               },
               "canvas_id": {
                 "type": "string",
@@ -2041,12 +2407,40 @@
               "totalResults"
             ]
           },
-          "description_hash": "sha256:5604b907467584c4e177e047cbeec97b602db1b94e65bf737661e02ea39851a8"
+          "description_hash": "sha256:5604b907467584c4e177e047cbeec97b602db1b94e65bf737661e02ea39851a8",
+          "parameters": [
+            {
+              "name": "skip",
+              "type": "number",
+              "description": "Number of records to skip for pagination (0-25000, default 0)",
+              "default": 0
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort expression (field:asc or field:desc). Example: date_submitted:desc. Invalid or non-sortable fields cause a query error \u2014 use a documented field name."
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of records to return (1-1000, default 10)",
+              "default": 10
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "openFDA search query using field:value syntax. Examples: tobacco_products:\"Electronic cigarette\", reported_health_problems:\"Seizure\", nonuser_affected:\"Yes\". Omit to browse recent reports."
+            },
+            {
+              "name": "canvas_id",
+              "type": "string",
+              "description": "DataCanvas session id from a prior call. Omit to start a fresh canvas; the response returns a new one when canvas is enabled. When canvas (CANVAS_PROVIDER_TYPE=duckdb) is enabled the full matched set is staged for SQL and limit/skip apply only to the inline path."
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

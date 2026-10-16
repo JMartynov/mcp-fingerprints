@@ -38,7 +38,7 @@
         {
           "name": "openstreetmap_geocode",
           "canonical_hash": "sha256:a0b393210e6118d69d963f9f0a02890861ef0a1810d1c2e36d4b592ab4d70ecd",
-          "description": "Convert a place name or address to geographic coordinates and structured place data via Nominatim/OpenStreetMap. Accepts either a free-form query string (e.g., \"Space Needle Seattle\") or structured address fields (street, city, state, etc.) — the two modes are mutually exclusive. Returns results ordered by Nominatim relevance (importance score). Use countrycodes to restrict results to specific countries. For exhaustive POI lists in an area, use openstreetmap_query_nearby or openstreetmap_query_bbox instead — Nominatim search returns best matches, not all matching objects.",
+          "description": "Convert a place name or address to geographic coordinates and structured place data via Nominatim/OpenStreetMap. Accepts either a free-form query string (e.g., \"Space Needle Seattle\") or structured address fields (street, city, state, etc.) \u2014 the two modes are mutually exclusive. Returns results ordered by Nominatim relevance (importance score). Use countrycodes to restrict results to specific countries. For exhaustive POI lists in an area, use openstreetmap_query_nearby or openstreetmap_query_bbox instead \u2014 Nominatim search returns best matches, not all matching objects.",
           "is_mutating": false,
           "property_keys": [
             "city",
@@ -143,7 +143,7 @@
                 "items": {
                   "type": "string"
                 },
-                "description": "OSM refs (N/W/R + id) or Nominatim place_ids to drop from results, forwarded as the exclude_place_ids parameter. Pass the nextExcludeIds value from a prior truncated response to page toward the next-best matches — it emits stable OSM refs when available, which page more reliably than volatile place_ids. Best-effort progressive retrieval, not a stable cursor — Nominatim ranking can reorder slightly between calls, so already-seen results may shift."
+                "description": "OSM refs (N/W/R + id) or Nominatim place_ids to drop from results, forwarded as the exclude_place_ids parameter. Pass the nextExcludeIds value from a prior truncated response to page toward the next-best matches \u2014 it emits stable OSM refs when available, which page more reliably than volatile place_ids. Best-effort progressive retrieval, not a stable cursor \u2014 Nominatim ranking can reorder slightly between calls, so already-seen results may shift."
               }
             }
           },
@@ -232,7 +232,7 @@
                     },
                     "importance": {
                       "type": "number",
-                      "description": "Nominatim relevance score (0–1). Higher is more globally prominent."
+                      "description": "Nominatim relevance score (0\u20131). Higher is more globally prominent."
                     },
                     "boundingbox": {
                       "type": "array",
@@ -268,11 +268,11 @@
               },
               "attribution": {
                 "type": "string",
-                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+                "description": "Required data attribution: Data \u00a9 OpenStreetMap contributors, ODbL 1.0."
               },
               "effectiveQuery": {
                 "type": "string",
-                "description": "The effective query sent to Nominatim — the free-form query string, or a reconstructed string from the provided structured address fields."
+                "description": "The effective query sent to Nominatim \u2014 the free-form query string, or a reconstructed string from the provided structured address fields."
               },
               "nextExcludeIds": {
                 "type": "array",
@@ -289,12 +289,93 @@
               "effectiveQuery"
             ]
           },
-          "description_hash": "sha256:907e2d7156e2ebd3631c0d155e2b86a9dd3f8144347bf6e00ba4dcedacda5882"
+          "description_hash": "sha256:907e2d7156e2ebd3631c0d155e2b86a9dd3f8144347bf6e00ba4dcedacda5882",
+          "parameters": [
+            {
+              "name": "city",
+              "type": "string",
+              "description": "City name (structured query)."
+            },
+            {
+              "name": "layer",
+              "type": "string",
+              "description": "Filter by data layer. Comma-separated values: address, poi, railway, natural, manmade. Default: no restriction."
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum results to return. Nominatim may return fewer when additional results do not sufficiently match. Max 40.",
+              "default": 5
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Free-form search string (e.g., \"Space Needle Seattle\" or \"1600 Pennsylvania Ave NW, Washington DC\"). Cannot be combined with structured address fields. Keep the query to a POI name plus its city or region. Do not insert a parent institution, campus, or building name between the name and the locality: Nominatim reads commas as an address hierarchy and returns nothing when an intermediate token is not a matching containment level. For example, use \"Beinecke Library, New Haven\", not \"Beinecke Library, Yale University, New Haven\"."
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "State or province (structured query)."
+            },
+            {
+              "name": "county",
+              "type": "string",
+              "description": "County or district (structured query)."
+            },
+            {
+              "name": "street",
+              "type": "string",
+              "description": "House number and street name (structured query). Use with city/state/country fields. Cannot be combined with query."
+            },
+            {
+              "name": "country",
+              "type": "string",
+              "description": "Country name or ISO 3166-1 alpha-2 code (structured query)."
+            },
+            {
+              "name": "language",
+              "type": "string",
+              "description": "Preferred language for result names (BCP 47 code or Accept-Language string, e.g., \"en\", \"de\", \"fr,en\"). Defaults to local OSM language."
+            },
+            {
+              "name": "extratags",
+              "type": "boolean",
+              "description": "Include extra OSM tags when available (e.g., phone, website, opening_hours, wikidata). Increases response size.",
+              "default": false
+            },
+            {
+              "name": "postalcode",
+              "type": "string",
+              "description": "Postal or ZIP code (structured query)."
+            },
+            {
+              "name": "featureType",
+              "type": "string",
+              "description": "Restrict results to a geographic feature type. Automatically implies the address layer.",
+              "enum": [
+                "country",
+                "state",
+                "city",
+                "settlement"
+              ]
+            },
+            {
+              "name": "countrycodes",
+              "type": "string",
+              "description": "Restrict results to one or more countries. Comma-separated ISO 3166-1 alpha-2 codes (e.g., \"us,ca\"). Preferred over the structured country field when filtering."
+            },
+            {
+              "name": "exclude_place_ids",
+              "type": "array",
+              "description": "OSM refs (N/W/R + id) or Nominatim place_ids to drop from results, forwarded as the exclude_place_ids parameter. Pass the nextExcludeIds value from a prior truncated response to page toward the next-best matches \u2014 it emits stable OSM refs when available, which page more reliably than volatile place_ids. Best-effort progressive retrieval, not a stable cursor \u2014 Nominatim ranking can reorder slightly between calls, so already-seen results may shift.",
+              "items_type": "string"
+            }
+          ]
         },
         {
           "name": "openstreetmap_lookup",
           "canonical_hash": "sha256:2f6a62f4a8abdc53e78d597703e224997a0465e3a6c99040b69561c2ef8a55d3",
-          "description": "Fetch address details for one or more known OSM objects by their IDs via Nominatim. Each ID must be prefixed with N (node), W (way), or R (relation), e.g., \"N240109189\", \"W50637691\", \"R146656\". Up to 50 IDs per call. Use when an OSM ID is already known from a prior openstreetmap_query_nearby or openstreetmap_query_bbox result — this is more efficient than a geocoding round trip to get the full Nominatim address record.",
+          "description": "Fetch address details for one or more known OSM objects by their IDs via Nominatim. Each ID must be prefixed with N (node), W (way), or R (relation), e.g., \"N240109189\", \"W50637691\", \"R146656\". Up to 50 IDs per call. Use when an OSM ID is already known from a prior openstreetmap_query_nearby or openstreetmap_query_bbox result \u2014 this is more efficient than a geocoding round trip to get the full Nominatim address record.",
           "is_mutating": false,
           "property_keys": [
             "extratags",
@@ -450,7 +531,7 @@
               },
               "attribution": {
                 "type": "string",
-                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+                "description": "Required data attribution: Data \u00a9 OpenStreetMap contributors, ODbL 1.0."
               }
             },
             "required": [
@@ -460,7 +541,25 @@
               "attribution"
             ]
           },
-          "description_hash": "sha256:d093e71103b426faac6233c32ad6723c076169f893c2830762d1df9e0d5c0f57"
+          "description_hash": "sha256:d093e71103b426faac6233c32ad6723c076169f893c2830762d1df9e0d5c0f57",
+          "parameters": [
+            {
+              "name": "osm_ids",
+              "type": "string",
+              "description": "One or more OSM IDs, each prefixed with N (node), W (way), or R (relation). E.g., \"N240109189\", [\"W50637691\", \"R146656\"]. Up to 50 IDs per call."
+            },
+            {
+              "name": "language",
+              "type": "string",
+              "description": "Preferred language for names (BCP 47 code)."
+            },
+            {
+              "name": "extratags",
+              "type": "boolean",
+              "description": "Include extra OSM tags (phone, website, wikidata, etc.).",
+              "default": false
+            }
+          ]
         },
         {
           "name": "openstreetmap_query_bbox",
@@ -514,7 +613,7 @@
                 "default": 20,
                 "maximum": 500,
                 "minimum": 1,
-                "description": "Maximum results to return. Applied after the Overpass query — if the area has more features, they are truncated."
+                "description": "Maximum results to return. Applied after the Overpass query \u2014 if the area has more features, they are truncated."
               },
               "north": {
                 "type": "number",
@@ -577,7 +676,7 @@
             "properties": {
               "notice": {
                 "type": "string",
-                "description": "Guidance when no features were found — e.g., try a different bounding box or tag. Absent when results were returned."
+                "description": "Guidance when no features were found \u2014 e.g., try a different bounding box or tag. Absent when results were returned."
               },
               "elements": {
                 "type": "array",
@@ -644,7 +743,7 @@
               },
               "attribution": {
                 "type": "string",
-                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+                "description": "Required data attribution: Data \u00a9 OpenStreetMap contributors, ODbL 1.0."
               },
               "effectiveTag": {
                 "type": "string",
@@ -664,12 +763,77 @@
               "truncated"
             ]
           },
-          "description_hash": "sha256:5023b7a325906f78a63c683fe88a2928360aea6e811622a15363253fd26bc71b"
+          "description_hash": "sha256:5023b7a325906f78a63c683fe88a2928360aea6e811622a15363253fd26bc71b",
+          "parameters": [
+            {
+              "name": "east",
+              "type": "number",
+              "description": "Eastern boundary longitude (maximum longitude)."
+            },
+            {
+              "name": "west",
+              "type": "number",
+              "description": "Western boundary longitude (minimum longitude)."
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum results to return. Applied after the Overpass query \u2014 if the area has more features, they are truncated.",
+              "default": 20
+            },
+            {
+              "name": "north",
+              "type": "number",
+              "description": "Northern boundary latitude (maximum latitude)."
+            },
+            {
+              "name": "south",
+              "type": "number",
+              "description": "Southern boundary latitude (minimum latitude)."
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Number of matching features to skip before applying limit, for paging through a large result set. The full match set is fetched and cached ~10 minutes keyed by the query, so re-paging at a new offset is deterministic and costs no extra upstream request. Pass the nextOffset value from a prior truncated response.",
+              "default": 0
+            },
+            {
+              "name": "amenity",
+              "type": "string",
+              "description": "OSM amenity tag value shortcut (e.g., \"cafe\", \"bench\", \"hospital\"). Cannot be combined with tag_key/tag_value."
+            },
+            {
+              "name": "tag_key",
+              "type": "string",
+              "description": "OSM tag key for non-amenity queries (e.g., \"leisure\", \"shop\", \"natural\"). Use with tag_value. Cannot be combined with amenity."
+            },
+            {
+              "name": "tag_value",
+              "type": "string",
+              "description": "OSM tag value paired with tag_key (e.g., \"park\", \"supermarket\", \"peak\")."
+            },
+            {
+              "name": "element_types",
+              "type": "array",
+              "description": "OSM element types to search. Ways cover most buildings and areas; nodes cover most standalone POIs. Add \"relation\" for complex structures.",
+              "default": [
+                "node",
+                "way"
+              ],
+              "items_type": "string"
+            },
+            {
+              "name": "timeout_seconds",
+              "type": "integer",
+              "description": "Overpass query timeout in seconds. Increase for large bounding boxes or dense areas.",
+              "default": 25
+            }
+          ]
         },
         {
           "name": "openstreetmap_query_nearby",
           "canonical_hash": "sha256:a34ff25388b3fa79d5d3e2dcc363125c5e01177fa36c198c8369d93432abbb5a",
-          "description": "Find OSM features within a radius around a geographic point via the Overpass API. The primary tool for \"what's near X?\" spatial queries. Use amenity for common POI types (hospital, pharmacy, restaurant, cafe, school, atm, etc.) or tag_key + tag_value for other OSM categories (leisure=park, shop=supermarket, natural=peak). Exactly one of amenity or tag_key/tag_value must be provided. Results include all element types specified (nodes cover standalone POIs, ways cover buildings and areas), each with its full OSM tag set, sorted nearest-first by distance_meters from the center point. The extratags flag is not needed here — it applies only to the Nominatim-backed geocode/reverse/lookup tools.",
+          "description": "Find OSM features within a radius around a geographic point via the Overpass API. The primary tool for \"what's near X?\" spatial queries. Use amenity for common POI types (hospital, pharmacy, restaurant, cafe, school, atm, etc.) or tag_key + tag_value for other OSM categories (leisure=park, shop=supermarket, natural=peak). Exactly one of amenity or tag_key/tag_value must be provided. Results include all element types specified (nodes cover standalone POIs, ways cover buildings and areas), each with its full OSM tag set, sorted nearest-first by distance_meters from the center point. The extratags flag is not needed here \u2014 it applies only to the Nominatim-backed geocode/reverse/lookup tools.",
           "is_mutating": false,
           "property_keys": [
             "amenity",
@@ -716,7 +880,7 @@
                 "default": 20,
                 "maximum": 500,
                 "minimum": 1,
-                "description": "Maximum results to return. Applied after the Overpass query — if the area has more features, they are truncated."
+                "description": "Maximum results to return. Applied after the Overpass query \u2014 if the area has more features, they are truncated."
               },
               "offset": {
                 "type": "integer",
@@ -774,7 +938,7 @@
             "properties": {
               "notice": {
                 "type": "string",
-                "description": "Guidance when no features were found — e.g., try a larger radius or different tag. Absent when results were returned."
+                "description": "Guidance when no features were found \u2014 e.g., try a larger radius or different tag. Absent when results were returned."
               },
               "elements": {
                 "type": "array",
@@ -845,7 +1009,7 @@
               },
               "attribution": {
                 "type": "string",
-                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+                "description": "Required data attribution: Data \u00a9 OpenStreetMap contributors, ODbL 1.0."
               },
               "effectiveTag": {
                 "type": "string",
@@ -865,7 +1029,68 @@
               "truncated"
             ]
           },
-          "description_hash": "sha256:235f687e6cb2408c809a02d250f58d2dc4117b7b7a1e3534c3aecc850a066966"
+          "description_hash": "sha256:235f687e6cb2408c809a02d250f58d2dc4117b7b7a1e3534c3aecc850a066966",
+          "parameters": [
+            {
+              "name": "lat",
+              "type": "number",
+              "description": "Center latitude in WGS84 decimal degrees."
+            },
+            {
+              "name": "lon",
+              "type": "number",
+              "description": "Center longitude in WGS84 decimal degrees."
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum results to return. Applied after the Overpass query \u2014 if the area has more features, they are truncated.",
+              "default": 20
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Number of matching features to skip before applying limit, for paging through a large result set. Features are distance-sorted before paging, so higher offsets return progressively farther matches; the full set is cached ~10 minutes so re-paging costs no extra upstream request. Pass the nextOffset value from a prior truncated response.",
+              "default": 0
+            },
+            {
+              "name": "amenity",
+              "type": "string",
+              "description": "OSM amenity tag value (e.g., \"hospital\", \"pharmacy\", \"restaurant\", \"school\", \"atm\"). Shortcut for tag_key=\"amenity\". Cannot be combined with tag_key/tag_value."
+            },
+            {
+              "name": "tag_key",
+              "type": "string",
+              "description": "OSM tag key for non-amenity queries (e.g., \"leisure\", \"shop\", \"highway\", \"natural\"). Use with tag_value. Cannot be combined with amenity."
+            },
+            {
+              "name": "tag_value",
+              "type": "string",
+              "description": "OSM tag value paired with tag_key (e.g., \"park\", \"supermarket\", \"primary\", \"peak\")."
+            },
+            {
+              "name": "element_types",
+              "type": "array",
+              "description": "OSM element types to search. Ways cover most buildings and areas; nodes cover most standalone POIs. Add \"relation\" for complex structures like large campuses.",
+              "default": [
+                "node",
+                "way"
+              ],
+              "items_type": "string"
+            },
+            {
+              "name": "radius_meters",
+              "type": "number",
+              "description": "Search radius in meters. Max 50,000m (50km). Keep under 5,000m for dense urban POI queries to avoid slow responses.",
+              "default": 1000
+            },
+            {
+              "name": "timeout_seconds",
+              "type": "integer",
+              "description": "Overpass query timeout in seconds. Increase for large radius or dense areas.",
+              "default": 25
+            }
+          ]
         },
         {
           "name": "openstreetmap_query_raw",
@@ -902,7 +1127,7 @@
             "properties": {
               "notice": {
                 "type": "string",
-                "description": "Guidance when no elements were returned — e.g., check query syntax or broaden the filter. Absent when results were returned."
+                "description": "Guidance when no elements were returned \u2014 e.g., check query syntax or broaden the filter. Absent when results were returned."
               },
               "elements": {
                 "type": "array",
@@ -913,11 +1138,11 @@
                   },
                   "additionalProperties": {}
                 },
-                "description": "Raw Overpass API response elements. Structure varies by query type — nodes have lat/lon, ways have nodes[], relations have members[]."
+                "description": "Raw Overpass API response elements. Structure varies by query type \u2014 nodes have lat/lon, ways have nodes[], relations have members[]."
               },
               "attribution": {
                 "type": "string",
-                "description": "Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0."
+                "description": "Required data attribution: Data \u00a9 OpenStreetMap contributors, ODbL 1.0."
               },
               "data_timestamp": {
                 "type": "string",
@@ -939,12 +1164,25 @@
               "effectiveQuery"
             ]
           },
-          "description_hash": "sha256:b939ded0b3a4338ed89cc4c31c7675abb3316f959891a02f694b27dbbebb3d6b"
+          "description_hash": "sha256:b939ded0b3a4338ed89cc4c31c7675abb3316f959891a02f694b27dbbebb3d6b",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Overpass QL query string. Must include [out:json]. The server sets the endpoint and User-Agent; do not include those. Example: \"[out:json][timeout:15];node[\\\"natural\\\"=\\\"peak\\\"](47.5,-122.5,47.7,-122.2);out body;\""
+            },
+            {
+              "name": "timeout_seconds",
+              "type": "integer",
+              "description": "Query timeout in seconds. The [timeout:N] directive in the query string takes precedence if present. Max 180s.",
+              "default": 30
+            }
+          ]
         },
         {
           "name": "openstreetmap_reverse",
           "canonical_hash": "sha256:fc7f9ee98592414094553e654eedf9b37934aed32041f182075b5a17a2534881",
-          "description": "Convert latitude/longitude coordinates to the nearest address or place name via Nominatim/OpenStreetMap. Returns the closest matching OSM object at the given coordinates. Note: Nominatim finds the nearest indexed OSM object — in dense areas this may differ from the address at the exact coordinate. Use zoom=18 for building-level accuracy, lower zoom values for coarser resolution (e.g., zoom=10 for city-level).",
+          "description": "Convert latitude/longitude coordinates to the nearest address or place name via Nominatim/OpenStreetMap. Returns the closest matching OSM object at the given coordinates. Note: Nominatim finds the nearest indexed OSM object \u2014 in dense areas this may differ from the address at the exact coordinate. Use zoom=18 for building-level accuracy, lower zoom values for coarser resolution (e.g., zoom=10 for city-level).",
           "is_mutating": false,
           "property_keys": [
             "extratags",
@@ -1105,12 +1343,45 @@
               "attribution"
             ]
           },
-          "description_hash": "sha256:8d0024d6a5c7399d1b1f5d0d06679c51f346509a994a685abb2e13d88141e74e"
+          "description_hash": "sha256:8d0024d6a5c7399d1b1f5d0d06679c51f346509a994a685abb2e13d88141e74e",
+          "parameters": [
+            {
+              "name": "lat",
+              "type": "number",
+              "description": "Latitude in WGS84 decimal degrees."
+            },
+            {
+              "name": "lon",
+              "type": "number",
+              "description": "Longitude in WGS84 decimal degrees."
+            },
+            {
+              "name": "zoom",
+              "type": "integer",
+              "description": "Address detail level, roughly corresponding to map zoom. 18=building, 16=street, 14=neighbourhood, 12=town, 10=city, 8=county, 5=state, 3=country.",
+              "default": 18
+            },
+            {
+              "name": "layer",
+              "type": "string",
+              "description": "Restrict which OSM layer is matched. Comma-separated: address, poi, railway, natural, manmade. Default: address,poi."
+            },
+            {
+              "name": "language",
+              "type": "string",
+              "description": "Preferred language for the result (BCP 47 code or Accept-Language string)."
+            },
+            {
+              "name": "extratags",
+              "type": "boolean",
+              "description": "Include extra OSM tags when available (phone, website, opening_hours, wikidata, etc.).",
+              "default": false
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }

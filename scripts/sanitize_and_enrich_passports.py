@@ -72,7 +72,7 @@ def main():
     files = glob.glob("data/fingerprints/**/*.json", recursive=True)
     count = 0
     for file in files:
-        if file.endswith("sync_state.json") or file.endswith("index.json"):
+        if Path(file).name in ("sync_state.json", "index.json"):
             continue
         process_file(file)
         count += 1

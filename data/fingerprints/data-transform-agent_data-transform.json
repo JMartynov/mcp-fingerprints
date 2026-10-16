@@ -38,7 +38,7 @@
         {
           "name": "list_capabilities",
           "canonical_hash": "sha256:ef5bc37e7015282dbebb4038432abb35435bb800758585d66463aa646defbb3a",
-          "description": "List all supported format conversion pairs with pricing and average response times. Call this first to discover which source→target format combinations are available before attempting a transform.",
+          "description": "List all supported format conversion pairs with pricing and average response times. Call this first to discover which source\u2192target format combinations are available before attempting a transform.",
           "is_mutating": false,
           "property_keys": [
             "source_format",
@@ -109,7 +109,65 @@
             }
           },
           "outputSchema": null,
-          "description_hash": "sha256:869b580224eb6be34aedc1a2235b1ea673bbe222751da7d1134633c168356ad6"
+          "description_hash": "sha256:869b580224eb6be34aedc1a2235b1ea673bbe222751da7d1134633c168356ad6",
+          "parameters": [
+            {
+              "name": "source_format",
+              "type": "string",
+              "description": "Optional source format to filter results. Only conversions from this format will be returned. One of: json, csv, xml, yaml, toml, html, markdown, plain_text, base64, url_encoded, hex, pdf, excel, docx. Omit to list all available conversions.",
+              "enum": [
+                "json",
+                "csv",
+                "xml",
+                "yaml",
+                "toml",
+                "html",
+                "markdown",
+                "plain_text",
+                "base64",
+                "url_encoded",
+                "hex",
+                "pdf",
+                "excel",
+                "docx",
+                "metar",
+                "taf",
+                "notam",
+                "pirep",
+                "sigmet",
+                "airmet",
+                "atis"
+              ]
+            },
+            {
+              "name": "target_format",
+              "type": "string",
+              "description": "Optional target format to filter results. Only conversions to this format will be returned. One of: json, csv, xml, yaml, toml, html, markdown, plain_text, base64, url_encoded, hex, pdf, excel, docx. Omit to list all available conversions.",
+              "enum": [
+                "json",
+                "csv",
+                "xml",
+                "yaml",
+                "toml",
+                "html",
+                "markdown",
+                "plain_text",
+                "base64",
+                "url_encoded",
+                "hex",
+                "pdf",
+                "excel",
+                "docx",
+                "metar",
+                "taf",
+                "notam",
+                "pirep",
+                "sigmet",
+                "airmet",
+                "atis"
+              ]
+            }
+          ]
         },
         {
           "name": "reshape_json",
@@ -146,7 +204,22 @@
             }
           },
           "outputSchema": null,
-          "description_hash": "sha256:61be32d4f8414d5e4f57a04ac12cdc86bc2e5e4d80da95a470b9a3ab0308937c"
+          "description_hash": "sha256:61be32d4f8414d5e4f57a04ac12cdc86bc2e5e4d80da95a470b9a3ab0308937c",
+          "parameters": [
+            {
+              "name": "data",
+              "type": [
+                "object",
+                "array"
+              ],
+              "description": "The input JSON data to reshape. Can be a single object like {'user': {'profile': {'name': 'Alice'}}} or an array of objects like [{'user': {'name': 'Alice'}}, {'user': {'name': 'Bob'}}]. Each object in an array is reshaped independently using the same mapping."
+            },
+            {
+              "name": "mapping",
+              "type": "object",
+              "description": "A dictionary mapping target field paths to source field paths using dot-notation. Keys are target paths (where to put the value), values are source paths (where to read from). Example: {'name': 'user.profile.name', 'city': 'user.address.city'} extracts nested fields. Target paths can also be nested: {'output.name': 'input.user.name'} creates nested output."
+            }
+          ]
         },
         {
           "name": "transform",
@@ -237,7 +310,78 @@
             }
           },
           "outputSchema": null,
-          "description_hash": "sha256:d914872d668ce477510ebd0ceaa31cd687f1fbcb4da0de03940521cdb0c0abd1"
+          "description_hash": "sha256:d914872d668ce477510ebd0ceaa31cd687f1fbcb4da0de03940521cdb0c0abd1",
+          "parameters": [
+            {
+              "name": "data",
+              "type": "string",
+              "description": "The input data as a text string. For binary formats (pdf, excel, docx), provide the file content as a base64-encoded string."
+            },
+            {
+              "name": "options",
+              "type": "object",
+              "description": "Optional configuration for the conversion. Supported keys: 'delimiter' (CSV separator, default ','), 'sheet_name' (Excel sheet, default 'Sheet1'), 'root_tag' (XML root element, default 'root'), 'item_tag' (XML item element, default 'item').",
+              "nested_properties": {
+                "item_tag": {
+                  "type": "string",
+                  "description": "XML element name for each record. Default: 'item'"
+                },
+                "root_tag": {
+                  "type": "string",
+                  "description": "Root XML element name when generating XML. Default: 'root'"
+                },
+                "delimiter": {
+                  "type": "string",
+                  "description": "CSV column delimiter character. Default: ','"
+                },
+                "sheet_name": {
+                  "type": "string",
+                  "description": "Excel worksheet name to read from or write to. Default: 'Sheet1'"
+                }
+              }
+            },
+            {
+              "name": "source_format",
+              "type": "string",
+              "description": "The format of the input data. Use the exact enum value, e.g. 'json', 'csv', 'xml'.",
+              "enum": [
+                "json",
+                "csv",
+                "xml",
+                "yaml",
+                "toml",
+                "html",
+                "markdown",
+                "plain_text",
+                "pdf",
+                "excel",
+                "docx",
+                "metar",
+                "taf",
+                "notam",
+                "pirep",
+                "sigmet",
+                "airmet",
+                "atis"
+              ]
+            },
+            {
+              "name": "target_format",
+              "type": "string",
+              "description": "The desired output format to convert to. Use the exact enum value, e.g. 'csv', 'yaml'.",
+              "enum": [
+                "json",
+                "csv",
+                "xml",
+                "yaml",
+                "toml",
+                "html",
+                "markdown",
+                "plain_text",
+                "excel"
+              ]
+            }
+          ]
         }
       ],
       "prompt_signatures": [
@@ -285,6 +429,5 @@
         }
       ]
     }
-  ],
-  "security_profile": {}
+  ]
 }

@@ -4,7 +4,7 @@
   "purl": "pkg:generic/echelongraph%2Fechelongraph-mcp",
   "ecosystem": "generic",
   "display_name": "echelongraph/echelongraph-mcp",
-  "description": "CVE, KEV, EPSS, SBOM and advisory lookups; per-CVE exposure from Shodan data (© Shodan). Keyless.",
+  "description": "CVE, KEV, EPSS, SBOM and advisory lookups; per-CVE exposure from Shodan data (\u00a9 Shodan). Keyless.",
   "repository_url": "https://github.com/echelongraph/echelongraph-mcp",
   "homepage_url": null,
   "license": null,
@@ -85,7 +85,29 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:1157e1df54b484e41b01cfd59cd67fb459f110093bd590bd9a0aa526789911ac"
+          "description_hash": "sha256:1157e1df54b484e41b01cfd59cd67fb459f110093bd590bd9a0aa526789911ac",
+          "parameters": [
+            {
+              "name": "package",
+              "type": "string",
+              "description": "Registry path: the package name in that ecosystem, such as lodash."
+            },
+            {
+              "name": "product",
+              "type": "string",
+              "description": "CPE path: the NVD CPE product token, such as openssl, nginx or linux_kernel. Leave out for the registry path."
+            },
+            {
+              "name": "version",
+              "type": "string",
+              "description": "The version to check, such as 3.0.0."
+            },
+            {
+              "name": "ecosystem",
+              "type": "string",
+              "description": "Registry path: the package's ecosystem, such as npm, PyPI or Maven. Give with package, not with product."
+            }
+          ]
         },
         {
           "name": "check_sbom",
@@ -130,12 +152,25 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:c91dcc44f6adb212a688093dccbd600cc1208df94ec8cc23f63fd86de90a5768"
+          "description_hash": "sha256:c91dcc44f6adb212a688093dccbd600cc1208df94ec8cc23f63fd86de90a5768",
+          "parameters": [
+            {
+              "name": "sbom",
+              "type": "string",
+              "description": "a CycloneDX JSON or SPDX JSON document, as JSON text or as an object; its purls are read by this MCP server and only they are sent to the API; over the hosted endpoint (mcp.echelongraph.io) the document is the request body"
+            },
+            {
+              "name": "purls",
+              "type": "array",
+              "description": "package URLs to check, e.g. pkg:npm/lodash@4.17.20 or pkg:deb/debian/openssl@3.0.11-1~deb12u1?distro=debian-12 (up to 2,000 distinct, sent in batches of 200)",
+              "items_type": "string"
+            }
+          ]
         },
         {
           "name": "cve_exposure",
           "canonical_hash": "sha256:2cde10d1d1ea7e0532af4fe886551206c1bfd0ab23f556f7bbd437412fc37f84",
-          "description": "Internet-exposure footprint for one CVE from EchelonGraph's KEV-exposure radar: how many internet-facing services (distinct ip:port, returned as exposed_hosts; a machine answering on two ports counts twice) the radar has on record running a version its CVE matcher maps to this CVE, with a country/product breakdown and a ransomware flag. Aggregate and host-redacted; free and keyless. Method: exposure counts are derived from Shodan data. Shodan data is owned by Shodan, which holds its copyright (© Shodan). Every 12 h, when Shodan query credits allow, the radar runs one Shodan query per tracked product, reads up to 100 ip:port services per query, and keeps a service when its banner version matches a CISA-KEV or high-EPSS CVE; a service whose row has not been written or refreshed for 21 days is dropped. The radar only looks for its tracked set of CVEs: for a CVE outside that set the note says NOT ASSESSED (exposure_state not_assessed), and its 0 is not a measurement. last_seen is when EchelonGraph last wrote or refreshed a service's row, not when the service was observed: a port still listed by Shodan InternetDB refreshes it without re-reading the banner, so a patched service can stay counted while its port stays open. A count is therefore a banner-version inference over a sample, not an exploit test and not an internet-wide census. Its structured result's state is not_assessed with measured_at null, since the answer dates no observation; the count is still relayed, labelled, as what the radar holds on record. exposure_state says what the count is: exposed, measured_zero, not_assessed or tracking_unknown; coverage.in_scope is the API's tracked verdict; freshness is null; data is the API's JSON. Past 30,000 characters of JSON, the first text block holds data cut to fit, and the note says what the cut leaves out and where to read it (TEXT CUT); data in the structured result always holds it whole.",
+          "description": "Internet-exposure footprint for one CVE from EchelonGraph's KEV-exposure radar: how many internet-facing services (distinct ip:port, returned as exposed_hosts; a machine answering on two ports counts twice) the radar has on record running a version its CVE matcher maps to this CVE, with a country/product breakdown and a ransomware flag. Aggregate and host-redacted; free and keyless. Method: exposure counts are derived from Shodan data. Shodan data is owned by Shodan, which holds its copyright (\u00a9 Shodan). Every 12 h, when Shodan query credits allow, the radar runs one Shodan query per tracked product, reads up to 100 ip:port services per query, and keeps a service when its banner version matches a CISA-KEV or high-EPSS CVE; a service whose row has not been written or refreshed for 21 days is dropped. The radar only looks for its tracked set of CVEs: for a CVE outside that set the note says NOT ASSESSED (exposure_state not_assessed), and its 0 is not a measurement. last_seen is when EchelonGraph last wrote or refreshed a service's row, not when the service was observed: a port still listed by Shodan InternetDB refreshes it without re-reading the banner, so a patched service can stay counted while its port stays open. A count is therefore a banner-version inference over a sample, not an exploit test and not an internet-wide census. Its structured result's state is not_assessed with measured_at null, since the answer dates no observation; the count is still relayed, labelled, as what the radar holds on record. exposure_state says what the count is: exposed, measured_zero, not_assessed or tracking_unknown; coverage.in_scope is the API's tracked verdict; freshness is null; data is the API's JSON. Past 30,000 characters of JSON, the first text block holds data cut to fit, and the note says what the cut leaves out and where to read it (TEXT CUT); data in the structured result always holds it whole.",
           "is_mutating": false,
           "property_keys": [
             "cve_id"
@@ -156,7 +191,14 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:2bff79926e2fbc65c5e1fa1fbf3671e82b810044717117e400a66e2c27b67c68"
+          "description_hash": "sha256:2bff79926e2fbc65c5e1fa1fbf3671e82b810044717117e400a66e2c27b67c68",
+          "parameters": [
+            {
+              "name": "cve_id",
+              "type": "string",
+              "description": "a CVE ID, e.g. CVE-2023-44487"
+            }
+          ]
         },
         {
           "name": "cve_intel",
@@ -182,7 +224,14 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:93b1a391e249c6331d947adcaf0f63d5b013626d2efdda5dc41372d3e04545fc"
+          "description_hash": "sha256:93b1a391e249c6331d947adcaf0f63d5b013626d2efdda5dc41372d3e04545fc",
+          "parameters": [
+            {
+              "name": "cve_id",
+              "type": "string",
+              "description": "a CVE ID, e.g. CVE-2021-44228"
+            }
+          ]
         },
         {
           "name": "cve_remediation",
@@ -208,7 +257,14 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:6c58eb2f9d90ff9ffadf865007f1b6412b3315c482b36f027ce5530c3858ae65"
+          "description_hash": "sha256:6c58eb2f9d90ff9ffadf865007f1b6412b3315c482b36f027ce5530c3858ae65",
+          "parameters": [
+            {
+              "name": "cve_id",
+              "type": "string",
+              "description": "a CVE ID, e.g. CVE-2021-44228"
+            }
+          ]
         },
         {
           "name": "cve_summary",
@@ -225,7 +281,8 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:a5d74e433c3f77d9851fe32352517533c2ac8e0de61cf72d3d2a2bebe0906879"
+          "description_hash": "sha256:a5d74e433c3f77d9851fe32352517533c2ac8e0de61cf72d3d2a2bebe0906879",
+          "parameters": []
         },
         {
           "name": "epss_history",
@@ -251,12 +308,19 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:314cd8f0dc7697668377a09278fb8a876c9534f18f72adfd51e4468876e31461"
+          "description_hash": "sha256:314cd8f0dc7697668377a09278fb8a876c9534f18f72adfd51e4468876e31461",
+          "parameters": [
+            {
+              "name": "cve_id",
+              "type": "string",
+              "description": "a CVE ID, e.g. CVE-2023-44487"
+            }
+          ]
         },
         {
           "name": "exposure_radar",
           "canonical_hash": "sha256:4da301fe939e13e49eb5bce3b3642f3ec335d139072910e3618f1fb1e948d4dc",
-          "description": "Aggregate totals from EchelonGraph's internet-exposure radars: kev_exposure, internet-facing services running actively-exploited (CISA-KEV) CVEs, plus the ransomware-linked subset, derived from Shodan data; exposed_databases, unauthenticated data stores and observability UIs, found through Shodan (LeakIX when Shodan query credits run low) and then confirmed by EchelonGraph's own identified check (not a pure read: on Redis it names its client, and on ClickHouse its query is recorded in the server's query log); leaked_credentials, sampled from public GitHub push events; and shadow_ai, services found through Certificate Transparency logs and Shodan and then checked by EchelonGraph's identified probes. Shodan data is owned by Shodan, which holds its copyright (© Shodan). It also gives MCP-server counts: hostnames named like an MCP server in EchelonGraph's own Certificate Transparency feed (no Shodan data), each counted once by its latest verdict from EchelonGraph's identified MCP probe, which never sends tools/call. Service counts are distinct ip:port services, not machines. The result's note, and the outputSchema's description of each radar, label every number by what it counts. Of the shadow_ai numbers, only confirmed_exposed counts exposed services. A kev_exposure.newest_kev CVE whose exposure_state is not_assessed has no measurement in the answer: its 0 is not one. Its structured result's state is not_assessed with measured_at null, since no radar dates what it counts; each count is still relayed as what that radar holds on record. freshness gives each radar's last_run_at where the API serves one; coverage names the radars that answered. Past 30,000 characters of JSON, the first text block holds data cut to fit, and the note says what the cut leaves out and where to read it (TEXT CUT); data in the structured result always holds it whole.",
+          "description": "Aggregate totals from EchelonGraph's internet-exposure radars: kev_exposure, internet-facing services running actively-exploited (CISA-KEV) CVEs, plus the ransomware-linked subset, derived from Shodan data; exposed_databases, unauthenticated data stores and observability UIs, found through Shodan (LeakIX when Shodan query credits run low) and then confirmed by EchelonGraph's own identified check (not a pure read: on Redis it names its client, and on ClickHouse its query is recorded in the server's query log); leaked_credentials, sampled from public GitHub push events; and shadow_ai, services found through Certificate Transparency logs and Shodan and then checked by EchelonGraph's identified probes. Shodan data is owned by Shodan, which holds its copyright (\u00a9 Shodan). It also gives MCP-server counts: hostnames named like an MCP server in EchelonGraph's own Certificate Transparency feed (no Shodan data), each counted once by its latest verdict from EchelonGraph's identified MCP probe, which never sends tools/call. Service counts are distinct ip:port services, not machines. The result's note, and the outputSchema's description of each radar, label every number by what it counts. Of the shadow_ai numbers, only confirmed_exposed counts exposed services. A kev_exposure.newest_kev CVE whose exposure_state is not_assessed has no measurement in the answer: its 0 is not one. Its structured result's state is not_assessed with measured_at null, since no radar dates what it counts; each count is still relayed as what that radar holds on record. freshness gives each radar's last_run_at where the API serves one; coverage names the radars that answered. Past 30,000 characters of JSON, the first text block holds data cut to fit, and the note says what the cut leaves out and where to read it (TEXT CUT); data in the structured result always holds it whole.",
           "is_mutating": false,
           "property_keys": [],
           "required_keys": [],
@@ -268,7 +332,8 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:89572fde3b01d27e04a81b0e87e3a2bb6a188f5cc730cd42af0e6fb45fc846bd"
+          "description_hash": "sha256:89572fde3b01d27e04a81b0e87e3a2bb6a188f5cc730cd42af0e6fb45fc846bd",
+          "parameters": []
         },
         {
           "name": "get_cve",
@@ -294,7 +359,14 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:9214216f9f68d550be75e880eff3374f6074e8d452b722b701bec029a9717eff"
+          "description_hash": "sha256:9214216f9f68d550be75e880eff3374f6074e8d452b722b701bec029a9717eff",
+          "parameters": [
+            {
+              "name": "cve_id",
+              "type": "string",
+              "description": "a CVE ID, e.g. CVE-2023-44487"
+            }
+          ]
         },
         {
           "name": "get_cwe",
@@ -328,7 +400,19 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:40de9e54b6120a32f8f5b75da48038c115a57f9c523600d34545216eb8b7716f"
+          "description_hash": "sha256:40de9e54b6120a32f8f5b75da48038c115a57f9c523600d34545216eb8b7716f",
+          "parameters": [
+            {
+              "name": "page",
+              "type": "integer",
+              "description": "page of 50 CVEs (default 1, max 200)"
+            },
+            {
+              "name": "cwe_id",
+              "type": "string",
+              "description": "a CWE ID, e.g. CWE-79 (or 79)"
+            }
+          ]
         },
         {
           "name": "get_vendor_advisory",
@@ -360,7 +444,19 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:9e93a26582d99e55624103c780dfbfcf856275f813898894eaaa5585209a1038"
+          "description_hash": "sha256:9e93a26582d99e55624103c780dfbfcf856275f813898894eaaa5585209a1038",
+          "parameters": [
+            {
+              "name": "vendor",
+              "type": "string",
+              "description": "the vendor slug, e.g. microsoft, redhat, github"
+            },
+            {
+              "name": "advisory_id",
+              "type": "string",
+              "description": "the vendor's advisory ID, e.g. RHSA-2024:1234 or GHSA-xxxx-xxxx-xxxx"
+            }
+          ]
         },
         {
           "name": "kev_recent",
@@ -418,7 +514,39 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:ac9c4646f3aed79f41e87b040210f2f6e9729e535bdbf75954fee469aae5d334"
+          "description_hash": "sha256:ac9c4646f3aed79f41e87b040210f2f6e9729e535bdbf75954fee469aae5d334",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "page size (default 50, max 200)"
+            },
+            {
+              "name": "since",
+              "type": "string",
+              "description": "earliest kev_added_date to include, YYYY-MM-DD (an RFC 3339 timestamp is read as the date written in it, with the time and offset dropped; anything else is refused)"
+            },
+            {
+              "name": "until",
+              "type": "string",
+              "description": "latest kev_added_date to include, YYYY-MM-DD (an RFC 3339 timestamp is read as the date written in it, with the time and offset dropped; anything else is refused)"
+            },
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "next_cursor from the previous page"
+            },
+            {
+              "name": "vendor",
+              "type": "string",
+              "description": "CISA vendorProject, an exact case-insensitive match, e.g. 'Microsoft'"
+            },
+            {
+              "name": "ransomware",
+              "type": "boolean",
+              "description": "true: only CVEs with known ransomware-campaign use; false: only those without"
+            }
+          ]
         },
         {
           "name": "scan_manifest",
@@ -475,7 +603,15 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:3ee21dc747b2c85b694fca6529d81fc06a5c02272513a35c715dd848925539da"
+          "description_hash": "sha256:3ee21dc747b2c85b694fca6529d81fc06a5c02272513a35c715dd848925539da",
+          "parameters": [
+            {
+              "name": "files",
+              "type": "array",
+              "description": "1 to 20 files, up to 5,000,000 characters of content in all; read by this MCP server into purls, and only the purls are sent to the API; over the hosted endpoint (mcp.echelongraph.io) the files are the request body",
+              "items_type": "object"
+            }
+          ]
         },
         {
           "name": "search_cves",
@@ -550,7 +686,52 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:137022694175e54d7c2ab03ecc76d0262bf26d87e4588fc372c0da649522d41e"
+          "description_hash": "sha256:137022694175e54d7c2ab03ecc76d0262bf26d87e4588fc372c0da649522d41e",
+          "parameters": [
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "sort order (default: published)",
+              "enum": [
+                "published",
+                "modified",
+                "nvd",
+                "echelongraph",
+                "epss"
+              ]
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "page size (default 20, max 50)"
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "rows to skip (default 0)"
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "free-text search (product, vendor, or keyword, e.g. 'tomcat')"
+            },
+            {
+              "name": "min_cvss",
+              "type": "number",
+              "description": "minimum CVSS score"
+            },
+            {
+              "name": "severity",
+              "type": "string",
+              "description": "filter to one severity",
+              "enum": [
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW"
+              ]
+            }
+          ]
         },
         {
           "name": "search_vendor_advisories",
@@ -616,7 +797,45 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:e71237b6af17f4898b4ea277b88765fe16dfab195b66d8ab74bc92ac0e206015"
+          "description_hash": "sha256:e71237b6af17f4898b4ea277b88765fe16dfab195b66d8ab74bc92ac0e206015",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "page size (default 20, max 50)"
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "free text, at most 100 bytes: a product, an advisory ID, a CVE ID or a keyword, e.g. 'exchange server'; 1 or 2 characters match whole words only"
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "rows to skip (default 0)"
+            },
+            {
+              "name": "vendor",
+              "type": "string",
+              "description": "a vendor slug, e.g. microsoft, redhat, github"
+            },
+            {
+              "name": "has_cve",
+              "type": "boolean",
+              "description": "true: only advisories naming a CVE; false: only those naming none"
+            },
+            {
+              "name": "severity",
+              "type": "string",
+              "description": "one severity band",
+              "enum": [
+                "Critical",
+                "High",
+                "Medium",
+                "Low"
+              ]
+            }
+          ]
         },
         {
           "name": "vendor_advisories_for_cve",
@@ -642,7 +861,14 @@
           "outputSchema": {
             "type": "object"
           },
-          "description_hash": "sha256:129efd115c44d356c63cab64a5ae8fd4302b96275dc9e5ba5bf6aee23e2aa8ca"
+          "description_hash": "sha256:129efd115c44d356c63cab64a5ae8fd4302b96275dc9e5ba5bf6aee23e2aa8ca",
+          "parameters": [
+            {
+              "name": "cve_id",
+              "type": "string",
+              "description": "a CVE ID, e.g. CVE-2024-21412"
+            }
+          ]
         }
       ],
       "prompt_signatures": [
@@ -716,6 +942,5 @@
         }
       ]
     }
-  ],
-  "security_profile": {}
+  ]
 }

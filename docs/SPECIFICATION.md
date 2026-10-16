@@ -19,15 +19,15 @@ The **MCP Fingerprint & Passport Knowledge Base** solves these challenges by com
 
 ---
 
-## 2. Ecosystem Boundaries & Clean Architecture
+## 2. Ecosystem Architecture & Scope
 
-The Model Context Protocol security and governance ecosystem is built on a strictly separated Clean Architecture. This separation ensures that each component has a single source of truth and a focused domain of responsibility:
+`mcp-fingerprints` serves as the authoritative open standard for structural Model Context Protocol server passports. Its responsibilities are strictly focused on:
+- Static AST extraction across Python, TypeScript/JavaScript, Go, and Rust.
+- Deterministic cryptographic hashing (`canonical_hash`, `toolset_canonical_hash`).
+- Deep tool contract, prompt, resource, and parameter schema extraction.
+- Supply chain verification, package metadata indexing, and historical schema drift tracking.
 
-1. **`mcp-fingerprints` (This Repository)**: Serves as the authoritative structural passport standard. Its responsibilities are strictly limited to extracting tool contracts, tracking schema drift, and computing deterministic cryptographic hashes. It maintains the foundational *identity* of an MCP server.
-2. **`mcp-vulnerabilities`**: The authoritative OSV/CVE advisory database. It maps structural fingerprints to known security advisories, keeping the vulnerability lifecycle decoupled from the structural definitions.
-3. **`verity-mcp-auditor`**: The active runtime security tool. It performs live runtime auditing, database guardrails, payload inspection, and vulnerability remediation (e.g., parameter injection defenses).
-
-By keeping these domains isolated, `mcp-fingerprints` remains a fast, pure, and memory-safe static extraction pipeline without being burdened by active runtime sandbox state or the constant flux of CVE disclosures.
+By maintaining strict domain isolation, `mcp-fingerprints` provides a fast, pure, and memory-safe structural knowledge base.
 
 ---
 
@@ -383,13 +383,13 @@ This mathematical structure guarantees that:
 
 ## 7. What Can This Knowledge Base Serve?
 
-1. **Autonomous MCP Firewall & Proxy Inspection**:
+1. **Deterministic Protocol Discovery & Runtime Verification**:
    - Inspects `tools/list` responses during the MCP initialization handshake.
    - Instantly looks up the passport to verify if tool schemas match certified repository builds.
    - Blocks unauthorized runtime tool additions or hidden prompts.
-2. **Security Vulnerability Resolution**:
-   - Correlates the resolved server and version directly to the [MCP Vulnerability Advisory Database](https://github.com/JMartynov/mcp-vulnerabilities).
-3. **Supply-Chain Verification & SBOM Generation**:
-   - Generates deterministic Software Bill of Materials (SBOM) for LLM agents and tools.
-4. **Automated Threat Hunting**:
-   - Detects tool description modifications (prompt injection staging) by comparing `description_hash` against historical baselines.
+2. **Deterministic Version Resolution**:
+   - Resolves arbitrary runtime toolset fingerprints directly to canonical package releases and source repositories.
+3. **Supply-Chain Verification & Schema Auditing**:
+   - Generates deterministic structural manifests and tracks schema evolution across releases.
+4. **Tool Integrity & Prompt Tamper Detection**:
+   - Detects tool description alterations and schema modifications by comparing `canonical_hash` and `description_hash` against historical baselines.

@@ -4,7 +4,7 @@
   "purl": "pkg:npm/primitivedotdev%2Fprimitive",
   "ecosystem": "npm",
   "display_name": "primitivedotdev/primitive",
-  "description": "Email infrastructure for AI agents — send, receive, search, and manage email over a clean HTTP API. Connect verified domains, route inbound mail, set up webhooks, and automate email workflows. Authenticate with a Primitive API key or via OAuth.",
+  "description": "Email infrastructure for AI agents \u2014 send, receive, search, and manage email over a clean HTTP API. Connect verified domains, route inbound mail, set up webhooks, and automate email workflows. Authenticate with a Primitive API key or via OAuth.",
   "repository_url": "https://primitive.run.tools",
   "homepage_url": null,
   "license": null,
@@ -91,12 +91,30 @@
               "data"
             ]
           },
-          "description_hash": "sha256:49dd776b8568cccdb5937f534ca9dddeb0f02504faca8f160d1b81b4d36c54c0"
+          "description_hash": "sha256:49dd776b8568cccdb5937f534ca9dddeb0f02504faca8f160d1b81b4d36c54c0",
+          "parameters": [
+            {
+              "name": "requestBody",
+              "type": "object",
+              "nested_properties": {
+                "domain": {
+                  "type": "string",
+                  "maxLength": 253,
+                  "minLength": 1,
+                  "description": "The domain name to claim (e.g. \"example.com\")."
+                },
+                "confirmed": {
+                  "type": "boolean",
+                  "description": "Set to true to confirm replacing an existing mailbox provider after an mx_conflict response."
+                }
+              }
+            }
+          ]
         },
         {
           "name": "awaitReply",
           "canonical_hash": "sha256:aa7755a9eec557d41a8f0714ec2b636315bed7b9eaf9011bec76aeeb0a6c5971",
-          "description": "Get the threaded reply to a sent email — the canonical 'did they reply yet?' call. Pass the sent email's id (from a sendEmail response). With wait=true it long-polls up to wait_timeout_ms for the reply to arrive (synchronous agent-to-agent chat); with wait=false (default) it returns immediately with the reply if one has arrived, else reply=null. Matches on the reply's threading, not a from/subject guess.",
+          "description": "Get the threaded reply to a sent email \u2014 the canonical 'did they reply yet?' call. Pass the sent email's id (from a sendEmail response). With wait=true it long-polls up to wait_timeout_ms for the reply to arrive (synchronous agent-to-agent chat); with wait=false (default) it returns immediately with the reply if one has arrived, else reply=null. Matches on the reply's threading, not a from/subject guess.",
           "is_mutating": false,
           "property_keys": [
             "id",
@@ -129,7 +147,7 @@
                 "type": "number",
                 "maximum": 30000,
                 "minimum": 1000,
-                "description": "How long to wait when wait=true (1000–30000 ms, default 10000)."
+                "description": "How long to wait when wait=true (1000\u201330000 ms, default 10000)."
               }
             }
           },
@@ -153,7 +171,29 @@
               "data"
             ]
           },
-          "description_hash": "sha256:67b37d7ff37a0cc23e90e2872a99bd694ec31c63cc2a3ae678868d485af5b763"
+          "description_hash": "sha256:67b37d7ff37a0cc23e90e2872a99bd694ec31c63cc2a3ae678868d485af5b763",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "The sent email id to fetch the reply for (from a sendEmail/replyToEmail response).",
+              "format": "uuid"
+            },
+            {
+              "name": "wait",
+              "type": "string",
+              "description": "When \"true\", long-poll until a reply arrives or wait_timeout_ms elapses. Default no-wait.",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            {
+              "name": "wait_timeout_ms",
+              "type": "number",
+              "description": "How long to wait when wait=true (1000\u201330000 ms, default 10000)."
+            }
+          ]
         },
         {
           "name": "createEndpoint",
@@ -221,7 +261,35 @@
               "data"
             ]
           },
-          "description_hash": "sha256:e4bf1d94981bececf289d5562d20a0df0b09d0b3a1c3e205006ce12526af657b"
+          "description_hash": "sha256:e4bf1d94981bececf289d5562d20a0df0b09d0b3a1c3e205006ce12526af657b",
+          "parameters": [
+            {
+              "name": "requestBody",
+              "type": "object",
+              "nested_properties": {
+                "url": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The webhook URL to deliver events to."
+                },
+                "rules": {
+                  "type": "object",
+                  "description": "Endpoint-specific filtering rules.",
+                  "additionalProperties": true
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Whether the endpoint should receive deliveries immediately after creation (default true)."
+                },
+                "domain_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Restrict deliveries to emails from a specific domain. Omit to receive events for all domains."
+                }
+              }
+            }
+          ]
         },
         {
           "name": "createFilter",
@@ -289,7 +357,34 @@
               "data"
             ]
           },
-          "description_hash": "sha256:af8282ad7646926542147d9cc0f31f5473e83f6b92f042d9a2b7c968a59ac025"
+          "description_hash": "sha256:af8282ad7646926542147d9cc0f31f5473e83f6b92f042d9a2b7c968a59ac025",
+          "parameters": [
+            {
+              "name": "requestBody",
+              "type": "object",
+              "nested_properties": {
+                "type": {
+                  "enum": [
+                    "whitelist",
+                    "blocklist"
+                  ],
+                  "type": "string",
+                  "description": "Whether to allow (whitelist) or block (blocklist) matching senders."
+                },
+                "pattern": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "description": "Email address or pattern to filter."
+                },
+                "domain_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Restrict to a specific domain (Pro plan required). Omit for org-wide filter."
+                }
+              }
+            }
+          ]
         },
         {
           "name": "deleteEndpoint",
@@ -333,7 +428,15 @@
               "data"
             ]
           },
-          "description_hash": "sha256:840b5d0953c8d231f1584591fb56680923fdd11bf37014e5b78a57c8024f5fab"
+          "description_hash": "sha256:840b5d0953c8d231f1584591fb56680923fdd11bf37014e5b78a57c8024f5fab",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Endpoint ID from listEndpoints or createEndpoint.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "deleteFilter",
@@ -377,7 +480,15 @@
               "data"
             ]
           },
-          "description_hash": "sha256:02ffba501882cfce81236eff22ce610e789604425f71f4435ecefba88307fde5"
+          "description_hash": "sha256:02ffba501882cfce81236eff22ce610e789604425f71f4435ecefba88307fde5",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Filter rule ID from listFilters or createFilter.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "downloadDomainZoneFile",
@@ -427,7 +538,20 @@
               "data"
             ]
           },
-          "description_hash": "sha256:19a6b3b10a0c750d2954d7d0853ac8f7dac908000b30c40377cdbed9b60d178a"
+          "description_hash": "sha256:19a6b3b10a0c750d2954d7d0853ac8f7dac908000b30c40377cdbed9b60d178a",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Domain ID from listDomains or addDomain.",
+              "format": "uuid"
+            },
+            {
+              "name": "outbound_only",
+              "type": "boolean",
+              "description": "When true, include only outbound DNS records (SPF, DKIM, DMARC). Defaults to all records for unverified domains, outbound-only for verified."
+            }
+          ]
         },
         {
           "name": "downloadEmailAttachments",
@@ -453,7 +577,7 @@
               },
               "token": {
                 "type": "string",
-                "description": "Signed download token from a webhook payload. Optional — the bearer token is used when this is omitted."
+                "description": "Signed download token from a webhook payload. Optional \u2014 the bearer token is used when this is omitted."
               }
             }
           },
@@ -477,7 +601,20 @@
               "data"
             ]
           },
-          "description_hash": "sha256:07321c1e713cb9be2e99ece078980f68740b21d2a682b2132a3b0211a2eb15e0"
+          "description_hash": "sha256:07321c1e713cb9be2e99ece078980f68740b21d2a682b2132a3b0211a2eb15e0",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Inbound email ID.",
+              "format": "uuid"
+            },
+            {
+              "name": "token",
+              "type": "string",
+              "description": "Signed download token from a webhook payload. Optional \u2014 the bearer token is used when this is omitted."
+            }
+          ]
         },
         {
           "name": "getAccount",
@@ -511,12 +648,13 @@
               "data"
             ]
           },
-          "description_hash": "sha256:04c5a41d72280323116a92f723b4d63b218860c78956e917902275352225cd25"
+          "description_hash": "sha256:04c5a41d72280323116a92f723b4d63b218860c78956e917902275352225cd25",
+          "parameters": []
         },
         {
           "name": "getConversation",
           "canonical_hash": "sha256:cffda53567317fa1d290ffa3c437cc844e2a40af16564c581f2b9c55ac2a5d1a",
-          "description": "Get the full conversation an inbound email belongs to as ordered, chat-model-ready turns with bodies. Each message is oldest-first with a direction (inbound/outbound) and a derived role (inbound→user, outbound→assistant). For a brand-new message, returns just that one turn. The response includes a truncated boolean (true when the message cap was reached) and a message_count field.",
+          "description": "Get the full conversation an inbound email belongs to as ordered, chat-model-ready turns with bodies. Each message is oldest-first with a direction (inbound/outbound) and a derived role (inbound\u2192user, outbound\u2192assistant). For a brand-new message, returns just that one turn. The response includes a truncated boolean (true when the message cap was reached) and a message_count field.",
           "is_mutating": false,
           "property_keys": [
             "id"
@@ -555,7 +693,15 @@
               "data"
             ]
           },
-          "description_hash": "sha256:fbd10f0653b8a55c198896cd03b19790c9d824b1a1aa7ceefae47cba0f6b3aa8"
+          "description_hash": "sha256:fbd10f0653b8a55c198896cd03b19790c9d824b1a1aa7ceefae47cba0f6b3aa8",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "ID of any inbound email in the conversation.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "getEmail",
@@ -599,7 +745,15 @@
               "data"
             ]
           },
-          "description_hash": "sha256:d941c39509624936c29661fd65a28ec41dda9d204e414b86c02d11124d9aed51"
+          "description_hash": "sha256:d941c39509624936c29661fd65a28ec41dda9d204e414b86c02d11124d9aed51",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Inbound email ID from listEmails or searchEmails.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "getInboxStatus",
@@ -633,12 +787,13 @@
               "data"
             ]
           },
-          "description_hash": "sha256:e0fd632526d8e0bc0dd7438359a72e069e7345b70354f41072151272eee0d233"
+          "description_hash": "sha256:e0fd632526d8e0bc0dd7438359a72e069e7345b70354f41072151272eee0d233",
+          "parameters": []
         },
         {
           "name": "getOutboundStatus",
           "canonical_hash": "sha256:ff9e1df3df271a2a6d78bb58e1827251875c91001b2786b85b2e65bb9057afd9",
-          "description": "What can I send FROM? Lists this account's verified outbound (sendable) domains plus any domains still pending DNS verification, with next actions. Call this BEFORE sendEmail to pick a valid `from` domain — the account email is not necessarily sendable. The same sendable list is echoed in a cannot_send_from_domain error.",
+          "description": "What can I send FROM? Lists this account's verified outbound (sendable) domains plus any domains still pending DNS verification, with next actions. Call this BEFORE sendEmail to pick a valid `from` domain \u2014 the account email is not necessarily sendable. The same sendable list is echoed in a cannot_send_from_domain error.",
           "is_mutating": false,
           "property_keys": [],
           "required_keys": [],
@@ -667,12 +822,13 @@
               "data"
             ]
           },
-          "description_hash": "sha256:f2b2cdd5a8456c70bea8ee415cdcca096ab9f099e47d613d9e1f77d3c0961303"
+          "description_hash": "sha256:f2b2cdd5a8456c70bea8ee415cdcca096ab9f099e47d613d9e1f77d3c0961303",
+          "parameters": []
         },
         {
           "name": "getSentEmail",
           "canonical_hash": "sha256:beb184ffeedac42e6c9fd25fba07e093bffd87a05324fad0e917a107d9e57ec3",
-          "description": "Get the full record for a single sent email by id, including body_text and body_html. Use to inspect delivery details for a specific send — e.g. the SMTP response on a bounced row, or the gate denial reason on a gate_denied row.",
+          "description": "Get the full record for a single sent email by id, including body_text and body_html. Use to inspect delivery details for a specific send \u2014 e.g. the SMTP response on a bounced row, or the gate denial reason on a gate_denied row.",
           "is_mutating": false,
           "property_keys": [
             "id"
@@ -711,7 +867,15 @@
               "data"
             ]
           },
-          "description_hash": "sha256:4e6b98b137adcbf05ab7d426dc0eab3a2ae4bcf71c089a7cb5d949bcd2f6419c"
+          "description_hash": "sha256:4e6b98b137adcbf05ab7d426dc0eab3a2ae4bcf71c089a7cb5d949bcd2f6419c",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Sent email ID from listSentEmails or a /send-mail response.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "getThread",
@@ -755,7 +919,15 @@
               "data"
             ]
           },
-          "description_hash": "sha256:9e4ba85eccfaa5ee5cb11bce9fc8ffbd5095137e8a738fcd369d44e494e94de7"
+          "description_hash": "sha256:9e4ba85eccfaa5ee5cb11bce9fc8ffbd5095137e8a738fcd369d44e494e94de7",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Thread ID from the thread_id field on any email or sent-email.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "listDomains",
@@ -789,7 +961,8 @@
               "data"
             ]
           },
-          "description_hash": "sha256:19e08c078f6181ceb0634b6581ef4c1341b6a83455ed38b2060b63b28c3d5848"
+          "description_hash": "sha256:19e08c078f6181ceb0634b6581ef4c1341b6a83455ed38b2060b63b28c3d5848",
+          "parameters": []
         },
         {
           "name": "listEmails",
@@ -827,14 +1000,14 @@
                 "default": 0,
                 "maximum": 30,
                 "minimum": 0,
-                "description": "Long-poll up to this many seconds (0–30, default 0) holding the request for new mail instead of returning an empty page immediately. Requires `since`. Returns as soon as matching mail arrives, or an empty page when the wait elapses."
+                "description": "Long-poll up to this many seconds (0\u201330, default 0) holding the request for new mail instead of returning an empty page immediately. Requires `since`. Returns as soon as matching mail arrives, or an empty page when the wait elapses."
               },
               "limit": {
                 "type": "number",
                 "default": 50,
                 "maximum": 100,
                 "minimum": 1,
-                "description": "Maximum number of emails to return (1–100, default 50)."
+                "description": "Maximum number of emails to return (1\u2013100, default 50)."
               },
               "since": {
                 "type": "string",
@@ -896,7 +1069,65 @@
               "data"
             ]
           },
-          "description_hash": "sha256:4f233d636e044d9021d35b58471fc7a41fbdd061283809e25dfc27ce47e3fa65"
+          "description_hash": "sha256:4f233d636e044d9021d35b58471fc7a41fbdd061283809e25dfc27ce47e3fa65",
+          "parameters": [
+            {
+              "name": "wait",
+              "type": "number",
+              "description": "Long-poll up to this many seconds (0\u201330, default 0) holding the request for new mail instead of returning an empty page immediately. Requires `since`. Returns as soon as matching mail arrives, or an empty page when the wait elapses.",
+              "default": 0
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of emails to return (1\u2013100, default 50).",
+              "default": 50
+            },
+            {
+              "name": "since",
+              "type": "string",
+              "description": "Forward-tail cursor (a `meta.cursor` value, format `{ISO datetime}|{UUID}`): returns emails strictly NEWER than this position, oldest-first, for lossless polling of just-arrived mail. Mutually exclusive with `cursor`."
+            },
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Backward (history) pagination cursor from a previous response's `meta.cursor` field: returns emails OLDER than this position, newest-first. Mutually exclusive with `since`."
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "description": "Free-text search across sender, recipient, and subject."
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Filter to emails in this processing status.",
+              "enum": [
+                "pending",
+                "accepted",
+                "completed",
+                "rejected"
+              ]
+            },
+            {
+              "name": "date_to",
+              "type": "string",
+              "description": "Inclusive upper bound on created_at (ISO 8601).",
+              "format": "date-time"
+            },
+            {
+              "name": "date_from",
+              "type": "string",
+              "description": "Inclusive lower bound on created_at (ISO 8601).",
+              "format": "date-time"
+            },
+            {
+              "name": "domain_id",
+              "type": "string",
+              "description": "Filter to emails received on a specific verified domain.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "listEndpoints",
@@ -930,7 +1161,8 @@
               "data"
             ]
           },
-          "description_hash": "sha256:57dae0ff716425d3b9ad33ccf48d9e43d075b33d0813e9a61957b61a0a999738"
+          "description_hash": "sha256:57dae0ff716425d3b9ad33ccf48d9e43d075b33d0813e9a61957b61a0a999738",
+          "parameters": []
         },
         {
           "name": "listFilters",
@@ -964,12 +1196,13 @@
               "data"
             ]
           },
-          "description_hash": "sha256:b637c9547d55748aaec9dc73ad0d4eb0e85121e49b6db5c7b82cb17222e8b2c0"
+          "description_hash": "sha256:b637c9547d55748aaec9dc73ad0d4eb0e85121e49b6db5c7b82cb17222e8b2c0",
+          "parameters": []
         },
         {
           "name": "listSentEmails",
           "canonical_hash": "sha256:b375f874fb67e8a0d9ab95acef25449c78e49b1001015b91ebd21231299eef80",
-          "description": "List outbound emails sent by this org, with cursor pagination and filters. Bodies are omitted from list rows to keep responses small — use getSentEmail to fetch a specific row with full body. Useful for auditing delivery status, finding bounced sends, or checking gate-denied attempts.",
+          "description": "List outbound emails sent by this org, with cursor pagination and filters. Bodies are omitted from list rows to keep responses small \u2014 use getSentEmail to fetch a specific row with full body. Useful for auditing delivery status, finding bounced sends, or checking gate-denied attempts.",
           "is_mutating": false,
           "property_keys": [
             "cursor",
@@ -998,7 +1231,7 @@
                 "default": 50,
                 "maximum": 100,
                 "minimum": 1,
-                "description": "Maximum number of sent emails to return (1–100, default 50)."
+                "description": "Maximum number of sent emails to return (1\u2013100, default 50)."
               },
               "cursor": {
                 "type": "string",
@@ -1059,7 +1292,56 @@
               "data"
             ]
           },
-          "description_hash": "sha256:cff9a87086c15ad18aafe7582349561b41c371f3ef5149316d6dd3780f4897e0"
+          "description_hash": "sha256:cff9a87086c15ad18aafe7582349561b41c371f3ef5149316d6dd3780f4897e0",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of sent emails to return (1\u2013100, default 50).",
+              "default": 50
+            },
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Pagination cursor from a previous response's `meta.cursor` field."
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Filter to rows in this status.",
+              "enum": [
+                "queued",
+                "accepted",
+                "delivered",
+                "bounced",
+                "gate_denied",
+                "failed"
+              ]
+            },
+            {
+              "name": "date_to",
+              "type": "string",
+              "description": "Inclusive upper bound on created_at (ISO 8601).",
+              "format": "date-time"
+            },
+            {
+              "name": "date_from",
+              "type": "string",
+              "description": "Inclusive lower bound on created_at (ISO 8601).",
+              "format": "date-time"
+            },
+            {
+              "name": "request_id",
+              "type": "string",
+              "description": "Filter to the row matching a specific server-issued request_id from a /send-mail response.",
+              "format": "uuid"
+            },
+            {
+              "name": "idempotency_key",
+              "type": "string",
+              "description": "Filter to rows with the given client idempotency key."
+            }
+          ]
         },
         {
           "name": "listWebhookDeliveries",
@@ -1091,7 +1373,7 @@
                 "default": 50,
                 "maximum": 100,
                 "minimum": 1,
-                "description": "Maximum number of delivery records to return (1–100, default 50)."
+                "description": "Maximum number of delivery records to return (1\u2013100, default 50)."
               },
               "cursor": {
                 "type": "string",
@@ -1144,7 +1426,49 @@
               "data"
             ]
           },
-          "description_hash": "sha256:8084bc6e95a3aeda800df8f938a6e2a638fec55c1426588f5d7e622248865be7"
+          "description_hash": "sha256:8084bc6e95a3aeda800df8f938a6e2a638fec55c1426588f5d7e622248865be7",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of delivery records to return (1\u2013100, default 50).",
+              "default": 50
+            },
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Pagination cursor from a previous response's `meta.cursor` field."
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Filter to deliveries in this status.",
+              "enum": [
+                "pending",
+                "delivered",
+                "header_confirmed",
+                "failed"
+              ]
+            },
+            {
+              "name": "date_to",
+              "type": "string",
+              "description": "Inclusive upper bound on attempted_at (ISO 8601).",
+              "format": "date-time"
+            },
+            {
+              "name": "email_id",
+              "type": "string",
+              "description": "Filter by inbound email ID.",
+              "format": "uuid"
+            },
+            {
+              "name": "date_from",
+              "type": "string",
+              "description": "Inclusive lower bound on attempted_at (ISO 8601).",
+              "format": "date-time"
+            }
+          ]
         },
         {
           "name": "replayWebhookDelivery",
@@ -1187,7 +1511,14 @@
               "data"
             ]
           },
-          "description_hash": "sha256:e2f53de072f4c68ebc7c27eccdffd56b5534fafc353b699f228a0b198508c861"
+          "description_hash": "sha256:e2f53de072f4c68ebc7c27eccdffd56b5534fafc353b699f228a0b198508c861",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Delivery ID (numeric string from listWebhookDeliveries)."
+            }
+          ]
         },
         {
           "name": "replyToEmail",
@@ -1290,7 +1621,72 @@
               "data"
             ]
           },
-          "description_hash": "sha256:10db3468ec3d4b34d8717f6daa48d8238fc33352a68e0bb1fc3865d65c85cbd0"
+          "description_hash": "sha256:10db3468ec3d4b34d8717f6daa48d8238fc33352a68e0bb1fc3865d65c85cbd0",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Inbound email ID to reply to. Threading headers are set server-side.",
+              "format": "uuid"
+            },
+            {
+              "name": "requestBody",
+              "type": "object",
+              "nested_properties": {
+                "from": {
+                  "type": "string",
+                  "maxLength": 998,
+                  "minLength": 3,
+                  "description": "RFC 5322 From header. Defaults to the original recipient address if omitted."
+                },
+                "wait": {
+                  "type": "boolean",
+                  "description": "When true, wait for the first SMTP delivery outcome before returning."
+                },
+                "body_html": {
+                  "type": "string",
+                  "description": "HTML reply body. Provide at least one of body_text or body_html."
+                },
+                "body_text": {
+                  "type": "string",
+                  "description": "Plain-text reply body. Provide at least one of body_text or body_html."
+                },
+                "attachments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "filename",
+                      "content_base64"
+                    ],
+                    "properties": {
+                      "filename": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "description": "Attachment filename including extension."
+                      },
+                      "content_type": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "description": "MIME type of the attachment (e.g. \"application/pdf\")."
+                      },
+                      "content_base64": {
+                        "type": "string",
+                        "maxLength": 44040192,
+                        "minLength": 1,
+                        "description": "Base64-encoded attachment content."
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "maxItems": 100,
+                  "description": "Optional file attachments to include in the reply."
+                }
+              }
+            }
+          ]
         },
         {
           "name": "searchEmails",
@@ -1375,7 +1771,7 @@
                 "default": 50,
                 "maximum": 100,
                 "minimum": 1,
-                "description": "Maximum number of emails to return (1–100, default 50)."
+                "description": "Maximum number of emails to return (1\u2013100, default 50)."
               },
               "cursor": {
                 "type": "string",
@@ -1473,7 +1869,129 @@
               "data"
             ]
           },
-          "description_hash": "sha256:b1e0e41ed9ba92503615099806a08b33afdef4e1dcef134280fb13302af4f3df"
+          "description_hash": "sha256:b1e0e41ed9ba92503615099806a08b33afdef4e1dcef134280fb13302af4f3df",
+          "parameters": [
+            {
+              "name": "q",
+              "type": "string",
+              "description": "Full-text query matched across subject, body, sender, and recipient."
+            },
+            {
+              "name": "to",
+              "type": "string",
+              "description": "Filter to emails addressed to this recipient."
+            },
+            {
+              "name": "body",
+              "type": "string",
+              "description": "Filter to emails whose body contains this string."
+            },
+            {
+              "name": "from",
+              "type": "string",
+              "description": "Filter to emails from this sender address or domain."
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "Sort order. Use received_at_asc with date_from for polling new mail.",
+              "enum": [
+                "relevance",
+                "received_at_desc",
+                "received_at_asc"
+              ]
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of emails to return (1\u2013100, default 50).",
+              "default": 50
+            },
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Pagination cursor from a previous response's `meta.cursor` field."
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Filter to emails in this processing status.",
+              "enum": [
+                "pending",
+                "accepted",
+                "completed",
+                "rejected"
+              ]
+            },
+            {
+              "name": "date_to",
+              "type": "string",
+              "description": "Inclusive upper bound on received_at (ISO 8601).",
+              "format": "date-time"
+            },
+            {
+              "name": "snippet",
+              "type": "string",
+              "description": "Include a short body snippet in each result (default true).",
+              "default": "true",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            {
+              "name": "subject",
+              "type": "string",
+              "description": "Filter to emails whose subject contains this string."
+            },
+            {
+              "name": "date_from",
+              "type": "string",
+              "description": "Inclusive lower bound on received_at (ISO 8601).",
+              "format": "date-time"
+            },
+            {
+              "name": "domain_id",
+              "type": "string",
+              "description": "Filter to emails received on a specific verified domain.",
+              "format": "uuid"
+            },
+            {
+              "name": "spam_score_lt",
+              "type": "number",
+              "description": "Filter to emails with a spam score strictly below this value."
+            },
+            {
+              "name": "has_attachment",
+              "type": "string",
+              "description": "Filter to emails that have (\"true\") or lack (\"false\") attachments.",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            {
+              "name": "include_facets",
+              "type": "string",
+              "description": "Include aggregated facet counts (sender, domain, status) in the response (default true).",
+              "default": "true",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            {
+              "name": "spam_score_gte",
+              "type": "number",
+              "description": "Filter to emails with a spam score at or above this value."
+            },
+            {
+              "name": "reply_to_sent_email_id",
+              "type": "string",
+              "description": "Filter to inbound emails that are replies to a specific sent email ID.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "sendEmail",
@@ -1583,7 +2101,7 @@
                     "type": "number",
                     "maximum": 30000,
                     "minimum": 1000,
-                    "description": "How long to wait for delivery confirmation when wait is true (1000–30000 ms, default 10000)."
+                    "description": "How long to wait for delivery confirmation when wait is true (1000\u201330000 ms, default 10000)."
                   }
                 },
                 "additionalProperties": false
@@ -1616,12 +2134,110 @@
               "data"
             ]
           },
-          "description_hash": "sha256:ed62e5eae17d6bb2e98664bd50212c0268c020726cb4fb10e57109af0a853642"
+          "description_hash": "sha256:ed62e5eae17d6bb2e98664bd50212c0268c020726cb4fb10e57109af0a853642",
+          "parameters": [
+            {
+              "name": "requestBody",
+              "type": "object",
+              "nested_properties": {
+                "to": {
+                  "type": "string",
+                  "maxLength": 320,
+                  "minLength": 3,
+                  "description": "Recipient email address (RFC 5321 mailbox)."
+                },
+                "from": {
+                  "type": "string",
+                  "maxLength": 998,
+                  "minLength": 3,
+                  "description": "RFC 5322 From header. The sender domain must be a verified outbound domain for your organization."
+                },
+                "wait": {
+                  "type": "boolean",
+                  "description": "When true, wait for the first SMTP delivery outcome before returning. Respects wait_timeout_ms."
+                },
+                "subject": {
+                  "type": "string",
+                  "maxLength": 998,
+                  "minLength": 1,
+                  "description": "Email subject line."
+                },
+                "body_html": {
+                  "type": "string",
+                  "description": "HTML message body. Provide at least one of body_text or body_html."
+                },
+                "body_text": {
+                  "type": "string",
+                  "description": "Plain-text message body. Provide at least one of body_text or body_html."
+                },
+                "references": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 998,
+                    "minLength": 1
+                  },
+                  "maxItems": 100,
+                  "description": "List of Message-IDs for the References header, oldest-first."
+                },
+                "attachments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "filename",
+                      "content_base64"
+                    ],
+                    "properties": {
+                      "filename": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "description": "Attachment filename including extension."
+                      },
+                      "content_type": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "description": "MIME type of the attachment (e.g. \"application/pdf\")."
+                      },
+                      "content_base64": {
+                        "type": "string",
+                        "maxLength": 44040192,
+                        "minLength": 1,
+                        "description": "Base64-encoded attachment content."
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "maxItems": 100,
+                  "description": "Optional file attachments."
+                },
+                "in_reply_to": {
+                  "type": "string",
+                  "maxLength": 998,
+                  "minLength": 1,
+                  "description": "Message-ID of the email being replied to, for threading (e.g. \"<abc@example.com>\")."
+                },
+                "wait_timeout_ms": {
+                  "type": "number",
+                  "maximum": 30000,
+                  "minimum": 1000,
+                  "description": "How long to wait for delivery confirmation when wait is true (1000\u201330000 ms, default 10000)."
+                }
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "type": "string",
+              "description": "Client-supplied idempotency key. Retrying with the same key returns the original result without re-sending."
+            }
+          ]
         },
         {
           "name": "sendEmailDemo",
           "canonical_hash": "sha256:02a03f33c44eabcea4eb5967c4bac11f02677f7256ac87eee102548bfa86fb10",
-          "description": "Send a SIMULATED email with no account required. Validates the body against the exact same schema as sendEmail, then returns a realistic synthetic success envelope (demo: true) — it never actually sends, queues, or stores anything. Use this to let someone try Primitive and see the response shape before they sign up. To send for real, sign up for an API key and use sendEmail.",
+          "description": "Send a SIMULATED email with no account required. Validates the body against the exact same schema as sendEmail, then returns a realistic synthetic success envelope (demo: true) \u2014 it never actually sends, queues, or stores anything. Use this to let someone try Primitive and see the response shape before they sign up. To send for real, sign up for an API key and use sendEmail.",
           "is_mutating": false,
           "property_keys": [
             "requestBody"
@@ -1692,7 +2308,41 @@
               "data"
             ]
           },
-          "description_hash": "sha256:a3c03ef837bd07664aed8155fdd23826cbb4132f0664b6489c33ae7c91e28f22"
+          "description_hash": "sha256:a3c03ef837bd07664aed8155fdd23826cbb4132f0664b6489c33ae7c91e28f22",
+          "parameters": [
+            {
+              "name": "requestBody",
+              "type": "object",
+              "nested_properties": {
+                "to": {
+                  "type": "string",
+                  "maxLength": 320,
+                  "minLength": 3,
+                  "description": "Recipient email address. Nothing is delivered in demo mode."
+                },
+                "from": {
+                  "type": "string",
+                  "maxLength": 998,
+                  "minLength": 3,
+                  "description": "RFC 5322 From header. For the demo any well-formed sender is accepted; nothing is sent."
+                },
+                "subject": {
+                  "type": "string",
+                  "maxLength": 998,
+                  "minLength": 1,
+                  "description": "Email subject line."
+                },
+                "body_html": {
+                  "type": "string",
+                  "description": "HTML message body."
+                },
+                "body_text": {
+                  "type": "string",
+                  "description": "Plain-text message body."
+                }
+              }
+            }
+          ]
         },
         {
           "name": "testEndpoint",
@@ -1736,7 +2386,15 @@
               "data"
             ]
           },
-          "description_hash": "sha256:9e483abbb6b3696c5177a7c97288a11e96643c9ca56a06008836a8a89b917073"
+          "description_hash": "sha256:9e483abbb6b3696c5177a7c97288a11e96643c9ca56a06008836a8a89b917073",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Endpoint ID from listEndpoints or createEndpoint.",
+              "format": "uuid"
+            }
+          ]
         },
         {
           "name": "verifyDomain",
@@ -1780,12 +2438,19 @@
               "data"
             ]
           },
-          "description_hash": "sha256:90f1a15767765352a550a7b58ff75629cfb2feebe52282b0300c5fa47e091f61"
+          "description_hash": "sha256:90f1a15767765352a550a7b58ff75629cfb2feebe52282b0300c5fa47e091f61",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Domain ID returned by addDomain or listDomains.",
+              "format": "uuid"
+            }
+          ]
         }
       ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ],
-  "security_profile": {}
+  ]
 }
