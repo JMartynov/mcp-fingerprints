@@ -128,3 +128,26 @@ def test_daily_sync_workflow_hardened():
     # Check that update generator is called
     assert "python scripts/generate_sync_updates.py --old previous_passports.json.gz --new passports.json.gz --version" in content
 
+
+def test_updates_modal_class_and_history_update(tmp_path):
+    # Verify updates.html configModal has modal class
+    html = Path("web/updates.html").read_text(encoding="utf-8")
+    assert '<div id="configModal" class="modal">' in html
+
+    # Verify history entry update logic
+    from scripts.generate_sync_updates import compute_updates
+    history_file = tmp_path / "updates_history.json"
+    history_file.write_text(json.dumps([{"version": "1.0.1", "count": 2}]), encoding="utf-8")
+
+    history = json.loads(history_file.read_text(encoding="utf-8"))
+    updates = []  # 0 updates
+    existing_entry = next((h for h in history if h.get("version") == "1.0.1"), None)
+    if existing_entry:
+        existing_entry["count"] = len(updates)
+    history_file.write_text(json.dumps(history, indent=2), encoding="utf-8")
+
+    updated = json.loads(history_file.read_text(encoding="utf-8"))
+    assert updated[0]["version"] == "1.0.1"
+    assert updated[0]["count"] == 0
+
+

@@ -20,6 +20,15 @@ def load_snapshot(path: Path) -> dict[str, Any]:
     else:
         return json.loads(path.read_text(encoding="utf-8")).get("passports", {})
 
+from packaging.version import InvalidVersion, parse as parse_version
+
+def _safe_version_key(v: dict[str, Any]):
+    v_str = v.get("version", "0.0.0") if isinstance(v, dict) else "0.0.0"
+    try:
+        return parse_version(str(v_str))
+    except (InvalidVersion, TypeError):
+        return parse_version("0.0.0")
+
 def compute_updates(old_passports: dict[str, Any], new_passports: dict[str, Any]) -> list[dict[str, Any]]:
     updates = []
     
@@ -29,8 +38,8 @@ def compute_updates(old_passports: dict[str, Any], new_passports: dict[str, Any]
         badges = []
         is_new_server = old_passport is None
         
-        new_versions = new_passport.get("versions", [])
-        old_versions = old_passport.get("versions", []) if old_passport else []
+        new_versions = sorted(new_passport.get("versions", []), key=_safe_version_key, reverse=True)
+        old_versions = sorted(old_passport.get("versions", []), key=_safe_version_key, reverse=True) if old_passport else []
         
         new_latest = new_versions[0] if new_versions else {}
         old_latest = old_versions[0] if old_versions else {}
@@ -144,9 +153,12 @@ def main():
         except Exception:
             pass
             
-    if not any(h.get("version") == args.version for h in history):
+    existing_entry = next((h for h in history if h.get("version") == args.version), None)
+    if existing_entry:
+        existing_entry["count"] = len(updates)
+    else:
         history.insert(0, {"version": args.version, "count": len(updates)})
-        history_file.write_text(json.dumps(history, indent=2), encoding="utf-8")
+    history_file.write_text(json.dumps(history, indent=2), encoding="utf-8")
         
     logger.info(f"Generated updates for v{args.version}: {len(updates)} changes")
 

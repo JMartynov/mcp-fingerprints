@@ -12,14 +12,25 @@ from typing import Any
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
+from packaging.version import InvalidVersion, parse as parse_version
+
 logger = logging.getLogger("mcp_fingerprints.web_catalog")
+
+
+def _safe_version_key(v: dict[str, Any]):
+    v_str = v.get("version", "0.0.0") if isinstance(v, dict) else "0.0.0"
+    try:
+        return parse_version(str(v_str))
+    except (InvalidVersion, TypeError):
+        return parse_version("0.0.0")
 
 
 def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
     """Compile an enriched catalog entry for the static web dashboard."""
     pkg_name = passport.get("package_name", "unknown")
     ecosystem = passport.get("ecosystem", "generic")
-    versions = passport.get("versions", [])
+    raw_versions = passport.get("versions", [])
+    versions = sorted(raw_versions, key=_safe_version_key, reverse=True) if raw_versions else []
     latest_v = versions[0] if versions else {}
 
     tool_sigs = latest_v.get("tool_signatures", [])

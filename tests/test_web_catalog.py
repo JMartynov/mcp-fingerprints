@@ -224,3 +224,21 @@ def test_compile_web_catalog_ignore_sync_state(tmp_path):
 
     compile_web_catalog(passports_dir, web_dir)
     # The coverage on continue will be hit.
+
+
+def test_build_catalog_entry_semver_sorting():
+    passport = {
+        "package_name": "multi-ver-pkg",
+        "ecosystem": "npm",
+        "versions": [
+            {"version": "1.0.0", "tool_signatures": [{"name": "tool_v1"}]},
+            {"version": "1.0.11", "tool_signatures": [{"name": "tool_v11"}]},
+            {"version": "1.0.2", "tool_signatures": [{"name": "tool_v2"}]},
+        ],
+    }
+    entry = build_catalog_entry(passport)
+    assert entry["version"] == "1.0.11"
+    assert entry["latest_version"] == "1.0.11"
+    assert [v["version"] for v in entry["versions"]] == ["1.0.11", "1.0.2", "1.0.0"]
+    assert entry["tools"][0]["name"] == "tool_v11"
+
