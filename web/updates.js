@@ -107,9 +107,9 @@ function renderGrid(servers) {
         <div>
           <div class="card-title" style="cursor:pointer; text-decoration:underline; color:var(--accent);" onclick="event.stopPropagation(); openInspectorModal('${server.name.replace(/'/g, "\'")}')">${escapeHtml(server.name)}</div>
           <div class="card-meta">
-            <span class="badge-eco">${escapeHtml(server.ecosystem)}</span>
-            <span class="badge-ver">v${escapeHtml(server.version)}</span>
-            ${server.is_verified ? '<span class="badge-verified">✓ Verified</span>' : ''}
+            <span class="badge badge-eco">${escapeHtml(server.ecosystem)}</span>
+            <span class="badge badge-version">v${escapeHtml(server.version)}</span>
+            ${server.is_verified ? '<span class="badge badge-verified">✓ Verified</span>' : ''}
           </div>
         </div>
       </div>

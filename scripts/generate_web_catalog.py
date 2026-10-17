@@ -94,6 +94,59 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
             if len(parts) > 1:
                 author = parts[1].split("/")[0]
 
+    versions_data = []
+    for v in versions:
+        v_num = v.get("version", "1.0.0")
+        v_tool_sigs = v.get("tool_signatures", [])
+        v_tools = []
+        for t in v_tool_sigs:
+            if isinstance(t, dict) and "name" in t:
+                v_tools.append(
+                    {
+                        "name": t["name"],
+                        "description": t.get("description") or "",
+                        "canonical_hash": t.get("canonical_hash") or "",
+                        "annotations": t.get("annotations") or {},
+                        "parameters": t.get("parameters") or [],
+                    }
+                )
+        v_conns = v.get("connections", [])
+        v_transports = list(dict.fromkeys([c["type"] for c in v_conns if c.get("type")]))
+
+        v_conn = None
+        for c in v_conns:
+            if not v_conn and c.get("type") in ("stdio", "sse"):
+                v_conn = c
+        if v_conn and v_conn.get("type") == "sse":
+            v_install_cmd = v_conn.get("url") or ""
+            v_conn_type = "sse"
+        elif v_conn and v_conn.get("command"):
+            v_args_str = " ".join(v_conn.get("args", []))
+            v_install_cmd = f"{v_conn['command']} {v_args_str}".strip()
+            v_conn_type = "stdio"
+        elif ecosystem == "npm":
+            v_install_cmd = f"npx -y {pkg_name}@{v_num}"
+            v_conn_type = "stdio"
+        elif ecosystem in ("pypi", "python"):
+            v_install_cmd = f"uvx {pkg_name}=={v_num}"
+            v_conn_type = "stdio"
+        else:
+            v_install_cmd = f"{pkg_name} {v_num}"
+            v_conn_type = "generic"
+
+        versions_data.append(
+            {
+                "version": v_num,
+                "release_date": v.get("release_date") or "",
+                "tool_count": len(v_tools),
+                "tools": v_tools,
+                "transports": v_transports,
+                "required_env_vars": v.get("required_env_vars") or [],
+                "connection_type": v_conn_type,
+                "command": v_install_cmd,
+            }
+        )
+
     return {
         "name": pkg_name,
         "ecosystem": ecosystem,
@@ -102,6 +155,7 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
         "release_date": latest_v.get("release_date") or "",
         "total_versions": len(versions),
         "versions_summary": len(versions),
+        "versions": versions_data,
         "description": passport.get("description") or "",
         "repository_url": passport.get("repository_url") or "",
         "homepage_url": passport.get("homepage_url") or "",
