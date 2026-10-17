@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 4 * * *' # Run daily at 04:00 UTC
   workflow_dispatch:
+    inputs:
+      force_release:
+        description: 'Force version bump and release'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -42,7 +48,7 @@ jobs:
 
       - name: Run Test Suite
         run: |
-          PYTHONPATH=src pytest -v
+          PYTHONPATH=src python -m pytest -v
 
       - name: Compile Consolidated Snapshot & Web Catalog
         env:
@@ -78,8 +84,8 @@ jobs:
           git add data/fingerprints/ passports.json.gz web/catalog.json
           [ -f data/embeddings.npz ] && git add data/embeddings.npz data/.embeddings_hash || true
           
-          if ! git diff --staged --quiet; then
-            if [ -n "$FINGERPRINT_CHANGES" ]; then
+          if ! git diff --staged --quiet || [ "${{ inputs.force_release }}" = "true" ]; then
+            if [ -n "$FINGERPRINT_CHANGES" ] || [ "${{ inputs.force_release }}" = "true" ]; then
               # Bump version
               NEW_VERSION=$(python scripts/bump_version.py --dry-run)
               python scripts/bump_version.py --apply
@@ -110,7 +116,7 @@ jobs:
               exit 1
             fi
             
-            if [ -n "$FINGERPRINT_CHANGES" ]; then
+            if [ -n "$FINGERPRINT_CHANGES" ] || [ "${{ inputs.force_release }}" = "true" ]; then
               gh release create "v${NEW_VERSION}" passports.json.gz --title "v${NEW_VERSION}: Automated Fingerprint Sync Release" --generate-notes
             fi
           else
@@ -131,6 +137,7 @@ jobs:
   pypi-release:
     needs: sync-mcp-passports
     if: needs.sync-mcp-passports.outputs.release_created == 'true'
+    continue-on-error: true
     permissions:
       id-token: write
       contents: read
