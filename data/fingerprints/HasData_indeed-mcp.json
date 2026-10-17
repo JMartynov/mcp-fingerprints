@@ -1,0 +1,335 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "HasData/indeed-mcp",
+  "purl": "pkg:generic/HasData%2Findeed-mcp",
+  "ecosystem": "generic",
+  "display_name": "HasData/indeed-mcp",
+  "description": "Search Indeed job listings by keyword and location, and read a single posting in full, as structured JSON. Runs on HasData's hosted API.",
+  "author": null,
+  "repository_url": "https://github.com/HasData/indeed-mcp",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "HasData Indeed",
+    "HasData/indeed-mcp",
+    "hasdata/indeed-mcp"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.8",
+      "toolset_canonical_hash": "sha256:3ba73626a95d74fbf81284d94c6dd35cc895bea0c366383996a49c79e3a204d2",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://indeed-mcp--hasdata.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "x-api-key": {
+                "type": "string",
+                "x-from": {
+                  "header": "x-api-key"
+                },
+                "x-order": 0,
+                "description": "Enter your API key from the HasData dashboard."
+              }
+            }
+          }
+        },
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://mcp.hasdata.com/mcp?apis=indeed",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "hasdata_indeed_job_getJobDetails",
+          "canonical_hash": "sha256:db22270231d1b347334d65f87cb87805e39c4dc7ea2a9b974033d1c58112f3e3",
+          "description": "Get Indeed Job Details\n\nFetches a single Indeed job posting by its viewjob URL. Returns job title, company, location, salary/compensation, employment type, full description, and benefits. Use for ATS/CRM enrichment, compensation benchmarking, resume-to-JD matching with LLMs, and structured archival of postings discovered via the Indeed Listing endpoint.",
+          "is_mutating": false,
+          "property_keys": [
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "The URL of the job vacancy to retrieve details for."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3d6c827371486366207c1f8b2e1be728404cf8b2ae7c416662e3e45c901a8ffc",
+          "parameters": [
+            {
+              "name": "url",
+              "type": "string",
+              "description": "The URL of the job vacancy to retrieve details for.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "hasdata_indeed_listing_getJobListings",
+          "canonical_hash": "sha256:7a5a1f1167d2224d1de6f8ac7f32f2280cba27f5fb8c220e4959cac2c7c4f40d",
+          "description": "Get Indeed Job Listings\n\nSearches Indeed job listings by keyword and location with sort (relevance/date), country domain targeting, date-posted (1/3/7/14 days) and remote/hybrid filters, and offset-based pagination (start). Returns an array of jobs with title, company, location, salary, posted date, job URL, sponsored flag, and jobKey (Indeed's stable job id, the only reliable dedup key for sponsored postings) for the requested page. With sponsoredOnly the request exits from the domain's country, where Indeed serves Canadian searches as sponsored postings. Use for job-market dashboards, role/geo hiring-trend analysis, sourcing pipelines, and generating URL lists to feed into the Indeed Job endpoint.",
+          "is_mutating": false,
+          "property_keys": [
+            "datePosted",
+            "domain",
+            "keyword",
+            "location",
+            "remoteType",
+            "sort",
+            "sponsoredOnly",
+            "start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sort": "string",
+            "start": "number",
+            "domain": "string",
+            "keyword": "string",
+            "location": "string",
+            "datePosted": "number",
+            "remoteType": "string",
+            "sponsoredOnly": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sort": {
+                "enum": [
+                  "relevance",
+                  "date"
+                ],
+                "type": "string",
+                "description": "The sorting option for the search results."
+              },
+              "start": {
+                "type": "number",
+                "description": "The starting index of the results to retrieve (optional)."
+              },
+              "domain": {
+                "type": "string",
+                "description": "The domain of the Indeed site (optional). Provide one exact documented value (62 allowed), e.g. `ar.indeed.com`, `au.indeed.com`."
+              },
+              "keyword": {
+                "type": "string",
+                "description": "The keyword used to search for job listings."
+              },
+              "location": {
+                "type": "string",
+                "description": "The location to search for job listings."
+              },
+              "datePosted": {
+                "enum": [
+                  1,
+                  3,
+                  7,
+                  14
+                ],
+                "type": "number",
+                "description": "Returns only jobs posted within the given number of days."
+              },
+              "remoteType": {
+                "enum": [
+                  "remote",
+                  "hybrid"
+                ],
+                "type": "string",
+                "description": "Returns only remote (`remote`) or hybrid (`hybrid`) jobs. In the US, Indeed ties fully remote jobs to the country rather than a city, so use a country-wide location such as `United States`: with a city, Indeed returns few or no remote jobs."
+              },
+              "sponsoredOnly": {
+                "type": "boolean",
+                "description": "When enabled, the request is made in a way that returns more sponsored listings. Defaults to false."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:045c065da3d2ca0e7827ffb1d1141c2f37dd11c674a76e0b5a14e69ff4b44fe6",
+          "parameters": [
+            {
+              "name": "datePosted",
+              "type": "number",
+              "description": "Returns only jobs posted within the given number of days.",
+              "required": false,
+              "default": null,
+              "enum": [
+                1,
+                3,
+                7,
+                14
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "The domain of the Indeed site (optional). Provide one exact documented value (62 allowed), e.g. `ar.indeed.com`, `au.indeed.com`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "keyword",
+              "type": "string",
+              "description": "The keyword used to search for job listings.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "location",
+              "type": "string",
+              "description": "The location to search for job listings.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "remoteType",
+              "type": "string",
+              "description": "Returns only remote (`remote`) or hybrid (`hybrid`) jobs. In the US, Indeed ties fully remote jobs to the country rather than a city, so use a country-wide location such as `United States`: with a city, Indeed returns few or no remote jobs.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "remote",
+                "hybrid"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sort",
+              "type": "string",
+              "description": "The sorting option for the search results.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "relevance",
+                "date"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sponsoredOnly",
+              "type": "boolean",
+              "description": "When enabled, the request is made in a way that returns more sponsored listings. Defaults to false.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start",
+              "type": "number",
+              "description": "The starting index of the results to retrieve (optional).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "indeed_hiring_map",
+          "description": "",
+          "argument_keys": [
+            "location",
+            "role",
+            "site",
+            "sort"
+          ],
+          "required_arguments": [
+            "location",
+            "role"
+          ],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "hasdata://indeed/sort",
+          "name": "indeed_sort",
+          "description": "",
+          "mime_type": "application/json"
+        },
+        {
+          "uri_template": "hasdata://indeed/domain",
+          "name": "indeed_domain",
+          "description": "",
+          "mime_type": "application/json"
+        },
+        {
+          "uri_template": "hasdata://indeed/datePosted",
+          "name": "indeed_datePosted",
+          "description": "",
+          "mime_type": "application/json"
+        },
+        {
+          "uri_template": "hasdata://indeed/remoteType",
+          "name": "indeed_remoteType",
+          "description": "",
+          "mime_type": "application/json"
+        }
+      ]
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

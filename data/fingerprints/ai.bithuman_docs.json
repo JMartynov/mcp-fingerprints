@@ -1,0 +1,3078 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "ai.bithuman/docs",
+  "purl": "pkg:generic/ai.bithuman%2Fdocs",
+  "ecosystem": "generic",
+  "display_name": "ai.bithuman/docs",
+  "description": "The bitHuman docs over MCP: two read-only tools, search and fetch; it needs no account and no key.",
+  "author": null,
+  "repository_url": "https://github.com/bithuman-product/public-docs",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "ai.bithuman/docs",
+    "bitHuman docs"
+  ],
+  "sources_merged": [
+    "github_ast",
+    "official_registry"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:52f9ee55a7cc568b1f1dd00c8d6f6680af2dd7027279f456ba3d2d980efd236d",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://docs.bithuman.ai/docs-mcp",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "addAgentModel",
+          "canonical_hash": "sha256:5d9f8a22dbe937c64609f5c735e59a03a0473703686f33cb6a5be25fe9fc4f39",
+          "description": "Add an avatar model to an agent you already created — no need to\nre-create the agent or regenerate its persona/voice/image. The agent\nmust be in the `ready` state (else `409 AGENT_NOT_READY`).\n\n| model | what happens | prerequisites | credits | time |\n|---|---|---|---|---|\n| `expression-1` | **immediate enablement** — the v1 engine drives the agent's existing image + voice at runtime; nothing is trained | stored image + voice + real-human subject (else `422 MODEL_SUBJECT_MISMATCH`) | **0** | immediate (this response) |\n| `expression-2` | trains the per-identity Expression 2 model from the stored image | stored image | 2000 | the same training an `expression-2` creation runs — about 2–2.5 h (see [creation times](#operation/generateAgent)) |\n| `essence-2` | trains Essence 2 from the agent's stored identity video (generated internally at creation) | stored identity video (else `422`) + photorealistic-human subject (else `422 MODEL_SUBJECT_MISMATCH`) | 500 | the same training an `essence-2` creation runs — about 2–2.5 h (see [creation times](#operation/generateAgent)) |\n| `essence-1` | builds the v1 `.imx` from the agent's stored identity video (or generates one internally from the stored image) | stored identity video or image + real-human subject (else `422 MODEL_SUBJECT_MISMATCH`) | 250 | ~10–20 min |\n\nAsynchronous adds return `status: \"processing\"` — poll\n[`GET /v1/agent/status/{agent_id}`](#tag/Agent-Generation/operation/getAgentStatus)\nuntil `supported_models` contains the new family. Charges are refunded\nautomatically if the add fails; re-POSTing the same model never\ndouble-charges, and returns `status: \"ready\"` with `credits: 0` once\nthe model already exists.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "model"
+          ],
+          "required_keys": [
+            "code",
+            "model"
+          ],
+          "parameter_types": {
+            "code": "string",
+            "model": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "essence-1",
+                  "essence-2",
+                  "expression-1",
+                  "expression-2"
+                ],
+                "description": "The model to add. Anything else returns `400 VALIDATION_ERROR` listing these options.",
+                "example": "expression-2"
+              }
+            },
+            "required": [
+              "code",
+              "model"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1c146ba0cacecdd850243adc9b9eec407d4bc77f9ee53159a402c7949b792b81",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "The model to add. Anything else returns `400 VALIDATION_ERROR` listing these options.",
+              "required": true,
+              "default": null,
+              "enum": [
+                "essence-1",
+                "essence-2",
+                "expression-1",
+                "expression-2"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "addContext",
+          "canonical_hash": "sha256:fdd948ff1ee2ef296bf24f37dcac597c2f83c2592dbf9e3cbef09b922bacaadb",
+          "description": "Inject background knowledge into the agent's context. The avatar\nwon't say this aloud, but will use the information in future responses.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "context",
+            "room_id",
+            "type"
+          ],
+          "required_keys": [
+            "code",
+            "context"
+          ],
+          "parameter_types": {
+            "code": "string",
+            "context": "string",
+            "type": "string",
+            "room_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "context": {
+                "type": "string",
+                "description": "Knowledge to inject.",
+                "example": "The customer just purchased a premium plan."
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "add_context",
+                  "speak"
+                ],
+                "default": "add_context",
+                "description": "`add_context` for silent knowledge (default), `speak` to trigger verbal response."
+              },
+              "room_id": {
+                "type": "string",
+                "description": "Target a specific room (optional)."
+              }
+            },
+            "required": [
+              "code",
+              "context"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bd9765bfdb12d251cdc2be6b319b1ba90473398057c4081459a41f107f04162d",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "context",
+              "type": "string",
+              "description": "Knowledge to inject.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "room_id",
+              "type": "string",
+              "description": "Target a specific room (optional).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "description": "`add_context` for silent knowledge (default), `speak` to trigger verbal response.",
+              "required": false,
+              "default": "add_context",
+              "enum": [
+                "add_context",
+                "speak"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "agentSpeak",
+          "canonical_hash": "sha256:91279635820fa8cdded8311bf0dd5bc11e279a301b87d73f33c5cc7dca59f4bf",
+          "description": "Send text for the avatar to speak aloud. With `room_id` it goes to that\none session; without it, to every deliverable session of the agent.\nThe agent must be in at least one active LiveKit room.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "message",
+            "room_id"
+          ],
+          "required_keys": [
+            "code",
+            "message"
+          ],
+          "parameter_types": {
+            "code": "string",
+            "message": "string",
+            "room_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string",
+                "description": "Text for the avatar to speak.",
+                "example": "Hello! Welcome to our demo."
+              },
+              "room_id": {
+                "type": "string",
+                "description": "Target a specific room (optional, defaults to all active rooms)."
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ccfdc48b537984213f8df4cf81de85ab4b4f0d56db89f5289edbe04836d13a9f",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "description": "Text for the avatar to speak.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "room_id",
+              "type": "string",
+              "description": "Target a specific room (optional, defaults to all active rooms).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "createApiSecret",
+          "canonical_hash": "sha256:42312a76dcfe5cf6ddac84e081560791dd25f951b71fbebfa32a90e32e3d4174",
+          "description": "Creates an API secret on your account. The response is the **only**\none that returns the full secret: store it now. Send `{}` for an\nauto-generated alias; a request with no body returns `400`.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "alias"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "alias": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "alias": {
+                "type": "string",
+                "description": "A label for the API secret. Auto-generated (a timestamp) if omitted.",
+                "example": "prod-server"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3780638283a970cda95f279d7ca4d528b633ab42608f7260472ddcfb70c2e16f",
+          "parameters": [
+            {
+              "name": "alias",
+              "type": "string",
+              "description": "A label for the API secret. Auto-generated (a timestamp) if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "createKnowledgeBase",
+          "canonical_hash": "sha256:e1b7e119aa659334755fbd8b5e59eec324e108a14838500d98eba2bc2dec14f4",
+          "description": "Creates a knowledge base and, by default, starts its first build.\n`build_dispatched` is `true` only when `build` was `true`, files were\nattached and the build queued.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "build",
+            "description",
+            "file_ids",
+            "name"
+          ],
+          "required_keys": [
+            "name"
+          ],
+          "parameter_types": {
+            "name": "string",
+            "description": "string",
+            "file_ids": "array",
+            "build": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "KB name (1–120 chars)."
+              },
+              "description": {
+                "type": "string",
+                "description": "Up to 2000 chars."
+              },
+              "file_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "File `id`s to attach (your organization's own files)."
+              },
+              "build": {
+                "type": "boolean",
+                "default": true,
+                "description": "Build immediately after create."
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dffaf15b76582974dc877cd9b378aa3d6c03a36301ffce43b78ec7c1355390a4",
+          "parameters": [
+            {
+              "name": "build",
+              "type": "boolean",
+              "description": "Build immediately after create.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Up to 2000 chars.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "file_ids",
+              "type": "array",
+              "description": "File `id`s to attach (your organization's own files).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": "KB name (1–120 chars).",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "createWebhook",
+          "canonical_hash": "sha256:7fe37a256eb7d89a21ebaf9340169167c28ed101388d30636ec15a8e037abe66",
+          "description": "Register an HTTPS endpoint to receive signed event notifications. The\nresponse includes a one-time `secret` used to verify the\n`X-BitHuman-Signature` header — store it; it is never returned again.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "description",
+            "events",
+            "url"
+          ],
+          "required_keys": [
+            "url"
+          ],
+          "parameter_types": {
+            "url": "string",
+            "events": "array",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "HTTPS endpoint to deliver events to.",
+                "example": "https://example.com/bithuman/webhook"
+              },
+              "events": {
+                "type": "array",
+                "description": "Event types to subscribe to. Omit or pass `[]` to receive all.",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "agent.ready",
+                    "agent.failed",
+                    "video.completed",
+                    "video.failed"
+                  ]
+                },
+                "example": [
+                  "agent.ready",
+                  "agent.failed"
+                ]
+              },
+              "description": {
+                "type": "string",
+                "description": "Optional human-readable label."
+              }
+            },
+            "required": [
+              "url"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:763af4aa7d9987c634dbca91fe5d3189af5817dd3e1a4c9a7bccd36006d16634",
+          "parameters": [
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Optional human-readable label.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "events",
+              "type": "array",
+              "description": "Event types to subscribe to. Omit or pass `[]` to receive all.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "description": "HTTPS endpoint to deliver events to.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "deleteAgent",
+          "canonical_hash": "sha256:ce339cf9b904763ca7f178456fd031f567404d41c4f7e9889425167002a5dc18",
+          "description": "Permanently delete an agent you own. Stored assets are cleaned up\nbest-effort; usage history is retained. Deleting a missing or\nnon-owned agent returns 404.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "code"
+          ],
+          "required_keys": [
+            "code"
+          ],
+          "parameter_types": {
+            "code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ee41279a12ad09961f30cbfbda6b25f6bac578963853d4914d30206d7f148125",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "deleteApiSecret",
+          "canonical_hash": "sha256:458955b81f3be13e74bbd770b55c2c4aac8d8aae2094dc21f4bf031f3e479f87",
+          "description": "Removes an API secret and revokes it at the runtime at once. Only that\nsecret stops working; to stop every secret, use\n`POST /v2/{user_id}/runtime/revoke-all`.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:12bdbb995cffdfb63d8ad5ed7252cf27f8672cf9540d7bc05fa49d2b1a3e2bf3",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "deleteWebhook",
+          "canonical_hash": "sha256:be43f68ec6b2e12e3d7f4b4f8db7519e860f22720d92e5dbef468d983361e778",
+          "description": "Delete a webhook",
+          "is_mutating": false,
+          "property_keys": [
+            "webhook_id"
+          ],
+          "required_keys": [
+            "webhook_id"
+          ],
+          "parameter_types": {
+            "webhook_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "webhook_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "webhook_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8ac968549256da4ce00a71c689fb2f4858bace6f59455b08e9a36087f6b6c5ca",
+          "parameters": [
+            {
+              "name": "webhook_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "downloadAgentModel",
+          "canonical_hash": "sha256:a1c635ade04c9ddad45acbe74d14b62471adf2bd88a430a2d2c978fd652b91a1",
+          "description": "Download the generated model file for an agent you own. The family\ndefaults to the agent's own model; override with `?model=<family>`\n(canonical names, legacy names, and runtime tier slugs all fold onto\ntheir family). Artifact per family:\n\n| family | artifact |\n|---|---|\n| `essence-1` | `<code>.imx` (the portable IMX container) |\n| `essence-2` | `<CODE>.imx` — the standard Essence 2 artifact (unified IMX container; size is per identity — read `Content-Length` rather than assuming a figure; **licensed weights** — renders locally in the CLI, the Python SDK, the Android library and the Swift `Essence2` product, and the first local play checks the license with the cloud, so it needs a sign-in: https://docs.bithuman.ai/platforms/cli/voice#platform-notes). |\n| `expression-2` | `<code>.avatar` — the same container as `.imx` under a second name (a few early identities use an older format; `bithuman open` reports which) — runs locally on macOS (Apple Silicon) and Linux x86_64, or in the browser, and is also served on bitHuman's cloud |\n| `expression-1` | normally not downloadable (the shared v1 engine renders server-side from the agent's image) → `400 MODEL_NOT_DOWNLOADABLE`; an agent that went through the lip step owns a baked `<code>.imx` and is redirected to it like `essence-1` |\n\nThe default response is a **302 redirect** to the artifact — the\npublic URL for `essence-1`, a **1-hour signed URL** on a private\nbucket for the other families — so `curl -L` and browser anchors just\nwork. Pass `?redirect=false` to get the URL as JSON instead.\n\n**Name the file yourself** (`curl -L -o \"<CODE>.imx\"`). The redirect\ntarget does not always send a `Content-Disposition` header — the\npublic `essence-1` URL sends none — so a filename-from-the-header\nflag such as `curl -LOJ` silently falls back to the last path segment\nof the request URL and writes a file called `download`. With\n`?redirect=false` the JSON carries the intended name in `filename`.\n\nThe launchability gate doubles as the download gate: a family the\nagent can't be launched as (missing from `supported_models`) returns\n`409 MODEL_NOT_GENERATED`. A family the agent supports whose artifact\nhasn't been published to the download store yet returns\n`404 MODEL_ARTIFACT_NOT_READY` — the message says when to retry;\n**poll on that code**.\n\n**Every grant is recorded.** A model download costs **0 credits** on\nthe [pricing table](https://docs.bithuman.ai/pricing) — only\nruntime minutes bill — but the grant still writes exactly one usage row\nbefore the URL is issued, under the family's self-hosted pricing code,\nand hands you its id in `X-Bithuman-Meter-Id`. The rows show up in\n`GET /v1/usage` at 0 credits; they are a record of what you fetched,\nnot a charge. The order matters both ways: a meter that refuses\n(`402`) or fails (`500`) returns no URL at all.\n\nThe [bitHuman CLI](https://docs.bithuman.ai/platforms/cli/reference) wraps\nthis endpoint: `bithuman pull <AGENT_CODE>` downloads the artifact,\nrecognizes its model family, and prints what to do next.\n\n**Showcase identities need no credential.** The `essence-2` and\n`expression-2` identities listed by\n[`GET /v1/models/showcase`](#tag/Agent-Management/operation/getShowcaseManifest)\nare served to anonymous callers — same 302, same 1-hour signed URL, and\nthe owner is charged **0 credits**. Every other agent still needs the\n`api-secret` header (or `Authorization: Bearer <api-secret | runtime\ntoken>`) and must be owned by the caller; an anonymous request for one\nanswers `401 MISSING_AUTH`, the same answer an unknown code gets.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "member",
+            "model",
+            "plane",
+            "redirect"
+          ],
+          "required_keys": [
+            "code"
+          ],
+          "parameter_types": {
+            "code": "string",
+            "model": "string",
+            "member": "string",
+            "plane": "string",
+            "redirect": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Agent code. The agent must be owned by the caller (else 404) — except for the showcase identities in `GET /v1/models/showcase`, which are served with no credential."
+              },
+              "model": {
+                "type": "string",
+                "description": "Artifact family. Defaults to the agent's own model. The runtime tier slugs (`essence-2-apple`, `essence-2-gpu`, `essence-2-cpu`, `expression-2-gpu`; the older `essence-2-ane` spelling stays accepted) fold onto their family. `essence-2-quality` returns `400`; send `essence-2`. Any other unrecognized value returns the same `400`, listing the downloadable families."
+              },
+              "member": {
+                "type": "string",
+                "description": "Fetch ONE on-device model member instead of the whole container. `essence-2` and `expression-2` publish a browser/Android bundle beside the container — a `web_manifest.json` and the members it lists (`combined_fp32.tflite`, `canon.bin`, ...) — and this serves a single one of them, so a browser or an Android runtime pulls only the files it runs. Same entitlement as the container, same 1-hour signed URL, and the URL honours `Range` (`curl -L -r 0-1023` answers `206`, so OkHttp and browsers resume). Pass `web_manifest.json` first to learn the member names. A member of a **public** agent is served to an anonymous caller, like the browser already serves those agents; every other visibility needs the same credential as the container."
+              },
+              "plane": {
+                "type": "string",
+                "description": "Which member set `?member=` names. `essence-2` publishes two — one for browsers and one for Android — and twelve names appear in both of them, `manifest.json` among them. A browser asking for `manifest.json` and a handset asking for `manifest.json` want different files, so for those twelve the request has to say which set it means. Only meaningful alongside `member=`: the container itself has one form, so `plane=` on its own returns `400 VALIDATION_ERROR`, as does any value not listed above. **You can usually leave it out.** A member that appears in only one of the two sets identifies itself — which is why the Android runtime's first call, `member=android_store.v1.json`, resolves with no `plane=` at all. When a name appears in both and the request says nothing, it resolves to the browser set, so every caller written before this parameter behaves exactly as it did."
+              },
+              "redirect": {
+                "type": "string",
+                "description": "Pass `false` to receive the artifact URL as JSON (below) instead of a 302 redirect — for UIs that want to fetch or label first."
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6a192797c60ed5bb70293aed0fc34eac5b48ad8e7cec23717fc8e3238d2ee113",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": "Agent code. The agent must be owned by the caller (else 404) — except for the showcase identities in `GET /v1/models/showcase`, which are served with no credential.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "member",
+              "type": "string",
+              "description": "Fetch ONE on-device model member instead of the whole container. `essence-2` and `expression-2` publish a browser/Android bundle beside the container — a `web_manifest.json` and the members it lists (`combined_fp32.tflite`, `canon.bin`, ...) — and this serves a single one of them, so a browser or an Android runtime pulls only the files it runs. Same entitlement as the container, same 1-hour signed URL, and the URL honours `Range` (`curl -L -r 0-1023` answers `206`, so OkHttp and browsers resume). Pass `web_manifest.json` first to learn the member names. A member of a **public** agent is served to an anonymous caller, like the browser already serves those agents; every other visibility needs the same credential as the container.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Artifact family. Defaults to the agent's own model. The runtime tier slugs (`essence-2-apple`, `essence-2-gpu`, `essence-2-cpu`, `expression-2-gpu`; the older `essence-2-ane` spelling stays accepted) fold onto their family. `essence-2-quality` returns `400`; send `essence-2`. Any other unrecognized value returns the same `400`, listing the downloadable families.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "plane",
+              "type": "string",
+              "description": "Which member set `?member=` names. `essence-2` publishes two — one for browsers and one for Android — and twelve names appear in both of them, `manifest.json` among them. A browser asking for `manifest.json` and a handset asking for `manifest.json` want different files, so for those twelve the request has to say which set it means. Only meaningful alongside `member=`: the container itself has one form, so `plane=` on its own returns `400 VALIDATION_ERROR`, as does any value not listed above. **You can usually leave it out.** A member that appears in only one of the two sets identifies itself — which is why the Android runtime's first call, `member=android_store.v1.json`, resolves with no `plane=` at all. When a name appears in both and the request says nothing, it resolves to the browser set, so every caller written before this parameter behaves exactly as it did.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "redirect",
+              "type": "string",
+              "description": "Pass `false` to receive the artifact URL as JSON (below) instead of a 302 redirect — for UIs that want to fetch or label first.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "endCloudAvatarSession",
+          "canonical_hash": "sha256:3bdf7c537aaa1b44020080cb158cf5ecc727535db59c6fbb1c932138bad17e69",
+          "description": "Ends a [cloud avatar](https://docs.bithuman.ai/platforms/livekit/cloud-avatar)\nyou started, by the `session_id` its start returned. No body. Billing\nstops at this call and the concurrent-session slot frees at once.\nCalling it again returns the same answer and bills nothing.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:631dcf55d84aa74f28f2f46663f618477ba1586b0d2d601a4841f39c5c6e2ccd",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "generateAgent",
+          "canonical_hash": "sha256:473363d7047ef17734649a9b0f1b6bd8b66348047118e3a63d03514e49622570",
+          "description": "Create a new avatar agent from a text prompt, with optional image\nand audio assets. Poll `/v1/agent/status/{agent_id}` to check\nprogress.\n\n**Agent creation is image-only.** Provide a portrait `image` (or let\nthe prompt generate one) — bitHuman generates a **10-second\nidentity video internally**, authored to loop without a seam (its\nfirst and last frames match). A `video` field is rejected with\n`400 VIDEO_INPUT_NOT_SUPPORTED` before anything is billed.\n\n**Selecting a model.** Always send `model`: `essence-2`,\n`expression-2`, `auto`, `essence-1` or `expression-1`. An omitted\n`model` creates an `expression-1` agent. A model outside your plan\nreturns `403 PLAN_REQUIRED`.\n\n**Creation time depends on the model** (the second-generation models\ntrain a per-identity model, so don't apply a 5-minute client\ntimeout):\n\n| `model` | identity input | creation time |\n|---|---|---|\n| `essence-2` | image (or generated from prompt); a 10-second identity video is generated internally | about 2–2.5 h |\n| `expression-2` | image (or generated from prompt) | about 2–2.5 h |\n| `auto` | image or prompt (classified automatically) | as the routed model (`essence-2` or `expression-2`) |\n| `essence-1` | image (or generated from prompt) | under 15 min |\n| `expression-1` (the default when `model` is omitted) | image (or generated from prompt) | about 1 min |\n\nTimes run from this call to `status: \"ready\"` on\n`GET /v1/agent/status/{agent_id}`. They are a typical range, not a\nguarantee, and individual runs can take longer: size timeouts in\nhours for the second-generation models.\n\n**Picking the right family** ([Choosing a model](https://docs.bithuman.ai/models#choosing-a-model)):\n`essence-2` for a real person; `expression-2` for a cartoon,\nstylized, animal, creature or robot character. Send\n`model: \"auto\"` to apply this rule automatically — the platform\nclassifies your input and records the recommended model either way.\n\n**Subject requirement:** every model except `expression-2` needs a\nclear, **real human face**: `essence-2`, `essence-1` and\n`expression-1` (also when `model` is omitted). The input is\nclassified before anything is billed; a cartoon, stylized\ncharacter, animal, creature or robot, or a photo with no face\nfound, is rejected with `422 MODEL_SUBJECT_MISMATCH` (nothing\ncharged) — use `expression-2` for those characters, or send\n`model: \"auto\"` to route automatically.\n\nFailures during generation surface as `status: \"failed\"` with an\n`error_message` on the status endpoint, and the creation credits\nare automatically refunded.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "Idempotency-Key",
+            "agent_id",
+            "aspect_ratio",
+            "audio",
+            "duration",
+            "framing",
+            "image",
+            "model",
+            "prompt",
+            "transparency",
+            "version"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "Idempotency-Key": "string",
+            "prompt": "string",
+            "image": "string",
+            "audio": "string",
+            "aspect_ratio": "string",
+            "transparency": "boolean",
+            "framing": "string",
+            "agent_id": "string",
+            "duration": "integer",
+            "model": "string",
+            "version": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "Idempotency-Key": {
+                "type": "string",
+                "description": "Optional. A unique client-generated key (e.g. a UUID). Retrying with the same key returns the original response instead of starting a second billed job. Keys are retained for 24 hours."
+              },
+              "prompt": {
+                "type": "string",
+                "description": "System prompt / personality for the agent. If omitted, a random default is used.",
+                "example": "You are a friendly fitness coach who motivates users."
+              },
+              "image": {
+                "type": "string",
+                "description": "URL to a face image for avatar appearance. For the best likeness use a photo with one clear figure, a neutral expression, facing the camera, a relaxed pose, and no occlusion of the face. Every model except Expression 2 needs a real human face (otherwise 422 `MODEL_SUBJECT_MISMATCH`), and Essence 2 needs the face clearly in frame (otherwise 422 `IMAGE_FACE_UNSUITABLE`), before any charge.",
+                "example": "https://example.com/face.jpg"
+              },
+              "audio": {
+                "type": "string",
+                "description": "URL to audio for voice cloning.",
+                "example": "https://example.com/voice.wav"
+              },
+              "aspect_ratio": {
+                "type": "string",
+                "enum": [
+                  "16:9",
+                  "9:16",
+                  "1:1"
+                ],
+                "default": "16:9",
+                "description": "Aspect ratio for the generated identity image and driver video. `16:9` landscape (default), `9:16` portrait, `1:1` square. Images are generated at 1080p on this ratio."
+              },
+              "transparency": {
+                "type": "boolean",
+                "default": false,
+                "description": "When `true`, the identity image is generated on a solid green-screen background (chroma-key friendly) so the avatar can be embedded transparently — the character itself never uses green. Leave `false` for a normal scene background."
+              },
+              "framing": {
+                "type": "string",
+                "enum": [
+                  "portrait",
+                  "full_body"
+                ],
+                "default": "portrait",
+                "description": "`portrait` (default) frames head-and-shoulders; `full_body` shows the full figure including the feet — use it for kiosk / standing-avatar layouts."
+              },
+              "agent_id": {
+                "type": "string",
+                "description": "Custom agent identifier. Auto-generated if omitted."
+              },
+              "duration": {
+                "type": "integer",
+                "deprecated": true,
+                "description": "**Deprecated — omit it.** The internally generated identity video is 10 seconds (authored to loop without a seam); this parameter is ignored."
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "essence-2",
+                  "expression-2",
+                  "auto",
+                  "essence-1",
+                  "expression-1",
+                  "essence",
+                  "expression"
+                ],
+                "example": "expression-2",
+                "description": "Which model to create. Always send it; if omitted, an `expression-1` agent is created (250 credits). A model outside your plan returns `403 PLAN_REQUIRED`. The bare family names `essence` and `expression` are still accepted for older integrations (they select the version-1 model); new code should send a full model name.\n\n**`essence-2`** is the second-generation Essence model for photorealistic people — one 500-credit creation that runs everywhere from on-device (CPU / Apple Silicon) up to cloud GPU. **`expression-2`** is the second-generation expression engine — audio-driven real-time avatar video from a single photo (creation trains a per-identity model — about 2 hours, as does `essence-2`; see the creation-time table above). **`auto`** classifies your input (the image if provided, else the prompt): a photorealistic person routes to `essence-2`, a cartoon / animal / creature / robot to `expression-2`. Retired engine names return `400 VALIDATION_ERROR`. Identity inputs and creation times differ per model — see the endpoint description table and [Compare models](https://docs.bithuman.ai/models)."
+              },
+              "version": {
+                "type": "string",
+                "enum": [
+                  "v1",
+                  "v2"
+                ],
+                "default": "v1",
+                "deprecated": true,
+                "description": "**Older form — send a full model name in `model` instead.** With a bare family name in `model` (`essence` or `expression`), `v1` selects the first-generation model and `v2` the second-generation one. Ignored when `model` is a full model name or `auto`."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:06cf9ea238f0edb55aabb7ccdaea844c1de87f0df693a963f697966c8e3ce9f3",
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "type": "string",
+              "description": "Optional. A unique client-generated key (e.g. a UUID). Retrying with the same key returns the original response instead of starting a second billed job. Keys are retained for 24 hours.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "agent_id",
+              "type": "string",
+              "description": "Custom agent identifier. Auto-generated if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "aspect_ratio",
+              "type": "string",
+              "description": "Aspect ratio for the generated identity image and driver video. `16:9` landscape (default), `9:16` portrait, `1:1` square. Images are generated at 1080p on this ratio.",
+              "required": false,
+              "default": "16:9",
+              "enum": [
+                "16:9",
+                "9:16",
+                "1:1"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "audio",
+              "type": "string",
+              "description": "URL to audio for voice cloning.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "duration",
+              "type": "integer",
+              "description": "**Deprecated — omit it.** The internally generated identity video is 10 seconds (authored to loop without a seam); this parameter is ignored.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "framing",
+              "type": "string",
+              "description": "`portrait` (default) frames head-and-shoulders; `full_body` shows the full figure including the feet — use it for kiosk / standing-avatar layouts.",
+              "required": false,
+              "default": "portrait",
+              "enum": [
+                "portrait",
+                "full_body"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "description": "URL to a face image for avatar appearance. For the best likeness use a photo with one clear figure, a neutral expression, facing the camera, a relaxed pose, and no occlusion of the face. Every model except Expression 2 needs a real human face (otherwise 422 `MODEL_SUBJECT_MISMATCH`), and Essence 2 needs the face clearly in frame (otherwise 422 `IMAGE_FACE_UNSUITABLE`), before any charge.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Which model to create. Always send it; if omitted, an `expression-1` agent is created (250 credits). A model outside your plan returns `403 PLAN_REQUIRED`. The bare family names `essence` and `expression` are still accepted for older integrations (they select the version-1 model); new code should send a full model name.\n\n**`essence-2`** is the second-generation Essence model for photorealistic people — one 500-credit creation that runs everywhere from on-device (CPU / Apple Silicon) up to cloud GPU. **`expression-2`** is the second-generation expression engine — audio-driven real-time avatar video from a single photo (creation trains a per-identity model — about 2 hours, as does `essence-2`; see the creation-time table above). **`auto`** classifies your input (the image if provided, else the prompt): a photorealistic person routes to `essence-2`, a cartoon / animal / creature / robot to `expression-2`. Retired engine names return `400 VALIDATION_ERROR`. Identity inputs and creation times differ per model — see the endpoint description table and [Compare models](https://docs.bithuman.ai/models).",
+              "required": false,
+              "default": null,
+              "enum": [
+                "essence-2",
+                "expression-2",
+                "auto",
+                "essence-1",
+                "expression-1",
+                "essence",
+                "expression"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "System prompt / personality for the agent. If omitted, a random default is used.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "transparency",
+              "type": "boolean",
+              "description": "When `true`, the identity image is generated on a solid green-screen background (chroma-key friendly) so the avatar can be embedded transparently — the character itself never uses green. Leave `false` for a normal scene background.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version",
+              "type": "string",
+              "description": "**Older form — send a full model name in `model` instead.** With a bare family name in `model` (`essence` or `expression`), `v1` selects the first-generation model and `v2` the second-generation one. Ignored when `model` is a full model name or `auto`.",
+              "required": false,
+              "default": "v1",
+              "enum": [
+                "v1",
+                "v2"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "generateDynamics",
+          "canonical_hash": "sha256:13a6e361b69d1c0cfba0ab8872c09dcb701a551eec52397ec64dddc7f7305f96",
+          "description": "Create gesture animations (wave, nod, smile, laugh, etc.) for an agent.\nThese can be triggered during live sessions via keyword mapping.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "Idempotency-Key",
+            "agent_id",
+            "duration",
+            "image_url",
+            "model"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "Idempotency-Key": "string",
+            "agent_id": "string",
+            "image_url": "string",
+            "duration": "integer",
+            "model": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "Idempotency-Key": {
+                "type": "string",
+                "description": "Optional. A unique client-generated key (e.g. a UUID). Retrying with the same key returns the original response instead of starting a second billed job. Keys are retained for 24 hours."
+              },
+              "agent_id": {
+                "type": "string",
+                "example": "A95SXN5716"
+              },
+              "image_url": {
+                "type": "string",
+                "description": "Source image URL. Optional — defaults to the agent's primary image if omitted."
+              },
+              "duration": {
+                "type": "integer",
+                "default": 5,
+                "description": "Gesture duration in seconds."
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "seedance",
+                  "auto"
+                ],
+                "default": "seedance",
+                "description": "Video motion model. `seedance` (Seedance 1.5 pro) is the only dynamics model; `auto` resolves to it. Any legacy value (e.g. the retired `kling`) is coerced to `seedance`."
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7b05f04d647fcdc1b9d8af9b14feff1f7121e481962758c42bff4ab2451f051e",
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "type": "string",
+              "description": "Optional. A unique client-generated key (e.g. a UUID). Retrying with the same key returns the original response instead of starting a second billed job. Keys are retained for 24 hours.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "agent_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "duration",
+              "type": "integer",
+              "description": "Gesture duration in seconds.",
+              "required": false,
+              "default": 5,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_url",
+              "type": "string",
+              "description": "Source image URL. Optional — defaults to the agent's primary image if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Video motion model. `seedance` (Seedance 1.5 pro) is the only dynamics model; `auto` resolves to it. Any legacy value (e.g. the retired `kling`) is coerced to `seedance`.",
+              "required": false,
+              "default": "seedance",
+              "enum": [
+                "seedance",
+                "auto"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "generateTalkingVideo",
+          "canonical_hash": "sha256:e961b0e23fc1e0d28ea2a9115c6ef0202740a4cb926eb67e0b9e9018846af481",
+          "description": "Render a talking-video (mp4) from **your audio**, driven by one of\nyour agents.\n\n**Two modes:**\n- **Async (default)** — returns immediately with a `job_id`; poll\n  [`GET /v1/video/{job_id}`](#operation/getTalkingVideo) for the finished\n  video. Use this for anything but the shortest clips — renders can take a\n  while, so you don't want to hold the connection.\n- **Sync** — set `wait: true` (or `?wait=true`). The call blocks until the\n  render finishes (up to ~90s) and returns the `video_url` directly in this\n  response. If the render is still running at that cap you get the async\n  response (`status: processing`) instead — just poll the `job_id`.\n\n**Input:** your own audio. `audio_url` (a hosted WAV/MP3: a recording, or\nthe output of any text-to-speech tool) drives the render directly.\n\nThe output is a public CDN URL. `essence-2` renders at\n**1080p** by default (1080×1920 portrait or 1920×1080 landscape, matching\nthe source orientation and capped at the source's long side);\n`expression-2` renders at its native 416×720. Limits: max **120 seconds**\nof output.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "Idempotency-Key",
+            "agent_code",
+            "input",
+            "model",
+            "wait"
+          ],
+          "required_keys": [
+            "agent_code",
+            "input",
+            "model"
+          ],
+          "parameter_types": {
+            "Idempotency-Key": "string",
+            "model": "string",
+            "agent_code": "string",
+            "wait": "boolean",
+            "input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "Idempotency-Key": {
+                "type": "string",
+                "description": "Optional. A unique client-generated key (e.g. a UUID). Retrying with the same key returns the original response instead of starting a second billed job. Keys are retained for 24 hours."
+              },
+              "model": {
+                "type": "string",
+                "enum": [
+                  "essence-1",
+                  "expression-1",
+                  "essence-2",
+                  "expression-2"
+                ],
+                "description": "Avatar engine. `essence-1` (2 credits/min) and\n`expression-1` (4 credits/min) are the classic v1 engines,\navailable today. `expression-2` (4 credits/min) and `essence-2`\n(4 credits/min) are the v2 engines.\n",
+                "example": "essence-2"
+              },
+              "agent_code": {
+                "type": "string",
+                "description": "An agent you own, or a public sample from `GET /v1/models/showcase` (audio input, a model in its `supported_models`) — provides the avatar identity.",
+                "example": "A95SXN5716"
+              },
+              "wait": {
+                "type": "boolean",
+                "default": false,
+                "description": "Sync toggle. `false` (default) returns a `job_id` immediately (async — poll for the result). `true` blocks until the render finishes (up to ~90s) and returns the finished `video_url` in this response; if it exceeds the cap you get `status: processing` + a `job_id` to poll. `?wait=true` as a query parameter also works."
+              },
+              "input": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "audio"
+                    ]
+                  },
+                  "audio_url": {
+                    "type": "string",
+                    "description": "A public URL to a WAV or MP3 file.",
+                    "example": "https://docs.bithuman.ai/samples/speech-16k-short.wav"
+                  }
+                }
+              }
+            },
+            "required": [
+              "agent_code",
+              "input",
+              "model"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dcbec6cd60b08c2ff4f86253fa6b1c6d3379a58dbc5d03c4e45d86af8e400292",
+          "parameters": [
+            {
+              "name": "Idempotency-Key",
+              "type": "string",
+              "description": "Optional. A unique client-generated key (e.g. a UUID). Retrying with the same key returns the original response instead of starting a second billed job. Keys are retained for 24 hours.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "agent_code",
+              "type": "string",
+              "description": "An agent you own, or a public sample from `GET /v1/models/showcase` (audio input, a model in its `supported_models`) — provides the avatar identity.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "input",
+              "type": "object",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "audio"
+                  ]
+                },
+                "audio_url": {
+                  "type": "string",
+                  "description": "A public URL to a WAV or MP3 file.",
+                  "example": "https://docs.bithuman.ai/samples/speech-16k-short.wav"
+                }
+              }
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Avatar engine. `essence-1` (2 credits/min) and\n`expression-1` (4 credits/min) are the classic v1 engines,\navailable today. `expression-2` (4 credits/min) and `essence-2`\n(4 credits/min) are the v2 engines.\n",
+              "required": true,
+              "default": null,
+              "enum": [
+                "essence-1",
+                "expression-1",
+                "essence-2",
+                "expression-2"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "wait",
+              "type": "boolean",
+              "description": "Sync toggle. `false` (default) returns a `job_id` immediately (async — poll for the result). `true` blocks until the render finishes (up to ~90s) and returns the finished `video_url` in this response; if it exceeds the cap you get `status: processing` + a `job_id` to poll. `?wait=true` as a query parameter also works.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getAgent",
+          "canonical_hash": "sha256:1eb0aece6b8003f686a7327cd3a40392b9372b3cb3be70562ecf0361fe8149c8",
+          "description": "Retrieve full details for an agent by its code.",
+          "is_mutating": false,
+          "property_keys": [
+            "code"
+          ],
+          "required_keys": [
+            "code"
+          ],
+          "parameter_types": {
+            "code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fbabab818926b1b84c38c145e3514c9842e25a08516803b897f1e516f716f838",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getAgentStatus",
+          "canonical_hash": "sha256:63d62a3ca10703d77fe427de6b1f98878f96def3ea2dc61be8c1dae7addfd534",
+          "description": "Poll this endpoint to check generation progress. Status values:\n`processing`, `generating`, `completed`, `success` (all intermediate);\n`ready` (terminal success); `failed` (terminal error).\n\n**Keep polling past `generating`, `completed` and `success`** — those\nare intermediate states, not terminal. `completed` can appear early\n(even around ~5% `progress`), and `success` is a STEP-level marker the\nvoice/image and video steps each write (~20% and ~45% `progress`), so\ndo not stop on either. Only `ready` and `failed` mean polling should\nstop — or `success` when `progress` has also reached `1.0`.\n\n`current_step` reports the pipeline stage: `payment` (~2%) →\n`persona` (5–15%) → `voice_image` (~20%) → `video` (~45%, the\ninternally generated 10-second identity video — models that need\none) → `lip_sync` (70–99%, the\nmodel-specific identity step — training/distillation for\n`expression-2` / `essence-2`, so the longest stage) → `done`\n(100%). A rare `essence-1` path reports `awaiting_face_marking`\n(~35%).\n\nRecommended polling interval: 5 seconds. Size your overall timeout to\nthe model: minutes for the first-generation engines, **hours** for\nboth second-generation ones (about 2–2.5 hours from creation to `ready`).\n\n**`ready` does not yet mean downloadable.** The agent can be launched\nand embedded as soon as it reports `ready`, but the downloadable\nmodel file is published separately, shortly afterwards. Until it is,\n`GET /v1/agent/{code}/model/download` answers\n`404 MODEL_ARTIFACT_NOT_READY` — a retryable code, not a failure. It\ncan take a few minutes after `ready`; poll the download while it\nanswers `404 MODEL_ARTIFACT_NOT_READY`.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b2bd24b1da159f4b054d4e5d498338eadca27dc90c0fe08e2d5e421b43d89178",
+          "parameters": [
+            {
+              "name": "agent_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getCloudAvatarSession",
+          "canonical_hash": "sha256:2275b6b6a1e1a8bc5db7d2b21477fcad840e36342d7360d0d49bbbd6f12756c4",
+          "description": "A [cloud avatar](https://docs.bithuman.ai/platforms/livekit/cloud-avatar)\nsession you started: `status` (`starting`, `live` or `ended`), times,\n`billed_seconds` and `credits` so far.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b8645112f6a86aa1c9857501af7bd75992b160311397ae2b49cc27a928b2641a",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getCreditSummaries",
+          "canonical_hash": "sha256:67e4a7d6116ecd4078cde5f481020021cdf258119a4f8299686056d379db92c1",
+          "description": "Returns the current credit balance, plan details, and estimated minutes\nremaining for each usage type. Always scoped to the **authenticated\naccount** (the owner of the `api-secret`) — there is no way to look up\nanother user.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:465ab8d95ea1ea53f0bd4c32ec39f8bdc668b33766d57719be7bb3869d312287",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getDynamics",
+          "canonical_hash": "sha256:3b7c5e5c7d4c36b9b31181a9e8350f20a13406f8581fe047062e036e59c21f42",
+          "description": "List all available gesture animations for an agent.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id"
+          ],
+          "required_keys": [
+            "agent_id"
+          ],
+          "parameter_types": {
+            "agent_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "agent_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:137b68bc1de2867e37ae07728f11922fef53f301e43c716be7aa84c608b84b1a",
+          "parameters": [
+            {
+              "name": "agent_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getMe",
+          "canonical_hash": "sha256:85a0a25eac2cf9142d5728479d8f7c60ee1034575cf0740a911ab2144c34398b",
+          "description": "The canonical account preflight — returns your identity, plan, and live credit balance in one call. Use it to show \"who am I / how many credits\" and to gate features before a billable call.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d46bb52914fa593b645fdc5e455bbe4085b69b73655ff4d61794abe73e95b2cd",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getPricing",
+          "canonical_hash": "sha256:02815995c9cf0e5b333a4e8a030382321db94f20e7beb836d77280ca89a3851b",
+          "description": "Machine-readable credit pricing for billable operations, so you can estimate cost before a call. Authoritative charges are always enforced server-side at request time. For forward per-minute realtime estimates based on your current balance, see `GET /v2/credit-summaries` (`minutes_estimate`).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1f4a7db116de9f7e143e11155c9cd5aaeed7117589679b4930baa2c1e8961eae",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getProviders",
+          "canonical_hash": "sha256:638547da6a875868a47100c0e63595a3c658a3d5ab984c069dd8597e4d3757e0",
+          "description": "Your configured provider keys (BYOK). Sensitive keys are returned only\nas `{present, hint, updated_at}`, never in full.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7901a93146af2828c42e06e421c02203da6a3391031b611de2a6346da62eb35a",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getReadiness",
+          "canonical_hash": "sha256:fef873cdbff2ff836df1faf7df52ca8da808c9efcac23a45d800051c4316f08f",
+          "description": "Whether the API is refusing work right now. No credential required.\nIt always answers HTTP 200: read the `status` field (`ok`, `degraded`\nor `unhealthy`). For the overall service status, use\n[status.bithuman.ai](https://status.bithuman.ai).\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:441083b9be3e5baba6e3a5ba9e86f8f767c7b2c20b8389b879630250eb2d77e7",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getRuntimeSessionMessages",
+          "canonical_hash": "sha256:00b58e14111aa86815d31b4af814364a934de36fba2413d9ee5eb8afc9c06895",
+          "description": "The conversation, oldest first. Only cloud voice and chat sessions\nrecord a transcript; self-hosted sessions return `messages: []`.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8f5f82f55dd04a66bc6827d54b4ce2c850781ab495f38169ec66b50787a30b12",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getShowcaseManifest",
+          "canonical_hash": "sha256:f92b627a785d917a112115e2e07e548147f87b8b0146eb4b5dc7281957436825",
+          "description": "The catalogue of **Essence 2** and **Expression 2** showcase identities\nwhose model weights anyone may download — no api-secret, no account.\n\nEach entry's `url` is\n[`GET /v1/agent/{code}/model/download`](#tag/Agent-Management/operation/downloadAgentModel),\nwhich answers a **302** to a 1-hour signed URL for anonymous callers\ntoo. The grant is still recorded (one usage row) and costs the agent's\nowner **0 credits** — an anonymous download is free or refused, never\nbilled to the owner.\n\nThe list is generated from the download route's own admission\npredicate, so a code listed here is a code the route serves: an\n`essence-2` or `expression-2` identity that is ready, listed in the\nagent gallery, owns its own artifact, and whose owner has authorised\nanonymous distribution of the weights. Agents that are merely public in\nthe gallery are **not** here — being viewable is a different permission\nfrom the weights being distributable.\n\nThe shape is the bitHuman CLI's manifest v2; `bithuman list` and\n`bithuman pull` read this catalogue.\n\n**Performance.** The reply carries no frame rates.\n`note_performance` maps each family in the catalogue to the\n[performance page](https://docs.bithuman.ai/performance), where the frame rates are\nmeasured and published for every device.\n\n`sha256` is deliberately empty: no content digest is recorded for these\nobjects yet, and the CLI skips verification on an empty value rather\nthan failing. Verify `size` and the file itself (`bithuman open`)\ninstead.\n\nThrottled per IP; the reply is cached for 60 seconds.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:452404e8006cfebe7f271ccd32c8be3ef1799d9d068ea6f27e69f6ee01023783",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getTalkingVideo",
+          "canonical_hash": "sha256:1040caaec06abf7997661539f257bc8093300db3a033da1eb5af5a6fd069a419",
+          "description": "Poll a talking-video render job. While rendering, `status` is `processing`.\nWhen done, `status` is `completed` and the response carries `video_url`,\n`duration_seconds`, and `credits_charged`. On failure, `status` is `failed`\nand the up-front charge is automatically refunded.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "job_id"
+          ],
+          "required_keys": [
+            "job_id"
+          ],
+          "parameter_types": {
+            "job_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "job_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b04b14ace4854a87728b568f703d7a78e2ec764bc75df89934df43e46e4a8ffd",
+          "parameters": [
+            {
+              "name": "job_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getUsage",
+          "canonical_hash": "sha256:dc0f3c7d6a3631d0306689428144ce27a64cb4da8c19b1999e1fa34715f6658a",
+          "description": "Return your account's usage / activity history, newest first. Each row\nis a metered event. `credits_change` is the signed credit delta — usage\nevents are recorded as **positive** credits consumed.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_code",
+            "end",
+            "limit",
+            "offset",
+            "start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "offset": "integer",
+            "start": "string",
+            "end": "string",
+            "agent_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Page size (1–200)."
+              },
+              "offset": {
+                "type": "integer"
+              },
+              "start": {
+                "type": "string",
+                "description": "ISO-8601 timestamp; only return events at/after this time."
+              },
+              "end": {
+                "type": "string",
+                "description": "ISO-8601 timestamp; only return events at/before this time."
+              },
+              "agent_code": {
+                "type": "string",
+                "description": "Only return events for this agent."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:80097d440d190962f316728090e8a8e1d2cb09a6718afe97471f034fd0e2ed17",
+          "parameters": [
+            {
+              "name": "agent_code",
+              "type": "string",
+              "description": "Only return events for this agent.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end",
+              "type": "string",
+              "description": "ISO-8601 timestamp; only return events at/before this time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Page size (1–200).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "ISO-8601 timestamp; only return events at/after this time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getWebhook",
+          "canonical_hash": "sha256:8f8957ebc2d34b9659447c4717e3aeb2b1ed5adbff474ebe7ac92b4bcd6c645f",
+          "description": "Get a webhook",
+          "is_mutating": false,
+          "property_keys": [
+            "webhook_id"
+          ],
+          "required_keys": [
+            "webhook_id"
+          ],
+          "parameter_types": {
+            "webhook_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "webhook_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "webhook_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e9028033904a46837ab736c0e0fecd9d83d13a0c685b66c4990f99dbaf5be61f",
+          "parameters": [
+            {
+              "name": "webhook_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "ingestKnowledgeFile",
+          "canonical_hash": "sha256:eba6aff675715e79f857755d0edc21e4da9f0a534ef18a8df111703d485c2417",
+          "description": "Adds one source to your organization: an uploaded file\n(`multipart/form-data`, fields `file` up to 100 MB and `name`) or a URL\nto fetch (JSON). Returns the file row at status `uploaded`; conversion\nruns in the background. Needs an organization API secret; a personal\nsecret returns `403`.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "name",
+            "sync_freq",
+            "url"
+          ],
+          "required_keys": [
+            "url"
+          ],
+          "parameter_types": {
+            "url": "string",
+            "name": "string",
+            "sync_freq": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "A public `http(s)` URL to fetch and convert."
+              },
+              "name": {
+                "type": "string",
+                "description": "Display name; defaults to the URL host."
+              },
+              "sync_freq": {
+                "type": "string",
+                "enum": [
+                  "never",
+                  "daily",
+                  "weekly",
+                  "monthly"
+                ],
+                "default": "never",
+                "description": "Re-sync cadence."
+              }
+            },
+            "required": [
+              "url"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7121f84b4421d6cf534b167b1ae446ac5822f179eec519f5b336448b53e9f50d",
+          "parameters": [
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Display name; defaults to the URL host.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sync_freq",
+              "type": "string",
+              "description": "Re-sync cadence.",
+              "required": false,
+              "default": "never",
+              "enum": [
+                "never",
+                "daily",
+                "weekly",
+                "monthly"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "description": "A public `http(s)` URL to fetch and convert.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "listAgentSessions",
+          "canonical_hash": "sha256:b23814dda92f0b9a7d84454f94a57a57099d14558e10a24057b3c40f198d5c77",
+          "description": "The sessions this agent has open now. Pass a returned `room_id` to\n/speak or /add-context to address ONE session instead of broadcasting.\n`deliverable` is false when the room is live but no agent worker is\nattached — /speak on such a room returns 404.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "code"
+          ],
+          "required_keys": [
+            "code"
+          ],
+          "parameter_types": {
+            "code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ea9558a4fe1d03e2fe5e8e24911527fd19b6b20be1bb76238459f369bac5eaec",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "listAgents",
+          "canonical_hash": "sha256:3bfe59f2c19bc86b53995c6fe69cd2a50f33219d9370d775b8a9a17764ac1313",
+          "description": "List the agents owned by your API secret, newest first. Paginated.\n\nEach item is a **summary**, not the full agent record: it carries the\nidentity, the state and the launch surface, and nothing else. The\nprompt, the progress fields, the media URLs and the model handle are\nonly on [`GET /v1/agent/{code}`](#operation/getAgent) — a caller that\nreads them from a list item reads fields that are not there.\n\n**Deleted agents are not listed and not counted.** Every page holds\n`limit` items except the last. `pagination.total` is the number of\nagents you reach by paging, and it is the same on every page. Pass\n`?status=ready` if you want only agents that finished generating.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "offset",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "offset": "integer",
+            "status": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Page size (1–100)."
+              },
+              "offset": {
+                "type": "integer",
+                "description": "Number of agents to skip."
+              },
+              "status": {
+                "type": "string",
+                "description": "Filter by generation state (e.g. `ready`, `processing`, `failed`)."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fcc5d444eeb6ce954e7f24782f75a6fa00adf3da6efbc66117520376b6bd73d6",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Page size (1–100).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Number of agents to skip.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Filter by generation state (e.g. `ready`, `processing`, `failed`).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "listApiSecrets",
+          "canonical_hash": "sha256:4c3cb50fa801e02ecf646d40d5b99aeabc020cb1c9590e27d13b7d10a07c569b",
+          "description": "Your API secrets, masked. The raw secret is never returned here, only\n`key_display`. `name`, `key` and `alias` all carry the alias label.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:beef14d4ddacf7f5f462e1fa47c6ceac70a674a8e80bbc920867fadffc786acc",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "listKnowledgeBases",
+          "canonical_hash": "sha256:c554db8a1289a821af2abb9eb81460db76f65f54610b59607365b80a2a7cb7c2",
+          "description": "The organization's knowledge bases, newest first, each with `agent_count` and `source_count`.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f136a10ed2ad4425a048c44f867918d043803cd5c97f100728d253e860bdc96e",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "listRuntimeSessions",
+          "canonical_hash": "sha256:c0bcc0a2a6dd3d711c5475f3c76db74ed90167e2f2f3c1bbd56ae7427687ccdd",
+          "description": "Your sessions plus live account KPIs (`active_count`,\n`live_burn_rate_cr_per_min`, `credits_this_hour`, account-wide over the\nlast hour). A transient `500 UPSTREAM_ERROR` can be retried.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "kind",
+            "limit",
+            "window"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "window": "string",
+            "kind": "string",
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "window": {
+                "type": "string",
+                "description": "`live` (only running), `recent` (idle + ended), or `all`."
+              },
+              "kind": {
+                "type": "string",
+                "description": "`conversations` (cloud), `self_hosted`, or `all`."
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max sessions to return."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d95cfef15496e40c7d06b551264d3f7957fcb4b094a8ca579479ddfd4025fd27",
+          "parameters": [
+            {
+              "name": "kind",
+              "type": "string",
+              "description": "`conversations` (cloud), `self_hosted`, or `all`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max sessions to return.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "window",
+              "type": "string",
+              "description": "`live` (only running), `recent` (idle + ended), or `all`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "listWebhookDeliveries",
+          "canonical_hash": "sha256:a62ac283f108ec3635f9d76292e68f3b400d9f3855b488bc11d8c875316bc1b4",
+          "description": "Recent delivery attempts for a webhook (most recent first).",
+          "is_mutating": false,
+          "property_keys": [
+            "webhook_id"
+          ],
+          "required_keys": [
+            "webhook_id"
+          ],
+          "parameter_types": {
+            "webhook_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "webhook_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "webhook_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a271f0603e57d9ff94f22cd133f39971eca38718df74cb3ac3be17872bb1660d",
+          "parameters": [
+            {
+              "name": "webhook_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "listWebhooks",
+          "canonical_hash": "sha256:fa3ecf322a33de3a9e79fd565c7fc25ba3dea213ed887ad2ad895f1efe5999fe",
+          "description": "List your registered webhooks (signing secrets are redacted).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:36ae08dc1dd9b183a94638bfc8635fd16b5f12f0cbeb9774cc8b943bbd36ca8b",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "mintScopedRuntimeToken",
+          "canonical_hash": "sha256:f88900dde7f2420f76c9bc72366b41e074d0a190a48603e56e9cc99ad76937c9",
+          "description": "Exchange your API secret, **server-side**, for a 1-hour token bound to a\nsingle `agent_code` — so a browser, a phone app or any other client you\ndo not fully control never holds your master secret.\n\nThis is the credential the on-device paths accept. It works as\n`Authorization: Bearer <scoped_token>` on\n[the model download route](#operation/downloadAgentModel), including\nthe `?member=` fetch the browser and Android runtimes use.\n\nThe scope is real: presenting the token for a **different** agent code\nanswers `404`, exactly like a code you do not own. It expires in one\nhour and is not refreshable — mint another.\n\n**LiveKit plugin.** With `\"scope\": \"livekit-cloud\"` this mints the token\nto pass to `livekit-plugins-bithuman` as `api_secret` instead of your API\nsecret. The plugin writes that value into LiveKit room attributes, where\nevery participant can read it. This token can only start this agent's\ncloud avatar session. It is also bound to `room_name` and `livekit_url`\nwhen you send them, and it bills your account. For another agent, room\nor LiveKit server it answers `403`. It cannot download the model or call\nany other endpoint. See [LiveKit integration](/platforms/livekit).\n\nCall this from your server. Never ship the api-secret this endpoint\nconsumes to a client.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_code",
+            "livekit_url",
+            "room_name",
+            "scope"
+          ],
+          "required_keys": [
+            "agent_code"
+          ],
+          "parameter_types": {
+            "agent_code": "string",
+            "scope": "string",
+            "room_name": "string",
+            "livekit_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_code": {
+                "type": "string",
+                "example": "A80HVD8577",
+                "description": "The one agent this token may act for."
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "runtime-heartbeat",
+                  "livekit-cloud"
+                ],
+                "default": "runtime-heartbeat",
+                "description": "`livekit-cloud` mints the launch-only token for the LiveKit plugin's cloud mode. Omit it for the runtime token described above."
+              },
+              "room_name": {
+                "type": "string",
+                "description": "`livekit-cloud` only. Binds the token to this LiveKit room."
+              },
+              "livekit_url": {
+                "type": "string",
+                "example": "wss://your-project.livekit.cloud",
+                "description": "`livekit-cloud` only. Binds the token to this LiveKit server. It must be the URL the plugin connects to."
+              }
+            },
+            "required": [
+              "agent_code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c1b158d4e4f7f5d01dfa130e4a607fff83e1c9ce9c882fdf146d1ef316ee175b",
+          "parameters": [
+            {
+              "name": "agent_code",
+              "type": "string",
+              "description": "The one agent this token may act for.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "livekit_url",
+              "type": "string",
+              "description": "`livekit-cloud` only. Binds the token to this LiveKit server. It must be the URL the plugin connects to.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "room_name",
+              "type": "string",
+              "description": "`livekit-cloud` only. Binds the token to this LiveKit room.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "scope",
+              "type": "string",
+              "description": "`livekit-cloud` mints the launch-only token for the LiveKit plugin's cloud mode. Omit it for the runtime token described above.",
+              "required": false,
+              "default": "runtime-heartbeat",
+              "enum": [
+                "runtime-heartbeat",
+                "livekit-cloud"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "postMeterBeat",
+          "canonical_hash": "sha256:232fdb082b4d4931b01458e4cb51ac6dbdc4030625295d9bda255ed6189073cf",
+          "description": "The bitHuman SDKs, the CLI and the plugins call this for you: a\nself-hosted or on-device session reports its running time here, and\nthat is what bills it ([Pricing](https://docs.bithuman.ai/pricing)).\nYou call it only if you build your own runtime.\n\nA report covers the seconds the session ran, idle included, not frames\nrendered. The product (`billing_type`) is fixed by the first report of a\nsession.\n\nRead **only the status code**:\n\n| status | meaning | what a runtime should do |\n|---|---|---|\n| `2xx` | the interval is recorded | count it as reported |\n| `402` | balance depleted / account suspended | **keep rendering**, report it again later |\n| `401` | definite bad key | stop |\n| `503` | we cannot tell right now | retry |\n\nA `402` never stops a running session; the next session is refused\nuntil you top up. A retried report (same `session_id`, `install_id`\nand `seq`) is never charged twice.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "billing_type",
+            "install_id",
+            "seq",
+            "served_s",
+            "session_id"
+          ],
+          "required_keys": [
+            "seq",
+            "served_s",
+            "session_id"
+          ],
+          "parameter_types": {
+            "session_id": "string",
+            "install_id": "string",
+            "seq": "integer",
+            "served_s": "number",
+            "billing_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "maxLength": 128,
+                "description": "Stable id for the session being billed."
+              },
+              "install_id": {
+                "type": "string",
+                "maxLength": 128,
+                "description": "Stable id for this installation."
+              },
+              "seq": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Beat sequence number within the session."
+              },
+              "served_s": {
+                "type": "number",
+                "description": "Seconds of session covered by this beat. Clamped\nserver-side; wall-clock, idle included.\n"
+              },
+              "billing_type": {
+                "type": "string",
+                "description": "The self-hosted product wire key. Always send the key\nfor the product you run.\n",
+                "example": "self-hosted-essence-2-model"
+              }
+            },
+            "required": [
+              "seq",
+              "served_s",
+              "session_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8c9344b1e928584c43f4cd40ee9e6e64df436e606affe76a82981b3a0e8777b4",
+          "parameters": [
+            {
+              "name": "billing_type",
+              "type": "string",
+              "description": "The self-hosted product wire key. Always send the key\nfor the product you run.\n",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "install_id",
+              "type": "string",
+              "description": "Stable id for this installation.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "seq",
+              "type": "integer",
+              "description": "Beat sequence number within the session.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "served_s",
+              "type": "number",
+              "description": "Seconds of session covered by this beat. Clamped\nserver-side; wall-clock, idle included.\n",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Stable id for the session being billed.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "realtimeConnect",
+          "canonical_hash": "sha256:4d8458b5cf728f9bd6415da401fe6ae4d5251659dd42bd779dab85ab2ea49c55",
+          "description": "Starts a WebRTC voice call: send the SDP offer as the body\n(`Content-Type: application/sdp`) with `?model=gpt-realtime-mini`; a\n`201` carries the SDP answer, and the `X-Bithuman-Call` header names\nthe call. End it with a JSON body `{\"action\": \"hangup\", \"call\": …}` —\nbilling stops when you hang up. See\n[Realtime](https://docs.bithuman.ai/api/realtime#webrtc).\n",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "call",
+            "model"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "action": "string",
+            "call": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "The Realtime model, fixed for the call."
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "hangup"
+                ]
+              },
+              "call": {
+                "type": "string",
+                "description": "The `X-Bithuman-Call` value from the start."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2902bdc9d6f63cd4d26917be97925dc11216ef72349c7a626d80874ac247d97e",
+          "parameters": [
+            {
+              "name": "action",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "hangup"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "call",
+              "type": "string",
+              "description": "The `X-Bithuman-Call` value from the start.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "The Realtime model, fixed for the call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "rebuildKnowledgeBase",
+          "canonical_hash": "sha256:101ed3024b04802425afb9018adb4a4d0364f2b9dbf219630d559adce16f2d2d",
+          "description": "Re-indexes a knowledge base after its sources change. Returns the\nqueued build row; indexing runs in the background. Builds run one at a\ntime per account, up to 20 per day.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b035feb405665cdfbe3f17ba8fbdca65f555f36982c1ecd52d603aa33fbc421f",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "requestEmbedToken",
+          "canonical_hash": "sha256:c0f79835b239505fd09856b0644b25c3e02ab0580e0b00d41043aecacbcbe507",
+          "description": "Generate a JWT token for embedding an avatar on a website. Use this from your backend — never expose your API secret in frontend code.",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id",
+            "fingerprint",
+            "model"
+          ],
+          "required_keys": [
+            "agent_id",
+            "fingerprint"
+          ],
+          "parameter_types": {
+            "agent_id": "string",
+            "fingerprint": "string",
+            "model": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string",
+                "description": "Agent code (e.g. A23WJF0199)",
+                "example": "A23WJF0199"
+              },
+              "fingerprint": {
+                "type": "string",
+                "description": "Stable per-device hex string used for session tracking and per-visitor rate limiting. Required.",
+                "example": "<device-fingerprint>"
+              },
+              "model": {
+                "type": "string",
+                "description": "Optional. Request a specific avatar model for the embed session — a model name (`essence-1`, `expression-1`, `essence-2`, `expression-2`) or a force-tier slug that pins one serving tier (`expression-2-gpu/-cpu/-apple`, `essence-2-gpu/-apple/-cpu`; the older `-ane` spelling of the Apple tier stays accepted). This is the **early artifact gate**: if the requested model folds onto the `expression-2` / `essence-2` families and the agent's trained per-identity model hasn't been generated yet, the request is rejected `409 MODEL_NOT_GENERATED` instead of failing later at session dispatch. Unknown values return `400 VALIDATION_ERROR` listing the accepted names. Omitted → the agent's own default model.",
+                "example": "expression-2"
+              }
+            },
+            "required": [
+              "agent_id",
+              "fingerprint"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:226ba562cc31f4420a8486f441f3c8c56cd04663639eea94f95bc59e57a6e229",
+          "parameters": [
+            {
+              "name": "agent_id",
+              "type": "string",
+              "description": "Agent code (e.g. A23WJF0199)",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "fingerprint",
+              "type": "string",
+              "description": "Stable per-device hex string used for session tracking and per-visitor rate limiting. Required.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Optional. Request a specific avatar model for the embed session — a model name (`essence-1`, `expression-1`, `essence-2`, `expression-2`) or a force-tier slug that pins one serving tier (`expression-2-gpu/-cpu/-apple`, `essence-2-gpu/-apple/-cpu`; the older `-ane` spelling of the Apple tier stays accepted). This is the **early artifact gate**: if the requested model folds onto the `expression-2` / `essence-2` families and the agent's trained per-identity model hasn't been generated yet, the request is rejected `409 MODEL_NOT_GENERATED` instead of failing later at session dispatch. Unknown values return `400 VALIDATION_ERROR` listing the accepted names. Omitted → the agent's own default model.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "requestRuntimeToken",
+          "canonical_hash": "sha256:e9316ad72c27f27e98dda45cb39f202fdf8ee01c4ef5fd89ec917f2eb94d767b",
+          "description": "Exchange your API secret for a short-lived runtime token that authorizes one avatar session. The SDKs call this for you; call it directly when building a custom runtime. Free to call; the session it authorizes is billed per `GET /v1/pricing`.\n\n**With `mode`, the same endpoint starts a cloud avatar** in your LiveKit room instead: send `mode`, `agent_id` (or `image` for an Expression 1 photo), `livekit_url`, `livekit_token` and `room_name`. The avatar joins as `bithuman-avatar-agent` and lip-syncs the audio you stream to it. The token, audio and latency rules are on [Cloud avatar without the plugin](https://docs.bithuman.ai/platforms/livekit/cloud-avatar).\n\n**`fingerprint` must be at least 32 characters** when you send it. A shorter one is rejected `400 VALIDATION_ERROR` — a common surprise when a custom runtime passes a short device id. It is optional: leave it out rather than send a short one.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:41ce7e0976d011442befa9feb8f7afa377c284d9cf9189fe540bd0c93d5e8d38",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "revealApiSecret",
+          "canonical_hash": "sha256:7ce468262fdbd7d37cdce6923874d1f8a03c980db10c76a324d7b4b5aef38a72",
+          "description": "Console-only: only the signed-in owner can reveal a stored secret, in\nthe console under Developer → API Secrets. Called with an API secret\nit always returns `403 SECRET_REVEAL_CONSOLE_ONLY`, so one leaked\nsecret cannot read your others.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8d27550de0b25f83258e1b2df56594de1a3d09bd2a2512e05eed383abe8699b9",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "revokeAllRuntimeKeys",
+          "canonical_hash": "sha256:66072ade6ef74c58b04ba611c39ea84794fd7c58729b15066bd7930d2f49d572",
+          "description": "The emergency stop: disables **every** runtime key on the account. Live\nsessions stop within one refresh cycle (about 5 minutes). It does not\ndelete your API secrets; creating a new API secret clears the\nsuspension.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "reason"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "reason": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "Free-text reason."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ef443da8f001edba0d71638743b6ec01f738f59ddcf19d31370503df9b772fce",
+          "parameters": [
+            {
+              "name": "reason",
+              "type": "string",
+              "description": "Free-text reason.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "terminateRuntimeSession",
+          "canonical_hash": "sha256:0fbab285e429494645a908ef789fdda12c78dc9eabe09770ef13f0793d556176",
+          "description": "Stops **one** session; never touches an API secret. The session stops\ncounting toward your plan's concurrent sessions at once.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "reason"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "reason": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "Free-text stop reason.",
+                "default": "user-terminated"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4f2ff3d2a6505ba4dad3907836dd284633dbfbceaca9ef370f46d32b3c06a87a",
+          "parameters": [
+            {
+              "name": "reason",
+              "type": "string",
+              "description": "Free-text stop reason.",
+              "required": false,
+              "default": "user-terminated",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "testWebhook",
+          "canonical_hash": "sha256:c964997a67c35cd23b31d3876c5a6d32a3a0f599fd2f1bb96aa8e51cb5287194",
+          "description": "Deliver a one-off `ping` event to verify the endpoint is reachable.",
+          "is_mutating": false,
+          "property_keys": [
+            "webhook_id"
+          ],
+          "required_keys": [
+            "webhook_id"
+          ],
+          "parameter_types": {
+            "webhook_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "webhook_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "webhook_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:72503c1493cc550cd64666047797129f926549de77c35eb66031dfded72ef475",
+          "parameters": [
+            {
+              "name": "webhook_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "updateAgent",
+          "canonical_hash": "sha256:3bd94670242d84efec2c6bc13d484cbec54e9be57440e617376d961b643c3f5f",
+          "description": "Update an existing agent's system prompt, its provider selection, or\nboth. The agent must already exist (use `POST /v1/agent/generate` to\ncreate one). Send at least one of `system_prompt` and `providers` — a\nbody with neither is rejected `400 MISSING_PARAM`.\n\n**An agent's `name` cannot be set here, and cannot be set at\ncreation either.** Names are generated from the agent's prompt and\nportrait. A body whose only field is `name` changes nothing and\nreturns `400 MISSING_PARAM`; sending `name` alongside `system_prompt`\nupdates the prompt and ignores the name.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "code",
+            "providers",
+            "system_prompt"
+          ],
+          "required_keys": [
+            "code"
+          ],
+          "parameter_types": {
+            "code": "string",
+            "system_prompt": "string",
+            "providers": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "system_prompt": {
+                "type": "string",
+                "description": "New system prompt for the agent.",
+                "example": "You are a professional sales assistant."
+              },
+              "providers": {
+                "type": "object",
+                "description": "Which provider each capability uses for this agent. Give a capability `\"default\"` to use the platform's own provider, or an object `{\"mode\": \"custom\", \"provider_id\": \"<id>\"}` to point it at one you registered yourself. The patch is merged, so a capability you omit keeps its current selection. An unknown capability name, an unusable selection, or a `provider_id` that is not registered on your account is refused `400 VALIDATION_ERROR` at write time with the reason — nothing is stored half-configured.",
+                "additionalProperties": false,
+                "properties": {
+                  "llm": {
+                    "$ref": "#/components/schemas/ProviderSelection"
+                  },
+                  "stt": {
+                    "$ref": "#/components/schemas/ProviderSelection"
+                  },
+                  "tts": {
+                    "$ref": "#/components/schemas/ProviderSelection"
+                  },
+                  "realtime": {
+                    "$ref": "#/components/schemas/ProviderSelection"
+                  }
+                },
+                "example": {
+                  "llm": {
+                    "mode": "custom",
+                    "provider_id": "43c9a2a3-8664-4a33-a66d-77490256e7e1"
+                  },
+                  "tts": "default"
+                }
+              }
+            },
+            "required": [
+              "code"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0acffa4b598d533950ef2b9d4f80fd1159f2c6d22450f78e863ab4978e9cadd9",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "providers",
+              "type": "object",
+              "description": "Which provider each capability uses for this agent. Give a capability `\"default\"` to use the platform's own provider, or an object `{\"mode\": \"custom\", \"provider_id\": \"<id>\"}` to point it at one you registered yourself. The patch is merged, so a capability you omit keeps its current selection. An unknown capability name, an unusable selection, or a `provider_id` that is not registered on your account is refused `400 VALIDATION_ERROR` at write time with the reason — nothing is stored half-configured.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "llm": {
+                  "$ref": "#/components/schemas/ProviderSelection"
+                },
+                "stt": {
+                  "$ref": "#/components/schemas/ProviderSelection"
+                },
+                "tts": {
+                  "$ref": "#/components/schemas/ProviderSelection"
+                },
+                "realtime": {
+                  "$ref": "#/components/schemas/ProviderSelection"
+                }
+              }
+            },
+            {
+              "name": "system_prompt",
+              "type": "string",
+              "description": "New system prompt for the agent.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "updateDynamics",
+          "canonical_hash": "sha256:fee5739bb4fc5f4ff04f08e148e5b78bcea0b6d62dcf94439fd199dfce98df4b",
+          "description": "Update gesture settings for an agent. After a successful update,\nmovements regeneration is automatically triggered in the background.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_id",
+            "dynamics",
+            "toggle_enabled"
+          ],
+          "required_keys": [
+            "agent_id",
+            "dynamics"
+          ],
+          "parameter_types": {
+            "agent_id": "string",
+            "dynamics": "object",
+            "toggle_enabled": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_id": {
+                "type": "string"
+              },
+              "dynamics": {
+                "type": "object",
+                "description": "Dynamics configuration to merge with existing data.\nFields: `enabled` (boolean), `batch_results` (gesture results),\n`result` (model path/hash when generated), `talking` (default model path/hash).\n",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Enable or disable dynamics for this agent."
+                  },
+                  "batch_results": {
+                    "type": "object",
+                    "description": "Map of gesture names to video generation results."
+                  },
+                  "result": {
+                    "type": "object",
+                    "description": "Result model path and hash (set when dynamics generation completes)."
+                  },
+                  "talking": {
+                    "type": "object",
+                    "description": "Default talking model path and hash (used when dynamics are disabled)."
+                  }
+                }
+              },
+              "toggle_enabled": {
+                "type": "boolean",
+                "description": "`true` to switch agent to dynamics model, `false` to restore default talking model.\n"
+              }
+            },
+            "required": [
+              "agent_id",
+              "dynamics"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:64fb4d79d0c36671e0d9e11ebdba1c7650460ba1e4667686ba179bf27dc33229",
+          "parameters": [
+            {
+              "name": "agent_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dynamics",
+              "type": "object",
+              "description": "Dynamics configuration to merge with existing data.\nFields: `enabled` (boolean), `batch_results` (gesture results),\n`result` (model path/hash when generated), `talking` (default model path/hash).\n",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable or disable dynamics for this agent."
+                },
+                "batch_results": {
+                  "type": "object",
+                  "description": "Map of gesture names to video generation results."
+                },
+                "result": {
+                  "type": "object",
+                  "description": "Result model path and hash (set when dynamics generation completes)."
+                },
+                "talking": {
+                  "type": "object",
+                  "description": "Default talking model path and hash (used when dynamics are disabled)."
+                }
+              }
+            },
+            {
+              "name": "toggle_enabled",
+              "type": "boolean",
+              "description": "`true` to switch agent to dynamics model, `false` to restore default talking model.\n",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "updateProviders",
+          "canonical_hash": "sha256:9c6f9f5e3e19ad16c9265b21b25251b573cf476cc6770794130bac5c10aac3f5",
+          "description": "Replaces your provider list: `entries` is the **whole** list, and\n`{\"entries\": []}` clears every provider. Existing entries are matched by\n`id` and merged (unspecified credentials are kept); new entries get a\ngenerated id. Returns the same masked shape as `GET`.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "entries"
+          ],
+          "required_keys": [
+            "entries"
+          ],
+          "parameter_types": {
+            "entries": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "entries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "platform"
+                  ],
+                  "properties": {
+                    "platform": {
+                      "type": "string",
+                      "description": "Provider id, e.g. `openai`, `elevenlabs`, `cartesia`, `grok`."
+                    },
+                    "id": {
+                      "type": "string",
+                      "description": "Existing entry id to update; omit to add a new one."
+                    },
+                    "label": {
+                      "type": "string",
+                      "description": "Display name; defaults to the platform name."
+                    },
+                    "credentials": {
+                      "type": "object",
+                      "description": "Key/value credentials. Sensitive keys are encrypted at rest."
+                    },
+                    "options": {
+                      "type": "object",
+                      "description": "Per-capability configuration."
+                    },
+                    "clearSecrets": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Sensitive credential keys to remove."
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "description": "Freeform metadata."
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "entries"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:510bdc28404c791ce75d45f4f95b7d6530182c445d202e630425ced027f29f57",
+          "parameters": [
+            {
+              "name": "entries",
+              "type": "array",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "uploadFile",
+          "canonical_hash": "sha256:9388b37712cfdf25e99e273eae9ed6c2c1c7e81fa000fff9ef05be523403ead3",
+          "description": "Upload images, videos, audio, or documents — by public URL or as\nbase64. Files are organized by type, and the type is read from the\nfile's own bytes: `file_type` and the filename extension are both\ncross-checked against them, never trusted over them. The response\nreturns a public URL for the stored file.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ccd101a814ce8f22ce6b336b214f81776208a484d3af0c5a6b63045b013cbb87",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "validateApiSecret",
+          "canonical_hash": "sha256:d1bc6bce811d1c9825578926e7cc37440112bd4188b79e2534dd58137044dc95",
+          "description": "Verify that your API secret is valid and your account is active.\n\nAlways returns HTTP 200. Inspect the `valid` field in the body\nto determine outcome — invalid or missing credentials yield\n`{\"valid\": false}` rather than a 401. The secret goes in the\n`api-secret` header; a secret sent as `Authorization: Bearer` is\nnot read and also yields `{\"valid\": false}`.\n",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:accd73906d6d6cb6f472e6f19bc6dbb08095d2c3028d6bb8d3aff5d6d4b1e358",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "validateSelfHostedKey",
+          "canonical_hash": "sha256:d3f8c731c35b592f16293d86a9ae61764088eda7fbd02351ca414a87d4644b08",
+          "description": "The bitHuman SDKs, the CLI and the plugins call this for you when a\nself-hosted session starts and while it runs; you call it only if you\nbuild your own runtime. Deleting a key in the dashboard stops a running\nself-hosted session at its next check.\n\nA runtime treats the three answers differently:\n\n| status | meaning | what a runtime should do |\n|---|---|---|\n| `200` | valid | serve |\n| `401` | **definite**: unknown, revoked or disabled | stop |\n| `503` | we cannot tell right now | retry, keep serving |\n\nA `503` is never a statement about your key: keep serving and retry.\n",
+          "is_mutating": false,
+          "property_keys": [
+            "billing_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "billing_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "billing_type": {
+                "type": "string",
+                "description": "The self-hosted product this runtime serves. Always send\nthe key for the product you run.\n",
+                "example": "self-hosted-essence-2-model"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b70e19b53c8ccef83349956232f98db43755a7f0e9ca77e0a10615120a5d5ef9",
+          "parameters": [
+            {
+              "name": "billing_type",
+              "type": "string",
+              "description": "The self-hosted product this runtime serves. Always send\nthe key for the product you run.\n",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}
