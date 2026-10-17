@@ -1258,3 +1258,127 @@ Implement an automated sync update delta tracker (`src/mcp_fingerprints/delta_tr
 - [x] Daily sync workflow commits update logs and conditionally triggers PyPI release pipeline.
 - [x] Unit tests in `tests/test_delta_tracker.py` pass with 100% coverage.
 
+
+---
+
+## 43. Local Machine MCP Config Discovery & Interactive Inventory (`scan-configs`)
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBf5xA`
+- **Draft Issue ID**: `DI_lAHOD-xmQM4BmPbTzgLZvts`
+- **Category**: Discovery & Client Workflows
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Implement automated configuration discovery (`src/mcp_fingerprints/config_scanner.py`) across local developer workstations. Traverses standard OS and client paths (Claude Desktop, Cursor global `~/.cursor/mcp.json`, project-level `.cursor/mcp.json`, Windsurf, Zed, Cline) to parse declared MCP servers. Connects to and probes active servers via `stdio` or HTTP/SSE, extracts runtime schemas, matches them against the passport knowledge base, and outputs both a clean terminal summary table and a structured JSON schema inventory.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: A developer or security specialist has dozens of MCP servers configured across several IDEs and repositories. They have lost track of which tools are active, what capabilities are exposed, and where they were downloaded from.
+- **What it Finds**: Discovers all declared servers, extracts their live tool contracts, identifies their official package names/versions, and flags unindexed custom servers.
+- **How it Solves It**: Provides a single one-line audit (`mcp-fingerprints scan-configs --auto`) to inventory all local MCP assets instantly.
+
+### 3. Target Files & Documentation to Update
+- `src/mcp_fingerprints/config_scanner.py`
+- `src/mcp_fingerprints/cli.py`
+- `src/mcp_fingerprints/__init__.py`
+- `tests/test_config_scanner.py`
+- `README.md`
+- `docs/tasks/task_43_local_mcp_config_discovery_and_inventory.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] Resolves standard config locations for Claude Desktop, Cursor (global + project), and Windsurf across macOS/Linux/Windows.
+- [ ] Probes live servers and extracts runtime tool contracts.
+- [ ] Matches servers against passport database (`passports.json.gz`).
+- [ ] CLI command `scan-configs` outputs formatted terminal table and optional JSON export.
+- [ ] Unit tests pass with 100% coverage.
+
+---
+
+## 44. Stateful Inventory Snapshot & Differential Drift Tracker
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBf5yM`
+- **Draft Issue ID**: `DI_lAHOD-xmQM4BmPbTzgLZvtw`
+- **Category**: Asset Integrity & Governance
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Implement stateful snapshot persistence and differential comparison (`src/mcp_fingerprints/snapshot_diff.py`). Persists the determined local machine schema inventory to a versioned snapshot file (e.g. `mcp-inventory.json`) and compares subsequent scans against this baseline to report newly added servers, uninstalled servers, and mutated/drifted tool schemas or package versions.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: Over time, local or repository MCP configurations change silently: a git pull introduces a new MCP server, or an auto-updated npm package alters a tool parameter or adds dangerous capabilities without notice.
+- **What it Finds**: Detects additions (`+`), removals (`-`), and contract mutations (drifted parameter types, added parameters, altered descriptions) between runs.
+- **How it Solves It**: Enables pre-commit hooks or local audits (`mcp-fingerprints scan-configs --compare-snapshot baseline.json --fail-on-drift`) to prevent untracked MCP drift.
+
+### 3. Target Files & Documentation to Update
+- `src/mcp_fingerprints/snapshot_diff.py`
+- `src/mcp_fingerprints/cli.py`
+- `src/mcp_fingerprints/__init__.py`
+- `tests/test_snapshot_diff.py`
+- `README.md`
+- `docs/tasks/task_44_stateful_inventory_snapshot_and_drift_tracker.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] `InventorySnapshot` serializes and deserializes local inventory schemas to versioned JSON.
+- [ ] `InventoryDiffer` cleanly surfaces added, removed, and modified servers.
+- [ ] Parametric mutations (added parameters, type changes) are surfaced with exact diffs.
+- [ ] `--fail-on-drift` flag properly returns exit code 2 when drift is detected.
+- [ ] Comprehensive unit tests pass in `tests/test_snapshot_diff.py`.
+
+---
+
+## 45. Dual-Transport Live Prober & Public Python Library SDK
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBf5zM`
+- **Draft Issue ID**: `DI_lAHOD-xmQM4BmPbTzgLZvt0`
+- **Category**: Core Engine & SDK Integration
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Implement native HTTP/SSE and Streamable HTTP probing (`McpHttpProber` in `src/mcp_fingerprints/prober.py`) using Python's standard library (`urllib.request` / `http.client`) with zero heavy networking dependencies. Unify `stdio` and `http` probing under a single interface and expose a public Python SDK (`identify_stdio`, `identify_http`, `McpIdentifier`) in `mcp_fingerprints/__init__.py` for seamless embedding into AI gateways, proxies, and automation harnesses.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: AI gateways (Cloudflare, Portkey, Envoy) and agent harnesses need to identify and verify MCP servers over both local process pipes and remote URLs before routing agent tool requests, without spawning shell CLI commands or pulling in heavy dependencies.
+- **What it Finds**: Queries remote HTTP/SSE endpoints, extracts tool signatures, and matches against the 5,058+ passport index in < 15ms.
+- **How it Solves It**: Provides a clean 3-line Python importable SDK with zero added dependencies.
+
+### 3. Target Files & Documentation to Update
+- `src/mcp_fingerprints/prober.py`
+- `src/mcp_fingerprints/__init__.py`
+- `src/mcp_fingerprints/cli.py`
+- `tests/test_http_prober.py`
+- `README.md`
+- `docs/tasks/task_45_dual_transport_prober_and_python_sdk.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] `McpHttpProber` handles both Streamable HTTP JSON-RPC and SSE streams without third-party dependencies.
+- [ ] Authenticated endpoints supported via custom request headers.
+- [ ] Top-level `mcp_fingerprints` exports `identify_stdio`, `identify_http`, and `McpIdentifier`.
+- [ ] CLI `probe` command seamlessly handles both `--url` and stdio commands.
+- [ ] Unit tests pass in `tests/test_http_prober.py`.
+
+---
+
+## 46. Attribution Enrichment & Multi-Format Reporting
+- **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzhBf50E`
+- **Draft Issue ID**: `DI_lAHOD-xmQM4BmPbTzgLZvt8`
+- **Category**: User Experience & Reporting
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Enrich `ProbeReport` with actionable package metadata from `ServerPackageSpec` (repository URLs, official download/install commands, maintainers, latest registry versions). Implement flexible output formatting across CLI commands: `--format short` (1-to-3 line compact summary for CI / prompt alerts), `--format long` (full schema & drift report), `--format table`, and `--format json`.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: A user probes an unknown MCP command; the tool identifies the package name, but doesn't tell them where the official repository is, how to install it in another client, or whether it's up to date. In CI pipelines, multiline reports clutter the logs.
+- **What it Finds**: Links matches back to the rich passport spec, generating canonical install commands (`npx -y ...`, `pip install ...`) and comparing observed version vs latest registry release.
+- **How it Solves It**: Provides immediate actionable download/repository links and adapts verbosity cleanly (`--format short` vs `--format long`).
+
+### 3. Target Files & Documentation to Update
+- `src/mcp_fingerprints/models.py`
+- `src/mcp_fingerprints/reporter.py`
+- `src/mcp_fingerprints/cli.py`
+- `tests/test_reporter.py`
+- `README.md`
+- `docs/tasks/task_46_enriched_attribution_and_multi_format_reporting.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] `ProbeReport` populates `repository_url`, `install_command`, and `latest_version` from passport specs.
+- [ ] `--format short` outputs clean 3-line terminal summary.
+- [ ] `--format long` provides complete tool schemas and protocol annotations.
+- [ ] `--format table` formats clean ASCII tables of capabilities.
+- [ ] Unit tests in `tests/test_reporter.py` pass.
