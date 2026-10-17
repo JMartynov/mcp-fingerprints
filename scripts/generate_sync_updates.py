@@ -20,14 +20,21 @@ def load_snapshot(path: Path) -> dict[str, Any]:
     else:
         return json.loads(path.read_text(encoding="utf-8")).get("passports", {})
 
-from packaging.version import InvalidVersion, parse as parse_version
+try:
+    from packaging.version import InvalidVersion, parse as parse_version
+except ImportError:
+    parse_version = None
 
 def _safe_version_key(v: dict[str, Any]):
-    v_str = v.get("version", "0.0.0") if isinstance(v, dict) else "0.0.0"
-    try:
-        return parse_version(str(v_str))
-    except (InvalidVersion, TypeError):
-        return parse_version("0.0.0")
+    v_str = str(v.get("version", "0.0.0") if isinstance(v, dict) else "0.0.0")
+    if parse_version is not None:
+        try:
+            return (0, parse_version(v_str))
+        except Exception:
+            pass
+    import re
+    nums = [int(n) for n in re.findall(r"\d+", v_str)]
+    return (1, tuple(nums or [0]))
 
 def compute_updates(old_passports: dict[str, Any], new_passports: dict[str, Any]) -> list[dict[str, Any]]:
     updates = []

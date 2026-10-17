@@ -12,17 +12,24 @@ from typing import Any
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
-from packaging.version import InvalidVersion, parse as parse_version
+try:
+    from packaging.version import InvalidVersion, parse as parse_version
+except ImportError:
+    parse_version = None
 
 logger = logging.getLogger("mcp_fingerprints.web_catalog")
 
 
 def _safe_version_key(v: dict[str, Any]):
-    v_str = v.get("version", "0.0.0") if isinstance(v, dict) else "0.0.0"
-    try:
-        return parse_version(str(v_str))
-    except (InvalidVersion, TypeError):
-        return parse_version("0.0.0")
+    v_str = str(v.get("version", "0.0.0") if isinstance(v, dict) else "0.0.0")
+    if parse_version is not None:
+        try:
+            return (0, parse_version(v_str))
+        except Exception:
+            pass
+    import re
+    nums = [int(n) for n in re.findall(r"\d+", v_str)]
+    return (1, tuple(nums or [0]))
 
 
 def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
