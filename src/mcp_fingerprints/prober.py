@@ -6,6 +6,12 @@ import json
 import logging
 import subprocess
 import time
+import queue
+import threading
+import urllib.parse
+import urllib.request
+from urllib.error import HTTPError, URLError
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -199,3 +205,234 @@ class McpStdioProber:
             resources_observed=resources,
             match_result=match_result,
         )
+
+
+
+class McpHttpProber:
+    """Probes a running or launchable MCP server over HTTP/HTTPS (SSE or Streamable POST)."""
+
+    def __init__(self, matcher: FingerprintMatcher | None = None, **kwargs: Any) -> None:
+        self.matcher = matcher or FingerprintMatcher()
+
+    def probe(
+        self,
+        url: str,
+        headers: dict[str, str] | None = None,
+        timeout: float = 10.0,
+        server_name_hint: str | None = None,
+        min_confidence_threshold: float = 0.65,
+    ) -> ProbeReport:
+        """Connect to HTTP endpoint, conduct MCP handshake, query capabilities, and audit security."""
+        req_headers = {"Content-Type": "application/json"}
+        if headers:
+            req_headers.update(headers)
+
+        tools, prompts, resources = [], [], []
+        
+        # Determine if SSE or Streamable POST
+        # We try a POST first. If it responds with JSON, it's streamable HTTP.
+        # If it returns 404/405 or requires GET, we try SSE.
+        
+        is_sse = False
+        post_url = url
+        sse_response = None
+        sse_queue = queue.Queue()
+        stop_event = threading.Event()
+        
+        # Try SSE handshake
+        try:
+            req = urllib.request.Request(url, headers={"Accept": "text/event-stream", **(headers or {})})
+            resp = urllib.request.urlopen(req, timeout=timeout)
+            if "text/event-stream" in resp.getheader("Content-Type", ""):
+                is_sse = True
+                sse_response = resp
+            else:
+                resp.close()
+        except (URLError, HTTPError):
+            pass
+            
+        def sse_reader():
+            try:
+                for line in sse_response:
+                    if stop_event.is_set():
+                        break
+                    line_str = line.decode("utf-8").strip()
+                    if line_str.startswith("data: "):
+                        data_str = line_str[6:]
+                        # Might be an endpoint event or jsonrpc response
+                        if data_str.startswith("{"):
+                            try:
+                                data = json.loads(data_str)
+                                sse_queue.put(data)
+                            except json.JSONDecodeError:
+                                pass
+                        else:
+                            # Usually endpoint URI comes directly in data for endpoint event
+                            sse_queue.put({"endpoint": data_str})
+            except Exception:
+                pass
+                
+        def send_post(endpoint: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+            req_data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(endpoint, data=req_data, headers=req_headers, method="POST")
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as response:
+                    resp_data = response.read().decode("utf-8")
+                    if not is_sse:
+                        return json.loads(resp_data)
+                    return None
+            except (URLError, HTTPError, json.JSONDecodeError):
+                return None
+                
+        def get_response(msg_id: int, wait_timeout: float = 5.0) -> dict[str, Any] | None:
+            if not is_sse:
+                return None # Should be handled synchronously
+            start = time.time()
+            while time.time() - start < wait_timeout:
+                try:
+                    msg = sse_queue.get(timeout=0.1)
+                    if msg.get("id") == msg_id:
+                        return msg
+                    sse_queue.put(msg) # Put back if not matched
+                except queue.Empty:
+                    pass
+            return None
+
+        try:
+            if is_sse:
+                reader_thread = threading.Thread(target=sse_reader, daemon=True)
+                reader_thread.start()
+                # Wait for endpoint
+                start_wait = time.time()
+                while time.time() - start_wait < timeout:
+                    try:
+                        msg = sse_queue.get(timeout=0.1)
+                        if "endpoint" in msg:
+                            endpoint_path = msg["endpoint"]
+                            if endpoint_path.startswith("http"):
+                                post_url = endpoint_path
+                            else:
+                                parsed_url = urllib.parse.urlparse(url)
+                                # resolve relative to base
+                                if endpoint_path.startswith("/"):
+                                    post_url = f"{parsed_url.scheme}://{parsed_url.netloc}{endpoint_path}"
+                                else:
+                                    post_url = f"{url.rstrip('/')}/{endpoint_path}"
+                            break
+                        sse_queue.put(msg)
+                    except queue.Empty:
+                        pass
+                        
+            # 1. Initialize
+            init_req = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {},
+                    "clientInfo": {"name": "mcp-fingerprints-prober", "version": "1.0.0"},
+                },
+            }
+            
+            init_resp = send_post(post_url, init_req)
+            if is_sse:
+                init_resp = get_response(1, timeout)
+            
+            if not init_resp or "result" not in init_resp:
+                return ProbeReport(
+                    server_command=[url],
+                    connection_successful=False,
+                    error=f"Failed to receive valid initialize response: {init_resp}",
+                )
+
+            # 2. Initialized notification
+            notif = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+            send_post(post_url, notif)
+
+            # 3. Query tools
+            tools_req = {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
+            tools_resp = send_post(post_url, tools_req)
+            if is_sse:
+                tools_resp = get_response(2, timeout)
+            if tools_resp:
+                tools = tools_resp.get("result", {}).get("tools", [])
+
+            # 4. Query prompts
+            prompts_req = {"jsonrpc": "2.0", "id": 3, "method": "prompts/list", "params": {}}
+            prompts_resp = send_post(post_url, prompts_req)
+            if is_sse:
+                prompts_resp = get_response(3, timeout)
+            if prompts_resp:
+                prompts = prompts_resp.get("result", {}).get("prompts", [])
+
+            # 5. Query resources
+            res_req = {"jsonrpc": "2.0", "id": 4, "method": "resources/list", "params": {}}
+            res_resp = send_post(post_url, res_req)
+            if is_sse:
+                res_resp = get_response(4, timeout)
+            if res_resp:
+                resources = res_resp.get("result", {}).get("resources", [])
+
+        except Exception as exc:
+            return ProbeReport(
+                server_command=[url],
+                connection_successful=False,
+                error=str(exc),
+            )
+        finally:
+            stop_event.set()
+            if sse_response:
+                sse_response.close()
+
+        match_result = self.matcher.match(
+            tools=tools,
+            prompts=prompts,
+            resources=resources,
+            server_name_hint=server_name_hint,
+            min_confidence_threshold=min_confidence_threshold,
+        )
+
+        return ProbeReport(
+            server_command=[url],
+            connection_successful=True,
+            tools_observed=tools,
+            prompts_observed=prompts,
+            resources_observed=resources,
+            match_result=match_result,
+        )
+
+class McpProber:
+    """Unified prober routing to either stdio or HTTP depending on target."""
+
+    def __init__(self, matcher: FingerprintMatcher | None = None, **kwargs: Any) -> None:
+        self.matcher = matcher or FingerprintMatcher()
+
+    def probe(
+        self,
+        target: str | list[str],
+        headers: dict[str, str] | None = None,
+        cwd: str | Path | None = None,
+        timeout: float = 10.0,
+        server_name_hint: str | None = None,
+        min_confidence_threshold: float = 0.65,
+    ) -> ProbeReport:
+        if isinstance(target, str) and (target.startswith("http://") or target.startswith("https://")):
+            prober = McpHttpProber(self.matcher)
+            return prober.probe(
+                url=target,
+                headers=headers,
+                timeout=timeout,
+                server_name_hint=server_name_hint,
+                min_confidence_threshold=min_confidence_threshold,
+            )
+        else:
+            cmd = [target] if isinstance(target, str) else target
+            prober = McpStdioProber(self.matcher)
+            return prober.probe(
+                command=cmd,
+                cwd=cwd,
+                timeout=timeout,
+                server_name_hint=server_name_hint,
+                min_confidence_threshold=min_confidence_threshold,
+            )

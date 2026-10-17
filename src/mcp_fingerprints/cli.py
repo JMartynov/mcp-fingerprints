@@ -21,7 +21,7 @@ from mcp_fingerprints.drift_detector import (
 )
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
-from mcp_fingerprints.prober import McpStdioProber
+from mcp_fingerprints.prober import McpProber
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
 from mcp_fingerprints.search import format_search_results, search_passports
 from mcp_fingerprints.snapshot import build_snapshot
@@ -175,6 +175,14 @@ def main() -> None:
     )
     probe_p.add_argument(
         "--dir", default="data/fingerprints", help="Passport data directory"
+    )
+    probe_p.add_argument(
+        "--url", help="HTTP/HTTPS endpoint URL to probe (alternative to stdio command)"
+    )
+    probe_p.add_argument(
+        "--header",
+        action="append",
+        help="Custom HTTP header in 'Key: Value' format (can be specified multiple times)",
     )
     probe_p.add_argument("--server-hint", help="Optional server name hint")
     probe_p.add_argument(
@@ -487,21 +495,32 @@ def main() -> None:
             print("==================================================")
 
     elif args.command == "probe":
+        headers_dict = {}
+        if args.header:
+            for h in args.header:
+                if ":" in h:
+                    k, v = h.split(":", 1)
+                    headers_dict[k.strip()] = v.strip()
+
         cmd = args.cmd
         if cmd and cmd[0] == "--":
             cmd = cmd[1:]
-        if not cmd:
+            
+        target = args.url if args.url else cmd
+
+        if not target:
             print(
-                "ERROR: No server command specified. Usage: mcp-fingerprints probe -- <command> [args...]"
+                "ERROR: No server target specified. Usage: mcp-fingerprints probe --url <URL> OR mcp-fingerprints probe -- <command> [args...]"
             )
             sys.exit(1)
 
         matcher = FingerprintMatcher()
         matcher.load_from_directory(args.dir)
-        prober = McpStdioProber(matcher)
+        prober = McpProber(matcher)
 
         report = prober.probe(
-            command=cmd,
+            target=target,
+            headers=headers_dict if args.url else None,
             timeout=args.timeout,
             server_name_hint=args.server_hint,
             min_confidence_threshold=args.threshold,
