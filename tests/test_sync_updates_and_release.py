@@ -129,6 +129,50 @@ def test_daily_sync_workflow_hardened():
     assert "python scripts/generate_sync_updates.py --old previous_passports.json.gz --new passports.json.gz --version" in content
 
 
+def test_sync_updates_script_computes_new_version_with_multiple_semver(tmp_path):
+    old_data = {
+        "passports": {
+            "existing-server": {
+                "package_name": "existing-server",
+                "ecosystem": "npm",
+                "versions": [
+                    {"version": "1.0.0", "tool_signatures": [{"name": "tool1"}]},
+                    {"version": "0.9.0", "tool_signatures": [{"name": "tool0"}]},
+                ]
+            }
+        }
+    }
+    
+    new_data = {
+        "passports": {
+            "existing-server": {
+                "package_name": "existing-server",
+                "ecosystem": "npm",
+                "versions": [
+                    {"version": "1.0.0", "tool_signatures": [{"name": "tool1"}]},
+                    {"version": "0.9.0", "tool_signatures": [{"name": "tool0"}]},
+                    {"version": "1.0.11", "tool_signatures": [{"name": "tool1"}, {"name": "tool2"}]},
+                    {"version": "1.0.2", "tool_signatures": [{"name": "tool1"}]},
+                ]
+            }
+        }
+    }
+    
+    old_file = tmp_path / "old.json"
+    new_file = tmp_path / "new.json"
+    
+    old_file.write_text(json.dumps(old_data))
+    new_file.write_text(json.dumps(new_data))
+    
+    from scripts.generate_sync_updates import compute_updates, load_snapshot
+    
+    updates = compute_updates(load_snapshot(old_file), load_snapshot(new_file))
+    
+    assert len(updates) == 1
+    assert updates[0]["name"] == "existing-server"
+    assert "NEW VERSION" in updates[0]["badges"]
+    assert "+1 TOOLS ADDED" in updates[0]["badges"]
+
 def test_updates_modal_class_and_history_update(tmp_path):
     # Verify updates.html configModal has modal class
     html = Path("web/updates.html").read_text(encoding="utf-8")

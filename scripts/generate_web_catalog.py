@@ -24,12 +24,12 @@ def _safe_version_key(v: dict[str, Any]):
     v_str = str(v.get("version", "0.0.0") if isinstance(v, dict) else "0.0.0")
     if parse_version is not None:
         try:
-            return (0, parse_version(v_str))
+            return (1, parse_version(v_str))
         except Exception:
             pass
     import re
     nums = [int(n) for n in re.findall(r"\d+", v_str)]
-    return (1, tuple(nums or [0]))
+    return (0, tuple(nums or [0]))
 
 
 def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
