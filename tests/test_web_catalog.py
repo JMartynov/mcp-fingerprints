@@ -242,3 +242,31 @@ def test_build_catalog_entry_semver_sorting():
     assert [v["version"] for v in entry["versions"]] == ["1.0.11", "1.0.2", "1.0.0"]
     assert entry["tools"][0]["name"] == "tool_v11"
 
+def test_build_catalog_entry_semver_edge_cases():
+    passport = {
+        "package_name": "edge-case-pkg",
+        "ecosystem": "npm",
+        "versions": [
+            {"version": "1.0.0-alpha", "tool_signatures": [{"name": "tool_alpha"}]},
+            {"version": "1.0.0", "tool_signatures": [{"name": "tool_v1"}]},
+            {"version": "dev-build", "tool_signatures": [{"name": "tool_dev"}]},
+            {"version": "2.0.0-rc.2", "tool_signatures": [{"name": "tool_rc2"}]},
+        ],
+    }
+    entry = build_catalog_entry(passport)
+    assert entry["version"] == "2.0.0-rc.2"
+    assert entry["latest_version"] == "2.0.0-rc.2"
+    assert [v["version"] for v in entry["versions"]] == ["2.0.0-rc.2", "1.0.0", "1.0.0-alpha", "dev-build"]
+    assert entry["tools"][0]["name"] == "tool_rc2"
+
+def test_build_catalog_entry_missing_versions():
+    passport = {
+        "package_name": "missing-ver-pkg",
+        "ecosystem": "npm",
+    }
+    entry = build_catalog_entry(passport)
+    assert entry["version"] == "1.0.0"
+    assert entry["latest_version"] == "1.0.0"
+    assert entry["versions"] == []
+    assert entry["tools"] == []
+
