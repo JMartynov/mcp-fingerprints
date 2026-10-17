@@ -136,8 +136,8 @@ mcp-fingerprints scan-configs --compare-snapshot .mcp-baseline.json --fail-on-dr
 
 ### 6. Clear Acceptance Criteria & Test Plan
 
-- [ ] `InventorySnapshot` correctly serializes all server tool contracts, hashes, and client origins.
-- [ ] `InventoryDiffer` identifies added, removed, and modified servers accurately.
-- [ ] Parametric mutations (added parameters, type changes, description shifts) are surfaced in detail.
-- [ ] `--fail-on-drift` flag properly returns exit code 2 when differences are found, exit code 0 when identical.
-- [ ] Unit tests in `tests/test_snapshot_diff.py` pass with comprehensive mock diff fixtures.
+- [x] `InventorySnapshot` correctly serializes all server tool contracts, hashes, and client origins.
+- [x] `InventoryDiffer` identifies added, removed, and modified servers accurately.
+- [x] Parametric mutations (added parameters, type changes, description shifts) are surfaced in detail.
+- [x] `--fail-on-drift` flag properly returns exit code 2 when differences are found, exit code 0 when identical.
+- [x] Unit tests in `tests/test_snapshot_diff.py` pass with comprehensive mock diff fixtures.
