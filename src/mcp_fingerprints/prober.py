@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from packaging.version import parse as parse_version
+
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import FingerprintMatchResult
 
@@ -33,6 +35,12 @@ class ProbeReport:
     resources_observed: list[dict[str, Any]] = field(default_factory=list)
     match_result: FingerprintMatchResult | None = None
     error: str | None = None
+    repository_url: str | None = None
+    homepage_url: str | None = None
+    install_command: str | None = None
+    author: str | None = None
+    latest_version: str | None = None
+    is_outdated: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -43,6 +51,12 @@ class ProbeReport:
             "resources_count": len(self.resources_observed),
             "match": self.match_result.to_dict() if self.match_result else None,
             "error": self.error,
+            "repository_url": self.repository_url,
+            "homepage_url": self.homepage_url,
+            "install_command": self.install_command,
+            "author": self.author,
+            "latest_version": self.latest_version,
+            "is_outdated": self.is_outdated,
         }
 
 
@@ -87,6 +101,8 @@ class McpStdioProber:
                 mod_name = package_name.replace("-", "_")
                 return ["python", "-m", mod_name]
             return ["uvx", package_name]
+        elif eco == "docker":
+            return ["docker", "run", "-i", "--rm", package_name]
         return ["npx", "-y", package_name]
 
     def probe_package(
@@ -197,7 +213,7 @@ class McpStdioProber:
             min_confidence_threshold=min_confidence_threshold,
         )
 
-        return ProbeReport(
+        report = ProbeReport(
             server_command=command,
             connection_successful=True,
             tools_observed=tools,
@@ -206,6 +222,24 @@ class McpStdioProber:
             match_result=match_result,
         )
 
+        if match_result.matched and match_result.package_name:
+            pkg_spec = self.matcher.fast_index.find_package_by_hint_or_alias(match_result.package_name)
+            if pkg_spec:
+                report.repository_url = pkg_spec.repository_url
+                report.homepage_url = pkg_spec.homepage_url
+                report.author = pkg_spec.author
+                report.install_command = " ".join(self.build_package_command(pkg_spec.package_name, pkg_spec.ecosystem))
+                
+                if pkg_spec.versions:
+                    try:
+                        latest_ver = max(pkg_spec.versions, key=lambda v: parse_version(v.version))
+                        report.latest_version = latest_ver.version
+                        if match_result.matched_version:
+                            report.is_outdated = parse_version(match_result.matched_version) < parse_version(report.latest_version)
+                    except Exception:
+                        pass
+                        
+        return report
 
 
 class McpHttpProber:

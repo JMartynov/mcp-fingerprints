@@ -195,7 +195,16 @@ def main() -> None:
         help="Connection and RPC timeout in seconds",
     )
     probe_p.add_argument(
-        "--json", action="store_true", help="Output full probe report as JSON"
+        "--json", action="store_true", help="Output full probe report as JSON (deprecated, use --format json)"
+    )
+    probe_p.add_argument(
+        "--format", "-f", choices=["short", "long", "table", "json"], default="long", help="Output format"
+    )
+    probe_p.add_argument(
+        "-s", "--short", action="store_true", help="Shortcut for --format short"
+    )
+    probe_p.add_argument(
+        "-l", "--long", action="store_true", help="Shortcut for --format long"
     )
     probe_p.add_argument(
         "cmd",
@@ -526,31 +535,16 @@ def main() -> None:
             min_confidence_threshold=args.threshold,
         )
 
+        fmt = args.format
         if args.json:
-            print(json.dumps(report.to_dict(), indent=2))
-        else:
-            print("==================================================")
-            print("         LIVE MCP SERVER AUDIT REPORT             ")
-            print("==================================================")
-            print(f"Command:            {' '.join(report.server_command)}")
-            print(
-                f"Connection:         {'SUCCESS' if report.connection_successful else 'FAILED'}"
-            )
-            if report.error:
-                print(f"Error:              {report.error}")
-            print(f"Observed Tools:     {len(report.tools_observed)}")
-            print(f"Observed Prompts:   {len(report.prompts_observed)}")
-            print(f"Observed Resources: {len(report.resources_observed)}")
-            print("--------------------------------------------------")
-            if report.match_result and report.match_result.matched:
-                print(f"Identified Package: {report.match_result.package_name}")
-                print(f"Identified Version: {report.match_result.matched_version}")
-                print(
-                    f"Confidence:         {report.match_result.confidence_score * 100:.1f}% ({report.match_result.match_layer})"
-                )
-            else:
-                print("Identified Package: UNKNOWN (Confidence below threshold)")
-            print("==================================================")
+            fmt = "json"
+        elif getattr(args, "short", False):
+            fmt = "short"
+        elif getattr(args, "long", False):
+            fmt = "long"
+
+        from mcp_fingerprints.reporter import format_probe_report
+        print(format_probe_report(report, format_type=fmt))
 
     elif args.command == "build-index":
         script_path = (
