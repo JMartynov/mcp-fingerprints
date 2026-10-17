@@ -7,6 +7,7 @@
 [![Test Suite](https://img.shields.io/badge/tests-252_passing-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Web Directory](https://img.shields.io/badge/Web_Directory-Live_Catalog-38bdf8?style=flat-square&logo=googlechrome)](https://jmartynov.github.io/mcp-fingerprints/)
+[![What's New](https://img.shields.io/badge/What's_New-Latest_Sync_Updates-22c55e?style=flat-square&logo=git)](https://jmartynov.github.io/mcp-fingerprints/updates.html)
 
 An open-source, automated database and knowledge base of **Model Context Protocol (MCP)** server passports, version signatures, and tool contract fingerprints.
 
