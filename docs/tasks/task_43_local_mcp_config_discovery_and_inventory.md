@@ -105,8 +105,8 @@ print(f"Discovered {len(inventory.servers)} active MCP servers.")
 
 ### 6. Clear Acceptance Criteria & Test Plan
 
-- [ ] `ClientConfigLocator` correctly resolves default paths for Claude Desktop and Cursor across OS environments.
-- [ ] `scan-configs` parses standard `mcpServers` JSON structures with command/args and url/headers.
-- [ ] Probing matches identified packages against `passports.json.gz`.
-- [ ] CLI supports `--format table`, `--format json`, and `--output <path>`.
-- [ ] Unit tests in `tests/test_config_scanner.py` with mock configuration files pass with 100% coverage.
+- [x] `ClientConfigLocator` correctly resolves default paths for Claude Desktop and Cursor across OS environments.
+- [x] `scan-configs` parses standard `mcpServers` JSON structures with command/args and url/headers.
+- [x] Probing matches identified packages against `passports.json.gz`.
+- [x] CLI supports `--format table`, `--format json`, and `--output <path>`.
+- [x] Unit tests in `tests/test_config_scanner.py` with mock configuration files pass with 100% coverage.
