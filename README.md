@@ -42,6 +42,91 @@ Export an MCP server configuration for Cursor:
 python3 -m mcp_fingerprints.cli export-config @modelcontextprotocol/server-postgres --client cursor
 ```
 
+## Live Probing, Workstation Inventory & Drift Tracking
+
+### The Problem It Solves
+Developers, SecOps analysts, and platform engineers often have dozens of MCP servers configured across Claude Desktop, Cursor, and Windsurf, or connecting AI agents to remote HTTP/SSE endpoints. Over time, teams lose track of:
+- **Identity & Provenance**: What exact software package is running behind a command or URL, and where was it downloaded from?
+- **Shadow MCP Assets**: Which MCP servers are quietly installed in developer configuration files?
+- **Silent Contract Drift**: Did an automated package upgrade change tool descriptions or inject new parameters without notice?
+
+`mcp-fingerprints` provides a complete detection and inventory suite available as both a **CLI tool** and an **importable Python SDK**.
+
+### 1. Workstation MCP Inventory (`scan-configs`)
+Automatically discovers configuration files across Claude Desktop (`claude_desktop_config.json`), Cursor (global `~/.cursor/mcp.json` and project `.cursor/mcp.json`), and Windsurf, probes active servers, and determines their identities:
+
+```bash
+# Auto-discover and audit all local MCP configurations
+mcp-fingerprints scan-configs --auto
+
+# Export a consolidated JSON schema inventory of all local MCP tools
+mcp-fingerprints scan-configs --auto --output mcp-inventory.json
+```
+
+**Python SDK:**
+```python
+from mcp_fingerprints import scan_local_configs
+
+inventory = scan_local_configs(probe_live=True)
+for server in inventory.servers:
+    print(f"[{server.client_name}] {server.server_name}: {server.package_name} ({server.version})")
+    print(f"  Tools: {', '.join(t.name for t in server.tools)}")
+```
+
+### 2. Stateful Run-to-Run Drift Tracking (`--compare-snapshot`)
+Establish a baseline snapshot of your local MCP tools and catch unauthorized modifications, deleted servers, or drifted tool contracts:
+
+```bash
+# 1. Save an initial baseline snapshot
+mcp-fingerprints scan-configs --auto --save-snapshot mcp-baseline.json
+
+# 2. Check for drift on subsequent runs (or in CI/CD pre-commit hooks)
+mcp-fingerprints scan-configs --auto --compare-snapshot mcp-baseline.json --fail-on-drift
+```
+
+**Sample Differential Drift Output:**
+```text
+======================================================================
+               LOCAL MCP INVENTORY DRIFT REPORT
+======================================================================
+➕ ADDED SERVERS (1):
+  • [Cursor] github-tools -> @modelcontextprotocol/server-github (v0.6.0)
+
+🔄 MODIFIED / DRIFTED SERVERS (1):
+  • [Claude] postgres -> @modelcontextprotocol/server-postgres
+    - Version: 0.6.1 -> 0.6.2 (Upgraded)
+    - Tool Contract Mutations:
+      * 'read_query': Parameter 'timeout_ms' added (type: integer, optional)
+======================================================================
+```
+
+### 3. Dual-Transport Live Probing & Attribution (`stdio` + `http`)
+Connect to any live MCP server via local subprocess (`stdio`) or remote URL (`http`/`sse`), identify what it is, and retrieve its official repository and download instructions:
+
+```bash
+# Probe local server with concise 3-line summary
+mcp-fingerprints probe --format short -- npx -y @modelcontextprotocol/server-postgres postgresql://localhost/db
+
+# Probe remote HTTP/SSE endpoint
+mcp-fingerprints probe --url http://localhost:8000/sse --format long
+
+# Authenticated remote endpoint
+mcp-fingerprints probe --url https://api.example.com/mcp --header "Authorization: Bearer mytoken"
+```
+
+**Python SDK:**
+```python
+from mcp_fingerprints import identify_stdio, identify_http
+
+# Identify local subprocess
+report = identify_stdio(["uvx", "mcp-server-git"])
+print(f"Verified: {report.package_name} ({report.repository_url})")
+
+# Identify remote HTTP/SSE endpoint
+remote = identify_http("https://mcp.internal.acme.com/sse")
+print(f"Remote Server: {remote.package_name} v{remote.version}")
+```
+
 ## Enriched Tool Parameter Schemas & Protocol Annotations
 
 MCP Fingerprints extracts rich parameter schemas and runtime protocol hints directly from server source ASTs:
