@@ -29,9 +29,40 @@ from mcp_fingerprints.snapshot_diff import compare_snapshots, InventorySnapshot
 
 __version__ = "1.0.1"
 
+from mcp_fingerprints.prober import McpProber, ProbeReport
+
+class McpIdentifier:
+    """Top-level unified MCP identifier for stdio and HTTP."""
+    def __init__(self, passports_dir: str | None = None):
+        from mcp_fingerprints.matcher import FingerprintMatcher
+        from pathlib import Path
+        
+        self.matcher = FingerprintMatcher()
+        if passports_dir:
+            self.matcher.load_from_directory(Path(passports_dir))
+        else:
+            # Try default if exists
+            default_dir = Path("data/fingerprints")
+            if default_dir.exists():
+                self.matcher.load_from_directory(default_dir)
+        self.prober = McpProber(self.matcher)
+
+def identify_stdio(command: list[str], timeout: float = 10.0, passports_dir: str | None = None, **kwargs) -> ProbeReport:
+    """Identify a local subprocess over stdio."""
+    identifier = McpIdentifier(passports_dir)
+    return identifier.prober.probe(target=command, timeout=timeout, **kwargs)
+
+def identify_http(url: str, headers: dict[str, str] | None = None, timeout: float = 10.0, passports_dir: str | None = None, **kwargs) -> ProbeReport:
+    """Identify a remote server over HTTP/SSE."""
+    identifier = McpIdentifier(passports_dir)
+    return identifier.prober.probe(target=url, headers=headers, timeout=timeout, **kwargs)
+
 __all__ = [
     "compare_snapshots",
     "InventorySnapshot",
+    "McpIdentifier",
+    "identify_stdio",
+    "identify_http",
     "FingerprintGenerator",
     "FingerprintMatchResult",
     "FingerprintMatcher",

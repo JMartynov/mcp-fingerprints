@@ -109,8 +109,8 @@ print(f"Server: {remote.package_name} - {remote.repository_url}")
 
 ### 6. Clear Acceptance Criteria & Test Plan
 
-- [ ] `McpHttpProber` handles both Streamable HTTP JSON-RPC and SSE streams without third-party dependencies.
-- [ ] Custom headers (such as Authorization tokens) are correctly injected into HTTP requests.
-- [ ] Top-level `mcp_fingerprints` exports `identify_stdio`, `identify_http`, and `McpIdentifier`.
-- [ ] CLI `probe` command seamlessly handles both `--url` and stdio commands.
-- [ ] Mock HTTP/SSE server test fixtures in `tests/test_http_prober.py` pass with 100% reliability.
+- [x] `McpHttpProber` handles both Streamable HTTP JSON-RPC and SSE streams without third-party dependencies.
+- [x] Custom headers (such as Authorization tokens) are correctly injected into HTTP requests.
+- [x] Top-level `mcp_fingerprints` exports `identify_stdio`, `identify_http`, and `McpIdentifier`.
+- [x] CLI `probe` command seamlessly handles both `--url` and stdio commands.
+- [x] Mock HTTP/SSE server test fixtures in `tests/test_http_prober.py` pass with 100% reliability.
