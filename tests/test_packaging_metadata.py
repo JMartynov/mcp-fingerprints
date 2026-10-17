@@ -1,6 +1,9 @@
 import os
 import yaml
-import tomli
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 
 def test_pyproject_toml_metadata():
@@ -9,7 +12,7 @@ def test_pyproject_toml_metadata():
     assert os.path.exists(pyproject_path)
 
     with open(pyproject_path, "rb") as f:
-        pyproject = tomli.load(f)
+        pyproject = tomllib.load(f)
 
     project = pyproject.get("project", {})
 
