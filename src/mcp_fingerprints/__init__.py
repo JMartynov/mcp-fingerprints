@@ -15,6 +15,7 @@ from mcp_fingerprints.distance import (
     compute_version_topology_similarity,
     jaccard_similarity,
 )
+from mcp_fingerprints.config_scanner import ConfigScanner, LocalInventoryReport
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import (
     FingerprintMatchResult,
@@ -57,6 +58,17 @@ def identify_http(url: str, headers: dict[str, str] | None = None, timeout: floa
     identifier = McpIdentifier(passports_dir)
     return identifier.prober.probe(target=url, headers=headers, timeout=timeout, **kwargs)
 
+def scan_local_configs(probe_live: bool = True) -> LocalInventoryReport:
+    """Scans all standard system paths for known MCP client configurations."""
+    scanner = ConfigScanner()
+    return scanner.scan(probe_live=probe_live)
+
+def scan_config_file(path, probe_live: bool = True) -> LocalInventoryReport:
+    """Scans a single configuration file."""
+    from pathlib import Path
+    scanner = ConfigScanner()
+    return scanner.scan_file(Path(path), probe_live=probe_live)
+
 __all__ = [
     "compare_snapshots",
     "InventorySnapshot",
@@ -79,4 +91,8 @@ __all__ = [
     "compute_version_topology_similarity",
     "extract_tool_signature",
     "jaccard_similarity",
+    "ConfigScanner",
+    "LocalInventoryReport",
+    "scan_local_configs",
+    "scan_config_file",
 ]

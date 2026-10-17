@@ -10,6 +10,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from mcp_fingerprints.config_scanner import ConfigScanner
 from mcp_fingerprints.config_exporter import (
     export_all_client_configs,
     export_client_config,
@@ -83,6 +84,8 @@ def main() -> None:
     subparsers.add_parser(
         "init", help="Run interactive setup wizard to bootstrap configuration"
     )
+
+
 
     # Sync
     sync_p = subparsers.add_parser(
@@ -347,13 +350,19 @@ def main() -> None:
         help="Scan local configuration files, build inventory, and detect schema drift.",
     )
     scan_configs_p.add_argument(
-        "--auto", action="store_true", help="Automatically search all standard system paths for known clients"
+        "--auto", action="store_true", default=True, help="Automatically search all standard system paths for known clients (default: True)"
+    )
+    scan_configs_p.add_argument(
+        "--no-auto", dest="auto", action="store_false", help="Disable automatic search of system paths"
     )
     scan_configs_p.add_argument(
         "--path", help="Scan a specific configuration file or directory."
     )
     scan_configs_p.add_argument(
         "--probe-live", action="store_true", default=True, help="Actively launch/connect to each declared server to verify live schemas (default: True)"
+    )
+    scan_configs_p.add_argument(
+        "--no-probe-live", dest="probe_live", action="store_false", help="Skip live probing"
     )
     scan_configs_p.add_argument(
         "--format", choices=["table", "json", "markdown", "summary", "detailed"], default="table", help="Output formatting option"
@@ -377,6 +386,125 @@ def main() -> None:
         from mcp_fingerprints.wizard import run_init_wizard
 
         run_init_wizard()
+    elif args.command == "scan-configs":
+        import mcp_fingerprints.snapshot_diff as snapshot_diff
+        from mcp_fingerprints.config_scanner import ConfigScanner, LocalInventoryReport
+
+        paths = None
+        if args.path:
+            paths = [Path(args.path)]
+        elif not args.auto:
+            logger.error("Must specify --path if --no-auto is used.")
+            sys.exit(1)
+
+        if args.path:
+            from mcp_fingerprints import scan_config_file
+            report = scan_config_file(args.path, probe_live=args.probe_live)
+        else:
+            from mcp_fingerprints import scan_local_configs
+            report = scan_local_configs(probe_live=args.probe_live)
+
+        if isinstance(report, snapshot_diff.InventorySnapshot):
+            inventory = report
+        elif isinstance(report, LocalInventoryReport):
+            discovered = []
+            for s in report.servers:
+                c_name = Path(s.get("config_source", "")).name or "unknown"
+                discovered.append(snapshot_diff.DiscoveredServer(
+                    server_name=s.get("name", ""),
+                    client_name=c_name,
+                    command=s.get("command"),
+                    args=s.get("args", []),
+                    env=s.get("env", {}),
+                    url=s.get("url"),
+                    headers=s.get("headers", {}),
+                ))
+            inventory = snapshot_diff.InventorySnapshot(servers=discovered)
+        else:
+            inventory = snapshot_diff.InventorySnapshot()
+
+        if args.output:
+            if isinstance(report, LocalInventoryReport):
+                with open(args.output, "w", encoding="utf-8") as f:
+                    json.dump(report.to_dict(), f, indent=2)
+                logger.info(f"Report saved to {args.output}")
+            else:
+                inventory.save(args.output)
+                print(f"Saved local inventory to {args.output}")
+
+        if args.save_snapshot:
+            snapshot_diff.save_inventory_snapshot(inventory, args.save_snapshot)
+            print(f"Saved snapshot to {args.save_snapshot}")
+
+        if args.compare_snapshot:
+            baseline = snapshot_diff.InventorySnapshot.load_file(args.compare_snapshot)
+            diff = snapshot_diff.compare_snapshots(baseline, inventory)
+
+            print("======================================================================")
+            print("               LOCAL MCP INVENTORY DRIFT REPORT")
+            print("======================================================================")
+            print(f"Baseline Snapshot: {args.compare_snapshot} (Captured: {baseline.timestamp})")
+            print(f"Current Scan:      {inventory.timestamp} ({len(inventory.servers)} servers observed)")
+            print("")
+            print(f"➕ ADDED SERVERS ({len(diff.added_servers)}):")
+            if not diff.added_servers:
+                print("  (None)")
+            for s in diff.added_servers:
+                print(f"  • [{s.client_name}] {s.server_name} -> {s.package_name or 'Custom'} (v{s.version or 'unknown'})")
+            print("")
+            print(f"➖ REMOVED SERVERS ({len(diff.removed_servers)}):")
+            if not diff.removed_servers:
+                print("  (None)")
+            for s in diff.removed_servers:
+                print(f"  • [{s.client_name}] {s.server_name}")
+            print("")
+            print(f"🔄 MODIFIED / DRIFTED SERVERS ({len(diff.modified_servers)}):")
+            if not diff.modified_servers:
+                print("  (None)")
+            for m in diff.modified_servers:
+                print(f"  • [{m.client_name}] {m.server_name}")
+                if m.old_version != m.new_version:
+                    print(f"    - Version: {m.old_version} -> {m.new_version}")
+                if m.old_hash != m.new_hash:
+                    print(f"    - Toolset Canonical Hash: Drifted ({m.old_hash} -> {m.new_hash})")
+                if m.changes:
+                    print("    - Tool Contract Mutations:")
+                    for c in m.changes:
+                        print(f"      * {c}")
+
+            print("======================================================================")
+            print(f"Result: {len(diff.added_servers)} server(s) added, {len(diff.modified_servers)} server(s) drifted.")
+
+            if args.fail_on_drift and diff.has_changes:
+                sys.exit(2)
+
+        if isinstance(report, LocalInventoryReport):
+            if args.format == "json":
+                print(json.dumps(report.to_dict(), indent=2))
+            elif args.format == "table":
+                print(f"{'Server Name':<20} | {'Config Source':<40} | {'Command':<20} | {'Status'}")
+                print("-" * 100)
+                for srv in report.servers:
+                    status = "N/A"
+                    if "live_probe" in srv:
+                        status = "Success" if srv["live_probe"].get("connection_successful") else "Failed"
+                    cmd_str = srv.get("command") or srv.get("url") or ""
+                    print(f"{srv.get('name', 'Unknown')[:20]:<20} | {srv.get('config_source', '')[:40]:<40} | {cmd_str[:20]:<20} | {status}")
+            elif args.format == "markdown":
+                print("| Server Name | Config Source | Command | Status |")
+                print("|---|---|---|---|")
+                for srv in report.servers:
+                    status = "N/A"
+                    if "live_probe" in srv:
+                        status = "Success" if srv["live_probe"].get("connection_successful") else "Failed"
+                    cmd_str = srv.get("command") or srv.get("url") or ""
+                    print(f"| {srv.get('name', 'Unknown')} | {srv.get('config_source', '')} | {cmd_str} | {status} |")
+
+            if report.errors:
+                print("\nErrors encountered:")
+                for e in report.errors:
+                    print(f" - {e}")
+
 
     elif args.command == "sync":
         sync = PassportSynchronizer(output_dir=args.output)
@@ -814,70 +942,6 @@ def main() -> None:
             sys.exit(1)
 
 
-
-    elif args.command == "scan-configs":
-        import mcp_fingerprints.snapshot_diff as snapshot_diff
-        
-        # We dummy this out for now to ensure our implementation of compare_snapshots works. 
-        # In a real scenario, this would call config_scanner to generate a target InventorySnapshot.
-        # But we only need to write the drift tracker logic today, and use mock instances.
-        try:
-            # Check if there is already scan_local_configs logic, if not fallback
-            from mcp_fingerprints import scan_local_configs
-            inventory = scan_local_configs(probe_live=args.probe_live)
-        except ImportError:
-            # We mock the current scan to an empty snapshot if config scanner isn't there
-            inventory = snapshot_diff.InventorySnapshot()
-        
-        if args.save_snapshot:
-            snapshot_diff.save_inventory_snapshot(inventory, args.save_snapshot)
-            print(f"Saved snapshot to {args.save_snapshot}")
-        
-        if args.compare_snapshot:
-            baseline = snapshot_diff.InventorySnapshot.load_file(args.compare_snapshot)
-            diff = snapshot_diff.compare_snapshots(baseline, inventory)
-            
-            print("======================================================================")
-            print("               LOCAL MCP INVENTORY DRIFT REPORT")
-            print("======================================================================")
-            print(f"Baseline Snapshot: {args.compare_snapshot} (Captured: {baseline.timestamp})")
-            print(f"Current Scan:      {inventory.timestamp} ({len(inventory.servers)} servers observed)")
-            print("")
-            print(f"➕ ADDED SERVERS ({len(diff.added_servers)}):")
-            if not diff.added_servers:
-                print("  (None)")
-            for s in diff.added_servers:
-                print(f"  • [{s.client_name}] {s.server_name} -> {s.package_name or 'Custom'} (v{s.version or 'unknown'})")
-            print("")
-            print(f"➖ REMOVED SERVERS ({len(diff.removed_servers)}):")
-            if not diff.removed_servers:
-                print("  (None)")
-            for s in diff.removed_servers:
-                print(f"  • [{s.client_name}] {s.server_name}")
-            print("")
-            print(f"🔄 MODIFIED / DRIFTED SERVERS ({len(diff.modified_servers)}):")
-            if not diff.modified_servers:
-                print("  (None)")
-            for m in diff.modified_servers:
-                print(f"  • [{m.client_name}] {m.server_name}")
-                if m.old_version != m.new_version:
-                    print(f"    - Version: {m.old_version} -> {m.new_version}")
-                if m.old_hash != m.new_hash:
-                    print(f"    - Toolset Canonical Hash: Drifted ({m.old_hash} -> {m.new_hash})")
-                if m.changes:
-                    print("    - Tool Contract Mutations:")
-                    for c in m.changes:
-                        print(f"      * {c}")
-            
-            print("======================================================================")
-            print(f"Result: {len(diff.added_servers)} server(s) added, {len(diff.modified_servers)} server(s) drifted.")
-            
-            if args.fail_on_drift and diff.has_changes:
-                sys.exit(2)
-        
-        if args.output:
-            inventory.save(args.output)
-            print(f"Saved local inventory to {args.output}")
 
 
 if __name__ == "__main__":

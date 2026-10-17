@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import time
 import queue
@@ -130,16 +131,21 @@ class McpStdioProber:
         timeout: float = 10.0,
         server_name_hint: str | None = None,
         min_confidence_threshold: float = 0.65,
+        env: dict[str, str] | None = None,
     ) -> ProbeReport:
         """Launch command, conduct MCP handshake, query capabilities, and audit security."""
         proc = None
         try:
+            merged_env = os.environ.copy()
+            if env:
+                merged_env.update(env)
             proc = subprocess.Popen(
                 command,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 cwd=str(cwd) if cwd else None,
+                env=merged_env,
             )
 
             # 1. Initialize
@@ -240,6 +246,10 @@ class McpStdioProber:
                         pass
                         
         return report
+
+    def probe_stdio(self, command: list[str], **kwargs: Any) -> ProbeReport:
+        """Alias for probe(command=...) for compatibility with config_scanner."""
+        return self.probe(command=command, **kwargs)
 
 
 class McpHttpProber:
@@ -435,6 +445,10 @@ class McpHttpProber:
             resources_observed=resources,
             match_result=match_result,
         )
+
+    def probe_http(self, url: str, headers: dict[str, str] | None = None, timeout: float = 10.0, **kwargs: Any) -> ProbeReport:
+        """Alias for probe(url=...) for compatibility with config_scanner."""
+        return self.probe(url=url, headers=headers, timeout=timeout, **kwargs)
 
 class McpProber:
     """Unified prober routing to either stdio or HTTP depending on target."""
