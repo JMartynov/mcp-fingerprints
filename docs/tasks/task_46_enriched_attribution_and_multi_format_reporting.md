@@ -112,8 +112,8 @@ mcp-fingerprints probe --json -- npx -y @modelcontextprotocol/server-sqlite --db
 
 ### 6. Clear Acceptance Criteria & Test Plan
 
-- [ ] `ProbeReport` accurately populates `repository_url`, `install_command`, and `latest_version` from the passport spec.
-- [ ] `--format short` outputs a clean, non-bloated 3-line terminal summary.
-- [ ] `--format long` provides detailed tool schemas, protocol hints, and hash signatures.
-- [ ] `--format table` formats clean ASCII tables of capabilities.
-- [ ] Unit tests in `tests/test_reporter.py` verify all formatters without ANSI escape corruptions.
+- [x] `ProbeReport` accurately populates `repository_url`, `install_command`, and `latest_version` from the passport spec.
+- [x] `--format short` outputs a clean, non-bloated 3-line terminal summary.
+- [x] `--format long` provides detailed tool schemas, protocol hints, and hash signatures.
+- [x] `--format table` formats clean ASCII tables of capabilities.
+- [x] Unit tests in `tests/test_reporter.py` verify all formatters without ANSI escape corruptions.

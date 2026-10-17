@@ -105,6 +105,21 @@ python -m mcp_fingerprints.cli export-config <server_name> --client claude
 python -m mcp_fingerprints.cli detect-drift <config_file>
 ```
 
+## Reporting & Output Formats
+
+Customize the output verbosity to fit your terminal or CI environment:
+
+```bash
+# Concise 3-line summary for quick checks and CI logs
+mcp-fingerprints probe --format short -- npx -y @modelcontextprotocol/server-sqlite --db app.db
+
+# Exhaustive schema and parameter audit report
+mcp-fingerprints probe --format long -- npx -y @modelcontextprotocol/server-sqlite --db app.db
+
+# Structured JSON output for scripting and automation
+mcp-fingerprints probe --json -- npx -y @modelcontextprotocol/server-sqlite --db app.db
+```
+
 ## Releases
 
 ### TestPyPI Dry-Run
