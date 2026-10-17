@@ -104,6 +104,7 @@ def test_workflows_have_correct_triggers():
     assert "scripts/bump_version.py --apply" in daily_sync_content
     assert 'git tag "v${NEW_VERSION}"' in daily_sync_content
     assert "gh release create" in daily_sync_content
-    assert "uses: ./.github/workflows/release.yml" in daily_sync_content
+    assert "pypi-release:" in daily_sync_content
+    assert "pypa/gh-action-pypi-publish" in daily_sync_content
     assert "git status --porcelain data/fingerprints/" in daily_sync_content
     assert "release_created" in daily_sync_content
