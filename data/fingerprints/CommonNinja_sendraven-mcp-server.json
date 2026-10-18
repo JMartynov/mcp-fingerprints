@@ -1,0 +1,577 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "CommonNinja/sendraven-mcp-server",
+  "purl": "pkg:generic/CommonNinja%2Fsendraven-mcp-server",
+  "ecosystem": "generic",
+  "display_name": "CommonNinja/sendraven-mcp-server",
+  "description": "Email infrastructure for AI agents: send, read replies as threads, campaigns, per-key limits.",
+  "author": null,
+  "repository_url": "https://github.com/CommonNinja/sendraven-mcp-server",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "CommonNinja/sendraven-mcp-server"
+  ],
+  "sources_merged": [
+    "github",
+    "github_ast",
+    "official_registry"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "0.4.24",
+      "toolset_canonical_hash": "sha256:54d2d1d5a4646325b747c90426b2e1bc5db7c9c39cb1037a531f5d6bd536645c",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://mcp.sendraven.ai/mcp",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "add_contact",
+          "canonical_hash": "sha256:e5f82744b0d38540449e0025cefee909c41effef7c5c49667ffb64c7a3b48109",
+          "description": "Add someone to an audience. A contact exists once per workspace and can be on any number of audiences, so adding an address that already exists joins them to this list rather than creating a second copy. status records that the person opted out elsewhere — it writes the suppression as well as the flag, and an add never resubscribes someone who opted out here. Someone new to the audience starts any automation triggered by joining it; re-adding an existing member starts nothing. A retry has the same result. import_contacts adds up to 5,000 people in one call.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e75869c4d700538dfa90f63e84349ebea6b70545e3c7a0c339e3fee02f92c379",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "count_segment",
+          "canonical_hash": "sha256:261b029e845794e6892db5fc9179e0b3c0144e297c6a1fcfc684f9b83f2a2c95",
+          "description": "How many contacts a segment currently matches. A filter that matches nobody shows up here as 0, before any campaign is built around it or sent.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3f9d7fe6279d27de665a5c84b938c86705a934068bd8accbac2aea58685bb827",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_automation",
+          "canonical_hash": "sha256:b4f26b4ca29e233f9fa454e3ddee4c314ddbb54e123dcbc797b34844aecafa6e",
+          "description": "Define a multi-step sequence as a draft; nothing is sent until it is activated, from the dashboard or with set_automation_status. Unlike several separately scheduled emails, it ends on its own when the person unsubscribes, replies, bounces, opts out of its topic, or their tags say so. identity_id must be a marketing sending domain (see list_sending_domains; risk_class",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:94bd55a1400bbab531ceabb8bbeafb33f478d5b718cafbe44dc3e46953e018de",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_broadcast",
+          "canonical_hash": "sha256:6a7bf87696f6caac096fcf60fb47402c5e2c3d0c833d47c40ef7b9ddd5acccfd",
+          "description": "Create a campaign as a draft. Nothing is sent: preview_broadcast reports its reach and send_broadcast sends it. identity_id must be a marketing sending domain (see list_sending_domains; risk_class",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:77424c1371a1852e1b1bdbe259f43f17416a2cb49598e4d3aaa7728598db673e",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "decide_approval",
+          "canonical_hash": "sha256:a1905059fad35edfc2f7ec34f5d8d3862276f38e07b947f6a7a79142b31a3c91",
+          "description": "Approve or reject a held message. Approving releases it: it sends now, or at its scheduled_at when the draft was scheduled for later. If every recipient unsubscribed or was suppressed while it waited, nothing is sent and the answer says skipped: true with a reason (both always present: false and null otherwise, beside scheduled_at). The approval hold exists so that a person, not an agent, makes this decision; decided_by records the person who authorised it. The API enforces that with 403 forbidden for: a client connected by signing in (an OAuth access token, which is how a remote MCP connection usually authenticates), the key that drafted the message, and any key with guardrails (requires_approval, allowed_recipients or a daily_send_limit). Approvals are decided by a person in the dashboard or by an API key without guardrails, so after a 403 the decision can only be made in the dashboard; retrying or switching tools does not get past it. 409 invalid_state means it was already decided or has expired; list_pending_approvals shows what is still pending, and a retry answers the same. 409 approval_in_progress means it is being released right now, and its outcome is known a moment later. A release the send path refuses (402 plan_limit_reached or another 402 billing refusal, 422 warmup_limit, 422 no_verified_identity when its sending domain was removed) leaves the approval pending with that error, so it can be approved again once fixed. A held marketing message naming more than one recipient is refused with 422 invalid_request and stays pending: marketing mail carries each recipient",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:062168a6528bac7a67c5d0b5bb501c8729b6a26b58c39b7f913544b4e66885bc",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "delete_contact",
+          "canonical_hash": "sha256:bd08baea894c7bc5b77bff3359393b432954be51eddf3ddbf889b05c49c8d4a4",
+          "description": "Remove a person from the workspace entirely, along with every audience membership. Their suppression and topic preferences are kept on purpose — an opt-out has to outlive the contact record, or the next import silently puts them back on the list. remove_from_audience takes someone off a single audience instead.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:651154d7896837b744547da79d0b8d329e4cabbeb066c3d6ee0ae08ee2c22c5f",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "emit_event",
+          "canonical_hash": "sha256:f747e511d21815e408d39f62cff2b2321fb51ebd8ffb9c4fa4e87d399f7f070c",
+          "description": "Emit a named event, starting every automation that waits on it — for example",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6148e10667b139bb1ded3245cfd38ee0972cb8e54309c5edbbe4fb36c245affa",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "enroll_in_automation",
+          "canonical_hash": "sha256:298997e0914cab1935325185036e348b4bee40d9f68b6053c7eaabd0d6d59b5f",
+          "description": "Put someone into a multi-step sequence. Unlike several separately scheduled emails, the sequence stops on its own if they unsubscribe (from everything or from the automation",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:57da2abfa216cc22f1b8c159c182cdc1e0c9dc51648c67ab9c2f3c6840228571",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "find_contact",
+          "canonical_hash": "sha256:323c2bb8d62965d75b9d596e4e562e65009f440aeba729919a78d02bee012593",
+          "description": "Find a contact by address across every audience, without knowing which list they are on, or list the workspace",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4104859a78b0f8882d9cd5298ce6f85e01e593113f48d96b5f653fac80212dca",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_automation",
+          "canonical_hash": "sha256:c7d0e1684d2a33dfb476ace33f36e03e0cbea54304853149e7c75e903b2c05f1",
+          "description": "Fetch one automation: its status, trigger, steps, exit rules and how many people are in each state. The same object list_automations returns, for a caller that already holds the id. People themselves are listed by list_automation_enrollments. An unknown automation_id answers 404 not_found; a name or slug passed instead is answered with the matching id.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a0208a81566690558eca3e4233922cada8bdac8aa208ca536d4619177c8f6d21",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_broadcast",
+          "canonical_hash": "sha256:304e29a010cd6e77a5d39554bb06b90265fa9cbd5ab837630bcdb858823554d9",
+          "description": "One campaign, with a",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f9e5e9f50eb4519dc2a5482b90b4a254dddc2dfbe9b740838b7b5e13ee24b839",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_contact",
+          "canonical_hash": "sha256:97a05c3f818c2a1d7da4d693aff4ca8164ef7e93d0784e859ae5fc17eeffaa07",
+          "description": "Fetch one contact by id, with their audience memberships, custom properties and engagement dates.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fa3a3df53b185b928d6464d32dffde732766429181079f1ebca1b9cdb7b3ffe3",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "import_contacts",
+          "canonical_hash": "sha256:9cf5788cfebac6fdb40ee54d65be697a2becfa83f0c0a02d3e87afbb6a334d1d",
+          "description": "Import up to 5,000 contacts into an audience in one call, with names, tags, custom properties and subscription status. This is the migration tool: the previous provider",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:eae2c2013952db21bff4930e7b6aa593e4423b6740d62af6292f62b55cd8a43f",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_audiences",
+          "canonical_hash": "sha256:f339ffb13fe767509b126443510be15438906f06627eb69de7d1d6cce5c65e0e",
+          "description": "List contact lists, newest first, with each one",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:50f3dd65182a117268022cab3125488fb20af5f28e6d4e286b3014bbe76bae25",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_automation_enrollments",
+          "canonical_hash": "sha256:bef939925be8cb35cc8d8c9b60b5d86401b809625349771f03f90866f79131cc",
+          "description": "The people in one automation, newest enrolment first: each row has the email, status, current_step, next_due_at and, for a cancelled one, cancel_reason. It answers",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:279756018b1cc9ce6413c7eef34b0493e8ff13de041b77267b9b4b2208c8bf1d",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_automations",
+          "canonical_hash": "sha256:5e0c4ac6c9cc3bf9b823fa2321f4a7beb87702f6ff23597b845b47d15f9d7449",
+          "description": "List multi-step email sequences and how many people are currently in each, with the id each one is enrolled by. Newest first, at most 100 per call; while has_more is true, next_cursor passed back as cursor returns the next page. A",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:96d416d238a6bc05b6d688bdb31cb0f50a23f3430eee620f55507785639e96ae",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_broadcasts",
+          "canonical_hash": "sha256:d7c0ee15f3e9615b545fa0e67b946f0fba35bdbe5daf71274a10cdd0645cc1a3",
+          "description": "List campaigns, newest first, with their status. Paged: at most 100 per call; while has_more is true, next_cursor passed back as cursor returns the next page. Each row is the campaign object get_broadcast returns, live progress and A/B results included, without its html, which only get_broadcast returns. Every field is snake_case and always present, null when unset. A campaign showing",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7826a97ffeea8e3898e94fef817da88bf2370d5a09e4bb9f06b78016cc148ec0",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_pending_approvals",
+          "canonical_hash": "sha256:1893aee7f600d0807bb72fb326eda9304b0eff24fa339bba51a28001ca707f44",
+          "description": "List messages held for human approval, with their full content. A key configured to require approval drafts rather than sends; a person releases it. A send that returned status",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ec50640d72c93a3ab2e08d7499bce6cf741963e96ad6db915ac888760d632224",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_segments",
+          "canonical_hash": "sha256:cd1c01fef951509a51f2706850a221755a78eaad35f18ee89a94a01e173fc751",
+          "description": "List saved audience filters. A campaign created with a segment id, rather than a filter described inline, shares one definition that can be reused and counted.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1c9e3398d42c3617e27e53fb80045c9b4a51162ca2a36cb77f3b5e7341fdc182",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_tags",
+          "canonical_hash": "sha256:628156e1fd32205ae4d35d9509fb1ff1e737cfa8a584ad11cd009ef8683ac660",
+          "description": "Every tag in use in the workspace, with how many contacts carry each. Tags are free-form, so this is the only way to know what exists before applying one.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e4e3e64ed100646a3d7a001c8a0f818d2bf437263ca4a18e76b49f53ecc733be",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "pick_broadcast_winner",
+          "canonical_hash": "sha256:98ccfc7e2f7551e181f77c91485f7ccf97713246a6ad22c965fb34f68a03f1ee",
+          "description": "Decide an A/B test now instead of waiting for decide_at.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:967c4d93cfe49f82d134758d665f3204efd86ac1967afd5e233632ac70c18467",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "preview_broadcast",
+          "canonical_hash": "sha256:64cddaff5170beffee9c8190608c181be26d15a3ef5b80395fc88a35a5bd6d04",
+          "description": "How many contacts a campaign would reach, and whether the reputation gate would allow it. It is the only way to see the size of a campaign without starting it. For an A/B test it also reports the sample size and per-variant count against the 100-per-variant floor; a send below the floor is refused.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6d05cfd93d0cac8564a72f5b84968efe116946a363c38f2d4f2136480294f138",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "remove_from_audience",
+          "canonical_hash": "sha256:95cb2b649d28430a58cee686a4aa9974d7f7136beeca276f4ae79280d3eab8cf",
+          "description": "Take a contact off one audience. They stay in the workspace and keep every other audience, their suppression and their engagement history. delete_contact removes the person entirely — leaving a list and being forgotten are different things.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:10d6d74f001e31d1dd4d0c1543e2ae0ae46f9de244c48d2dad2afb47fb0d26ea",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "resume_broadcast",
+          "canonical_hash": "sha256:95da68164f264ddc29cf428930ff70b522595983a2adb1549cfbee40a5fbc5f9",
+          "description": "Continue a paused campaign now. It mails only the addresses still pending — the audience was frozen when the campaign started and everyone already reached is marked — so calling this twice cannot double-send. Only works on a paused campaign; anything else answers 409 invalid_state. pause_reason says why it paused. A background worker resumes quota, interrupted and suspension pauses on its own, so this only saves waiting. A warm-up pause cannot be resumed before its resume_after (409 invalid_state naming the time) and resumes on its own then; a retry answers the same, because the allowance is protecting the domain. While the workspace has no postal address or is suspended the call answers 422 no_postal_address or workspace_suspended: those need a person, and the campaign continues on its own once they are fixed. An A/B test paused mid-sample resumes the sample; one paused after the decision resumes the winner. Returns the campaign object, as get_broadcast does; progress.pending is how many addresses are still to send.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:17bdb51e0c0213414199b13ddfa22afd895daa0e02aac8a4be794eaf00f50d99",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "send_broadcast",
+          "canonical_hash": "sha256:e423bfe8b46f09ffc827e5b72d42a1056ab939a04077056bc04ff24417377e29",
+          "description": "Send a draft or scheduled campaign now, or schedule it with scheduled_at. This mails every contact in the segment and cannot be undone once started; preview_broadcast shows the count beforehand. Marketing mail must carry a postal address: a workspace without one is refused with 422 no_postal_address (a person adds it in Settings), and a suspended workspace with 422 workspace_suspended, whether sending now or scheduling. Calling this on an already-scheduled campaign with a new scheduled_at moves it; with no scheduled_at it starts now. Any other status answers 409 invalid_state, and a malformed scheduled_at 422 invalid_request. Returns the campaign object, as get_broadcast does: its status and scheduled_at are where the campaign now stands.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0d58af1823f997b02e4dff83d53125046f1a49e7c4490063a52198038c71dd0d",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "set_automation_status",
+          "canonical_hash": "sha256:4b183df2c7fd60c9e04467e07910369839e3a44bc373626d3ef7d191196bfb01",
+          "description": "Activate, pause or return an automation to draft. A new automation is a draft and sends nothing until it is set to",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7483aa8b7c8bf3b62c877614fae81cf1f3e3355934db257a0625ee3090973150",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tag_contact",
+          "canonical_hash": "sha256:9b870eab6f81dca8cf050e0dd315ee8706e77bf1f492de581d71c1e8fd056cf5",
+          "description": "Add or remove tags on a contact. Tags are flat labels — vip, beta, churned — as opposed to custom properties, which are declared fields with a value. They are lower-cased and spaces become hyphens, so VIP and vip are the same tag. Tagging reaches the person across every audience they are on. list_tags returns the tags the workspace already uses, so an existing tag can be reused rather than a synonym created. Adding a tag an automation exits on (e.g. customer), or removing one it requires (e.g. trial), ends the person",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5e2004887ed6725395e86f083e4ccf3c5643d391234911f63647a5f4c950b777",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "update_automation",
+          "canonical_hash": "sha256:a96eb9749c2022750845f1d6ed8e6430b8e0b17136e9e73c357224459a16ef10",
+          "description": "Change the rules that take someone out of a sequence (topic_key, exit_tags, required_tags, exit_on_reply), its reply_to, its reenrollment, or its default_variables (replaces the whole set; {} clears it). Steps and the trigger are fixed once created. A reenrollment change applies from the next enrolment; nobody already enrolled is touched. Fields left out keep their value; a null topic_key or reply_to, or an empty tag list, clears it. People already enrolled see the change from their next step, so a mistaken edit can be put back before it has ended anyone",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5737fb8d66d0e47e02ae68af3bef53d6a4276c1f6ef90d3f19009dd24cf32c34",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "update_contact",
+          "canonical_hash": "sha256:a128a9c24240bb4223b2fa6704cae4a9163bfc3031ba1bbc822a3d270038e7b7",
+          "description": "Update a contact. Attributes are merged, so sending one field does not clear the rest. unsubscribed: true is a real opt-out: it suppresses the address for marketing, cancels their pending sends and ends their automation enrolments. unsubscribed: false lifts a marketing unsubscribe, which is for a person who asked to be resubscribed. Resubscribing someone who hard bounced or complained is refused with 409 invalid_state before anything in the request is written.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a4b06b3de0af095d5b0d7c5c7c98babaa1ebb9d3d70c314fc9b3b645059d3fcf",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

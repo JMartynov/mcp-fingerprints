@@ -1,0 +1,2113 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "A1-x-Tech/mcp-google-merchants",
+  "purl": "pkg:generic/A1-x-Tech%2Fmcp-google-merchants",
+  "ecosystem": "generic",
+  "display_name": "A1-x-Tech/mcp-google-merchants",
+  "description": "MCP server for Google Merchant Center — diagnose disapproved products and manage product data, promotions and reports from an AI app",
+  "author": null,
+  "repository_url": "https://github.com/A1-x-Tech/mcp-google-merchants",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "A1-x-Tech/mcp-google-merchants",
+    "Google Merchant Center MCP",
+    "a1-x-tech/mcp-google-merchants"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.2.0",
+      "toolset_canonical_hash": "sha256:fc984a833d085f4fdc2ed51477b95b01f84d25207b57216e24b149fd919930cd",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "aa1f644a-6862-414f-9382-93983345c767/20cd73ac-9c7b-44ad-9628-57ef7e9b0a1d/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "client_id": {
+                "type": "string",
+                "title": "Client ID",
+                "default": "",
+                "x-order": 0,
+                "description": "Google OAuth 2.0 client ID (refresh-token flow)."
+              },
+              "account_id": {
+                "type": "string",
+                "title": "Account ID",
+                "default": "",
+                "x-order": 3,
+                "description": "Default Merchant Center account ID; tools can override it per call."
+              },
+              "client_secret": {
+                "type": "string",
+                "title": "Client secret",
+                "default": "",
+                "x-order": 1,
+                "description": "Google OAuth 2.0 client secret (refresh-token flow)."
+              },
+              "refresh_token": {
+                "type": "string",
+                "title": "Refresh token",
+                "default": "",
+                "x-order": 2,
+                "description": "OAuth refresh token with scope https://www.googleapis.com/auth/content."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "auth_status",
+          "canonical_hash": "sha256:41f344757b951abb1a01de5b6cf7327360cc2b9fdd3bd1029b9fb60056d10580",
+          "description": "Shows whether this server is connected to Google: token presence and source (env variables or a stored in-chat login), expiry, the Google account email, granted vs missing OAuth scopes, where the cred",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:29f6971f98b6a3e433d5701bdf17e98bd5eac97a5f2ba1bcc575d052569049de",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_data_source",
+          "canonical_hash": "sha256:f6ae1ac0ceca044f471d78dcf28c02d2d77444f7253d0542293127be71affa32",
+          "description": "Creates an API (generic) data source — the target that insert_product_input / update_product_input / insert_promotion need as data_source. Only API sources can be created through the API (file, UI and",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "content_language",
+            "countries",
+            "display_name",
+            "feed_label",
+            "target_country",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "type": "string",
+            "account": "string",
+            "countries": "array",
+            "feed_label": "string",
+            "display_name": "string",
+            "target_country": "string",
+            "content_language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "primary_products",
+                  "supplemental_products",
+                  "promotions"
+                ],
+                "type": "string",
+                "description": "Data source type: primary_products (main product feed), supplemental_products (overrides/extra attributes) or promotions."
+              },
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "countries": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 2
+                },
+                "description": "CLDR country codes the products target. Primary product sources only."
+              },
+              "feed_label": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9\\-_]{1,20}$",
+                "description": "Feed label, e.g. \"US\". Product sources only; set together with content_language."
+              },
+              "display_name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Human-readable data source name shown in Merchant Center."
+              },
+              "target_country": {
+                "type": "string",
+                "pattern": "^[a-zA-Z]{2}$",
+                "description": "CLDR country code, e.g. \"US\". Required for (and only used by) promotions sources."
+              },
+              "content_language": {
+                "type": "string",
+                "pattern": "^[a-zA-Z]{2}$",
+                "description": "Two-letter ISO 639-1 language, e.g. \"en\". Product sources: set together with feed_label or not at all. Required for promotions sources."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:84147bb33c1e53bbc1d8bca8398468ee46da227f843e7292d8409068cda3867b",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "content_language",
+              "type": "string",
+              "description": "Two-letter ISO 639-1 language, e.g. \"en\". Product sources: set together with feed_label or not at all. Required for promotions sources.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "countries",
+              "type": "array",
+              "description": "CLDR country codes the products target. Primary product sources only.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "display_name",
+              "type": "string",
+              "description": "Human-readable data source name shown in Merchant Center.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "feed_label",
+              "type": "string",
+              "description": "Feed label, e.g. \"US\". Product sources only; set together with content_language.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "target_country",
+              "type": "string",
+              "description": "CLDR country code, e.g. \"US\". Required for (and only used by) promotions sources.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "description": "Data source type: primary_products (main product feed), supplemental_products (overrides/extra attributes) or promotions.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "primary_products",
+                "supplemental_products",
+                "promotions"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "delete_product_input",
+          "canonical_hash": "sha256:6f89d8b42970885389045059c0310015454449caf4ec57d42bd161350a1965e0",
+          "description": "Deletes a product input from a specific data source (data_source is required — the same product can exist in several sources, and only the targeted input is removed). product_input is \"contentLanguage",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "data_source",
+            "product_input"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "data_source": "string",
+            "product_input": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "data_source": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed."
+              },
+              "product_input": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Product input ID: \"contentLanguage~feedLabel~offerId\" or the base64url name."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aa7b069abc8fe19121d1c96c4369d40edfd0ad86f1a2467706f6add9e7693720",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "data_source",
+              "type": "string",
+              "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "product_input",
+              "type": "string",
+              "description": "Product input ID: \"contentLanguage~feedLabel~offerId\" or the base64url name.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "fetch_data_source",
+          "canonical_hash": "sha256:2527b292ced1536709253cadad597673351d8e0bbf5114801022681e0c791356",
+          "description": "Triggers an immediate re-fetch (re-read) of a file-based feed outside its regular schedule. Works only for data sources with a file input and fetch settings (scheduled fetch or Google Sheets); calling",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "data_source"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "data_source": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "data_source": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c4f555f344f8ef4b6dfb1e9f0013ae76bd40c1e76d33de65a53399c3520ae80a",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "data_source",
+              "type": "string",
+              "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "finish_login",
+          "canonical_hash": "sha256:9d3868222a68328bcbaba0b3d2a6ce914717441a4646cdedfdaf39c433d01aa6",
+          "description": "Second step: confirms the browser consent finished, saves the tokens to an owner-only file and verifies the login with a read-only identity call, returning the account email and the granted scopes. Af",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:065ff0efb81903b52917b33b24856ca1f2b133e8cc1d49276dbf90bbd89f78a5",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_account",
+          "canonical_hash": "sha256:428ca4b0b63b9ba4b8d81f4e79d7f45144c0c66f600192a9e246a00a941acf61",
+          "description": "Returns a single Merchant Center account: name (accounts/{id}), accountId, accountName, languageCode, timeZone, adultContent and testAccount. Useful to verify the configured account or inspect a sub-a",
+          "is_mutating": false,
+          "property_keys": [
+            "account"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9ca879ed57758b0f409067fe3659f91304693079c8e7536ebeb0c648b2d24017",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_data_source",
+          "canonical_hash": "sha256:998553b28b29639b7cc97719ffc634cd2c8fc98f20eea001b73c3046e68b2708",
+          "description": "Returns one data source by its numeric ID (or full resource name): type, input (API/FILE/UI/AUTOFEED), feed configuration and fetch settings. Check `input` before calling fetch_data_source — only file",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "data_source"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "data_source": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "data_source": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dd08b36b4f00e5a510d03d676fa1dbe335dc0dcf353ba5940ac8fdca33374b96",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "data_source",
+              "type": "string",
+              "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_homepage",
+          "canonical_hash": "sha256:fd3f4b23b8942d72a13c19c917748147357d554d9ad5634966437645da2687bb",
+          "description": "Returns the store homepage of an account: uri and claimed (whether the homepage is verified and claimed by the merchant — a prerequisite for serving offers). An unclaimed homepage is a common reason f",
+          "is_mutating": false,
+          "property_keys": [
+            "account"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:55651847588f2c7f62359a046b90f4e59c31ac444f530d39c256f50662e399d2",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_product",
+          "canonical_hash": "sha256:1a9e91bbfadf3b7931e041041b98fc6c703c3dbdb145cab4f168951d60a4107d",
+          "description": "Returns one processed product including productStatus.itemLevelIssues (code, severity, resolution, description) — the place to see why a product is disapproved. Identify the product either with `produ",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "content_language",
+            "feed_label",
+            "offer_id",
+            "product"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "product": "string",
+            "offer_id": "string",
+            "feed_label": "string",
+            "content_language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "product": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Product ID: \"contentLanguage~feedLabel~offerId\" (e.g. \"en~US~sku123\") or the base64url base64EncodedName. Omit when passing the three components separately."
+              },
+              "offer_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The merchant's offer ID (SKU). Used with content_language + feed_label."
+              },
+              "feed_label": {
+                "type": "string",
+                "maxLength": 20,
+                "minLength": 1,
+                "description": "Feed label, e.g. \"US\". Used with content_language + offer_id."
+              },
+              "content_language": {
+                "type": "string",
+                "pattern": "^[a-zA-Z]{2}$",
+                "description": "Two-letter ISO 639-1 content language, e.g. \"en\". Used with feed_label + offer_id."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ac22c8465210f0d05977fa3b7047ffc1bd88f33c12e91ec6c5629ca57c47ce8f",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "content_language",
+              "type": "string",
+              "description": "Two-letter ISO 639-1 content language, e.g. \"en\". Used with feed_label + offer_id.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "feed_label",
+              "type": "string",
+              "description": "Feed label, e.g. \"US\". Used with content_language + offer_id.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "The merchant's offer ID (SKU). Used with content_language + feed_label.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "product",
+              "type": "string",
+              "description": "Product ID: \"contentLanguage~feedLabel~offerId\" (e.g. \"en~US~sku123\") or the base64url base64EncodedName. Omit when passing the three components separately.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_promotion",
+          "canonical_hash": "sha256:0994b07a5b899a1af8dc272d8ecbc77f3a1e7266d1f0fba911d2f93932c1d1b7",
+          "description": "Returns one promotion including promotionStatus (per-destination approval and itemLevelIssues) — the place to check whether a freshly inserted promotion was approved.",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "promotion"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "promotion": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "promotion": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Promotion ID (the {promotion} segment of the resource name)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b46a894db7961d35c97443ec43363a2a01f4947db4b70ca07b0e48762bdf3244",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "promotion",
+              "type": "string",
+              "description": "Promotion ID (the {promotion} segment of the resource name).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_shipping_settings",
+          "canonical_hash": "sha256:a75907b2e0666734fac345dc1933795dd13c0bd8a10ea6289cdd25a473d98860",
+          "description": "Returns the account-level shipping settings: services[] (delivery countries, delivery times, rate tables and carrier rates), warehouses[] and an etag. Read-only by design: the API's only write is ship",
+          "is_mutating": false,
+          "property_keys": [
+            "account"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c18c51c068d3d5f46d46407958db7b0ebab78b6e8f68b0116b0aa0dbf208ebbe",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "insert_product_input",
+          "canonical_hash": "sha256:ebeece9a4c1f5400f6bcb9129665cb0d2ebdc0ce0ac532959b7d316597ef3a0b",
+          "description": "Uploads (upserts) a product into an API data source: an existing input with the same contentLanguage~feedLabel~offerId in that data source is fully replaced. Requires data_source (an API-type source —",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "content_language",
+            "custom_attributes",
+            "data_source",
+            "feed_label",
+            "offer_id",
+            "product_attributes",
+            "version_number"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "offer_id": "string",
+            "feed_label": "string",
+            "data_source": "string",
+            "version_number": "string",
+            "content_language": "string",
+            "custom_attributes": "array",
+            "product_attributes": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "offer_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The merchant's unique offer ID (SKU)."
+              },
+              "feed_label": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9\\-_]{1,20}$",
+                "description": "Feed label, usually the target country CLDR code, e.g. \"US\" (≤20 chars, no spaces)."
+              },
+              "data_source": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed."
+              },
+              "version_number": {
+                "type": "string",
+                "pattern": "^\\d+$",
+                "description": "Optional int64 freshness guard (as a string): an insert with a lower version than the stored one is rejected."
+              },
+              "content_language": {
+                "type": "string",
+                "pattern": "^[a-zA-Z]{2}$",
+                "description": "Two-letter ISO 639-1 language of the listing, e.g. \"en\"."
+              },
+              "custom_attributes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Custom attribute name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Custom attribute value."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Custom (non-standard) attributes as {name, value} pairs."
+              },
+              "product_attributes": {
+                "type": "object",
+                "description": "Product attributes object: title, description, link, imageLink, price {amountMicros, currencyCode}, availability (in_stock/out_of_stock/preorder/backorder), condition (new/refurbished/used), gtin (array), brand, color, sizes, etc. Attribute names are camelCase.",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1421b4917a8dad7c214353e27e4cdee6f8dd01ba3fdaef068f7a964429ef546e",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "content_language",
+              "type": "string",
+              "description": "Two-letter ISO 639-1 language of the listing, e.g. \"en\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "custom_attributes",
+              "type": "array",
+              "description": "Custom (non-standard) attributes as {name, value} pairs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "data_source",
+              "type": "string",
+              "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "feed_label",
+              "type": "string",
+              "description": "Feed label, usually the target country CLDR code, e.g. \"US\" (≤20 chars, no spaces).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "The merchant's unique offer ID (SKU).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "product_attributes",
+              "type": "object",
+              "description": "Product attributes object: title, description, link, imageLink, price {amountMicros, currencyCode}, availability (in_stock/out_of_stock/preorder/backorder), condition (new/refurbished/used), gtin (array), brand, color, sizes, etc. Attribute names are camelCase.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version_number",
+              "type": "string",
+              "description": "Optional int64 freshness guard (as a string): an insert with a lower version than the stored one is rejected.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "insert_promotion",
+          "canonical_hash": "sha256:2608ac778c23bfdb4f06c700175decc8f5911762c19897324e4986c7e4be0e50",
+          "description": "Creates or updates a promotion. Unlike product writes, the data source travels in the request BODY (the server assembles it). The promotion object requires promotionId, contentLanguage (ISO 639-1), ta",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "data_source",
+            "promotion"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "promotion": "object",
+            "data_source": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "promotion": {
+                "type": "object",
+                "description": "Promotion object. Required: promotionId, contentLanguage, targetCountry, redemptionChannel ([\"ONLINE\"] and/or [\"IN_STORE\"]). Optional: attributes {longTitle, couponValueType, offerType, genericRedemptionCode, promotionEffectiveTimePeriod {startTime, endTime}, productApplicability, moneyOffAmount, percentOff, ...}, customAttributes, versionNumber.",
+                "additionalProperties": {}
+              },
+              "data_source": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2275805db03f3dafcaf69f930c49402d32d8559ccef4fe3d2786aff28d3d6455",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "data_source",
+              "type": "string",
+              "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "promotion",
+              "type": "object",
+              "description": "Promotion object. Required: promotionId, contentLanguage, targetCountry, redemptionChannel ([\"ONLINE\"] and/or [\"IN_STORE\"]). Optional: attributes {longTitle, couponValueType, offerType, genericRedemptionCode, promotionEffectiveTimePeriod {startTime, endTime}, productApplicability, moneyOffAmount, percentOff, ...}, customAttributes, versionNumber.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_accounts",
+          "canonical_hash": "sha256:ee52b684a1e976c2831a630ede6ae31db3c2f005bea1bf8f3bbb7c67a857fbec",
+          "description": "Lists the Merchant Center accounts the authenticated user can access. Returns accounts[] (name, accountId, accountName, languageCode, timeZone, adultContent, testAccount) and nextPageToken. Use it fir",
+          "is_mutating": false,
+          "property_keys": [
+            "filter",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "filter": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Account filter, e.g. accountName = \"*store*\" or relationship(providerId = 123)."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Max results per page (1..500; API default 250)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d1232eaa2ba4c8db4a98bb48e37ed02b7becca920d95202360fdb36df62d98fb",
+          "parameters": [
+            {
+              "name": "filter",
+              "type": "string",
+              "description": "Account filter, e.g. accountName = \"*store*\" or relationship(providerId = 123).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..500; API default 250).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_data_sources",
+          "canonical_hash": "sha256:2cc905de6ae3368b15f1e6ee4ab427f261e6e3faaf1d84de2cea4ea3635de24d",
+          "description": "Lists the data sources of an account. Each has name (accounts/{a}/dataSources/{id}), dataSourceId, displayName, input (API | FILE | UI | AUTOFEED), exactly one type object (primaryProductDataSource, s",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Max results per page (1..1000; API default 25)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a0c804780d5c73a870cdaf9f21c762bc590d25b663a5e7636969f7e2f130ba59",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..1000; API default 25).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_method_quotas",
+          "canonical_hash": "sha256:5b4df5c99b6ee529a5d6d3a1ddbf863ff3099ac41c36462882ac2911526139e1",
+          "description": "Shows the account's Merchant API usage vs limits per method group (quota sub-API): quotaGroups[] with name, quotaUsage, quotaLimit (per day), quotaMinuteLimit and methodDetails[] listing the methods i",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "page_size": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Max quota groups per page."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5ec96a3a26c9012d842c11e80f97ba7f3c369add0437e298af67a37aa3d30a7e",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max quota groups per page.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_product_issues",
+          "canonical_hash": "sha256:e989e6c8539f28765b813ea119a7a923eb9eb556bdb7d7d02ca92c62c22ef236",
+          "description": "Lists aggregate product statuses per reporting context and country (issueresolution sub-API): stats {active, pending, disapproved, expiring counts} plus itemLevelIssues[] with how many products each i",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "filter",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "filter": "string",
+            "account": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Filter on reporting_context and/or country only, e.g. reporting_context = \"SHOPPING_ADS\" AND country = \"US\"."
+              },
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Max results per page (1..1000; API default 25)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bb667c470b1d0e50461405dd9a0d1c4154ad9262d8b0dafb861270556a94f0d2",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "filter",
+              "type": "string",
+              "description": "Filter on reporting_context and/or country only, e.g. reporting_context = \"SHOPPING_ADS\" AND country = \"US\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..1000; API default 25).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_products",
+          "canonical_hash": "sha256:4b3855040c571e0107115db531cddda358d1b12c5b298e7e0bdf2ef74fa552fe",
+          "description": "Lists the processed products of an account, as shown in Merchant Center. Each product has name (accounts/{a}/products/{contentLanguage~feedLabel~offerId} — NO channel segment in v1), offerId, contentL",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Max results per page (1..1000; API default 25)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c9905195958f4ec4c6147394880f0e0c427d506de91ae9ce02058b48aa43cc58",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..1000; API default 25).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_promotions",
+          "canonical_hash": "sha256:2eea4fde47d6819c8409789c7362a42de3a669ecd594f3b299921f7471244252",
+          "description": "Lists the promotions of an account: promotions[] (name, promotionId, contentLanguage, targetCountry, redemptionChannel, attributes, promotionStatus with destination statuses and itemLevelIssues) and n",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 250,
+                "minimum": 1,
+                "description": "Max results per page (1..250; API default 50)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f9290f2ba2d8f81f2c7f7242b60a46de6e9abc3e721678e0e293e0b6636c65cd",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..250; API default 50).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "logout",
+          "canonical_hash": "sha256:fb59139266c24967c21a04daaaf906e5db60d5b95ed907989685c01bbb52cb79",
+          "description": "Revokes the stored token at Google (oauth2.googleapis.com/revoke) and deletes the local credentials file. Tokens supplied via env variables are NOT touched — remove them from the MCP client config man",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:eb12b22224350e6c3b63875b028d85c8a9bd3534ae1039bd5945b0ab4ab578b7",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "price_competitiveness",
+          "canonical_hash": "sha256:e3d4e2b5c8d83616b80de5cc9319091c56d35c2dcc313ca164a46f07ea211e4e",
+          "description": "Convenience wrapper over a canned MCQL query on price_competitiveness_product_view: for each product, your price vs the market benchmark_price (aggregated from comparable offers across merchants) with",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "country",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "country": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "country": {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$",
+                "description": "Two-letter CLDR country code to filter by, e.g. \"US\". Omit for all countries."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 5000,
+                "minimum": 1,
+                "description": "Max results per page (1..5000; API default 1000)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:599086dfbc05b7da4b0615e0e506dc3500ef10003050ce28d2a0e4b6e08c58ff",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "country",
+              "type": "string",
+              "description": "Two-letter CLDR country code to filter by, e.g. \"US\". Omit for all countries.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..5000; API default 1000).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "price_insights",
+          "canonical_hash": "sha256:c554580a56e13ea65e398228c180c644f82fa380ce006c14dda0276eac94665a",
+          "description": "Convenience wrapper over a canned MCQL query on price_insights_product_view: Google's suggested_price per product with the predicted change in impressions, clicks and conversions if you adopt it (pred",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "page_size",
+            "page_token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 5000,
+                "minimum": 1,
+                "description": "Max results per page (1..5000; API default 1000)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f9f2405ccead23b4f20b52a1d2e27728e29e6e73984529773d43a4139cd70097",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..5000; API default 1000).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "raw_request",
+          "canonical_hash": "sha256:30f6d9d29b068c939d183f268f894a747d36c671c955834da0b4f7f6d70b353f",
+          "description": "Escape hatch to call any Merchant API v1 path directly, for endpoints without a dedicated tool (e.g. \"accounts/v1/accounts/123/issues\" or the one-time \"accounts/v1/accounts/123/developerRegistration:r",
+          "is_mutating": false,
+          "property_keys": [
+            "body",
+            "method",
+            "path",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "body": "object",
+            "path": "string",
+            "query": "object",
+            "method": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "object",
+                "description": "JSON request body (POST/PATCH).",
+                "additionalProperties": {}
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Relative API path incl. the sub-API prefix, e.g. \"accounts/v1/accounts/123/issues\"."
+              },
+              "query": {
+                "type": "object",
+                "description": "URL query parameters, e.g. {\"dataSource\": \"accounts/1/dataSources/2\"}.",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "method": {
+                "enum": [
+                  "GET",
+                  "POST",
+                  "PATCH",
+                  "DELETE"
+                ],
+                "type": "string",
+                "description": "HTTP method. Defaults to GET."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:419bedb3c7ed74d4a76eaf0680826eaab0965b0915f794de8a78c9dae4d625e1",
+          "parameters": [
+            {
+              "name": "body",
+              "type": "object",
+              "description": "JSON request body (POST/PATCH).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "method",
+              "type": "string",
+              "description": "HTTP method. Defaults to GET.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "GET",
+                "POST",
+                "PATCH",
+                "DELETE"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "description": "Relative API path incl. the sub-API prefix, e.g. \"accounts/v1/accounts/123/issues\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "object",
+              "description": "URL query parameters, e.g. {\"dataSource\": \"accounts/1/dataSources/2\"}.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_reports",
+          "canonical_hash": "sha256:c3774b75a1ce82ddcfa0abf075397ea2548cf81f7bb8ca4cab3fedef7d93b10d",
+          "description": "Runs a Merchant Center Query Language (MCQL) query via reports:search. Tables: product_view, product_performance_view, price_competitiveness_product_view, price_insights_product_view, non_product_perf",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "page_size",
+            "page_token",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "account": "string",
+            "page_size": "integer",
+            "page_token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "MCQL query, e.g. SELECT offer_id, title, price FROM product_view WHERE availability = 'out of stock'."
+              },
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "page_size": {
+                "type": "integer",
+                "maximum": 5000,
+                "minimum": 1,
+                "description": "Max results per page (1..5000; API default 1000)."
+              },
+              "page_token": {
+                "type": "string",
+                "minLength": 1,
+                "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2ce2bec09ca7b3fd2bab35d9f2f8b94186e921d1e02622a46136f6fe0d991c8e",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_size",
+              "type": "integer",
+              "description": "Max results per page (1..5000; API default 1000).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page_token",
+              "type": "string",
+              "description": "nextPageToken from the previous response. All other parameters must be identical to the previous call.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "MCQL query, e.g. SELECT offer_id, title, price FROM product_view WHERE availability = 'out of stock'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "set_client",
+          "canonical_hash": "sha256:f35cdfdcfa53f61a7064e9a76c56db898520cc3ca63783f5437300de0cddedb3",
+          "description": "Saves the OAuth client credentials from the JSON file downloaded from Google Cloud Console ('Download JSON' on a Desktop-app client). Pass the file PATH — the secret must never be pasted into the chat",
+          "is_mutating": false,
+          "property_keys": [
+            "path"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "path": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Absolute path to the client_secret_*.json file downloaded from Google Cloud Console."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cc1f1485df8286c8fc97a6ef2610c6e7ce970aeb765e3b85a8be002dc94446d8",
+          "parameters": [
+            {
+              "name": "path",
+              "type": "string",
+              "description": "Absolute path to the client_secret_*.json file downloaded from Google Cloud Console.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "setup_instructions",
+          "canonical_hash": "sha256:f3e90ffce078b3747571e46b748e80fe9cfcb22e5fa798e0088d930c996c1f79",
+          "description": "Step-by-step checklist for connecting this server to Google: creating a Google Cloud project and a Desktop-app OAuth client, publishing the consent screen (mandatory — Testing-mode refresh tokens die ",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1bd2d46bfc4d10e5a7d4e737f5e8034ce72cd95a232527b3669b249199b0b25e",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "start_login",
+          "canonical_hash": "sha256:ef349d7d3f33227124b4a9f14235bb352829e940b77eb285a08677840d09b870",
+          "description": "First step of connecting from the chat, without editing config files or restarting the client. Returns authorizeUrl — show it to the user as a clickable link and ask them to open it in the browser ON ",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:262b8167b8d1259369468f05f6187a3d13aac85c9790776497b73f14d1d8949d",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "update_product_input",
+          "canonical_hash": "sha256:4af93a51b8925dd2ec9c70bf1eb27944291293350cd0eb1216e08e38f7260806",
+          "description": "Sparse-updates an existing product input — the cheap way to change price or availability without re-sending the whole product. data_source must be the source holding the input. update_mask is a comma-",
+          "is_mutating": false,
+          "property_keys": [
+            "account",
+            "custom_attributes",
+            "data_source",
+            "product_attributes",
+            "product_input",
+            "update_mask",
+            "version_number"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "account": "string",
+            "data_source": "string",
+            "update_mask": "string",
+            "product_input": "string",
+            "version_number": "string",
+            "custom_attributes": "array",
+            "product_attributes": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "account": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default."
+              },
+              "data_source": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed."
+              },
+              "update_mask": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Comma-separated attribute paths to update, e.g. \"productAttributes.price\". Omit to apply every populated field of this request."
+              },
+              "product_input": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Product input ID: \"contentLanguage~feedLabel~offerId\" or the base64url name."
+              },
+              "version_number": {
+                "type": "string",
+                "pattern": "^\\d+$",
+                "description": "Optional int64 freshness guard (as a string)."
+              },
+              "custom_attributes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Custom attribute name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Custom attribute value."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Custom (non-standard) attributes as {name, value} pairs."
+              },
+              "product_attributes": {
+                "type": "object",
+                "description": "Product attributes to change (camelCase), e.g. {\"price\": {\"amountMicros\": \"8990000\", \"currencyCode\": \"USD\"}, \"availability\": \"out_of_stock\"}.",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c8aa0d5b626ee37cf32911c77a754a67a8c8c936980960ed84cf952ec0cd9805",
+          "parameters": [
+            {
+              "name": "account",
+              "type": "string",
+              "description": "Merchant Center account ID (digits, e.g. \"123456\"). Omit to use the GOOGLE_MERCHANTS_ACCOUNT_ID default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "custom_attributes",
+              "type": "array",
+              "description": "Custom (non-standard) attributes as {name, value} pairs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "data_source",
+              "type": "string",
+              "description": "Data source: numeric ID (e.g. \"104628\") or full name \"accounts/{account}/dataSources/{id}\". Product/promotion writes require an API-type data source (input: API), not a file feed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "product_attributes",
+              "type": "object",
+              "description": "Product attributes to change (camelCase), e.g. {\"price\": {\"amountMicros\": \"8990000\", \"currencyCode\": \"USD\"}, \"availability\": \"out_of_stock\"}.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "product_input",
+              "type": "string",
+              "description": "Product input ID: \"contentLanguage~feedLabel~offerId\" or the base64url name.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "update_mask",
+              "type": "string",
+              "description": "Comma-separated attribute paths to update, e.g. \"productAttributes.price\". Omit to apply every populated field of this request.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version_number",
+              "type": "string",
+              "description": "Optional int64 freshness guard (as a string).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

@@ -4,34 +4,20 @@
   "purl": "pkg:npm/@open-deltat%2Fmcp",
   "ecosystem": "npm",
   "display_name": "@open-deltat/mcp",
-  "description": "MCP server for real-time scheduling: give an agent a calendar it can find, hold and commit slots on without ever double-booking.",
+  "description": "",
   "author": "Simon Orzel",
-  "repository_url": "https://delt.at",
+  "repository_url": null,
   "homepage_url": null,
-  "license": "MIT",
-  "keywords": [
-    "agents",
-    "ai-agents",
-    "appointments",
-    "availability",
-    "booking",
-    "calendar",
-    "deltat",
-    "mcp",
-    "mcp-server",
-    "model-context-protocol",
-    "modelcontextprotocol",
-    "scheduling"
-  ],
+  "license": null,
+  "keywords": [],
   "aliases": [
     "@open-deltat/mcp"
   ],
   "sources_merged": [
+    "npm",
     "npm_registry"
   ],
-  "dist_tags": {
-    "latest": "0.2.0"
-  },
+  "dist_tags": {},
   "versions": [
     {
       "version": "0.1.0",
@@ -80,6 +66,700 @@
       "headers_schema": {},
       "required_env_vars": [],
       "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:9fdfcc0bb79b2abd1a841f14d9799786b5fa5c17a457a3887c9eaa2bfd489078",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "book_slot",
+          "canonical_hash": "sha256:e34a2a62c38a47627e5e1ff521477de6d211a2a39e5d9b16777a724cb963bb90",
+          "description": "Use this when you were about to book a slot in one step. This calendar does not have a one-step booking verb, and calling this tool never books anything. Booking is two steps so a confirmation cannot lose a race: call hold_slot to reserve the time, then commit_hold to confirm it. This tool exists only to tell you that.",
+          "is_mutating": false,
+          "property_keys": [
+            "calendar_id",
+            "end",
+            "start"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "calendar_id": "string",
+            "start": "string",
+            "end": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "calendar_id": {
+                "type": "string"
+              },
+              "start": {
+                "type": "string",
+                "description": "RFC 3339"
+              },
+              "end": {
+                "type": "string",
+                "description": "RFC 3339"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:01796cfe02779f432b223157c07de5352f1c134d2d573d2c0057452119c6ffd1",
+          "parameters": [
+            {
+              "name": "calendar_id",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end",
+              "type": "string",
+              "description": "RFC 3339",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "RFC 3339",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "cancel_booking",
+          "canonical_hash": "sha256:1f0eba169500aa7a1a591873143a78da1676e79f09ed20361a81900fa600d860",
+          "description": "Use this only when a human has asked for a confirmed booking to be cancelled. Permanently removes it and frees the slot for anyone else. Needs a booking_id from list_bookings or commit_hold, not a hold_id. To give up a slot you are only holding, use release_hold instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "booking_id"
+          ],
+          "required_keys": [
+            "booking_id"
+          ],
+          "parameter_types": {
+            "booking_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "booking_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "booking_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e6e4ce292e2b491921125ce6627ac44a2192c3fb2a3423421269ea2f51ac07ca",
+          "parameters": [
+            {
+              "name": "booking_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "commit_hold",
+          "canonical_hash": "sha256:d8ced1e614735a3378465db86f393bf89c3bc15203925b1a90a6d47e0728be50",
+          "description": "Use this when you have the hold_ids from hold_slot and the booking is confirmed. Turns every hold into a booking in one atomic step: all of them or none, so the slot cannot be lost between reserving and confirming and a group can never be half booked. This is the only way to create a booking. If it is refused, the reply may list other free times: offer one and call hold_slot on it, since none of them is reserved for you.",
+          "is_mutating": false,
+          "property_keys": [
+            "hold_ids",
+            "label",
+            "timezone"
+          ],
+          "required_keys": [
+            "hold_ids"
+          ],
+          "parameter_types": {
+            "hold_ids": "string",
+            "label": "string",
+            "timezone": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "hold_ids": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string",
+                "description": "who the booking is for"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA timezone for rendering any alternative times",
+                "default": "UTC"
+              }
+            },
+            "required": [
+              "hold_ids"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e9c41dc02e10f85d1aace00a0989c4d87ba8d71b583dcc8f69c3867121579c5c",
+          "parameters": [
+            {
+              "name": "hold_ids",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "label",
+              "type": "string",
+              "description": "who the booking is for",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "description": "IANA timezone for rendering any alternative times",
+              "required": false,
+              "default": "UTC",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_calendar",
+          "canonical_hash": "sha256:54a5776c1fb13cbe697ce9f4f99552b1a364ad0bd8825867fa503bea318e2877",
+          "description": "Use this when someone needs a new bookable calendar and you do not already have a calendar_id. Returns the calendar_id every other tool needs. Pass ",
+          "is_mutating": false,
+          "property_keys": [
+            "hours",
+            "name",
+            "slot_minutes",
+            "timezone"
+          ],
+          "required_keys": [
+            "name"
+          ],
+          "parameter_types": {
+            "name": "string",
+            "timezone": "string",
+            "slot_minutes": "number",
+            "hours": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA timezone, e.g. Europe/Berlin",
+                "default": "UTC"
+              },
+              "slot_minutes": {
+                "type": "number",
+                "default": 30
+              },
+              "hours": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:018c82e23dc96cf83c7a7b8f1fe996424b20909179b4c1457fcea2cf6f8a6237",
+          "parameters": [
+            {
+              "name": "hours",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "slot_minutes",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": 30,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "description": "IANA timezone, e.g. Europe/Berlin",
+              "required": false,
+              "default": "UTC",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "find_slots",
+          "canonical_hash": "sha256:3dfbb52ff69a93aafed5ec884f170903be827f4a9d8c0307cb7ce7bd515154a3",
+          "description": "Use this first, before offering anyone a time. Lists the genuinely free slots between two RFC 3339 instants (offset required, e.g. 2026-06-01T09:00:00Z). With several calendars it lists only the times when every one of them is free. A slot listed here is not reserved for you: another caller can take it a moment later, so call hold_slot before you promise it to anyone. Availability is materialized about 60 days ahead, so searching further out returns nothing rather than an error.",
+          "is_mutating": false,
+          "property_keys": [
+            "calendar_ids",
+            "from",
+            "min_minutes",
+            "timezone",
+            "to"
+          ],
+          "required_keys": [
+            "calendar_ids",
+            "from",
+            "to"
+          ],
+          "parameter_types": {
+            "calendar_ids": "string",
+            "from": "string",
+            "to": "string",
+            "timezone": "string",
+            "min_minutes": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "calendar_ids": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string",
+                "description": "RFC 3339 start of the search window"
+              },
+              "to": {
+                "type": "string",
+                "description": "RFC 3339 end of the search window"
+              },
+              "timezone": {
+                "type": "string",
+                "default": "UTC"
+              },
+              "min_minutes": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "calendar_ids",
+              "from",
+              "to"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1ef5b4ec79f01a17a47ddeb358330e00d1596386ba2f4d518d6f3d70944e92fc",
+          "parameters": [
+            {
+              "name": "calendar_ids",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "from",
+              "type": "string",
+              "description": "RFC 3339 start of the search window",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_minutes",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "UTC",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "to",
+              "type": "string",
+              "description": "RFC 3339 end of the search window",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "hold_slot",
+          "canonical_hash": "sha256:a403459d04a51c59729069f77c8c8ed75048a2f9dc20ff034958345249dfcbc8",
+          "description": "Use this the moment you are about to offer a specific time to a human, before you say it out loud. Reserves the slot for a few minutes so nobody else can take it while you confirm, and returns hold_ids. With several calendars it holds every one of them for the same time, or none. A hold is not a booking: call commit_hold to confirm it, or release_hold to give it back. If you do neither it expires on its own and the slot returns to the pool, so holding costs nothing. If the time is already taken or outside opening hours, the refusal lists other free times: offer one of those in the same breath rather than calling find_slots again. They are not reserved for you, so call hold_slot on whichever one is chosen.",
+          "is_mutating": false,
+          "property_keys": [
+            "calendar_ids",
+            "end",
+            "start",
+            "timezone"
+          ],
+          "required_keys": [
+            "calendar_ids",
+            "end",
+            "start"
+          ],
+          "parameter_types": {
+            "calendar_ids": "string",
+            "start": "string",
+            "end": "string",
+            "timezone": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "calendar_ids": {
+                "type": "string"
+              },
+              "start": {
+                "type": "string",
+                "description": "RFC 3339"
+              },
+              "end": {
+                "type": "string",
+                "description": "RFC 3339"
+              },
+              "timezone": {
+                "type": "string",
+                "default": "UTC"
+              }
+            },
+            "required": [
+              "calendar_ids",
+              "end",
+              "start"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3005f6e17b2bff9a586cff42bbf4792990880dd79c2f20751053d0bba675b204",
+          "parameters": [
+            {
+              "name": "calendar_ids",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end",
+              "type": "string",
+              "description": "RFC 3339",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "RFC 3339",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "UTC",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_bookings",
+          "canonical_hash": "sha256:85d168cc1de35c0b37e8e0ac765b1bca61c0684b6c22c18f7ccf4a4ef02e81f2",
+          "description": "Use this when someone asks what is already scheduled, or when you need a booking_id in order to cancel something. Returns confirmed bookings only; slots that are merely held do not appear here. To find free time instead, use find_slots.",
+          "is_mutating": false,
+          "property_keys": [
+            "calendar_id",
+            "timezone"
+          ],
+          "required_keys": [
+            "calendar_id"
+          ],
+          "parameter_types": {
+            "calendar_id": "string",
+            "timezone": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "calendar_id": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string",
+                "default": "UTC"
+              }
+            },
+            "required": [
+              "calendar_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4936dd2289d74a39c951dec65144ab5aff8f02830aabde71712066657be65cef",
+          "parameters": [
+            {
+              "name": "calendar_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "UTC",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "release_hold",
+          "canonical_hash": "sha256:22c169e38352bdc48ed7425aae8bd988daa29249bc093a8afcac460036a451a8",
+          "description": "Use this as soon as you know a held time is not wanted, for example the person picked a different slot or ended the conversation. Frees every slot immediately instead of leaving them blocked until the holds expire. Safe to call on a hold that already expired.",
+          "is_mutating": false,
+          "property_keys": [
+            "hold_ids"
+          ],
+          "required_keys": [
+            "hold_ids"
+          ],
+          "parameter_types": {
+            "hold_ids": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "hold_ids": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hold_ids"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:faac13b2e1ade0fe05b5ed2347ece7c6637da9e62f28aa3268235b5657e1426f",
+          "parameters": [
+            {
+              "name": "hold_ids",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "set_availability",
+          "canonical_hash": "sha256:c8274627171bf2d700643b1718d18d6bec266553c19beba78c2d88b3bfa6d7fd",
+          "description": "Use this when a calendar",
+          "is_mutating": false,
+          "property_keys": [
+            "calendar_id",
+            "hours",
+            "timezone"
+          ],
+          "required_keys": [
+            "calendar_id",
+            "hours"
+          ],
+          "parameter_types": {
+            "calendar_id": "string",
+            "timezone": "string",
+            "hours": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "calendar_id": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string",
+                "default": "UTC"
+              },
+              "hours": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "calendar_id",
+              "hours"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:302c85c31179a2d49abf399e6add0f5fd65ce8e7b2b259c9a69524bf06eb0acf",
+          "parameters": [
+            {
+              "name": "calendar_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hours",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "UTC",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
