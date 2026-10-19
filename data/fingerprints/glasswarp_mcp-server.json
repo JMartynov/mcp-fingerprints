@@ -4,17 +4,18 @@
   "purl": "pkg:generic/glasswarp%2Fmcp-server",
   "ecosystem": "generic",
   "display_name": "glasswarp/mcp-server",
-  "description": "See and control a real Windows PC you own \u2014 from any MCP client, locally or remotely. Observe (UIA + screenshots), click/type/drag/scroll, launch apps, owner Live View. Hosted MCP or npx @glasswarp/mcp. BYOH: your machine, your key, you bring the model.",
-  "repository_url": "https://github.com/glasswarp/mcp-server",
+  "description": "See and control a real Windows PC you own — from any MCP client. No cloud desktop: install our host on your machine, create a Console API key, then observe / click / type. You bring the model.",
+  "author": null,
+  "repository_url": "https://mcp-server--glasswarp.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "Glasswarp",
     "glasswarp/mcp-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -35,9 +36,1620 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:548cc5b07725d7079861478738abc6d399e9c7e770937806dce1c6b26751edf0",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://mcp-server--glasswarp.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "GLASSWARP_API_KEY": {
+                "type": "string",
+                "title": "Glasswarp API Key",
+                "secret": true,
+                "x-order": 0,
+                "description": "Console → create key → copy gw_… (https://www.glasswarp.com/console). Also pair a Windows PC and enable API access."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "app.launch",
+          "canonical_hash": "sha256:9d938e6309aa551202257cfd96159b44f0cb65edb6f22e4969ee33e0b4bc99ce",
+          "description": "Launch an executable on the remote Windows rig (name on PATH or absolute path), optional args. Side effects: starts a process; Glasswarp tracks it and closes it on session.end. Use for notepad.exe, mspaint.exe, chrome with URL args, etc. Wait/re-observe after launch before clicking — do not assume the window is focused immediately.",
+          "is_mutating": false,
+          "property_keys": [
+            "args",
+            "path_or_name",
+            "session_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "args": "array",
+            "session_id": "string",
+            "path_or_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Process args, e.g. [\"--new-window\", \"https://example.com\"]"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              },
+              "path_or_name": {
+                "type": "string",
+                "description": "Executable name (e.g. notepad.exe) or absolute path"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:9cab063e236ad207396d16effbaba2b55d07aa9c06cd6e9e04c2d9ecfd4bac8b",
+          "parameters": [
+            {
+              "name": "args",
+              "type": "array",
+              "description": "Process args, e.g. [\"--new-window\", \"https://example.com\"]",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "path_or_name",
+              "type": "string",
+              "description": "Executable name (e.g. notepad.exe) or absolute path",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "demos.get",
+          "canonical_hash": "sha256:64a4f399a4bb1fb35e4b182c6f7e49baf6d0a5db2e4c03f9f3ceb54c093b2223",
+          "description": "Return one showcase run contract (install, command, needs, framing). Does NOT execute the demo or control a PC. Call after demos.list when you know the demo_id. If the client can run shell, offer the command; if chat-only, show the card. Do not replace this with a slow MCP click loop for solver demos.",
+          "is_mutating": false,
+          "property_keys": [
+            "demo_id",
+            "format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "demo_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "enum": [
+                  "markdown",
+                  "json"
+                ],
+                "type": "string",
+                "description": "Response format: markdown (default) or json"
+              },
+              "demo_id": {
+                "enum": [
+                  "minesweeper",
+                  "mona-lisa",
+                  "paint",
+                  "notepad"
+                ],
+                "type": "string",
+                "description": "Showcase id from demos.list"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:33ec83d85a62afb1c613407793e7af4a1cc7d7cea357392c1edd7ec46ca18b75",
+          "parameters": [
+            {
+              "name": "demo_id",
+              "type": "string",
+              "description": "Showcase id from demos.list",
+              "required": false,
+              "default": null,
+              "enum": [
+                "minesweeper",
+                "mona-lisa",
+                "paint",
+                "notepad"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "format",
+              "type": "string",
+              "description": "Response format: markdown (default) or json",
+              "required": false,
+              "default": null,
+              "enum": [
+                "markdown",
+                "json"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "demos.list",
+          "canonical_hash": "sha256:40bf08e503bde10620213d9348e795164bf38a8b93890e2e3b43532cbba98a26",
+          "description": "List showcase run contracts (id, title, install, command). Read-only catalog — does NOT start a session, touch a rig, or run solvers. Use when the user asks for Minesweeper/Mona Lisa/Paint demos or you need the glasswarp-demo command. Prefer demos.get for one full card. For ad-hoc UI work use rigs.list → session.start → screen.observe instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "format"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "enum": [
+                  "markdown",
+                  "json"
+                ],
+                "type": "string",
+                "description": "Response format: markdown (default) or json"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:4918dc40b478dbaa9a2787a5c211365f00820a2817fd1d9a52cfe39607d3df60",
+          "parameters": [
+            {
+              "name": "format",
+              "type": "string",
+              "description": "Response format: markdown (default) or json",
+              "required": false,
+              "default": null,
+              "enum": [
+                "markdown",
+                "json"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "input.click_target",
+          "canonical_hash": "sha256:94d1423aa63b912365d736ce47e77b20d5d84a6c454e75157fd588c413902b6b",
+          "description": "Left/right/middle-click a UIA target by id from the latest screen.observe (uses native center coords). Prefer over input.click_xy. Side effect: real mouse click on the remote Windows desktop. Do not reuse target_id after the screen may have changed — re-observe first. For click→type→keys sequences, use input.send_actions (one turn) instead of chaining this tool.",
+          "is_mutating": false,
+          "property_keys": [
+            "button",
+            "double",
+            "session_id",
+            "target_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "button": "string",
+            "double": "boolean",
+            "target_id": "string",
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "button": {
+                "enum": [
+                  "left",
+                  "right",
+                  "middle"
+                ],
+                "type": "string",
+                "description": "Mouse button (default left)"
+              },
+              "double": {
+                "type": "boolean",
+                "description": "If true, double-click (two clicks)"
+              },
+              "target_id": {
+                "type": "string",
+                "description": "Target id from the most recent screen.observe (e.g. uia-… )"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:1d1f3247af9407aa37bb25dc06530bd682808df62faa2f1b494f7f334f8c123e",
+          "parameters": [
+            {
+              "name": "button",
+              "type": "string",
+              "description": "Mouse button (default left)",
+              "required": false,
+              "default": null,
+              "enum": [
+                "left",
+                "right",
+                "middle"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "double",
+              "type": "boolean",
+              "description": "If true, double-click (two clicks)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "target_id",
+              "type": "string",
+              "description": "Target id from the most recent screen.observe (e.g. uia-… )",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "input.click_xy",
+          "canonical_hash": "sha256:56a69be7a649490bd92387e8752ac807f78177092e1e50272352f35cb25965b7",
+          "description": "Click at native screen coordinates (0…native_width-1, 0…native_height-1 from screen.observe). Last resort when no suitable UIA target exists — prefer input.click_target. Never use JPEG/downscaled pixel coords. Side effect: real mouse click on the remote desktop.",
+          "is_mutating": false,
+          "property_keys": [
+            "button",
+            "double",
+            "session_id",
+            "x",
+            "y"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "x": "integer",
+            "y": "integer",
+            "button": "string",
+            "double": "boolean",
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native X (0…native_width-1)"
+              },
+              "y": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native Y (0…native_height-1)"
+              },
+              "button": {
+                "enum": [
+                  "left",
+                  "right",
+                  "middle"
+                ],
+                "type": "string",
+                "description": "Mouse button (default left)"
+              },
+              "double": {
+                "type": "boolean",
+                "description": "If true, double-click"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:a7d93b07252d6382426b60347e2773a1f6693b0397c1fc66aab2398f07e65570",
+          "parameters": [
+            {
+              "name": "button",
+              "type": "string",
+              "description": "Mouse button (default left)",
+              "required": false,
+              "default": null,
+              "enum": [
+                "left",
+                "right",
+                "middle"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "double",
+              "type": "boolean",
+              "description": "If true, double-click",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "x",
+              "type": "integer",
+              "description": "Native X (0…native_width-1)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "y",
+              "type": "integer",
+              "description": "Native Y (0…native_height-1)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "input.drag",
+          "canonical_hash": "sha256:ede03df5cffc37d6891960b95b4f29cc1630a3e6ddeeb511fb5df51bff3d5479",
+          "description": "Press-move-release mouse drag in native capture coordinates. Use for drawing, sliders, selection boxes, and drag-and-drop. Side effect: mouse_down → moves → mouse_up on the remote desktop. Prefer input.send_actions if the drag is one step in a longer predictable sequence.",
+          "is_mutating": false,
+          "property_keys": [
+            "duration_ms",
+            "from_x",
+            "from_y",
+            "session_id",
+            "to_x",
+            "to_y"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "to_x": "integer",
+            "to_y": "integer",
+            "from_x": "integer",
+            "from_y": "integer",
+            "session_id": "string",
+            "duration_ms": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to_x": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native end X"
+              },
+              "to_y": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native end Y"
+              },
+              "from_x": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native start X"
+              },
+              "from_y": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native start Y"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              },
+              "duration_ms": {
+                "type": "integer",
+                "maximum": 5000,
+                "minimum": 0,
+                "description": "Approx drag duration in ms; more steps when larger (default ~200)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:285211177b9cc64ddc54ec8b48399b6d938b670e3da9390edffe423a9c0085df",
+          "parameters": [
+            {
+              "name": "duration_ms",
+              "type": "integer",
+              "description": "Approx drag duration in ms; more steps when larger (default ~200)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "from_x",
+              "type": "integer",
+              "description": "Native start X",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "from_y",
+              "type": "integer",
+              "description": "Native start Y",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "to_x",
+              "type": "integer",
+              "description": "Native end X",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "to_y",
+              "type": "integer",
+              "description": "Native end Y",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "input.scroll",
+          "canonical_hash": "sha256:1a5998d9ee1acac61f0d906cd73d2cbe806189acfa7ee89483dac818e600463d",
+          "description": "Move the cursor to native (x,y) then apply a vertical mouse-wheel delta. Side effect: scroll on whatever is under that point. Negative delta scrolls toward the bottom of the page. Prefer input.send_actions when scroll is part of a multi-step sequence. Re-observe after scrolling lists/pages before clicking targets.",
+          "is_mutating": false,
+          "property_keys": [
+            "delta",
+            "session_id",
+            "x",
+            "y"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "x": "integer",
+            "y": "integer",
+            "delta": "integer",
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native X to hover before scrolling"
+              },
+              "y": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native Y to hover before scrolling"
+              },
+              "delta": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Vertical wheel delta (negative = toward bottom of page)"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:ff49aaf11a89cb65b5e9a07e7b06b1469a51fa6c895de44c4a8e3d2801cabed4",
+          "parameters": [
+            {
+              "name": "delta",
+              "type": "integer",
+              "description": "Vertical wheel delta (negative = toward bottom of page)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "x",
+              "type": "integer",
+              "description": "Native X to hover before scrolling",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "y",
+              "type": "integer",
+              "description": "Native Y to hover before scrolling",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "input.send_actions",
+          "canonical_hash": "sha256:3526d491d768aaeab98bd78584c91452400d517aa5d29d79bc095870489f6942",
+          "description": "PREFERRED multi-step tool: run 1–10 predictable UI actions in one call (input.click_target, input.click_xy, input.type_text, input.send_keys, input.drag, input.scroll). Side effects: all actions execute on the remote desktop; fails fast before sending if any action is invalid. observe_after defaults true (verification observe: text+targets; set observe_image=true for JPEG). Do not batch across unpredictable waits (page loads, installers, modals) — single-step those. Prefer this over chaining solo click/type/keys tools.",
+          "is_mutating": false,
+          "property_keys": [
+            "actions",
+            "observe_after",
+            "observe_image",
+            "session_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "actions": "array",
+            "session_id": "string",
+            "observe_after": "boolean",
+            "observe_image": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    },
+                    "keys": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "to_x": {
+                      "type": "number"
+                    },
+                    "to_y": {
+                      "type": "number"
+                    },
+                    "type": {
+                      "enum": [
+                        "click_target",
+                        "click_xy",
+                        "type_text",
+                        "send_keys",
+                        "drag",
+                        "scroll"
+                      ],
+                      "type": "string"
+                    },
+                    "delta": {
+                      "type": "number"
+                    },
+                    "button": {
+                      "enum": [
+                        "left",
+                        "right",
+                        "middle"
+                      ],
+                      "type": "string"
+                    },
+                    "double": {
+                      "type": "boolean"
+                    },
+                    "delay_ms": {
+                      "type": "integer",
+                      "maximum": 2000,
+                      "minimum": 0,
+                      "description": "Optional settle delay after this action (0–2000 ms)"
+                    },
+                    "target_id": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "description": "Ordered actions (max 10); input.click_target needs target_id from latest screen.observe"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              },
+              "observe_after": {
+                "type": "boolean",
+                "description": "Default true. When true, return a verification observe in the same result"
+              },
+              "observe_image": {
+                "type": "boolean",
+                "description": "Default false. When true with observe_after, include verification JPEG unless changed=false"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "changed": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Whether the frame changed since last observe; null if unknown"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable observe summary / targets"
+              },
+              "has_image": {
+                "type": "boolean",
+                "description": "True when a JPEG was included in the MCP content"
+              },
+              "native_width": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native capture width"
+              },
+              "native_height": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native capture height"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:2f5e90c4eb274662d5d82c2b401cbfd51aba38a2c43612c6126da27f7c6aa6c3",
+          "parameters": [
+            {
+              "name": "actions",
+              "type": "array",
+              "description": "Ordered actions (max 10); input.click_target needs target_id from latest screen.observe",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "observe_after",
+              "type": "boolean",
+              "description": "Default true. When true, return a verification observe in the same result",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "observe_image",
+              "type": "boolean",
+              "description": "Default false. When true with observe_after, include verification JPEG unless changed=false",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "input.send_keys",
+          "canonical_hash": "sha256:423ccde672ad05b269caf68d5af4cdcabd21c3515f800f3a50b2202c08e4fdb7",
+          "description": "Send a key or chord to the focused window (e.g. enter, tab, ctrl+s, alt+f4, win). Side effect: real key events on the remote desktop. Prefer bundling into input.send_actions when the shortcut follows a click/type in the same planned sequence. Use input.type_text for literal strings, not this tool.",
+          "is_mutating": false,
+          "property_keys": [
+            "keys",
+            "session_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "keys": "string",
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "keys": {
+                "type": "string",
+                "description": "Key or combo, e.g. enter, tab, ctrl+s, alt+f4, win"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:3aa7aceb63bd30502519f34b2247e376d08b6e87f65ab877f87b32e037664bc5",
+          "parameters": [
+            {
+              "name": "keys",
+              "type": "string",
+              "description": "Key or combo, e.g. enter, tab, ctrl+s, alt+f4, win",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "input.type_text",
+          "canonical_hash": "sha256:23db99ae1e4fb0daa700e12469f526a2906547627d6955749196e7ded3f61d28",
+          "description": "Type a Unicode string into the currently focused control via native input. Does not click first — focus the field (input.click_target / input.send_actions) before calling. Side effect: keystrokes on the remote desktop. For form fills (click → type → tab/enter), prefer input.send_actions in one call.",
+          "is_mutating": false,
+          "property_keys": [
+            "session_id",
+            "text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string",
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Literal text to type (not a key combo)"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:c086289e7cc4abf31af06475bdc8fc93b95c7b552d768cb58ef1cc0d75b314b1",
+          "parameters": [
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "description": "Literal text to type (not a key combo)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "rigs.list",
+          "canonical_hash": "sha256:678b68902ca5c68fa3368f6f2260f3c75898f156ea495844de900f385dfca558",
+          "description": "List Windows machines (rigs) paired to this API key: id, name, online, api_access_enabled, and USABLE flag. Read-only — does not start a session. Call first before start_session. A rig is USABLE only when online AND the owner enabled API access. If none are USABLE, tell the user to install the host agent, pair in Console → Rigs, and enable API access — never ask for OS passwords.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:89a2f6ea2393b869246e069ddd97a081282c16caa0bda61d47b7ab31c14bc3af",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "screen.observe",
+          "canonical_hash": "sha256:dabb8e2a42f15601784570dcb3b5e3cf775f2e1dde125cdeb5ba001f611b92b3",
+          "description": "Read the current screen: UIA targets (numbered ids + native coords) and a text summary. Does not move mouse/keyboard. Default image=false (no JPEG) for speed; set image=true only when you must judge pixels visually (then max_width≈960, quality≈60). If changed=false, JPEG is omitted even when requested — do not re-analyze; wait or act differently. If dirty is null, assume changed. Prefer input.send_actions for multi-step UI; observe after meaningful steps, not after every click. Target ids are valid only until the next UI change.",
+          "is_mutating": false,
+          "property_keys": [
+            "image",
+            "mark",
+            "max_width",
+            "quality",
+            "session_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mark": "boolean",
+            "image": "boolean",
+            "quality": "integer",
+            "max_width": "integer",
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mark": {
+                "type": "boolean",
+                "description": "Overlay numbered targets on JPEG when image=true (default true; ignored if image=false)"
+              },
+              "image": {
+                "type": "boolean",
+                "description": "Include JPEG (default false). True only to visually read/judge the screen."
+              },
+              "quality": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 40,
+                "description": "JPEG quality 40–100 when image=true (default 60)"
+              },
+              "max_width": {
+                "type": "integer",
+                "maximum": 3840,
+                "minimum": 320,
+                "description": "JPEG max width when image=true (default 960). Clicks always use native coords, not JPEG pixels."
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Active session id from session.start"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "changed": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Whether the frame changed since last observe; null if unknown"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable observe summary / targets"
+              },
+              "has_image": {
+                "type": "boolean",
+                "description": "True when a JPEG was included in the MCP content"
+              },
+              "native_width": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native capture width"
+              },
+              "native_height": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "Native capture height"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:7b1f6a56d50db38ec1ef62a009d2f3a5f01404c63021ae9cc2d0651e3e5498a3",
+          "parameters": [
+            {
+              "name": "image",
+              "type": "boolean",
+              "description": "Include JPEG (default false). True only to visually read/judge the screen.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "mark",
+              "type": "boolean",
+              "description": "Overlay numbered targets on JPEG when image=true (default true; ignored if image=false)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_width",
+              "type": "integer",
+              "description": "JPEG max width when image=true (default 960). Clicks always use native coords, not JPEG pixels.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "quality",
+              "type": "integer",
+              "description": "JPEG quality 40–100 when image=true (default 60)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id from session.start",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "session.end",
+          "canonical_hash": "sha256:c8e7aacf119af8e769b1d3e14f0663128e9e4214e76327fb15670bdb1bd7d0e8",
+          "description": "End an active session. Side effects: stops billing, runs host safety_restore, closes apps launched via app.launch. Always call when finished or abandoning — do not leave sessions open. Safe to call once; further observe/input on that session_id will fail.",
+          "is_mutating": false,
+          "property_keys": [
+            "session_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "Session id returned by session.start"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:7a022c0ff4eb65a8b6f3997aab3542011b71289fdd6bc5cba11359192cdf996a",
+          "parameters": [
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Session id returned by session.start",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "session.live_view",
+          "canonical_hash": "sha256:5f4bd970e7c54b2c79b5dc7d5dc8b566c1607b282bad0a0207099a6921107fb7",
+          "description": "Return the console Live View URL (≈60fps) for the rig owner to watch and intervene. Read-only for the agent — does not grant the API key console access. Offer on long or sensitive tasks. Owner must be signed into Glasswarp; API keys alone cannot open the player.",
+          "is_mutating": false,
+          "property_keys": [
+            "session_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "Active session id"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:604033857b1e1b516569bb6561f8c99347b56850862751e29e5fc93dbd6c265a",
+          "parameters": [
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Active session id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "session.start",
+          "canonical_hash": "sha256:15a92c48567fdb11a4d4dbc45e78ebb2261a5a1779f3cf9c6685a9f6e7becda1",
+          "description": "Start a metered desktop session on a USABLE rig from rigs.list. Side effects: begins wall-clock billing, shows an on-screen “API session active” indicator, enables observe/input until session.end. Idle sessions auto-end after ~15 minutes. Always call session.end when done or abandoning. Do not call if no USABLE rig exists. Returns session_id and Live View URL (owner console login required).",
+          "is_mutating": false,
+          "property_keys": [
+            "rig_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "rig_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "rig_id": {
+                "type": "string",
+                "description": "Rig id from rigs.list (must be online with api_access_enabled)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:23d961c5eb7a6c85ae1356232f3a44e1eb2eff63ce0669247e1cf116250efd15",
+          "parameters": [
+            {
+              "name": "rig_id",
+              "type": "string",
+              "description": "Rig id from rigs.list (must be online with api_access_enabled)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "session.status",
+          "canonical_hash": "sha256:c3ea4a65acfbf3956162050fe104c2af4eb5ad9da900a6d2a5445acf89cee8b8",
+          "description": "Fetch session metadata: status, host, mode, created_at, action_count, billed_minutes. Read-only — no input side effects. Use to tell the user about metered time or confirm the session is still active before more actions.",
+          "is_mutating": false,
+          "property_keys": [
+            "session_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "Session id from session.start"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "False when the tool failed"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable result for the agent"
+              }
+            },
+            "required": [
+              "ok",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:7f7e3f0be3453012ed6fcec2e6688ab6001968e24b43e505ea04e0ac22e14468",
+          "parameters": [
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Session id from session.start",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "best_practices",
+          "description": "",
+          "argument_keys": [],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "demo_mona_lisa",
+          "description": "",
+          "argument_keys": [
+            "notes"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "demo_minesweeper",
+          "description": "",
+          "argument_keys": [
+            "notes"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "glasswarp://guide/ways-to-run-agents",
+          "name": "ways-to-run-agents",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "glasswarp://guide/assist-showcase-build",
+          "name": "assist-showcase-build",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "glasswarp://guide/mcp-vs-sdk",
+          "name": "mcp-vs-sdk",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "glasswarp://demos",
+          "name": "demos",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "glasswarp://demos/minesweeper",
+          "name": "demo-minesweeper",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "glasswarp://demos/mona-lisa",
+          "name": "demo-mona-lisa",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "glasswarp://demos/paint",
+          "name": "demo-paint",
+          "description": "",
+          "mime_type": "text/markdown"
+        },
+        {
+          "uri_template": "glasswarp://demos/notepad",
+          "name": "demo-notepad",
+          "description": "",
+          "mime_type": "text/markdown"
+        }
+      ]
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

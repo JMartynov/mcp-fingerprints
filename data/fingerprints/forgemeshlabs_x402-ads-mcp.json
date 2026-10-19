@@ -4,8 +4,9 @@
   "purl": "pkg:generic/forgemeshlabs%2Fx402-ads-mcp",
   "ecosystem": "generic",
   "display_name": "forgemeshlabs/x402-ads-mcp",
-  "description": "x402 ad recommendations, intent analytics, and machine-commerce demand reports.",
-  "repository_url": "https://github.com/forgemeshlabs/x402-ads-mcp",
+  "description": "x402-ads-mcp",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/forgemeshlabs/x402-ads-mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "forgemeshlabs/x402-ads-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,408 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:074bc6fec433f5dc2e44dab610a7b3f722df7144842f7403c5a80fd541f817bb",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "1366a1e0-7f4b-415d-a728-3aff69075971/57f3b33e-4d03-4567-a4d8-06b31f4a02a5/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "ads_base_url": {
+                "type": "string",
+                "title": "Ads API origin",
+                "default": "https://ads.forgemesh.io",
+                "x-order": 2,
+                "description": "Public Ads API origin."
+              },
+              "base_rpc_url": {
+                "type": "string",
+                "title": "Base RPC URL",
+                "default": "https://mainnet.base.org",
+                "x-order": 3,
+                "description": "Base mainnet JSON-RPC endpoint used for x402 settlement."
+              },
+              "publisher_key": {
+                "type": "string",
+                "title": "Ads publisher key",
+                "x-order": 1,
+                "description": "Optional publisher credential for free access to your own reports."
+              },
+              "wallet_private_key": {
+                "type": "string",
+                "title": "Dedicated low-balance Base wallet key",
+                "x-order": 0,
+                "description": "Optional. Enables automatic USDC settlement for paid analytics; without it paid tools return a challenge. Never use a primary wallet."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "get_category_demand",
+          "canonical_hash": "sha256:320dc11bf0cee9cb3da6b0ca3a59ad4a361d8dbeb487baff8ffbe00a34094dad",
+          "description": "Paid, $0.02 USDC on Base via x402. Demand depth for one category: probe volume, distinct sources, buyer-class share, price points probed, daily series. Without WALLET_PRIVATE_KEY, returns the x402 payment challenge instead of settling.",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "window"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "window": "string",
+            "category": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "window": {
+                "enum": [
+                  "24h",
+                  "7d",
+                  "30d",
+                  "all"
+                ],
+                "type": "string",
+                "description": "Time window: 24h, 7d, 30d, or all (default 30d)"
+              },
+              "category": {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1,
+                "description": "Category to measure, e.g. finance, blockchain, images, tts"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:98f7fe07d4ddee5cc36240f92cd483efbf05ffc3927f3d9640a5fa80c15fadcf",
+          "parameters": [
+            {
+              "name": "category",
+              "type": "string",
+              "description": "Category to measure, e.g. finance, blockchain, images, tts",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "window",
+              "type": "string",
+              "description": "Time window: 24h, 7d, 30d, or all (default 30d)",
+              "required": false,
+              "default": null,
+              "enum": [
+                "24h",
+                "7d",
+                "30d",
+                "all"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_intent_report",
+          "canonical_hash": "sha256:5fe99a82807bc215d1d4409a8b9e8e4ed8c4fa0d0dc0d39a4454e2b9457121b7",
+          "description": "Why-agents-didn't-buy funnel for one service: bounce funnel, traffic classes, top abandoned endpoints, retry signals. FREE with X402_ADS_PUBLISHER_KEY for your registered services (the service id is bound to your key at registration); otherwise $0.05 USDC on Base via x402. Without a publisher key or WALLET_PRIVATE_KEY, returns the x402 payment challenge.",
+          "is_mutating": false,
+          "property_keys": [
+            "service",
+            "window"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "window": "string",
+            "service": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "window": {
+                "enum": [
+                  "24h",
+                  "7d",
+                  "30d",
+                  "all"
+                ],
+                "type": "string",
+                "description": "Time window: 24h, 7d, 30d, or all (default 30d)"
+              },
+              "service": {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1,
+                "description": "Service identifier to report on"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cb86f932b0b1158758cc8ae1e9829c8bc6fbabda8c5598965bd7fc18a8271dc6",
+          "parameters": [
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service identifier to report on",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "window",
+              "type": "string",
+              "description": "Time window: 24h, 7d, 30d, or all (default 30d)",
+              "required": false,
+              "default": null,
+              "enum": [
+                "24h",
+                "7d",
+                "30d",
+                "all"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_intent_trends",
+          "canonical_hash": "sha256:56306167359172c7e6ebffd7a8cafd9a9dc2e4a46ddc1f649b4c9255273620be",
+          "description": "Paid, $0.01 USDC on Base via x402. Google-Trends-for-agents: top requested x402 endpoints and categories by autonomous agents, split by traffic class. Without WALLET_PRIVATE_KEY, returns the x402 payment challenge instead of settling.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "window"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "window": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Max rows, 1-100 (default 20)"
+              },
+              "window": {
+                "enum": [
+                  "24h",
+                  "7d",
+                  "30d",
+                  "all"
+                ],
+                "type": "string",
+                "description": "Time window: 24h, 7d, 30d, or all (default 7d)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7ee8fe0d1ef6ae20b4060c29622ef6181a8f4b56d1bfe2114a7fa2568e3b1cc4",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max rows, 1-100 (default 20)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "window",
+              "type": "string",
+              "description": "Time window: 24h, 7d, 30d, or all (default 7d)",
+              "required": false,
+              "default": null,
+              "enum": [
+                "24h",
+                "7d",
+                "30d",
+                "all"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_network_counters",
+          "canonical_hash": "sha256:123774401e0309ab85dd4a36dd3b693874e64e0ff53ac7fb5203e5137cd892d3",
+          "description": "Free. Live totals for the ForgeMesh machine-commerce network: 402 responses observed, agent-class requests, recommendations served, services reporting, and x402 services indexed.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a979112d837854a0fa8506b7dc279f5dd2a8ca4b4f2ff0c075508db018251d84",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_network_stats",
+          "canonical_hash": "sha256:d197d03eaade6d0c9f922c4a5543b1c6f2588d3e78ed5ee3cfb48baa9b156c87",
+          "description": "Paid, $0.005 USDC on Base via x402. Network-wide intent stats: total events, services, monitor/indexer/agent traffic classification split, and ad activity. Without WALLET_PRIVATE_KEY, returns the x402 payment challenge instead of settling.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:966b4c8322277bb45b39d99bda92bf7194fc735ba42a7bf8f62f073ea9b0c9c0",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_terms",
+          "canonical_hash": "sha256:cb332d64b480879e4230cd79ed8c961e216d5f087cedcf0cd093f399a93ba94e",
+          "description": "Free. The network's canonical terms of service and complete data-collection disclosure: exactly what the middleware sends and never sends.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:63513d492014dae1fd3c9554e00b5fe9ce55d1c6e10b33f088d6d8204eb3d9a1",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "preview_recommendations",
+          "canonical_hash": "sha256:89ea68edfdccf2f597e12d0520ce9ea45e7f2baa94301b4aab64e1bb7ea8b54b",
+          "description": "Free. See the exact typed recommendations block (sponsored + similar x402 services) that the @forgemeshlabs/x402-ads middleware would inject into a 402 response for a given endpoint and category.",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "endpoint",
+            "service"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "service": "string",
+            "category": "string",
+            "endpoint": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "maxLength": 120,
+                "description": "Your service identifier, used only for self-exclusion in results"
+              },
+              "category": {
+                "type": "string",
+                "maxLength": 60,
+                "description": "Category to match recommendations against, e.g. finance, blockchain, images"
+              },
+              "endpoint": {
+                "type": "string",
+                "maxLength": 300,
+                "description": "The probed endpoint path, e.g. /api/forecast"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:604f5600d115429875dcc34f05386a67e2c163686ba4834332bbc536dcbb5c1a",
+          "parameters": [
+            {
+              "name": "category",
+              "type": "string",
+              "description": "Category to match recommendations against, e.g. finance, blockchain, images",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "endpoint",
+              "type": "string",
+              "description": "The probed endpoint path, e.g. /api/forecast",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Your service identifier, used only for self-exclusion in results",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

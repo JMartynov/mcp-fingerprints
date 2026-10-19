@@ -4,20 +4,714 @@
   "purl": "pkg:generic/dhamma-seeker%2Ftripitaka-mcp",
   "ecosystem": "generic",
   "display_name": "dhamma-seeker/tripitaka-mcp",
-  "description": "MCP server for the full P\u0101li Canon \u2014 search, cite, compare translations. Offered as Dhamma D\u0101na.",
-  "repository_url": "https://github.com/dhamma-seeker/tripitaka-mcp",
+  "description": "MCP server for the full Pāli Tipiṭaka — ~444,000 segments at parity with SuttaCentral (Sutta + Vinaya + Abhidhamma). Hybrid search, full-sutta fetch with cross-references, segment-aligned translation comparison, and Pāli word lookup. Offered as Dhamma Dāna.",
+  "author": null,
+  "repository_url": "https://tripitaka-mcp--dhamma-seeker.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "Tripitaka MCP",
     "dhamma-seeker/tripitaka-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:abf318bb3ea9ca1695abff5e5cb2b87047ebd9dcf8588311c351370432507e9a",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://tripitaka-mcp--dhamma-seeker.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": true,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "compare_translations",
+          "canonical_hash": "sha256:019b19f6c5c4985c6aa89fb80db7451ff6575ff3ca69f016bf0ef9125899730b",
+          "description": "เปรียบเทียบคำแปลทุกฉบับที่มีสำหรับ segment เดียวกัน\n\n💡 **ใช้ tool นี้เมื่อ:**\n- User ถามความหมาย/การแปลของบรรทัดเดียวจากบาลี ที่อยากเทียบหลายผู้แปล\n- ตรวจสอบว่าผู้แปลแต่ละคนตีความต่างกันยังไง (เช่น คำเทคนิค `dukkha`,\n  `anattā`, `nibbāna` มี nuance ในการแปลต่างกัน)\n- งานวิชาการที่ต้อง quote multiple translations\n\n🔍 **vs `get_sutta`:** tool นี้ targets **1 segment** (line-level), ส่วน\n`get_sutta` targets **ทั้งสูตร**. ถ้าอยากเทียบทั้งสูตร ต้องเรียก\n`compare_translations` หลาย segment\n\n📋 **Format ของ segment_id:** `<sutta_id>:<paragraph>.<line>` เช่น\n`mn1:171.4` (Mūlapariyāyasutta paragraph 171 line 4 — \"Nandī dukkhassa\nmūlaṁ\"). หา segment_id จาก `get_sutta` หรือ search results\n\n⚠️ **State ปัจจุบัน:** Translation table ยังว่าง (DB load เฉพาะ default\nPāli+English จาก bilara). `total_editions` มักเป็น 0; `text_pali` กับ\n`text_english` ใช้ได้เสมอ. Thai editions เพิ่มทีหลัง",
+          "is_mutating": false,
+          "property_keys": [
+            "segment_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "segment_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "segment_id": {
+                "type": "string",
+                "description": "รหัส segment เช่น \"mn26:8.2\", \"dn22:17.1\", \"mn62:5.3\""
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:de538516a343630f38ba4c29d3e026565b285cdf3bc110cd9408af71d8021a02",
+          "parameters": [
+            {
+              "name": "segment_id",
+              "type": "string",
+              "description": "รหัส segment เช่น \"mn26:8.2\", \"dn22:17.1\", \"mn62:5.3\"",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_reference",
+          "canonical_hash": "sha256:7f92fe27a1648c8998927bd81767c875ef602f405fcfaadc8ca052865657a180",
+          "description": "สร้างข้อมูลอ้างอิง (citation) ที่ถูกต้องสำหรับสูตร\n\n💡 **ใช้ tool นี้เมื่อ:**\n- User ขอ citation สำหรับงานวิชาการ/บทความ/อ้างอิง\n- ต้องการรู้ตำแหน่งในพระไตรปิฎก (ปิฎก/นิกาย) ของสูตร\n- ต้องการ formatted citation string พร้อมใช้\n\n🔗 vs `get_sutta`: tool นี้ return เฉพาะ metadata + citation ไม่มี segments;\nใช้คู่กับ `get_sutta` เมื่ออยากได้ทั้งเนื้อหา + citation",
+          "is_mutating": false,
+          "property_keys": [
+            "sutta_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sutta_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sutta_id": {
+                "type": "string",
+                "description": "รหัสสูตร เช่น \"mn1\", \"dn22\", \"sn56.11\""
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:028bf1a711d88c47a49a11d1c3f029e622668558376b0c6aadd84d6ca9cdb213",
+          "parameters": [
+            {
+              "name": "sutta_id",
+              "type": "string",
+              "description": "รหัสสูตร เช่น \"mn1\", \"dn22\", \"sn56.11\"",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_sutta",
+          "canonical_hash": "sha256:6eb1e821b3da6961207ba44914883c39599a86e38a1b732a14cd90e633181385",
+          "description": "ดึงเนื้อหาสูตร/กัณฑ์ตาม ID — return เนื้อหาเต็มทุก segment\n\nใช้รหัสมาตรฐาน SuttaCentral เช่น:\n- `mn1` = มัชฌิมนิกาย สูตรที่ 1 (Mūlapariyāyasutta — มูลปริยายสูตร, 334 segments)\n- `dn22` = ทีฆนิกาย สูตรที่ 22 (Mahāsatipaṭṭhānasutta — มหาสติปัฏฐาน, 454 segments)\n- `dn16` = ทีฆนิกาย สูตรที่ 16 (Mahāparinibbānasutta — สูตรยาวที่สุด 1,664 segments)\n- `sn56.11` = สังยุตต์ 56.11 (Dhammacakkappavattana — ธัมมจักกัปปวัตตนะ)\n- `mn62` = มัชฌิมนิกาย 62 (Mahārāhulovāda — สอนพระราหุล)\n- `dhp1-20` = Dhammapada verses 1-20 (KN ใช้ range format)\n- `mil3.1.1` = Milindapañha 3.1.1 (paracanonical, 3-4 level id)\n\n💡 **คำแนะนำสำหรับ AI client:**\n- **Quote text_pali / text_english โดยตรงจาก segment** — อย่าดึงจาก\n  training memory. ระบบ verify ได้, AI หลายครั้งจำผิดได้\n- Segment สั้นๆ ลงท้ายด้วย `:0.1` หรือ `:0.2` มักเป็น **header** (ชื่อ\n  นิกาย/สูตร) ไม่ใช่เนื้อหา teaching จริง — เริ่ม content จาก `:1.1`\n- Segment ที่ลงท้ายด้วย \"...niṭṭhitaṁ\" (เช่น `mn1:194.10` =\n  \"Mūlapariyāyasuttaṁ niṭṐhitaṁ paṭhamaṁ\") เป็น **colophon** ปิดสูตร\n- Segments ที่มี `…pe…` (peyyāla = เปยยาล) คือ **abbreviated repetition**\n  ไม่ใช่ข้อมูลขาดหาย — ตำราบาลีย่อด้วยวิธีนี้\n- response มี `cross_reference` field — render เป็น markdown clickable\n  ใน reply เพื่อให้ user verify ต้นฉบับได้\n\n✅ **Coverage (v1.1+):** ครบ 3 ปิฎก เทียบเท่า SuttaCentral bilara-data\n- Sutta Piṭaka (DN/MN/SN/AN/KN): ✅ ครบ Pāli + Sujato EN (5,791 sections)\n- Vinaya Piṭaka: ✅ ครบ Pāli + Brahmali EN — ใช้ SC codes เช่น\n  `pli-tv-bu-vb-pj1` (ปาราชิก ๑), `pli-tv-bi-vb-pj1` (ภิกขุนี),\n  `pli-tv-kd1` (มหาวรรค), `pli-tv-pvr10` (ปริวาร), `pli-tv-bu-pm`\n  (ภิกขุปาฏิโมกข์)\n- Abhidhamma Piṭaka: ✅ ครบ 7 books (ds, vb, dt, pp, kv, ya, patthana)\n  — Pāli only (bilara ไม่มี EN ทุก translator)",
+          "is_mutating": false,
+          "property_keys": [
+            "edition",
+            "language",
+            "sutta_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "language": "string",
+            "sutta_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "edition": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ฉบับแปลภาษาไทย — \"dhiranandi\", \"jayasaro\", \"mbu\", \"royal\"\n     หรือ None. ถ้าไม่ระบุ จะใช้ text_thai จาก bilara-data\n     ⚠️ ปัจจุบัน DB ไม่มีฉบับแปลไทย → ทุกค่ามักเป็น null"
+              },
+              "language": {
+                "type": "string",
+                "default": "pali",
+                "description": "ภาษาที่ต้องการ — \"pali\", \"thai\", \"english\", หรือ \"all\"\n      (default: \"pali\"). Thai ปิดอยู่ใน server ปัจจุบัน → return null"
+              },
+              "sutta_id": {
+                "type": "string",
+                "description": "รหัสสูตร เช่น \"mn1\", \"dn22\", \"sn56.11\", \"dhp1-20\""
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:ffbb8ed75b08a76d91f1bcb46b6f8ccf6a4106f8c928d8d15c614bf6615a3cf0",
+          "parameters": [
+            {
+              "name": "edition",
+              "type": "string",
+              "description": "ฉบับแปลภาษาไทย — \"dhiranandi\", \"jayasaro\", \"mbu\", \"royal\"\n     หรือ None. ถ้าไม่ระบุ จะใช้ text_thai จาก bilara-data\n     ⚠️ ปัจจุบัน DB ไม่มีฉบับแปลไทย → ทุกค่ามักเป็น null",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "language",
+              "type": "string",
+              "description": "ภาษาที่ต้องการ — \"pali\", \"thai\", \"english\", หรือ \"all\"\n      (default: \"pali\"). Thai ปิดอยู่ใน server ปัจจุบัน → return null",
+              "required": false,
+              "default": "pali",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sutta_id",
+              "type": "string",
+              "description": "รหัสสูตร เช่น \"mn1\", \"dn22\", \"sn56.11\", \"dhp1-20\"",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_word_definition",
+          "canonical_hash": "sha256:8f719357181e0a5b0dac9f49acd552e9aac838c98446327892aa6104e5622f69",
+          "description": "ดึงความหมายพจนานุกรมของคําศัพท์บาลี พร้อมด้วยตัวอย่างประโยคบริบทในพระสูตร\n\nใช้เป็น Pali Dictionary Bridge เพื่อทำความเข้าใจความหมายแท้จริงของคำ\nโดยนำเสนอ \"นิยาม\" ควบคู่กับ \"บริบทที่พระพุทธองค์ทรงใช้จริง\"\n\n📖 **เกี่ยวกับฐานข้อมูลพจนานุกรม:**\nTool นี้ใช้พจนานุกรมต้นฉบับหลายเล่ม รวมถึง \"พจนานุกรมพุทธศาสน์ ฉบับ\nประมวลศัพท์\" ของสมเด็จพระพุทธโฆษาจารย์ (ป. อ. ปยุตฺโต) ที่เป็นภาษาไทย —\nเนื้อหาเหล่านี้เป็น **ผลงานต้นฉบับวิชาการที่สมบูรณ์อยู่แล้ว** (ไม่ใช่\nคำแปล) จึง **เปิดให้ใช้ได้เสมอ** แม้ ENABLED_LANGUAGES จะปิดภาษาไทย.\nAI client ควรแปลเนื้อหาผลลัพธ์ภาษาไทยเป็นภาษาผู้ใช้เองหากจำเป็น.",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "limit_context",
+            "word"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "word": "string",
+            "language": "string",
+            "limit_context": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "word": {
+                "type": "string",
+                "description": "คำที่ต้องการค้นหา (เช่น \"dukkha\", \"กฐิน\")"
+              },
+              "language": {
+                "type": "string",
+                "default": "all",
+                "description": "ภาษาของพจนานุกรม (เช่น \"en\", \"thai\", หรือ \"all\" เป็นค่าเริ่มต้น)"
+              },
+              "limit_context": {
+                "type": "integer",
+                "default": 3,
+                "description": "จำนวนตัวอย่างประโยคในพระสูตรที่จะแสดง (1-5)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:66b3b2cb75bbd9009747eaa6efb1b3ac8a222c498e3f64567fc7fb6755481bc0",
+          "parameters": [
+            {
+              "name": "language",
+              "type": "string",
+              "description": "ภาษาของพจนานุกรม (เช่น \"en\", \"thai\", หรือ \"all\" เป็นค่าเริ่มต้น)",
+              "required": false,
+              "default": "all",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit_context",
+              "type": "integer",
+              "description": "จำนวนตัวอย่างประโยคในพระสูตรที่จะแสดง (1-5)",
+              "required": false,
+              "default": 3,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "word",
+              "type": "string",
+              "description": "คำที่ต้องการค้นหา (เช่น \"dukkha\", \"กฐิน\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_editions",
+          "canonical_hash": "sha256:6293a4136ae3411a91c9b8f215bcf0a24e0cc34f503dedaa87f4210a128e9252",
+          "description": "แสดงรายการฉบับแปลที่มีในระบบ พร้อมสถิติ coverage\n\n💡 **ใช้ tool นี้เมื่อ:**\n- ก่อนเรียก `compare_translations` หรือ `get_sutta(edition=...)` —\n  เพื่อรู้ว่าใช้ค่า edition อะไรได้บ้างและฉบับไหนคุ้มเทียบ\n- User ถามว่ามีฉบับแปลใดบ้างใน DB\n\n🔍 **กรอง:** Tool นี้ filter ตาม `TRIPITAKA_ENABLED_LANGUAGES` ของเซิร์ฟเวอร์\n— Thai disabled → return empty list. ทำงานเฉพาะภาษาที่เปิดอยู่\n\n⚠️ **State ปัจจุบัน:** DB ส่วนใหญ่มีแต่ Pāli (default จาก SuttaCentral\nbilara) + English (Sujato). Thai editions (`dhiranandi`, `jayasaro`,\n`mbu`, `royal`) ยังไม่ได้ index — return empty จนกว่าจะ load\n\nReturns:\n    list ของ edition object แต่ละตัวมี:\n    - edition: รหัสฉบับ เช่น \"sujato\", \"dhiranandi\", \"mbu\"\n    - translator: ชื่อผู้แปล\n    - language: รหัสภาษา ISO (\"pi\", \"en\", \"th\")\n    - segment_count: จำนวน segments ที่มีคำแปลใน edition นี้\n    - sutta_count: จำนวนสูตรที่มีคำแปล",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:4d44f7554afd34c605091c52f3608461078318f0200e423a2ba366b67132da16",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_structure",
+          "canonical_hash": "sha256:78aa22fa23c4a052c599299e0317702f4021f244da906cb2e1e338e94d03d36c",
+          "description": "แสดงโครงสร้างพระไตรปิฎกทั้ง 3 ปิฎก พร้อมสถิติ coverage\n\n💡 **ใช้ tool นี้เมื่อ:**\n- User ถามภาพรวมพระไตรปิฎก (มีอะไรบ้าง / นิกายอะไร)\n- ตรวจ coverage ก่อนสัญญาว่าจะค้นได้ — ดู segment_count > 0 เป็นตัว\n  ตัดสินว่า sub-collection นั้นโหลดแล้ว\n- Verify scope สำหรับการ compile artifact\n\n📊 **State ปัจจุบัน v1.1+ (เทียบเท่า SuttaCentral bilara-data):**\n- **Sutta Piṭaka** ครบ: DN 37, MN 155, SN 1,829, AN 1,419, KN 2,351 sections\n  (~284,702 segments รวม) — Pāli + Sujato EN\n- **Vinaya Piṭaka** ครบ: Bhikkhu Vibhaṅga 222, Bhikkhunī Vibhaṅga 127,\n  Khandhaka 22, Parivāra 51 + Pātimokkha 2 (~71,557 segs) — Pāli + Brahmali EN\n- **Abhidhamma Piṭaka** ครบ: 7 books (ds, vb, dt, pp, kv, ya, patthana)\n  ~88,414 segs — Pāli only (bilara ไม่มี EN ทุก translator)\n- **รวม ~444,673 segments** ใน DB\n\n⚠️ **Quirks ที่ยังอยู่:**\n- Schema มี duplicate codes legacy + SC modern ใช้ co-exist:\n  - Vinaya: `vin-v/vin-m/vin-c/vin-p` (legacy, segment_count = 0) คู่กับ\n    `pli-tv-bu-vb/pli-tv-bi-vb/pli-tv-kd/pli-tv-pvr` (active, มี segments)\n  - Abhidhamma: `ym/pt` (legacy = 0) คู่กับ `ya/patthana` (active)\n- **เลือก code ที่ segment_count > 0 ตอนใช้งาน** — ตัวอื่นเป็น metadata\n  placeholder จาก migration เก่า\n\n🌐 **ภาษา:** ส่งกลับ Pāli + Thai + English labels เสมอ (metadata ไม่ใช่\nsegment text); text content ตามภาษาที่ ENABLED_LANGUAGES บอก. ตอนนี้\nฉบับแปลไทยใน DB ยังไม่มี — Thai user ใช้ cross_reference 84000.org เพิ่ม\n\nReturns:\n    โครงสร้างแบบ hierarchical:\n    - pitakas{vinaya/sutta/abhidhamma} → nikayas[]\n    - แต่ละ nikaya: code, name (3 ภาษา), sutta_count, segment_count",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:5f287e9d16a7f273e2f81cf5f1068d9972b0d9d82a9cfe4d07c8d64743f3177d",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "parse_pali_word",
+          "canonical_hash": "sha256:628f30ff7d2cb7066ef61b41e6d9b907482647bf8aafe99878a33b2421dbd4bb",
+          "description": "วิเคราะห์คำบาลีเพื่อหารากศัพท์ (Stemming / Lemmatization เบื้องต้น)\n\n💡 **ใช้ tool นี้เมื่อ:**\n- เจอคำบาลีในข้อความ (เช่น `dukkhassa`, `bhikkhūnaṁ`) แล้ว\n  `get_word_definition` หาไม่เจอ — Pāli inflect คำตามวิภัตติ ๘ × วจน ๒\n  = ๑๖ form ต่อราก\n- ต้องการแยก compound word (`sammāsambuddhassa` → `sammā` + `sambuddha`\n  + `-ssa` genitive)\n- ดู possible stems ก่อนค้นต่อใน `get_word_definition`\n\n🔄 **Workflow แนะนำ:**\n`parse_pali_word(inflected_form)` → ได้ `possible_stems[]` →\nเรียก `get_word_definition(stem)` ทีละ stem จนเจอ definition\n\n⚠️ **ข้อจำกัด:**\n- เป็น rule-based เบื้องต้น — ตัด common suffixes (case endings, vowel\n  shortening) ไม่ใช่ full morphological analyzer\n- Compound words (samāsa) ไม่ได้แยก — เช่น `dukkhanirodha` ไม่ตัดเป็น\n  `dukkha` + `nirodha`\n- ไม่จับ sandhi (เสียงเชื่อม) เช่น `tena ahaṁ → tenāhaṁ`\n- ผลลัพธ์เป็น **possible** stems — ต้อง verify ผ่าน `get_word_definition`",
+          "is_mutating": false,
+          "property_keys": [
+            "word"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "word": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "word": {
+                "type": "string",
+                "description": "คำบาลีที่ inflected (เช่น \"dukkhassa\", \"bhikkhūnaṁ\", \"sīlavā\")"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:fce8d195125a6754e1d88bf8f890181e594f5c353264d87cd6e076773ddb82ef",
+          "parameters": [
+            {
+              "name": "word",
+              "type": "string",
+              "description": "คำบาลีที่ inflected (เช่น \"dukkhassa\", \"bhikkhūnaṁ\", \"sīlavā\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_by_keyword",
+          "canonical_hash": "sha256:2c044a95dce5c55ae65d151baf28ee9e03188f4199df655db35ecaff9aec4de0",
+          "description": "ค้นหาข้อความในพระไตรปิฎกด้วย keyword\n\nค้นหาแบบ trigram (word similarity) บนภาษาที่เปิดใช้งานในเซิร์ฟเวอร์.\nสามารถกรองผลลัพธ์ตามปิฎกและฉบับแปลได้.\n\n💡 **คำแนะนำสำหรับ AI client:**\nCanonical reference ของระบบคือบาลีโรมัน (จาก SuttaCentral). ถ้า user\nถามเป็นภาษาที่ปิด (หรือไม่อยู่ใน supported set) ให้แปล keyword เป็น\nบาลีโรมัน (preferred) หรืออังกฤษก่อนเรียก tool นี้ — เช่น\n\"ทุกข์\" → \"dukkha\", \"อานาปานสติ\" → \"ānāpānassati\".\nดูภาษาที่ใช้ได้ใน server instructions ด้านบน.\n\n🔍 **เลือก tool ค้นหาให้เหมาะกับงาน:**\n- **หาคำเป๊ะ (term lookup)** — เช่น \"appearances of `ānāpānassati`\":\n  ใช้ tool นี้ ดี เพราะ trigram match ตรงคำสุด\n- **หา \"เนื้อหาเรื่อง X\" (concept search)** — เช่น \"discourses about\n  mindfulness of breathing\": **ใช้ `search_hybrid` แทน** เพราะ\n  canonical Pāli มีลักษณะที่ keyword search หา concept ได้ไม่ครบ:\n    • คำสำคัญในชื่อหมวด (`Ānāpānapabba`) ไม่ได้อยู่ในเนื้อหาคำสอน\n      ที่ใช้ verb อื่น (`assasati`, `passasati`, `dīghaṁ`, `rassaṁ`) —\n      เช่น DN22 Ānāpānapabba มี 16 segments แต่คำว่า `ānāpāna`\n      ปรากฏแค่ 2 ที่ (header + footer) — เนื้อหาจริงจะหาไม่เจอ\n    • Stock phrases (เช่น `So satova assasati, satova passasati`)\n      ปรากฏซ้ำใน 10+ สูตร — keyword จะ rank ผลกว้าง ไม่ชี้สูตรเฉพาะ\n- **ค้นทั่วไปจาก keyword เดียว** — ใช้ `limit≥30` แล้วกรองเอง\n  หรือเรียกหลายคำที่เกี่ยวข้อง (root verb + noun + compound)",
+          "is_mutating": false,
+          "property_keys": [
+            "edition",
+            "keyword",
+            "language",
+            "limit",
+            "pitaka"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "keyword": "string",
+            "language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "จำนวนผลลัพธ์สูงสุด (default: 10, max: 50)"
+              },
+              "pitaka": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "กรองตามปิฎก — \"vinaya\", \"sutta\", \"abhidhamma\" หรือ None (ค้นทั้งหมด)\n    ✅ v1.1+: ทั้ง 3 ปิฎกครบ (Sutta + Vinaya + Abhidhamma) เทียบเท่า\n    SuttaCentral bilara — ดู list_structure ตัวเลขสด"
+              },
+              "edition": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ฉบับแปลภาษาไทย — \"dhiranandi\", \"jayasaro\", \"mbu\", \"royal\" หรือ None\n      (ใช้เฉพาะเมื่อ language=\"thai\" และ Thai เปิดอยู่)"
+              },
+              "keyword": {
+                "type": "string",
+                "description": "คำที่ต้องการค้นหา"
+              },
+              "language": {
+                "type": "string",
+                "default": "pali",
+                "description": "ภาษาที่ค้นหา — ต้องอยู่ใน ENABLED_LANGUAGES ของเซิร์ฟเวอร์\n      (default: \"pali\"). ภาษาที่ปิดอยู่จะ return error."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:66e9313c33416424a1260859fc6219c8cb934ea4702eba46e03353d0fb8faaa5",
+          "parameters": [
+            {
+              "name": "edition",
+              "type": "string",
+              "description": "ฉบับแปลภาษาไทย — \"dhiranandi\", \"jayasaro\", \"mbu\", \"royal\" หรือ None\n      (ใช้เฉพาะเมื่อ language=\"thai\" และ Thai เปิดอยู่)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "keyword",
+              "type": "string",
+              "description": "คำที่ต้องการค้นหา",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "language",
+              "type": "string",
+              "description": "ภาษาที่ค้นหา — ต้องอยู่ใน ENABLED_LANGUAGES ของเซิร์ฟเวอร์\n      (default: \"pali\"). ภาษาที่ปิดอยู่จะ return error.",
+              "required": false,
+              "default": "pali",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "จำนวนผลลัพธ์สูงสุด (default: 10, max: 50)",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pitaka",
+              "type": "string",
+              "description": "กรองตามปิฎก — \"vinaya\", \"sutta\", \"abhidhamma\" หรือ None (ค้นทั้งหมด)\n    ✅ v1.1+: ทั้ง 3 ปิฎกครบ (Sutta + Vinaya + Abhidhamma) เทียบเท่า\n    SuttaCentral bilara — ดู list_structure ตัวเลขสด",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_hybrid",
+          "canonical_hash": "sha256:2434f57237e859e6c39c8caa597a45520746d05b3cd20437d2acd15e9ea772bc",
+          "description": "ค้นหาแบบผสมผสาน (Hybrid Search) — รวมพลัง Keyword + Semantic\n\nใช้เทคนิค RRF (Reciprocal Rank Fusion) เพื่อนำผลลัพธ์จาก\nการค้นหาคำตรงๆ มารวมกับผลลัพธ์จากการค้นหาความหมาย —\n**เป็น tool ที่แนะนำสำหรับ \"หาเนื้อหาเรื่อง X\"** เพราะ semantic ช่วย\nจับสูตรที่พูดถึง concept เดียวกันแม้ใช้คำต่างกัน (เช่น คำสอน\nอานาปานสติบางสูตรใช้ `assasati/passasati/dīghaṁ` แทน `ānāpānassati`).\n\n💡 **คำแนะนำสำหรับ AI client:**\n- Query ภาษาอังกฤษมักได้ผลดี (เช่น `mindfulness of breathing`)\n  เพราะ embedding model เป็น multilingual แต่ tuned สำหรับ EN เป็นหลัก\n- Stop word ภาษาไทยอ่อน — ถ้า query ไทยไม่ได้ผลดี ให้ AI client\n  แปลเป็นบาลี/อังกฤษก่อน (ดู server instructions)\n- default `limit=5` มักน้อยเกินสำหรับ topic survey — ถ้าต้องการ\n  coverage ดี ใช้ `limit=15-20` (max 20)\n- Ranking ตาม similarity ไม่ใช่ canonical importance — สูตรหลัก\n  (locus classicus) เช่น MN118, DN22 อาจ rank ต่ำกว่าสูตรเล็ก\n  ถ้าสูตรเล็กมีคำเป๊ะกว่า. ใช้ผลลัพธ์เป็น \"starting point\"\n  แล้วต่อด้วย `get_sutta` สำหรับสูตรเฉพาะที่เป็น canonical reference",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "language": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 5,
+                "description": "จำนวนข้อความที่ต้องการค้นพบ (default 5, max 20)"
+              },
+              "query": {
+                "type": "string",
+                "description": "ข้อความ (ภาษาไทย, บาลี หรืออังกฤษ — อังกฤษให้ผลดีสุด)"
+              },
+              "language": {
+                "type": "string",
+                "default": "pali",
+                "description": "ภาษาที่ต้องการให้แสดงในผลลัพธ์ (\"pali\", \"thai\", \"english\", \"all\")"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:d9d0f2e18feacdbae233444606642866d5a6eaa8ee4f847e84bd193b8da5bd20",
+          "parameters": [
+            {
+              "name": "language",
+              "type": "string",
+              "description": "ภาษาที่ต้องการให้แสดงในผลลัพธ์ (\"pali\", \"thai\", \"english\", \"all\")",
+              "required": false,
+              "default": "pali",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "จำนวนข้อความที่ต้องการค้นพบ (default 5, max 20)",
+              "required": false,
+              "default": 5,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "ข้อความ (ภาษาไทย, บาลี หรืออังกฤษ — อังกฤษให้ผลดีสุด)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_semantic",
+          "canonical_hash": "sha256:bc9e5d4bd9a1c086c6d9b4e7babf8a5a52f0ad9c35f70bcd6c027ebeed3ab0cb",
+          "description": "ค้นหาแบบ semantic — ค้นหาตามความหมาย ไม่จำเป็นต้องตรงคำ\n\nใช้ vector similarity search (cosine distance) บน `text_pali` ที่ embed\nด้วย multilingual MiniLM model.\n\n🤔 **ส่วนใหญ่คุณควรใช้ `search_hybrid` แทน** — มันรวม semantic นี้กับ\nkeyword search แล้ว ranking ดีกว่า. ใช้ tool นี้เฉพาะเมื่อ:\n- ต้องการ pure semantic (ไม่ต้องการ keyword influence)\n- อยาก tune `threshold` ละเอียด (hybrid ใช้ RRF ปรับยาก)\n- debug ดูว่า semantic จับอะไรได้บ้างเทียบกับ keyword\n\n⚠️ ข้อจำกัดที่ทราบ:\n- Index = บาลีเท่านั้น (English/Thai ใช้ได้แต่ผ่าน multilingual embedding\n  ที่ไม่ได้ tune บน Pāli)\n- English query มัก embed ดีกว่าไทย (model tune EN เป็นหลัก)\n- คำเฉพาะตัว (`appamāda`, `dukkha`) ที่ค้นแบบ exact ดีกว่า → ใช้\n  `search_by_keyword`\n- Stock phrases บาลีปรากฏในหลายสูตร → similarity score กระจัดกระจาย,\n  อ่าน top 10 อย่ายึดแค่ rank 1",
+          "is_mutating": false,
+          "property_keys": [
+            "language",
+            "limit",
+            "query",
+            "threshold"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string",
+            "language": "string",
+            "threshold": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 5,
+                "description": "จำนวนผลลัพธ์สูงสุด (default: 5, max: 20)"
+              },
+              "query": {
+                "type": "string",
+                "description": "ข้อความ (อังกฤษให้ผลดีสุด, รองมาเป็นบาลี, ไทยอ่อน)"
+              },
+              "language": {
+                "type": "string",
+                "default": "pali",
+                "description": "ภาษา output — \"pali\", \"thai\", \"english\", หรือ \"all\"\n      (Thai disabled → null)"
+              },
+              "threshold": {
+                "type": "number",
+                "default": 0.7,
+                "description": "cosine distance สูงสุด (น้อย=ตรงเผง). default 0.7;\n       ลดเป็น 0.5 ถ้าอยากเข้มงวด, เพิ่มเป็น 0.9 ถ้าอยากกว้าง"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            },
+            "required": [
+              "result"
+            ]
+          },
+          "description_hash": "sha256:52d87241b484745cd739653d3e3c9bae70f71410024e6d1379365753287cf0e5",
+          "parameters": [
+            {
+              "name": "language",
+              "type": "string",
+              "description": "ภาษา output — \"pali\", \"thai\", \"english\", หรือ \"all\"\n      (Thai disabled → null)",
+              "required": false,
+              "default": "pali",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "จำนวนผลลัพธ์สูงสุด (default: 5, max: 20)",
+              "required": false,
+              "default": 5,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "ข้อความ (อังกฤษให้ผลดีสุด, รองมาเป็นบาลี, ไทยอ่อน)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "threshold",
+              "type": "number",
+              "description": "cosine distance สูงสุด (น้อย=ตรงเผง). default 0.7;\n       ลดเป็น 0.5 ถ้าอยากเข้มงวด, เพิ่มเป็น 0.9 ถ้าอยากกว้าง",
+              "required": false,
+              "default": 0.7,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": [
+        {
+          "uri_template": "tripitaka://structure",
+          "name": "structure_resource",
+          "description": "",
+          "mime_type": "text/plain"
+        }
+      ]
+    },
     {
       "version": "1.3.1",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -40,9 +734,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "sse",
+  "remote_endpoint": "https://mcp.tripitaka-mcp.com/sse",
+  "auth_type": "none",
+  "headers_schema": {}
 }

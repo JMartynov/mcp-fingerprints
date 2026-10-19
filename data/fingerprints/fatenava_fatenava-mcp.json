@@ -4,8 +4,9 @@
   "purl": "pkg:generic/fatenava%2Ffatenava-mcp",
   "ecosystem": "generic",
   "display_name": "fatenava/fatenava-mcp",
-  "description": "Cast BaZi, Zi Wei Dou Shu, and Western astrology natal charts - deterministic, free, no account.",
-  "repository_url": "https://github.com/fatenava/fatenava-mcp",
+  "description": "All-in-one destiny charting for AI agents: cast BaZi (八字/四柱推命/사주), Zi Wei Dou Shu (紫微斗數), and Western astrology natal charts with a single tool. Deterministic engines with True Solar Time correction, multilingual birth input, free and anonymous — no account or API key required. Official MCP server by FateNava (fatenava.com).",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/fatenava/fatenava-mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "fatenava/fatenava-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,319 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:06c76df7774eff8b0bdbc2510a01e00eefa92d4500aa6e7757f4341068fd4a5b",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "fb62d47e-4bbf-4672-b497-050a8a2f135d/78434ec4-78ed-45b6-8fd4-b4bf3f54a772/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "apiBase": {
+                "type": "string",
+                "title": "API base URL",
+                "default": "https://fatenava.com",
+                "x-order": 0,
+                "description": "Override the FateNava API origin (advanced; default is the official API)"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "cast_chart",
+          "canonical_hash": "sha256:d090479fc6720392d80b0d7fbc073d97c7d68af2173f4a5d36ed65c57d668246",
+          "description": "Cast up to three deterministic destiny charts from one birth: BaZi (Four Pillars, True Solar Time corrected), Zi Wei Dou Shu (Purple Star Astrology), and a Western natal chart (tropical zodiac, Placidus houses). Free and anonymous - no account, nothing stored. Chart data is computed, not AI-generated.",
+          "is_mutating": false,
+          "property_keys": [
+            "birthTimeKnown",
+            "day",
+            "gender",
+            "hour",
+            "latitude",
+            "longitude",
+            "minute",
+            "month",
+            "systems",
+            "text",
+            "timeZoneId",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "day": "integer",
+            "hour": "integer",
+            "text": "string",
+            "year": "integer",
+            "month": "integer",
+            "gender": "string",
+            "minute": "integer",
+            "systems": "array",
+            "latitude": "number",
+            "longitude": "number",
+            "timeZoneId": "string",
+            "birthTimeKnown": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "day": {
+                "type": "integer",
+                "description": "Birth day 1-31"
+              },
+              "hour": {
+                "type": "integer",
+                "description": "Birth hour 0-23; pass with birthTimeKnown=false if unknown"
+              },
+              "text": {
+                "type": "string",
+                "description": "One-line birth description: date, time (omit if unknown), birthplace city, gender. Example: \"1995-08-10 12:00 Taipei female\". City names in English, Chinese, Japanese or Korean. Use EITHER this OR the structured fields."
+              },
+              "year": {
+                "type": "integer",
+                "description": "Birth year (structured input)"
+              },
+              "month": {
+                "type": "integer",
+                "description": "Birth month 1-12"
+              },
+              "gender": {
+                "enum": [
+                  "male",
+                  "female"
+                ],
+                "type": "string",
+                "description": "Required with structured input"
+              },
+              "minute": {
+                "type": "integer",
+                "description": "Birth minute 0-59"
+              },
+              "systems": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "bazi",
+                    "ziwei",
+                    "astro"
+                  ],
+                  "type": "string"
+                },
+                "description": "Which chart systems to return. Default: all three."
+              },
+              "latitude": {
+                "type": "number",
+                "description": "Birthplace latitude"
+              },
+              "longitude": {
+                "type": "number",
+                "description": "Birthplace longitude; used for True Solar Time correction"
+              },
+              "timeZoneId": {
+                "type": "string",
+                "description": "IANA timezone of the birthplace, e.g. \"Asia/Taipei\""
+              },
+              "birthTimeKnown": {
+                "type": "boolean",
+                "description": "Set false when the exact birth time is unknown - BaZi still returns three pillars; hour-dependent parts are omitted honestly"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "birth": {
+                "type": "object",
+                "description": "Echo of the parsed birth input (date, time, gender, place)"
+              },
+              "charts": {
+                "type": "object",
+                "description": "Per-system slot: { ok: true, view: {...} } or { ok: false, reason }. Field names are English; traditional terms (stems, branches, palaces, stars) are native Chinese characters."
+              },
+              "_source": {
+                "type": "object",
+                "description": "Provider attribution (FateNava) and computation note"
+              },
+              "timeKnown": {
+                "type": "boolean",
+                "description": "Whether the birth hour was known and used"
+              }
+            }
+          },
+          "description_hash": "sha256:4cabb8da75f697a455880fa01fd25a715fa1d566616fce9550d2d96fa59efa65",
+          "parameters": [
+            {
+              "name": "birthTimeKnown",
+              "type": "boolean",
+              "description": "Set false when the exact birth time is unknown - BaZi still returns three pillars; hour-dependent parts are omitted honestly",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "day",
+              "type": "integer",
+              "description": "Birth day 1-31",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "gender",
+              "type": "string",
+              "description": "Required with structured input",
+              "required": false,
+              "default": null,
+              "enum": [
+                "male",
+                "female"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hour",
+              "type": "integer",
+              "description": "Birth hour 0-23; pass with birthTimeKnown=false if unknown",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "latitude",
+              "type": "number",
+              "description": "Birthplace latitude",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "longitude",
+              "type": "number",
+              "description": "Birthplace longitude; used for True Solar Time correction",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "minute",
+              "type": "integer",
+              "description": "Birth minute 0-59",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "month",
+              "type": "integer",
+              "description": "Birth month 1-12",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "systems",
+              "type": "array",
+              "description": "Which chart systems to return. Default: all three.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "description": "One-line birth description: date, time (omit if unknown), birthplace city, gender. Example: \"1995-08-10 12:00 Taipei female\". City names in English, Chinese, Japanese or Korean. Use EITHER this OR the structured fields.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeZoneId",
+              "type": "string",
+              "description": "IANA timezone of the birthplace, e.g. \"Asia/Taipei\"",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "year",
+              "type": "integer",
+              "description": "Birth year (structured input)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

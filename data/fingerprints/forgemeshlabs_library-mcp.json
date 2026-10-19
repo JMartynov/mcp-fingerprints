@@ -4,17 +4,18 @@
   "purl": "pkg:generic/forgemeshlabs%2Flibrary-mcp",
   "ecosystem": "generic",
   "display_name": "forgemeshlabs/library-mcp",
-  "description": "A paid public-domain knowledge base for AI agents: full-text search, book metadata, chapters.",
-  "repository_url": "https://github.com/forgemeshlabs/library-mcp",
+  "description": "library-mcp",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/forgemeshlabs/library-mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "ForgeMesh Library MCP",
     "forgemeshlabs/library-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -29,9 +30,488 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:e631b372e93e3448396742e799099898e5c0ab87db30be92f07e13a45f01239d",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "f9e9cee5-df75-47a7-9a6e-99e13fcf5bbe/299186b8-015c-453f-8ca1-c5ffb647c658/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "library_base_url": {
+                "type": "string",
+                "title": "Library API origin",
+                "default": "https://library.forgemesh.io",
+                "x-order": 1,
+                "description": "Public API origin for the local MCP server."
+              },
+              "wallet_private_key": {
+                "type": "string",
+                "title": "Dedicated low-balance Base wallet key",
+                "x-order": 0,
+                "description": "Required to execute any Library tool: all tools spend USDC on Base. May be left blank only for MCP initialization and tool discovery. Never use a primary wallet."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "ask_book",
+          "canonical_hash": "sha256:c5a5a22ab00311378ca47e0ec9256b0b946d79ee4e1cc21d35484c37c9eb2d4c",
+          "description": "Ask a natural-language question about one of the flagship books and get back the most relevant passages from the book itself, with chapter/location citations. Retrieval only — never a generated summary. Pass any recognizable name for \"book\" (e.g. \"Moby Dick\", \"the Odyssey\") — it resolves to the matching route. Available flagship books: alice in wonderland, art of war, count of monte cristo, crime and punishment, don quixote, dracula, frankenstein, great expectations, grimms fairy tales, jane eyre, meditations, moby dick, picture of dorian gray, pride and prejudice, sherlock holmes, iliad, odyssey, republic, time machine, tom sawyer, treasure island, walden, war and peace, wuthering heights. Costs $0.01 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "book",
+            "limit",
+            "question"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "book": "string",
+            "limit": "integer",
+            "question": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "book": {
+                "type": "string",
+                "description": "Book name, e.g. one of: alice in wonderland, art of war, count of monte cristo, crime and punishment, don quixote, dracula, frankenstein, great expectations, grimms fairy tales, jane eyre, meditations, moby dick, picture of dorian gray, pride and prejudice, sherlock holmes, iliad, odyssey, republic, time machine, tom sawyer, treasure island, walden, war and peace, wuthering heights"
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max passages (default 5, max 15)"
+              },
+              "question": {
+                "type": "string",
+                "description": "Your question about the book"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3a0cd53f58d1d3c4883bc5b05290d902ca14a5688ade1804fd6942fa389e65be",
+          "parameters": [
+            {
+              "name": "book",
+              "type": "string",
+              "description": "Book name, e.g. one of: alice in wonderland, art of war, count of monte cristo, crime and punishment, don quixote, dracula, frankenstein, great expectations, grimms fairy tales, jane eyre, meditations, moby dick, picture of dorian gray, pride and prejudice, sherlock holmes, iliad, odyssey, republic, time machine, tom sawyer, treasure island, walden, war and peace, wuthering heights",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max passages (default 5, max 15)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "question",
+              "type": "string",
+              "description": "Your question about the book",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "book_of_the_day",
+          "canonical_hash": "sha256:3ca3d8f339a0148949186a4d51c46858122d2d36d866e4e21fa4278cae313b22",
+          "description": "Deterministic daily book pick from the indexed corpus, date-seeded so every caller gets the same answer on the same UTC day. Optional date override for backfill. Costs $0.001 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "date": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "description": "Optional ISO date (YYYY-MM-DD) to replay a past day's pick"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b6e26fa910c1f99c7c06f750a388e0f26d7a0b41f9d7b479b2ed299796d3e289",
+          "parameters": [
+            {
+              "name": "date",
+              "type": "string",
+              "description": "Optional ISO date (YYYY-MM-DD) to replay a past day's pick",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "browse_shelf",
+          "canonical_hash": "sha256:214fb5d7bf37d5e0d23dd49f190fe4a26b4f31d35f14cfc2f580b9d377e31c92",
+          "description": "Browse a curated category/subject shelf: 10 hand-picked categories (adventure, childrens-classics, classic-literature, economics-and-politics, gothic-horror, history, philosophy, poetry, science-and-nature, shakespeare-and-drama) plus 100+ auto-generated shelves drawn from real Gutenberg subjects/bookshelves (e.g. 'gothic-fiction', 'russian-literature', 'detective-fiction'). Returns a ranked list of books with book_id for drill-down. Full shelf catalog is discoverable free at https://library.forgemesh.io/llms.txt. Costs $0.003 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "shelf"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "shelf": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "shelf": {
+                "type": "string",
+                "description": "Shelf name or slug, e.g. 'gothic horror' or 'russian-literature'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:997e5a34884325f634e04562c1df837ea69acbd9c42c6ff818eb893dfb885d25",
+          "parameters": [
+            {
+              "name": "shelf",
+              "type": "string",
+              "description": "Shelf name or slug, e.g. 'gothic horror' or 'russian-literature'",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_book_metadata",
+          "canonical_hash": "sha256:180d510bca7da90e52e1f6c4a89ec4363d4bfd7e77317dda2088ec4408de2e50",
+          "description": "Full metadata for one indexed book by book_id: title, author, year, subjects, bookshelves, download rank, chunk count, and detected chapter range. Use search_books first to find a book_id. Costs $0.002 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "book_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "book_id": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "book_id": {
+                "type": "integer",
+                "description": "Gutenberg book id, from search_books"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d54dc2aff9f2e8f9b9bcebe10f02265262ead469ca3d9244ce13c3f5fe565626",
+          "parameters": [
+            {
+              "name": "book_id",
+              "type": "integer",
+              "description": "Gutenberg book id, from search_books",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_chapter",
+          "canonical_hash": "sha256:9194764a5ba692de81a22576579a165e1ed97a94b865963b9df1831c08e3360c",
+          "description": "Full text of one chapter from an indexed book by book_id and chapter number. Chapter 0 is front matter before the first detected heading. Use get_book_metadata for the valid chapter range. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "book_id",
+            "chapter"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "book_id": "integer",
+            "chapter": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "book_id": {
+                "type": "integer",
+                "description": "Gutenberg book id"
+              },
+              "chapter": {
+                "type": "integer",
+                "description": "Chapter number (0 = front matter)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fb47b9de6edee13bcb71f3a88406c98ac66863d73bca59e8412f214a42803237",
+          "parameters": [
+            {
+              "name": "book_id",
+              "type": "integer",
+              "description": "Gutenberg book id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "chapter",
+              "type": "integer",
+              "description": "Chapter number (0 = front matter)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_quotes",
+          "canonical_hash": "sha256:e375315211627fc647626a0b9a822f89ec6dab20a8350b84ee255b0626f106ee",
+          "description": "Notable passages from one indexed book by book_id. Pass an optional theme to full-text search within that book, or omit it for a sample of short dialogue-bearing lines. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "book_id",
+            "limit",
+            "theme"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "theme": "string",
+            "book_id": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Max quotes to return (default 5)"
+              },
+              "theme": {
+                "type": "string",
+                "description": "Optional theme/keyword to search for within the book"
+              },
+              "book_id": {
+                "type": "integer",
+                "description": "Gutenberg book id"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d4ad5c321e8384348183d8666d8ee2a937122441de502ad67755c9d9a8dbfabe",
+          "parameters": [
+            {
+              "name": "book_id",
+              "type": "integer",
+              "description": "Gutenberg book id",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max quotes to return (default 5)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "theme",
+              "type": "string",
+              "description": "Optional theme/keyword to search for within the book",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_books",
+          "canonical_hash": "sha256:033964f4c8da2d7eaee9036885942c7bf91b68d6e24df661bfc5c5263ed6b4b4",
+          "description": "Search the indexed public-domain book corpus by title or author substring, e.g. 'Dickens' or 'Frankenstein'. Returns matching books ranked by historical popularity with book_id for drill-down into metadata, chapters, quotes, or full-text search. Costs $0.005 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Max results (default 10, max 50)"
+              },
+              "query": {
+                "type": "string",
+                "description": "Title or author substring"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:070883be6954ca5b1af95a41719a14a545f56589b9caa33e99c47dc1bb13edb9",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max results (default 10, max 50)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Title or author substring",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_literature",
+          "canonical_hash": "sha256:8b4c615c7d27213c4ac5f053e1e1b9bc1ba7fda373704522600721688b4833b4",
+          "description": "PREMIUM full-text search across the entire indexed public-domain corpus (17k+ books and growing). Returns the most relevant passages from ANY book, ranked by relevance, with title/author citations. Retrieval only — real cited passages, never LLM-generated or summarized. Costs $0.02 via x402 (requires WALLET_PRIVATE_KEY, USDC on Base).",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Max passages to return (default 10, max 30)"
+              },
+              "query": {
+                "type": "string",
+                "description": "Full-text search query, e.g. 'the nature of justice'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ada81fc2abbbe5cc25216c9b88e2621585a811be3e4ba96c2fd4cc376c675d09",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max passages to return (default 10, max 30)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Full-text search query, e.g. 'the nature of justice'",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

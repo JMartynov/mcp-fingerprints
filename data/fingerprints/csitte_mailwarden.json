@@ -4,8 +4,9 @@
   "purl": "pkg:generic/csitte%2Fmailwarden",
   "ecosystem": "generic",
   "display_name": "csitte/mailwarden",
-  "description": "Gmail MCP server for email triage: search, labels, archive, trash, unsubscribe, snooze.",
-  "repository_url": "https://github.com/csitte/mailwarden",
+  "description": "A reliable, **native** Gmail MCP server for inbox triage — full mailbox control, with **no send tools by design**.\n\nRuns locally against the **live** Gmail API: no mailbox mirror, no cache, no cloud copy of your mail. Every call goes straight to Google, and the only local state is your own OAuth token in `~/.mailwarden/`.\n\n### What it does\n\n- **Mailbox-side snooze** — archive a thread now, have it resurface in the inbox on a date or time. Built on dated labels plus a sweep, so it works from any client, is visible in Gmail itself, and survives restarts.\n- **Search you can trust** — Gmail's own index silently drops `is:unread` in some operator combinations; every hit is re-verified against its live labels before a tool sees it.\n- **Triage digest and signals** — sender / label / age buckets, plus per-thread flags (newsletter, automated, calendar, reply-to mismatch) read from headers and MIME structure, never guessed from wording.\n- **Bulk operations with a dry run** — `bulk_modify`, `bulk_unsubscribe` and `sweep_snoozed` rehearse the identical path and stop before the first write or outbound request.\n- **Unsubscribe** — per-sender overview and RFC 8058 one-click opt-out. The URL comes from the message's own `List-Unsubscribe` header and is never a tool parameter.\n- **Least privilege** — tool tiers (`read` / `manage` / `filters`) decide both the registered tools and the OAuth scopes requested. A `read` deployment can change nothing and makes no outbound request at all.\n\n### Deliberately missing\n\nThere is no compose, reply, forward or send tool, and `create_filter` never produces a forwarding rule — so a prompt-injected mail has no exfiltration path. Nothing is deleted permanently either: trash and untrash only.\n\n### Setup\n\nOne-time consent to **your own** Google Cloud OAuth client; the refresh token stays on your machine:\n\n```\nnpx -y mailwarden --auth     # one-time consent\nnpx -y mailwarden --check    # diagnose the setup\n```\n\nFull guide: https://github.com/csitte/mailwarden/blob/main/docs/SETUP.md — threat model: https://github.com/csitte/mailwarden/blob/main/SECURITY.md",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/csitte/mailwarden",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,9 @@
     "csitte/mailwarden"
   ],
   "sources_merged": [
-    "official_registry"
+    "github_readme",
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +31,1881 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:d64ca0e1bb5a094381b1810c32434a45507b93078aaabb6379ed1ac5474357a4",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "fb508659-44e6-4f0e-8786-6398c5f9e652/7c43a01c-fb8e-4eaf-9151-72e678463eb7/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "tools": {
+                "type": "string",
+                "title": "Tool tiers",
+                "default": "read,manage,filters",
+                "x-order": 0,
+                "description": "Comma-separated subset of read, manage, filters. Fewer tiers = fewer tools; set the same value when authorizing (`MAILWARDEN_TOOLS=read npx -y mailwarden --auth`) and the OAuth scope narrows with it (read alone is gmail.readonly, where Google itself enforces no-send). Must not exceed what you authorized."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "documentation_extracted_tools": true,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "archive",
+          "canonical_hash": "sha256:8e0aa65165fb1938993971f70d08d0ee56db6c2bd573de4866349d44d889b2a5",
+          "description": "Archive a thread (remove it from the inbox). USE WHEN: inbox triage — the thread is handled and should leave the inbox. DO NOT USE: to delete (use trash) or to defer to a date (use snooze). SIDE EFFECTS: thread leaves the inbox; reversible via modify_labels add INBOX.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f15980cff50b6742e72e6f1737c04d41364cdf9f8fcdb063d79a372bc2e5fd10",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "bulk_modify",
+          "canonical_hash": "sha256:c4382e79778454fca5f9d0d77ff10b6776c415d90bda7c007bfe505b3c0bd1da",
+          "description": "Bulk-apply label changes to every message matching a Gmail query, batched at 1000 messages per API request. Labels may be given by name or by id: an unknown name in `add` is created automatically (use '/' for nested labels), an unknown name in `remove` is ignored. Returns matched/submitted counts, matched and submitted thread IDs (both lists capped at 500 — matchedThreadCount/submittedThreadCount hold the true totals), and per-chunk failures (partial success is reported, not hidden). IMPORTANT: `submittedMessages` is how many ids were handed to the API, NOT how many messages changed — `messages.batchModify` answers 204 with no body and ignores ids it does not recognise without a word, so an accepted request is not a performed one. Set verify:true to read the labels back afterwards and get `verified` {applied, notApplied[], unverifiable[]} — the only field here that reports an observed outcome. It costs one extra read per affected thread, so it is off by default; use it when a wrong 'done' would be acted on (trashing, or anything the user is told completed). If more messages match than maxMessages, only the first maxMessages are processed and 'capped' is true — raise maxMessages or re-run to finish the rest. NOTE: the query hits Gmail's search index as-is, WITHOUT the live re-verification search performs. The staleness that makes search re-verify was measured on `threads.list` (132 threads returned, 114 carrying no unread message at all); the same query through the message index this tool uses returned 19 hits, none stale — same mailbox, same minute. So the known drift does not reach this path, but that is one measurement, not a guarantee: `unverifiedPredicates` in the result names the conditions taken on the index's word, and when the outcome must be read-state-precise, resolve the set with search (which verifies against live labels) and act on those thread ids instead. Set crossCheck:true to ask Gmail the same question a second way before writing: each derived predicate is re-run as a label filter (`labelIds`) instead of a query operator, and any message the two routes disagree about is left untouched and listed in `crossChecked.dropped`. It costs one extra list per predicate — flat, not per message — so unlike `verify` it stays cheap on a large sweep. Read it as a contradiction detector: a disagreement is real, agreement proves nothing, because both routes read the same index. `unverifiedPredicates` therefore stays as it is even when this runs. A capped match set is not cross-checked at all (`crossChecked.capped`), since a message missing from a page is not a message missing the label. Set dryRun:true to rehearse: the same query resolution, matched counts/threads and the labels that would be created — and no message or label is touched. A dry run reads the SAME unverified index, so it confirms the size of the set, never its correctness. USE WHEN: mass operations — 'archive all newsletters older than 30 days' (query + remove INBOX), bulk labeling, bulk mark-read; dryRun first when the query is broad or the user should see the set before it changes. DO NOT USE: for a single thread (use modify_labels or the dedicated tools), or with neither add nor remove. Set undo:true to get `undo`, the EXACT inverse of this call: before writing, every affected thread's labels are read live, and the plan says per message what to add back and what to take off — a message that was already in the target state is left out, which a swapped add/remove would not do. Pass `undo.steps` unchanged to undo_bulk_modify to revert. It costs one extra read per affected thread. With undo:true the call writes NOTHING unless the plan can be built: more than 500 messages to change, or a prior state that could not be read, is an error before the first write — a change the caller asked to be reversible is never made irreversibly. A label the call created for a name in `add` is taken off again by the undo but stays in the mailbox, empty. SIDE EFFECTS: modifies up to maxMessages messages in one call (none with dryRun); label changes are reversible — exactly with undo:true, approximately by the inverse call.",
+          "is_mutating": false,
+          "property_keys": [
+            "add",
+            "crossCheck",
+            "dryRun",
+            "maxMessages",
+            "query",
+            "remove",
+            "undo",
+            "verify"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "add": "array",
+            "undo": "boolean",
+            "query": "string",
+            "dryRun": "boolean",
+            "remove": "array",
+            "verify": "boolean",
+            "crossCheck": "boolean",
+            "maxMessages": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "add": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "undo": {
+                "type": "boolean",
+                "default": false
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1
+              },
+              "dryRun": {
+                "type": "boolean",
+                "default": false
+              },
+              "remove": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "verify": {
+                "type": "boolean",
+                "default": false
+              },
+              "crossCheck": {
+                "type": "boolean",
+                "default": false
+              },
+              "maxMessages": {
+                "type": "integer",
+                "default": 1000,
+                "maximum": 10000,
+                "minimum": 1
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5fa50701848efd496261357766c1764e8f26d6befa8e62c1dd6cd8cff7b9bbf5",
+          "parameters": [
+            {
+              "name": "add",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": [],
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "crossCheck",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dryRun",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "maxMessages",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 1000,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "remove",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": [],
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "undo",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "verify",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "bulk_unsubscribe",
+          "canonical_hash": "sha256:131e6b5381648add8ee83983d9edf86a118bb89d6ac63d364d539802c308601c",
+          "description": "Unsubscribe from several mailing lists in one call, one thread id per list. Threads are processed SEQUENTIALLY, and at most ONE request is made per sender — a second thread from a sender whose request already went out is reported with `duplicateOf` and no request (and says so when it advertises a DIFFERENT endpoint, i.e. is probably a separate list from the same sender). The whole call shares a 60-second budget; threads left over when it runs out come back with `skippedOutOfTime` and a reason, so re-running with the remaining ids finishes the job. Like unsubscribe, there is no URL parameter: every endpoint comes from that thread's own List-Unsubscribe header. Only RFC 8058 one-click senders are contacted; the rest come back with their alternatives in `options`. Partial success is reported, never hidden: a thread that cannot be read or whose endpoint fails becomes an entry with a `reason`, and the remaining threads still run. Set dryRun:true to rehearse: same header reads, same per-sender dedupe (as a real run with every request succeeding), and each entry a real run would contact reports the endpoint it `wouldCall`; refusals and duplicates carry none — and nobody is contacted. USE WHEN: clearing out several newsletters at once — pair with list_subscriptions, which gives you the sender rows and their newestThreadId; dryRun first to show the user which senders would be contacted. DO NOT USE: for one thread (use unsubscribe), or to find candidates (use list_subscriptions — it contacts nobody). SIDE EFFECTS: up to one outbound HTTPS request per DISTINCT sender (plus up to 3 redirects each) — the only non-Google hosts mailwarden ever contacts (none with dryRun). Each confirms to that sender that the address is live, and none of it can be undone. The mailbox itself is not changed.",
+          "is_mutating": false,
+          "property_keys": [
+            "dryRun",
+            "threadIds"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dryRun": "boolean",
+            "threadIds": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dryRun": {
+                "type": "boolean",
+                "default": false
+              },
+              "threadIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 25,
+                "minItems": 1
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:933619b192c15991ef9f6173d5f07b9edd68344beaac3e69c8886e113edc2a11",
+          "parameters": [
+            {
+              "name": "dryRun",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "threadIds",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_filter",
+          "canonical_hash": "sha256:cba5e31695e9e69edeafa2a89fbf581f3debc5ae9e2bd002e391f1fb97d86998",
+          "description": "Create a Gmail filter: matching incoming mail automatically gets the given label actions. Give at least one criterion and at least one action. Actions are label add/remove only (labels by name or id; an unknown name in addLabels is auto-created). Common recipes: skip the inbox → removeLabels ['INBOX']; auto-mark-read → removeLabels ['UNREAD']; auto-trash → addLabels ['TRASH']; star → addLabels ['STARRED']; file under a label → addLabels ['Receipts']. A filter only affects mail arriving AFTER it's created; set applyToExisting:true to ALSO apply the same actions once to mail already in the mailbox (builds a Gmail search from the criteria and runs a bulk modify — same unverified-index caveat as bulk_modify — the sweep acts on what the index returns, which can be badly stale on read state; up to maxMessages, default 1000). The sweep's `applied.submittedMessages` is how many ids were handed to the API, NOT how many messages changed; set verify:true alongside applyToExisting to read the labels back afterwards and get `applied.verified` {applied, notApplied[], unverifiable[]}. It costs one extra read per affected thread, so it is off by default; a read-back that fails lands in `unverifiable` and never fails the call — the filter stands either way. USE WHEN: setting up a persistent auto-triage rule (e.g. 'always archive + label newsletters from x'), optionally cleaning up the existing backlog too. NOTE: forwarding filters are intentionally not supported — mailwarden creates no send/exfiltration path. SIDE EFFECTS: adds a server-side rule affecting future mail (reversible via delete_filter); with applyToExisting also modifies existing messages. Requires gmail.settings.basic.",
+          "is_mutating": false,
+          "property_keys": [
+            "addLabels",
+            "applyToExisting",
+            "excludeChats",
+            "from",
+            "hasAttachment",
+            "maxMessages",
+            "negatedQuery",
+            "query",
+            "removeLabels",
+            "size",
+            "sizeComparison",
+            "subject",
+            "to",
+            "verify"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "to": "string",
+            "from": "string",
+            "size": "integer",
+            "query": "string",
+            "verify": "boolean",
+            "subject": "string",
+            "addLabels": "array",
+            "maxMessages": "integer",
+            "excludeChats": "boolean",
+            "negatedQuery": "string",
+            "removeLabels": "array",
+            "hasAttachment": "boolean",
+            "sizeComparison": "string",
+            "applyToExisting": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to": {
+                "type": "string",
+                "minLength": 1
+              },
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "size": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1
+              },
+              "verify": {
+                "type": "boolean",
+                "default": false
+              },
+              "subject": {
+                "type": "string",
+                "minLength": 1
+              },
+              "addLabels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "maxMessages": {
+                "type": "integer",
+                "default": 1000,
+                "maximum": 10000,
+                "minimum": 1
+              },
+              "excludeChats": {
+                "type": "boolean"
+              },
+              "negatedQuery": {
+                "type": "string",
+                "minLength": 1
+              },
+              "removeLabels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "hasAttachment": {
+                "type": "boolean"
+              },
+              "sizeComparison": {
+                "enum": [
+                  "smaller",
+                  "larger"
+                ],
+                "type": "string"
+              },
+              "applyToExisting": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dd5f1b968803bf4615fcbba85d8bb4ef98843113c65388a921763ff0a5907418",
+          "parameters": [
+            {
+              "name": "addLabels",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": [],
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "applyToExisting",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "excludeChats",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "from",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hasAttachment",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "maxMessages",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 1000,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "negatedQuery",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "removeLabels",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": [],
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "size",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sizeComparison",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "smaller",
+                "larger"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "subject",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "to",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "verify",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_label",
+          "canonical_hash": "sha256:e8916bd952f0bdb5205f3485c03e1f8f7c75ee2c1c65451876946cc5c72b281c",
+          "description": "Create a user label and return its id. Idempotent: if the name already exists (case-insensitive), its existing id is returned and nothing is created. Nested labels: separate levels with '/' (e.g. 'Clients/Acme') — each missing parent level is created too. Colour: pass backgroundColor AND textColor together as '#rrggbb' (Gmail rejects one without the other, and accepts only colours from its own palette). Giving a colour for a label that already exists RECOLOURS it — that is how an existing label, such as the snooze label, gets a colour. Gmail colours only labels you created yourself; system labels like INBOX or CATEGORY_UPDATES refuse one. USE WHEN: you want a label's id up front, to pre-create a label without applying it to anything, or to make an existing label visible at a glance in Gmail. DO NOT USE: just to file mail under a new label — modify_labels/bulk_modify already auto-create an unknown name passed in `add`. SIDE EFFECTS: creates the label if missing, and sets its colour when one is given; no mail is changed.",
+          "is_mutating": false,
+          "property_keys": [
+            "backgroundColor",
+            "name",
+            "textColor"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "textColor": "string",
+            "backgroundColor": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "textColor": {
+                "type": "string"
+              },
+              "backgroundColor": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6354ca49d346a22c07970ea19d06e74c178afe46715cd7f235a074fc1d8eb200",
+          "parameters": [
+            {
+              "name": "backgroundColor",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "textColor",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "delete_filter",
+          "canonical_hash": "sha256:4dab233e406039e68630fd3783aa17fd30210994940fb32401e6daf824c63619",
+          "description": "Delete a Gmail filter by id (get ids from list_filters). USE WHEN: removing an auto-triage rule. SIDE EFFECTS: removes the server-side rule; future mail is no longer auto-processed by it. Requires gmail.settings.basic.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1d84e637a3db9f6b464c6a48e192acc53b5c22b269c77a27514dbc21ae467e24",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "download_attachment",
+          "canonical_hash": "sha256:890f95461d5c3feb2ef56fef76b76ff0f9cf2ef3746ee86dea3253076dc96a91",
+          "description": "Download an attachment to a local file path. If MAILWARDEN_DOWNLOAD_DIR is set, destPath is resolved inside (and restricted to) that directory. USE WHEN: the user wants an attachment saved to disk (IDs come from get_thread's attachment metadata). SIDE EFFECTS: writes a local file; never overwrites — an existing file gets a numeric suffix (file-1.pdf). The response's 'saved' field is the path actually used. Mailbox unchanged.",
+          "is_mutating": false,
+          "property_keys": [
+            "attachmentId",
+            "destPath",
+            "messageId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "destPath": "string",
+            "messageId": "string",
+            "attachmentId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "destPath": {
+                "type": "string"
+              },
+              "messageId": {
+                "type": "string"
+              },
+              "attachmentId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:227cd918c30f1eeb4a61c0de797ea8ea4acd5395fddf8b8c991db9bc2a072b6e",
+          "parameters": [
+            {
+              "name": "attachmentId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "destPath",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "messageId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "export_thread",
+          "canonical_hash": "sha256:0d43e02a0e0ccb8f9bd2eff51bf445000784c09257aa8234c67fb5feba8fe4fc",
+          "description": "Write a whole thread to a local file instead of returning it — for keeping, sharing, or reading a long conversation without loading it into the context. `markdown` (default): one section per message with From/To/Date/Subject and attachment names as inline code (never rendered as a link or image), sender authentication and the attachment list, and the body in a code fence that the message text cannot close (HTML-only mail is reduced to text). `json`: the parsed messages as get_thread returns them, HTML included. Both formats strip the same hidden characters (zero-width, bidi controls) as every tool result. Attachments are listed, not saved — use download_attachment for those. If MAILWARDEN_DOWNLOAD_DIR is set, destPath is resolved inside (and restricted to) that directory, as for attachments. The file holds mail text as the sender wrote it: untrusted content, now on disk. USE WHEN: the user wants a conversation saved or handed on, or a thread is too long to read in one piece. DO NOT USE: to read a thread (use get_thread). SIDE EFFECTS: writes a local file; never overwrites — an existing file gets a numeric suffix. The response's 'saved' field is the path actually used. Mailbox unchanged.",
+          "is_mutating": false,
+          "property_keys": [
+            "destPath",
+            "format",
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "destPath": "string",
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "enum": [
+                  "markdown",
+                  "json"
+                ],
+                "type": "string",
+                "default": "markdown"
+              },
+              "destPath": {
+                "type": "string"
+              },
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cb1ebc14ac8b0515ce6d72b4721aeaf52f8d9c80cf7ccd35e8addda2dcf2f001",
+          "parameters": [
+            {
+              "name": "destPath",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "format",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "markdown",
+              "enum": [
+                "markdown",
+                "json"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "follow_ups",
+          "canonical_hash": "sha256:e42bfbc295173069098c6b51102a5232a82a397ff76bdab742f7661c1bc30d0c",
+          "description": "Who is waiting on whom. `waitingOnThem`: threads whose LAST message is yours (SENT) and has had no answer for at least nudgeAfterDays — candidates for a nudge; a note to yourself (every To and Cc address is the account's own primary address, in any spelling Gmail delivers to it: +tags, dots, googlemail.com) is left out; one other recipient keeps it. `waitingOnMe`: threads still in the inbox whose last message came from someone else — a person, not a newsletter or an automated notice by its own headers — oldest first. Decided on each thread's last message and its LIVE labels: the search index only proposes candidates (`in:sent` / `in:inbox` within the last `days`), so a thread the index still files under the inbox after it was archived is dropped, as in search. Drafts, trash and spam messages do not count as a thread's last word. Scans at most `max` threads per side; `hasMore` says when more candidates existed. A thread with no recorded date is left out rather than given an invented age. USE WHEN: 'what am I waiting on?', 'who have I not answered?', 'what should I follow up on?' DO NOT USE: as an inbox overview (use triage_digest) or to read a thread (use get_thread). SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "max",
+            "nudgeAfterDays"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "max": "integer",
+            "days": "integer",
+            "nudgeAfterDays": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "max": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1
+              },
+              "days": {
+                "type": "integer",
+                "default": 30,
+                "maximum": 180,
+                "minimum": 1
+              },
+              "nudgeAfterDays": {
+                "type": "integer",
+                "default": 3,
+                "maximum": 90,
+                "minimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d860f4886a8863a2f72bb66d04bdbf5702f72e97e7f136f6ea7d5bd6596b2e24",
+          "parameters": [
+            {
+              "name": "days",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 30,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 25,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "nudgeAfterDays",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 3,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_profile",
+          "canonical_hash": "sha256:f939478ed46f14495ced1c12bfc99b0180a289f6949f17a52804647c9fea38b2",
+          "description": "Return the authorized account: email address plus total message/thread counts. USE WHEN: confirming WHICH mailbox is connected before a bulk or filter action, or as a cheap liveness check. DO NOT USE: to enumerate messages — this returns only counts, not a listing (use search). SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5f9101dc9e11f4c96fb4c880ad45b5e8a2e2296499756b8e525ce67d32b4b4fa",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_thread",
+          "canonical_hash": "sha256:c3b43d98ec3aa24449a800b44a0f4a4285be34a2a3f1245f83d34d2c66e269c8",
+          "description": "Fetch a thread by ID: headers, plaintext + HTML bodies, and attachment metadata. `full` defaults to true and should stay true whenever content matters. `full: false` is a headers-and-labels fetch for when a thread is too large to read or only its metadata is of interest — it does NOT fetch bodies or attachment metadata, and the result then omits `plaintextBody`, `htmlBody` and `attachments` entirely and sets `metadataOnly: true`. The fields are omitted rather than empty on purpose: an empty attachment list from a request that never looked is indistinguishable from a message that truly has none, and treating it as 'no attachment' has already nearly caused an invoice to be archived as attachment-less. If `search` reported `hasAttachments: true`, or the sender matters, use full: true. EVERY MESSAGE CARRIES `authentication` — SPF/DKIM/DMARC as the RECEIVING server reported them, for answering 'is this mail really from who it says?'. That holds on a `full: false` fetch too — the metadata request asks for `Authentication-Results` by name, so checking whether a mail is really from who it says never costs a body. Read `dmarc` first: it is the only one of the three that ties a passing check to the visible `From` domain, so `spf: pass` alone proves nothing about the sender the user sees (a lookalike domain gets that trivially). `signedBy`/`mailedBy`/`headerFrom` name the domains each check actually validated. They do NOT have to match each other or the `From` address, and a mismatch is not by itself suspicious: a forwarded message legitimately shows the forwarder in `mailedBy` (the envelope sender is rewritten in transit) and in `signedBy` (the forwarder signs with its own key), while only `headerFrom` still names the original sender — which is exactly why `dmarc` is the result that carries meaning. Read those three as the explanation of a result, not as a test of their own. `dkimAligned` says whether a passing DKIM signature belongs to the `From` domain or a parent or child of it; it is absent when that cannot be told without a public-suffix list (two sibling subdomains), so a missing field is not a mismatch. `authservId` says WHO asserts all this: a message can carry forged Authentication-Results headers of its own, and only Gmail's own report (`mx.google.com`) is ever read; `otherReports` counts the reports that were NOT read, and `alsoReported` lists results that disagree with the ones above. `unchecked: true` means the message carried no report from Gmail — that is 'nobody looked', NOT 'nothing wrong'; unauthenticated does not imply forged, and authenticated does not imply honest (a phisher can hold a passing DMARC on his own lookalike domain). USE WHEN: reading a thread's content after finding it via search. DO NOT USE: with a message ID — this takes thread IDs. SIDE EFFECTS: none (does not mark as read).",
+          "is_mutating": false,
+          "property_keys": [
+            "full",
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "full": "boolean",
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "full": {
+                "type": "boolean",
+                "default": true
+              },
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:38ecd9323663b41a30facf8b2d8d19732049b4c32ce75eb4f9abdd1fffddf94b",
+          "parameters": [
+            {
+              "name": "full",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_filters",
+          "canonical_hash": "sha256:9484748e26f1783d11a5786a7c02770db9287c21d913fc8001ba802ccf4b8895",
+          "description": "List all Gmail filters — the server-side rules that auto-apply label actions to incoming mail. Shows each filter's criteria and label actions, and (for auditing) any `forward` address an existing filter carries. USE WHEN: reviewing existing automation, or to get a filter's id before delete_filter. SIDE EFFECTS: none. Requires the gmail.settings.basic scope — re-run `mailwarden --auth` if you authorized an earlier version.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c14c7ba64e3ea1a5c59c0cb727937a31fbddbeeaf12334ac18966fd4dff350ed",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_labels",
+          "canonical_hash": "sha256:febfc7103bad0c019305a5bb06a2830d0933c04b1806f1c38dbcbe4539823fe2",
+          "description": "List all Gmail labels (system + user). USE WHEN: inspecting the mailbox structure, or to get exact label names/ids — though modify_labels/bulk_modify/create_label all accept a plain label name directly, so a lookup is rarely required. SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ddd562b89492c4e1089e48cd8074b9aa0cf10ccc910d20ca175f46360a0c1fd5",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_snoozed",
+          "canonical_hash": "sha256:0458995edd30de3bea343afc7b2669ca10eda5046c655c0354430119d33d1d07",
+          "description": "List all snoozed threads with their due dates. SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b796704523e92c0c026e4bc9522f8af8d85256ffad7f3fa48716579a809d0dc0",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_subscriptions",
+          "canonical_hash": "sha256:9ff7ee94022f793aaf9eeb1aa254a6778fe4cb06707411cc21923f73af9f34ac",
+          "description": "Who keeps writing, how often, and whether you can get off the list — a mailbox slice grouped by SENDER, each row carrying its opt-out options. Contacts nobody: opt-out options come from the List-Unsubscribe header of each sender's newest thread (one metadata fetch per sender, not per thread). `optOut` is 'one-click' (the unsubscribe tool can perform it), 'link' (a human opens it in a browser), 'mailto' (would need sending, which mailwarden never does), 'none', or 'unknown' when that sender's header fetch failed or was never made because Gmail's quota ran out mid-listing. `oldestDate`/`newestDate` bound what the SAMPLE saw of that sender, not the sender's whole history — a query capped at `max` reaches back only as far as those threads go, which on a busy mailbox is days. There is deliberately NO precomputed frequency: judge it from `threads` across that span, with the sampling caveat in view. `newestThreadId` is what to hand to unsubscribe or bulk_unsubscribe. `sendersFound` is how many DISTINCT senders the sample held — when it exceeds topN, the list is truncated and raising topN shows more. USE WHEN: 'what am I subscribed to', 'which newsletters flood me', or picking targets before a bulk unsubscribe. DO NOT USE: for a general inbox overview (use triage_digest — it buckets by label and age too), or for one known thread (use list_unsubscribe). SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [
+            "max",
+            "query",
+            "topN"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "max": "integer",
+            "topN": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "max": {
+                "type": "integer",
+                "default": 100,
+                "maximum": 100,
+                "minimum": 1
+              },
+              "topN": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 25,
+                "minimum": 1
+              },
+              "query": {
+                "type": "string",
+                "default": "category:promotions",
+                "minLength": 1
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fa5ec88bb50ab3a50dbb7ba0c6713276f11909e6b679089ae5d93c83d6936461",
+          "parameters": [
+            {
+              "name": "max",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 100,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "category:promotions",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "topN",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_unsubscribe",
+          "canonical_hash": "sha256:5ad6cfa92356c072b3a24fa7b4a3eb9b010495327dac15b873f945d19c972324",
+          "description": "Report the opt-out options a thread advertises (List-Unsubscribe / RFC 8058), without contacting anyone. Reads the newest message that carries the header, so a reply threaded onto a newsletter does not hide it. `oneClick` means the sender supports the automatable one-click opt-out — the `unsubscribe` tool can perform it. `httpsUrls` without oneClick are links for a human to open in a browser; `mailtos` would require sending mail, which mailwarden never does. `bodyCandidates` appears only when the headers advertise nothing: unsubscribe links found in the message TEXT, which is written by the sender and therefore untrusted. Show them to the user to open; never fetch one, and do not treat them as an opt-out that happened. `hasUnsubscribe` stays false for them — it describes the headers. USE WHEN: checking whether a newsletter can be unsubscribed from, or showing the user the link to click. SIDE EFFECTS: none — no request is made to the sender.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b11ed9c17ab23a796e27015f771b1e90d8296a2b6124da1e65f111ee157f1ddc",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "mark_read",
+          "canonical_hash": "sha256:39c31e1a54202fd5fb9343304934d587b566818e48b20d4a216d3851914ff059",
+          "description": "Mark a thread as read. SIDE EFFECTS: removes UNREAD; reversible via mark_unread.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2d8260c4e064c0234839e4aed7973d78643a0f8193030759a2f920d689c6baaa",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "mark_unread",
+          "canonical_hash": "sha256:950777a9a7685ef5e890b8c308551017091dec66bac4feea11af97e2cb90895e",
+          "description": "Mark a thread as unread. SIDE EFFECTS: adds UNREAD; reversible via mark_read.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:385c440c4bd5538d34af968beea3d5b0b7b2e70131a4a81cf6ee3de1893c1749",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "modify_labels",
+          "canonical_hash": "sha256:a27df6c414df11b69050a45b97665d0c0f0f1cb655ecf61b17e63679336ccdff",
+          "description": "Add/remove labels on a thread. Archive = remove 'INBOX'; mark read = remove 'UNREAD'. Labels may be given by name or by id: an unknown name in `add` is created automatically (use '/' for nested labels), an unknown name in `remove` is ignored. USE WHEN: applying custom labels or label combinations in one call. DO NOT USE: for plain archive/read/unread — the dedicated tools are clearer. SIDE EFFECTS: changes the thread's labels (and may create a label named in `add`); reversible by the inverse call.",
+          "is_mutating": false,
+          "property_keys": [
+            "add",
+            "remove",
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "add": "array",
+            "remove": "array",
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "add": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "remove": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:25475c56bb4676cba7d81cbca0eb35a1f2564252f69134defc0076ec35d16dee",
+          "parameters": [
+            {
+              "name": "add",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": [],
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "remove",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": [],
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search",
+          "canonical_hash": "sha256:4e43dc543901c3d95c497fbb74a5dc8215bbba0dfab92e2cc203644194c28613",
+          "description": "Search Gmail with native query syntax (e.g. 'in:inbox from:foo@bar.com newer_than:7d'). Returns thread summaries; read-state/category predicates are re-verified against each hit's live labels. Each summary carries `signals` derived from the thread's first message headers/MIME — newsletter (List-Id/List-Unsubscribe/Precedence bulk or list), automated (Auto-Submitted, auto-reply/suppress headers, no-reply-style senders), calendar (text/calendar or .ics part), replyToMismatch (a Reply-To on another domain than From — a subdomain of the same domain counts as the same); empty when nothing is declared. Paginated: when more results exist, the response carries a nextPageToken — pass it back via pageToken to fetch the next page. A page can come back with FEWER threads than maxResults and still have a nextPageToken: false positives from the index consume the scan window, and on a mailbox whose read state the index has fallen behind on, most candidates for an is:unread query can be already-read mail. A short page is therefore not evidence that the result set is exhausted — only an absent nextPageToken is. SPAM AND TRASH ARE EXCLUDED unless the query names them. Gmail leaves both out of any query that does not say `in:spam` / `in:trash`, so a plain `from:someone` returns nothing for a mail that is sitting in spam — measured against a live mailbox, not assumed. Nothing in the result marks the omission, so treat 'no hits' as 'none outside spam and trash'. When mail the user expects is missing, retry with `in:spam` before reporting that it does not exist: mail is often filed as spam because of something the user just did — a signup, a password reset, an order confirmation — which is precisely what a spam filter cannot know and the caller often can. USE WHEN: locating threads by sender, subject, date, label, or read state. DO NOT USE: to fetch a thread you already have the ID of (use get_thread). SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [
+            "maxResults",
+            "pageToken",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "pageToken": "string",
+            "maxResults": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              },
+              "pageToken": {
+                "type": "string"
+              },
+              "maxResults": {
+                "type": "integer",
+                "default": 25,
+                "maximum": 100,
+                "minimum": 1
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:338df0b5a9f7a29547eca7f5260a44c3442689d0ebec2a162254b1c84cf90361",
+          "parameters": [
+            {
+              "name": "maxResults",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 25,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pageToken",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "snooze",
+          "canonical_hash": "sha256:b2cc42d1f764aa80c8a0911461cd7dda887ffe86dbffb47d02218dca3abaed3b",
+          "description": "Snooze a thread until a date or time: archives it now, resurfaces when it comes due and sweep_snoozed runs. `until` accepts an explicit date (YYYY-MM-DD), a date+time (YYYY-MM-DD HH:MM or e.g. '2026-06-20 9am'), OR a preset resolved server-side: today, tomorrow, weekend (next Saturday), next week (next Monday), a weekday name (monday–sunday, next occurrence), 'in N days', or 'in N hours'. A preset may carry a trailing time ('tomorrow 9am', 'monday 8:30'). A timed snooze wakes at the next sweep on/after that minute. USE WHEN: deferring a thread to a later date/time instead of leaving it in the inbox. DO NOT USE: for permanent removal (use archive or trash). SIDE EFFECTS: removes INBOX, adds a dated MCP/Snoozed label; reversible via unsnooze.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId",
+            "until"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "until": "string",
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "until": {
+                "type": "string",
+                "minLength": 1
+              },
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:82b7ab40544792d4fea8d45a92c7670400f904c1a9dab3ac622e5384f84cfbd5",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "until",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "sweep_snoozed",
+          "canonical_hash": "sha256:61422e893016ac3c06ebccca79c8612f8d0fed4af172a69dd6ad87264165f0ff",
+          "description": "Resurface all snoozed threads whose date is due (<= today), batched at 1000 messages per API request. Set dryRun:true to rehearse: reports the due labels and threads (dueLabels/dueThreads) as the sweep would find them (from the live label listing; a single snooze label with more than 5000 messages is under-counted in the rehearsal), and wakes nothing. USE WHEN: the user asks to process due snoozes, or as a scheduled maintenance call; dryRun to answer 'what is due right now?' without acting. SIDE EFFECTS: due threads return to the inbox marked unread (none with dryRun); safe to run repeatedly. failedCount/errors report messages a batch could not wake (their label is kept for the next sweep).",
+          "is_mutating": false,
+          "property_keys": [
+            "dryRun"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dryRun": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dryRun": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:204aefbb91de3a297d80206588116816412b3f2f067e960005c867dce1445125",
+          "parameters": [
+            {
+              "name": "dryRun",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "trash",
+          "canonical_hash": "sha256:096f51a32a1998432d49feb3b8d1b3e48d5c1a9776a8a2112b4e5fbbecdeee92",
+          "description": "Move a thread to Trash. USE WHEN: the thread should be discarded. DO NOT USE: for inbox cleanup of mail worth keeping (use archive). SIDE EFFECTS: thread moves to Trash; recoverable via untrash for ~30 days, then Gmail deletes it permanently.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b715ce90240e6cbe8abc1bdb92a27ce93e69f750a13830c6ea6129b49e1c6083",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "triage_digest",
+          "canonical_hash": "sha256:ead784bb369d7a9332600abdbd8f8ab7ce5c70c14da69239c292308aef7188f3",
+          "description": "Structured overview of a mailbox slice for triage DECISIONS — sender / label / age buckets, unread and attachment counts, and header-derived signals (newsletter / automated / calendar / replyToMismatch — thread counts overall, and per sender the set of signals its threads carry), instead of a raw thread list. USE WHEN: deciding what to bulk-archive/snooze/label, or summarizing inbox state ('what's in my inbox?'). DO NOT USE: to read a specific thread (use search/get_thread). Samples up to `max` most-recent matches; hasMore flags that more matched than were sampled. byAge buckets by each thread's FIRST message date (thread age, not last activity). SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [
+            "max",
+            "query",
+            "topN"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "max": "integer",
+            "topN": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "max": {
+                "type": "integer",
+                "default": 100,
+                "maximum": 100,
+                "minimum": 1
+              },
+              "topN": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 50,
+                "minimum": 1
+              },
+              "query": {
+                "type": "string",
+                "default": "in:inbox",
+                "minLength": 1
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a9c3b462cb1220d6f65fd6f397e49a58c3124351db44db167f8ad6f70a85be22",
+          "parameters": [
+            {
+              "name": "max",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 100,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "in:inbox",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "topN",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "undo_bulk_modify",
+          "canonical_hash": "sha256:86171870a64265465c235f8cec00041eb7607b346d5d076c0b2673f43492147c",
+          "description": "Revert a bulk_modify exactly, from the `undo` plan it returned (bulk_modify with undo:true). Pass `steps` unchanged: each step adds back the labels its messages lost and takes off the labels they gained, so a message that was already in the target state before the bulk change is left alone. Steps name labels by id, as the plan does; a label name is refused, because an unknown name would be created rather than restored. The plan restores the state read just before the bulk change. A label changed by hand since then is changed again by the undo, and a label deleted since then makes its step fail — reported in `failed`, the other steps still run. A label the bulk change created stays in the mailbox, empty. Set verify:true to read the labels back afterwards — one read per affected thread, however many steps name it. USE WHEN: the user wants a bulk change taken back, and the bulk_modify result carried `undo`. DO NOT USE: without a plan from bulk_modify (use bulk_modify or modify_labels), or to change labels in a new way — this applies exactly the steps it is given. SIDE EFFECTS: label changes on the listed messages; reversible again by the inverse.",
+          "is_mutating": false,
+          "property_keys": [
+            "steps",
+            "verify"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "steps": "array",
+            "verify": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "add",
+                    "remove",
+                    "messageIds",
+                    "threadIds"
+                  ],
+                  "properties": {
+                    "add": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "remove": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "threadIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "messageIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              },
+              "verify": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:06c72a53d3c2c07fba6a5e6e0a0105892592bfc69c64813a3ffda27876772dba",
+          "parameters": [
+            {
+              "name": "steps",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "verify",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "unsnooze",
+          "canonical_hash": "sha256:6a933674881df5ee40311261b42f0c29a5ba57055ecbe27582cc25de520f4566",
+          "description": "Cancel a snooze: return the thread to the inbox now. SIDE EFFECTS: removes the snooze label, restores INBOX.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e870c29266bcc49185270c6cb3dea35eb87e19f1b3c1e7697ae144852697c9b0",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "unsubscribe",
+          "canonical_hash": "sha256:efa7cc92100415ebd8484056e62c3c84d0bd10dfce5e63d2aa5efeb8af4c3f10",
+          "description": "Unsubscribe from the mailing list a thread came from, via the sender's RFC 8058 one-click endpoint. There is deliberately no URL parameter: the endpoint is taken from the message's own List-Unsubscribe header and nowhere else. Only https one-click endpoints are called (fixed request body, response body discarded); a plain link is reported for the user to open, and a mailto: opt-out is never performed because mailwarden cannot send mail. If the sender offers nothing automatable this returns unsubscribed:false with the alternatives in `options` — it is not an error. USE WHEN: the user wants off a newsletter. Pair with archive/trash or create_filter to deal with mail already in the mailbox. DO NOT USE: to check whether unsubscribing is possible (use list_unsubscribe — it contacts nobody). A sender already contacted in this session is reported with `duplicateOf` and NOT contacted again — safe to retry after a timeout. Pass force:true for a deliberate second attempt (e.g. the endpoint answered 500). SIDE EFFECTS: makes an outbound HTTPS request to the sender's unsubscribe endpoint (plus up to 3 redirects) — the only non-Google host mailwarden ever contacts. This confirms to the sender that the address is live, and it cannot be undone. The mailbox itself is not changed.",
+          "is_mutating": false,
+          "property_keys": [
+            "force",
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "force": "boolean",
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "force": {
+                "type": "boolean",
+                "default": false
+              },
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8afb685a2e2afdd2bd28e022600730380b16a8e7103b3baed5a8a0d43c5aad88",
+          "parameters": [
+            {
+              "name": "force",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "untrash",
+          "canonical_hash": "sha256:8dd93c7eaadb13dce3c8b5e964c365cb0ae2896e7e464ca31a6e042feb82f6bb",
+          "description": "Restore a thread from Trash. SIDE EFFECTS: removes the TRASH label; user labels are preserved, but INBOX is NOT re-added — use modify_labels (add INBOX) to return it to the inbox.",
+          "is_mutating": false,
+          "property_keys": [
+            "threadId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "threadId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "threadId": {
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fe31a1a90a486dbfbb6aee8da820657abcf8cc3fe9a6183e2ee2350bd7fb7a89",
+          "parameters": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "what_changed",
+          "canonical_hash": "sha256:203324516eb6f07994fb8b1a4cf60649aad841c503a73b1c97596b37422028a5",
+          "description": "What happened in the mailbox since a point you already hold: messages that arrived or were removed, and labels applied or taken off — from Gmail's own event log, in one call. Pass the `historyId` a previous what_changed or get_profile returned; the reply carries the next one to keep. mailwarden stores NOTHING between calls, so the id lives with you. Reports EVENTS, not current state: a message that was marked unread and then read appears under both, and both are true. For how the mailbox looks NOW, use search or get_thread. Gmail keeps roughly a week of history. An id older than that is an ERROR, never an empty result — it means the question can no longer be answered incrementally, so take a fresh historyId from get_profile and re-establish state with search. `labelId` narrows the feed to events touching one label (e.g. 'INBOX', or a snooze label). Counts are complete even when the id lists are cut at 200 (`truncated`). USE WHEN: a recurring check — 'what came in since I last looked', watching a label, or confirming a bulk action landed. Far cheaper than re-running a search over the whole slice. DO NOT USE: for a first look at a mailbox (there is no id yet — start with triage_digest or search), or to read content: this returns ids only, no sender, subject or body. SIDE EFFECTS: none.",
+          "is_mutating": false,
+          "property_keys": [
+            "labelId",
+            "max",
+            "sinceHistoryId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "max": "integer",
+            "labelId": "string",
+            "sinceHistoryId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "max": {
+                "type": "integer",
+                "default": 500,
+                "maximum": 2000,
+                "minimum": 1
+              },
+              "labelId": {
+                "type": "string"
+              },
+              "sinceHistoryId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:33c83ee995055d603feb91ae3e05900fde5b1b1552d274bdccd1879d4130c0e0",
+          "parameters": [
+            {
+              "name": "labelId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 500,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sinceHistoryId",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }
