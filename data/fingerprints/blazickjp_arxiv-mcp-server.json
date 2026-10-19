@@ -4,8 +4,9 @@
   "purl": "pkg:generic/blazickjp%2Farxiv-mcp-server",
   "ecosystem": "generic",
   "display_name": "blazickjp/arxiv-mcp-server",
-  "description": "Search arXiv papers, download full text, semantic search, citation graphs, and alerts via MCP.",
-  "repository_url": "https://github.com/blazickjp/arxiv-mcp-server",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,6 +14,7 @@
     "blazickjp/arxiv-mcp-server"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
@@ -28,9 +30,270 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:04b21f146c6a021960c7d145b40e76d08de8fff7dfe1093270247bf78c5a858f",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "check_alerts",
+          "canonical_hash": "sha256:67c29a0da71c32b2fceb47e988a7c2bad27f1ab49d02b7405b0f122d739efca5",
+          "description": "Check all saved topic watches for newly published papers since the last check. Omitting the topic parameter runs ALL saved watches and returns new papers for each. Passing a topic string checks only that specific watch. Advances each watch's drain cursor after running: when a page is truncated by max_results, has_more=true and check_start advances so later calls return the next papers in the same window (Atom date bounds alone are day-granular and would otherwise re-hit the boundary); last_checked tracks the newest returned paper. When the page is not full, last_checked becomes now and the drain cursor resets. Use watch_topic to register topics before calling this. Returns a clear not-found error if a topic is provided but no matching watch exists. Returns a summary with new paper counts, has_more, and full paper metadata per topic.",
+          "is_mutating": false,
+          "property_keys": [
+            "topic"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "topic": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:11079549ca1987188d6e57ebbf6ec2b5590bc2241cb247b837117dcd80757509",
+          "parameters": [
+            {
+              "name": "topic",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "citation_graph",
+          "canonical_hash": "sha256:5a12fb3d4163b011052b685f0742fe4f3cd77531d4b596eec721eda36a149776",
+          "description": "Return papers citing an arXiv paper and papers that it references using Semantic Scholar's citation graph. Results are bounded (default 50) to stay within the unauthenticated quota. Graphs are cached on disk to reduce repeated API calls. Under load, a free Semantic Scholar API key (https://www.semanticscholar.org/product/api#api-key) makes this reliable; without a key, persistent rate limits return status=rate_limited with an unmistakable warning instead of failing hard.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_citations",
+            "paper_id"
+          ],
+          "required_keys": [
+            "paper_id"
+          ],
+          "parameter_types": {
+            "paper_id": "string",
+            "max_citations": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "paper_id": {
+                "type": "string"
+              },
+              "max_citations": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "paper_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5150baa8aa1a7cc16334cd0bab6942901143ebbfadb06ac0f9fed7ce263b29ac",
+          "parameters": [
+            {
+              "name": "max_citations",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "paper_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_watches",
+          "canonical_hash": "sha256:83ffcf631e935a65173ff6b939daa3530fd62d30f2704612072bf8bfd3502694",
+          "description": "List all saved topic watches without checking for new papers. Returns each watch's topic, categories, last_checked timestamp, and other stored fields. Does not update last_checked — use this to inspect what is saved. Use unwatch_topic to remove a watch, or check_alerts to poll for new papers.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:00e60909942f5f556d971348c811768d2c621c7de8bf9f9984b926efdd16c14f",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "unwatch_topic",
+          "canonical_hash": "sha256:1f5e2d8351d65e805e29655cd60b9a14b7c95397d56508b2e177bebb1b4baf72",
+          "description": "Delete a saved topic watch by exact topic string. The topic must match the stored watch_topic value exactly. Returns a clear not-found error if no matching watch exists. Use list_watches to inspect saved watches before deleting.",
+          "is_mutating": false,
+          "property_keys": [
+            "topic"
+          ],
+          "required_keys": [
+            "topic"
+          ],
+          "parameter_types": {
+            "topic": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "topic"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:49c56cb6b0d1d3f67db7a689c7da2aba0352cba0659689db5aa70a749a73bf57",
+          "parameters": [
+            {
+              "name": "topic",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "watch_topic",
+          "canonical_hash": "sha256:c657b19900d182cf4c5f214115d66d04205e98809c73367cc4778322eab3c81f",
+          "description": "Save or update a persistent research topic watch. When checked via check_alerts, returns only papers published since the last check — acting as a standing alert for new work on a topic. New watches seed last_checked to creation time so the first check does not dump historical matches. The topic string uses the same query syntax as search_papers (quoted phrases, field specifiers, boolean operators). Examples: '\"diffusion models\" AND ti:\"video generation\"', 'au:\"LeCun\" AND cs.LG'. Calling watch_topic with the same topic string updates the existing watch rather than creating a duplicate. On update, omit categories to preserve existing filters; pass categories: [] to clear them. Pair with check_alerts to poll for new papers.",
+          "is_mutating": false,
+          "property_keys": [
+            "categories",
+            "max_results",
+            "topic"
+          ],
+          "required_keys": [
+            "topic"
+          ],
+          "parameter_types": {
+            "topic": "string",
+            "categories": "string",
+            "max_results": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "type": "string"
+              },
+              "categories": {
+                "type": "string"
+              },
+              "max_results": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "topic"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2366b56249ffc739223fb2013ba467019a2ed553967b9a7db2be70829c64b92a",
+          "parameters": [
+            {
+              "name": "categories",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_results",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "topic",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

@@ -4,17 +4,18 @@
   "purl": "pkg:generic/antonorlov%2Fmcp-postgres-server",
   "ecosystem": "generic",
   "display_name": "antonorlov/mcp-postgres-server",
-  "description": "MCP server for PostgreSQL: local, Docker, RDS, Neon, Supabase, or behind an SSH bastion.",
-  "repository_url": "https://github.com/antonorlov/mcp-postgres-server",
+  "description": "Connects an agent to a PostgreSQL database: local, Docker, managed Postgres on RDS, Neon and Supabase, or a database that is only reachable through an SSH bastion.\n\n**Reaches the database you actually have.** Built-in SSH tunneling with a pinned host key, and eight named failure codes that say which phase broke. One `DATABASE_URL` is the whole setup.\n\n**Sees the whole database.** `list_schemas`, plus a schema argument on `list_tables` and `describe_table`, so it is not stuck in `public`.\n\n**Tells you what broke.** Failures come back carrying the SQLSTATE or SSH code with a hint, so the agent corrects itself instead of retrying blindly.\n\n**Respects the context window.** Results carry a byte budget with an explicit `truncated` flag, so a large table does not flood the model.\n\n**Writes are off by default**, and refused by PostgreSQL itself rather than by a client-side SQL filter: every read runs inside a `BEGIN READ ONLY` transaction, so the rule survives views, rules and functions. Turn them on with `PG_ALLOW_WRITE=true`.\n\nMIT, four runtime dependencies, Node 20 or newer. Also on npm as `mcp-postgres-server` and in the official MCP Registry as `io.github.antonorlov/mcp-postgres-server`.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/antonorlov/mcp-postgres-server",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "PostgreSQL",
     "antonorlov/mcp-postgres-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -29,9 +30,351 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:ecc7586f8f2c86f68e8fd547cd106ff41d5e908e4e033c83b9fd3640f53369a8",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "55263c41-7dd8-4807-bbd7-6711f5039863/9222b027-b98f-49e2-81e8-ca60ea213550/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "database_url"
+            ],
+            "properties": {
+              "ssh_host": {
+                "type": "string",
+                "title": "SSH bastion host",
+                "x-order": 4,
+                "description": "Optional. Setting it routes the database connection through an SSH tunnel to this host. Leave empty for a directly reachable database."
+              },
+              "ssh_user": {
+                "type": "string",
+                "title": "SSH user",
+                "x-order": 5,
+                "description": "Username on the bastion."
+              },
+              "allow_write": {
+                "type": "boolean",
+                "title": "Allow writes",
+                "default": false,
+                "x-order": 1,
+                "description": "Off by default: the execute tool is present but refuses writes, and each read runs in a READ ONLY transaction. On: execute performs INSERT, UPDATE, DELETE and DDL."
+              },
+              "database_url": {
+                "type": "string",
+                "title": "Database URL",
+                "x-order": 0,
+                "description": "Connection string, for example postgres://user:pass@host:5432/db?sslmode=require. With an SSH bastion below, the host is resolved from the bastion's network."
+              },
+              "ssh_fingerprint": {
+                "type": "string",
+                "title": "SSH host fingerprint",
+                "x-order": 7,
+                "description": "Pinned host key of the bastion, as SHA256:... . Required when tunneling: without it the tunnel refuses to connect. Read it with ssh-keyscan -t ed25519 HOST | ssh-keygen -lf -"
+              },
+              "ssh_private_key": {
+                "type": "string",
+                "title": "SSH private key",
+                "x-order": 6,
+                "description": "Private key file for the bastion. If empty, authentication falls back to a running SSH agent, then to a default key in ~/.ssh."
+              },
+              "max_result_bytes": {
+                "type": "number",
+                "title": "Result byte budget",
+                "default": 32768,
+                "x-order": 2,
+                "description": "Byte budget for a query result sent to the model. Whole rows are kept up to the budget; over it, the result is flagged as truncated."
+              },
+              "statement_timeout": {
+                "type": "number",
+                "title": "Statement timeout (ms)",
+                "default": 30000,
+                "x-order": 3,
+                "description": "Per-statement timeout applied to every session."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "describe_table",
+          "canonical_hash": "sha256:62de8f560591adbf8495514b9eb37f63468c1dabbab3df1541b9e634abbefafb",
+          "description": "Show the structure of one table: column names, data types, nullability, defaults, and primary-key membership. Call this before writing non-trivial queries against a table. Returns {columns: [{column, type, nullable, default, is_primary_key}, ...]}.",
+          "is_mutating": false,
+          "property_keys": [
+            "schema",
+            "table"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "table": "string",
+            "schema": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "table": {
+                "type": "string",
+                "description": "Table name"
+              },
+              "schema": {
+                "type": "string",
+                "description": "Schema name (default: 'public')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d4a21fb210468ceb3f0f144b7711d857e0c0c6517c982b2b2730c9c8d247e982",
+          "parameters": [
+            {
+              "name": "schema",
+              "type": "string",
+              "description": "Schema name (default: 'public')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "table",
+              "type": "string",
+              "description": "Table name",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "execute",
+          "canonical_hash": "sha256:3b3f33455d49e9d811cd204eb5afbf73cfca68bbd51f4fd910fb7194a9863622",
+          "description": "Run a data-modifying SQL statement (INSERT/UPDATE/DELETE or DDL). Currently DISABLED: the server is read-only, so this returns an error and changes nothing. To enable writes, the operator must start the server with PG_ALLOW_WRITE=true.",
+          "is_mutating": false,
+          "property_keys": [
+            "params",
+            "sql"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sql": "string",
+            "params": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sql": {
+                "type": "string",
+                "description": "One INSERT / UPDATE / DELETE / DDL statement. Use $1, $2, ... for parameters."
+              },
+              "params": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "description": "Positional parameter values bound to $1, $2, ... placeholders."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2de68aada20446bbc51a0711787e7cef540c2c76accf07339656d2f25caeef7d",
+          "parameters": [
+            {
+              "name": "params",
+              "type": "array",
+              "description": "Positional parameter values bound to $1, $2, ... placeholders.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": [
+                "string",
+                "number",
+                "boolean",
+                "null"
+              ],
+              "nested_properties": null
+            },
+            {
+              "name": "sql",
+              "type": "string",
+              "description": "One INSERT / UPDATE / DELETE / DDL statement. Use $1, $2, ... for parameters.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_schemas",
+          "canonical_hash": "sha256:48a4c9b9d5a17a58f0e7936e2f07359994a2ef4fbea479d776699387efa7f204",
+          "description": "List every schema in the connected database. Start here when exploring an unfamiliar database, then call list_tables for the schema you care about. Returns {schemas: [name, ...]}.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bde6d9142539d8f12801a524871d4f7100d382e945b8e014c3b49d146a33d6c2",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_tables",
+          "canonical_hash": "sha256:764c0e01d239fb94dbcda29a0a181a8c71c1954be54b8d25f018647f53de590c",
+          "description": "List all tables in a schema (default: 'public'). Use this before querying tables you have not seen yet, then call describe_table for column details. Returns {tables: [name, ...]}.",
+          "is_mutating": false,
+          "property_keys": [
+            "schema"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "schema": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "schema": {
+                "type": "string",
+                "description": "Schema name (default: 'public')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:481eba10e58d1461f5af1e5fad61792a2a2878ed8b275cf4f6500f5804235d06",
+          "parameters": [
+            {
+              "name": "schema",
+              "type": "string",
+              "description": "Schema name (default: 'public')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query",
+          "canonical_hash": "sha256:0c162fb1d6b270866673bc1c8a7e1326e5f1af532e180bf27c2747fea4fcee30",
+          "description": "Run one read-only SQL statement against the connected PostgreSQL database and get rows back as JSON. Send exactly one statement per call (SELECT, WITH, EXPLAIN, or SHOW). It runs inside an engine-enforced read-only transaction, so any write is refused by the database. Use this tool for all data reading, aggregation, and query planning. Returns {rows, rowCount, returnedRows, truncated}, plus hint when truncated is true. Prefer $1, $2 placeholders with the params array over interpolating values. Results are capped at ~32768 bytes; truncated:true means rows were dropped - add LIMIT/WHERE or select fewer columns.",
+          "is_mutating": false,
+          "property_keys": [
+            "params",
+            "sql"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "sql": "string",
+            "params": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sql": {
+                "type": "string",
+                "description": "One SQL statement. Use $1, $2, ... for parameters."
+              },
+              "params": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "description": "Positional parameter values bound to $1, $2, ... placeholders."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8687beea35048de6bab0669f8172e75ce4e92953d1d92d68fd0fc279b4409e36",
+          "parameters": [
+            {
+              "name": "params",
+              "type": "array",
+              "description": "Positional parameter values bound to $1, $2, ... placeholders.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": [
+                "string",
+                "number",
+                "boolean",
+                "null"
+              ],
+              "nested_properties": null
+            },
+            {
+              "name": "sql",
+              "type": "string",
+              "description": "One SQL statement. Use $1, $2, ... for parameters.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

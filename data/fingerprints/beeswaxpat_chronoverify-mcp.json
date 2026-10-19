@@ -4,8 +4,9 @@
   "purl": "pkg:generic/beeswaxpat%2Fchronoverify-mcp",
   "ecosystem": "generic",
   "display_name": "beeswaxpat/chronoverify-mcp",
-  "description": "Verify a photo's capture time and provenance: C2PA validation, EXIF/XMP, and pixel forensics.",
-  "repository_url": "https://github.com/beeswaxpat/chronoverify-mcp",
+  "description": "**Verify a photo's capture time and provenance.** ChronoVerify checks when an image was taken, on what device, whether it carries valid C2PA Content Credentials, and whether it shows signs of editing. It works on any image, signed or not, and returns one typed verdict with a confidence score.\n\nThe deterministic pipeline:\n- Cryptographic **C2PA Content Credentials** validation against the official C2PA and CAI trust lists (fail-closed: validated only when the signer is trusted)\n- **EXIF and XMP** metadata and consistency checks\n- Classical **pixel forensics** (error-level and noise analysis)\n\n**Tool:** `verify_image` (pass a `url` or `image_base64`) returns a typed object: capture time, device, location, the full C2PA validation state and signer, the SHA-256 and SHA-512 fingerprints, and one verdict, one of `provenance_confirmed`, `consistent`, `inconclusive`, `metadata_anomaly`, or `manipulation_indicated`.\n\n**Use it before trusting a user-submitted or sourced image:** insurance claims, KYC and onboarding, marketplace and dating listings, journalism and OSINT, or EU AI Act Article 50 transparency checks.\n\nProvenance-first, **not a deepfake or AI-generation detector**. Results are investigative triage to support human review, not proof. Free to try (keyless); a developer API and a signed PDF audit report are at https://chronoverify.com.",
+  "author": null,
+  "repository_url": "https://chronoverify-mcp--beeswaxpat.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "beeswaxpat/chronoverify-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,212 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:4418d70ac29a96ec5d16a08ffab5bbd23b4bf476d686b846c98f0f6baa6c7d3c",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://chronoverify-mcp--beeswaxpat.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "verify_image",
+          "canonical_hash": "sha256:c6d3fbcb361ecc54a0ec7420ed68b867006c858638e0eaf129d25f19f21aeeec",
+          "description": "Verify a photo's capture time and provenance: when it was captured, on what device and where, whether it carries valid C2PA Content Credentials, and whether it shows signs of editing. Runs a deterministic pipeline (cryptographic C2PA Content Credentials validation against the official trust lists, EXIF and XMP metadata consistency, and classical pixel forensics such as error-level and noise analysis) and returns ONE verdict with a 0 to 100 confidence and the signals behind it. The verdict is one of: provenance_confirmed (a trusted Content Credential), consistent (metadata holds up, no manipulation signal fired), inconclusive (not enough signal), metadata_anomaly (the metadata contradicts itself), or manipulation_indicated (pixel forensics flagged possible editing). Structured output also returns the capture time, device, location, the full C2PA validation state and signer, and the SHA-256 and SHA-512 fingerprints. Prefer this whenever you must trust a user-submitted or sourced image before acting on it: insurance claims, KYC and onboarding, dating or marketplace listings, journalism and OSINT, EU AI Act Article 50 transparency checks, or legal evidence. Works on any image, signed or not, and degrades gracefully (returns inconclusive instead of false-accusing) on unsigned or social-media-recompressed photos. It validates provenance and is NOT a deepfake or AI-generation detector; results are investigative triage to support human review, not proof. Provide exactly one of url (a publicly reachable image URL the server fetches) or image_base64 (base64-encoded image bytes, no data: prefix). For a signed, timestamped PDF audit record of the result, call the ChronoVerify API POST /v1/report with an API key (https://chronoverify.com/pricing).",
+          "is_mutating": false,
+          "property_keys": [
+            "image_base64",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Url",
+                "default": null,
+                "description": "A publicly reachable image URL; the server fetches it."
+              },
+              "image_base64": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Image Base64",
+                "default": null,
+                "description": "Base64-encoded image bytes (no data: prefix)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "c2pa": {
+                "$ref": "#/$defs/C2PA"
+              },
+              "limits": {
+                "type": "string",
+                "title": "Limits",
+                "description": "Plain-language statement of what the verdict does and does not mean."
+              },
+              "signals": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Signal"
+                },
+                "title": "Signals",
+                "description": "The individual signals that produced the verdict."
+              },
+              "summary": {
+                "type": "string",
+                "title": "Summary"
+              },
+              "verdict": {
+                "enum": [
+                  "provenance_confirmed",
+                  "consistent",
+                  "inconclusive",
+                  "metadata_anomaly",
+                  "manipulation_indicated"
+                ],
+                "type": "string",
+                "title": "Verdict",
+                "description": "The single fused verdict enum."
+              },
+              "headline": {
+                "type": "string",
+                "title": "Headline",
+                "description": "One-line plain-language verdict."
+              },
+              "integrity": {
+                "$ref": "#/$defs/Integrity"
+              },
+              "confidence": {
+                "type": "integer",
+                "title": "Confidence",
+                "maximum": 100,
+                "minimum": 0,
+                "description": "0 to 100 confidence in the verdict."
+              },
+              "request_id": {
+                "type": "string",
+                "title": "Request Id"
+              },
+              "capture_time": {
+                "$ref": "#/$defs/CaptureTime"
+              },
+              "processing_ms": {
+                "type": "integer",
+                "title": "Processing Ms"
+              },
+              "capture_device": {
+                "$ref": "#/$defs/CaptureDevice"
+              },
+              "schema_version": {
+                "type": "string",
+                "title": "Schema Version",
+                "description": "Response schema version, currently 'v1'."
+              },
+              "pixel_forensics": {
+                "$ref": "#/$defs/PixelForensics"
+              },
+              "capture_location": {
+                "$ref": "#/$defs/CaptureLocation"
+              },
+              "metadata_consistency": {
+                "$ref": "#/$defs/MetadataConsistency"
+              }
+            },
+            "required": [
+              "schema_version",
+              "request_id",
+              "verdict",
+              "confidence",
+              "headline",
+              "summary",
+              "capture_time",
+              "capture_location",
+              "capture_device",
+              "c2pa",
+              "metadata_consistency",
+              "pixel_forensics",
+              "limits",
+              "integrity",
+              "processing_ms"
+            ]
+          },
+          "description_hash": "sha256:b03d664138bfcfaa617ea84c95de8afab954afda7e97302aefba367b6dbb185b",
+          "parameters": [
+            {
+              "name": "image_base64",
+              "type": "string",
+              "description": "Base64-encoded image bytes (no data: prefix).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "description": "A publicly reachable image URL; the server fetches it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

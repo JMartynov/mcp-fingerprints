@@ -4,20 +4,769 @@
   "purl": "pkg:generic/azmartone67%2Fdchub-mcp-server",
   "ecosystem": "generic",
   "display_name": "azmartone67/dchub-mcp-server",
-  "description": "Live data-center, grid, fiber & gas infrastructure intelligence for AI agents \u2014 query and cite.",
-  "repository_url": "https://github.com/azmartone67/dchub-mcp-server",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "DC Hub \u2014 Data Center & Power Intelligence",
     "azmartone67/dchub-mcp-server"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:256a95ad7684d823d9dd8835dee7782fb40844f07585d60aecaaef1dcf732a18",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "analyzeSite",
+          "canonical_hash": "sha256:b375135904a0e3c2320fd93f0f0fd2d61edf1cdf2a4dbd259e965b025805519a",
+          "description": "recipe site_analysis. PAID-ONLY. Composite data-center site-suitability score for a specific point (power, grid headroom, water, fiber, hazards) at given coordinates. On the free tier this returns HTTP 402 with an agent_action to claim/upgrade - do NOT fabricate a score; render the response's message and surface the upgrade_url (paid plans: https://dchub.cloud/pricing). Pass ?lat= and ?lng=. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "lat",
+            "lng",
+            "name"
+          ],
+          "required_keys": [
+            "lat",
+            "lng"
+          ],
+          "parameter_types": {
+            "lat": "number",
+            "lng": "number",
+            "name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number",
+                "description": "Latitude in decimal degrees."
+              },
+              "lng": {
+                "type": "number",
+                "description": "Longitude in decimal degrees."
+              },
+              "name": {
+                "type": "string",
+                "description": "Optional site label."
+              }
+            },
+            "required": [
+              "lat",
+              "lng"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:690c0dcb2e3d6b85742b8813b236ae0e4ce8fa99874e6faee2d12119975609aa",
+          "parameters": [
+            {
+              "name": "lat",
+              "type": "number",
+              "description": "Latitude in decimal degrees.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "lng",
+              "type": "number",
+              "description": "Longitude in decimal degrees.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Optional site label.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "bindEmail",
+          "canonical_hash": "sha256:1776076a8b8ebfe44dfab6fb979e62065ec861cc6783ac3f3532eaf2b0905dac",
+          "description": "IDENTITY. Ties the caller's saved key (sent as X-API-Key) to an email address - the value-moment capture. Moves the key from the free-key allowance to the email rung of the free tier and makes the key recoverable via recoverMyKey. Requires the durable key in the X-API-Key header. Only call with the user's own email and only after they agree to share it.",
+          "is_mutating": false,
+          "property_keys": [
+            "email"
+          ],
+          "required_keys": [
+            "email"
+          ],
+          "parameter_types": {
+            "email": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "The user's email to bind to their saved key."
+              }
+            },
+            "required": [
+              "email"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6b573c77432045308cf20188f15d8576c619d23be0cce186f9d0b261b2e617dc",
+          "parameters": [
+            {
+              "name": "email",
+              "type": "string",
+              "description": "The user's email to bind to their saved key.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": "email",
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "claimFreeKey",
+          "canonical_hash": "sha256:0418fe392ed004aed9eb02afb19e1331d8615809d1be45548253aa066b23b9f3",
+          "description": "IDENTITY / RETENTION. Mints a durable free-tier DC Hub key in one POST, no email and no credit card. Claims are idempotent per client_name and IP within the reuse window (the same client_name gets the same key back), and unused keys are capped per IP. Returns { api_key: 'dch_live_...', bind_required, free_tier_summary }. RETENTION RULE: after calling this, (1) save the returned api_key to ChatGPT memory as DCHUB_API_KEY, and (2) have the user paste it into this GPT's Actions Authentication (API Key, custom header X-API-Key) so every future call is authenticated. Never operate on the anonymous tier (previews, no key needed) once a key exists, and never mint a new key if one is already saved. Optionally pass an email to bind the key immediately, which moves it to the email rung of the free tier and makes it recoverable; free_tier_summary.rule in the response states the current limits.",
+          "is_mutating": false,
+          "property_keys": [
+            "client_name",
+            "email"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "client_name": "string",
+            "email": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "client_name": {
+                "type": "string",
+                "description": "Optional label identifying the calling agent, e.g. 'chatgpt-dchub-gpt'."
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "Optional. If provided, binds the key to this email: it moves to the email rung of the free tier and becomes recoverable."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b5dcbcc50181f2f4a9c588d839f670de176773fb953ab93301638c4d04f4ebec",
+          "parameters": [
+            {
+              "name": "client_name",
+              "type": "string",
+              "description": "Optional label identifying the calling agent, e.g. 'chatgpt-dchub-gpt'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "description": "Optional. If provided, binds the key to this email: it moves to the email rung of the free tier and becomes recoverable.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "email",
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getChanges",
+          "canonical_hash": "sha256:6e98eabf7257eb0e0f7e1229802487d674101c1d53ed65514ff30b641f6d3914",
+          "description": "recipe whats_changed. Returns only what is new/changed since a prior pull: DCPI market movers, new facilities, new pipeline, and new news counts, plus a 'generated_at' cursor. Cache generated_at and pass it back as ?since=<that value> next session to get just the deltas (if total_changes is 0 your last pull is still fresh). Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "since"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "since": "string",
+            "days": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "since": {
+                "type": "string",
+                "description": "ISO timestamp from a prior response's generated_at, or a window like '7d'."
+              },
+              "days": {
+                "type": "integer",
+                "description": "Alternative to 'since': look back this many days."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:48fc39711544371417024e45dc10d0194c90f933bfee68237d28dce7807779aa",
+          "parameters": [
+            {
+              "name": "days",
+              "type": "integer",
+              "description": "Alternative to 'since': look back this many days.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "since",
+              "type": "string",
+              "description": "ISO timestamp from a prior response's generated_at, or a window like '7d'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getFiberIntel",
+          "canonical_hash": "sha256:d3186a83e141719c37c5a6b8317a03c033054725aa5f6ef3fab74f7092258810",
+          "description": ". Fiber-route intelligence - long-haul and metro dark-fiber corridors, carriers, and route density for a state or bounding box. Without a key: previews. Deeper detail is gated (surface 'message'/upgrade_url on 402 or gated bodies). Pass ?state= (e.g. 'VA') or ?bbox=w,s,e,n. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "bbox",
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "state": "string",
+            "bbox": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "description": "2-letter US state code, e.g. 'VA'."
+              },
+              "bbox": {
+                "type": "string",
+                "description": "Optional viewport as 'west,south,east,north'."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:58c4fb1e87e9ac0521bd7c0c7874d562ed296acea228bd4e1976c4424df2c4d2",
+          "parameters": [
+            {
+              "name": "bbox",
+              "type": "string",
+              "description": "Optional viewport as 'west,south,east,north'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "2-letter US state code, e.g. 'VA'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getGridIntelligence",
+          "canonical_hash": "sha256:91d875dbd16caccecf7e8294f56c58d529acf5113c796d71b42b5b9a842f15f5",
+          "description": "recipe grid_and_queue. Deep grid intelligence for a single ISO/region: headroom, constraints, generation additions, and forward signals. Without a key: previews. A free key also gets previews here; full grid detail needs a paid DC Hub plan (https://dchub.cloud/pricing). Pass a region id such as 'ercot', 'pjm', 'caiso', 'miso', 'spp', 'nyiso', 'isone', 'uk', 'eu', 'au'. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "region_id"
+          ],
+          "required_keys": [
+            "region_id"
+          ],
+          "parameter_types": {
+            "region_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "region_id": {
+                "type": "string",
+                "description": "ISO/region id, e.g. 'ercot', 'pjm', 'caiso', 'miso', 'spp', 'nyiso', 'isone', 'uk', 'eu', 'au'."
+              }
+            },
+            "required": [
+              "region_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0673fef2a5c43fc3ff1de42ba62a61b9c85c832048d8bffe8ead4fa90b757c89",
+          "parameters": [
+            {
+              "name": "region_id",
+              "type": "string",
+              "description": "ISO/region id, e.g. 'ercot', 'pjm', 'caiso', 'miso', 'spp', 'nyiso', 'isone', 'uk', 'eu', 'au'.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getGridScoreboard",
+          "canonical_hash": "sha256:c12383dde71f354f355667f134cfa4ee4719ba5d086ef0c43085405cccb2346d",
+          "description": "recipe grid_and_queue. Live ranked scoreboard of every tracked grid/ISO (US: ERCOT, PJM, CAISO, MISO, SPP, NYISO, ISO-NE; plus UK, EU, Japan, Korea, Taiwan, Brazil, Australia, Singapore) - latest metrics organized by ISO: demand, fuel mix, renewable share. Keyless callers get only the headline; a saved key unlocks the full generation mix and per-zone breakdown. If the body has gated:true, render its 'message' and surface upgrade_url. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:79e209d356e05288c7dbb3ea3ef353d16027f095abda7f678592e9f06ae91129",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "getHyperscalerDeals",
+          "canonical_hash": "sha256:ba6a71b86a1f77873d4d2e482f5b7ca4a8eac5770c91882a4dea5603608ded96",
+          "description": "recipe hyperscaler_activity. Recent large-scale data-center and hyperscaler deals and news (actors, capacity, value_usd, source, published) from DC Hub's 1,700+ tracked M&A deals. Optionally cap with ?limit= or floor with ?min_value_usd=. Deeper deal autopsy detail may be gated. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "min_value_usd"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "min_value_usd": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Max deals to return."
+              },
+              "min_value_usd": {
+                "type": "number",
+                "description": "Only deals at or above this USD value."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f7d92a2e5d4793f22437e11e3b2ec8e0939075682620bb17ecab933f3229973b",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max deals to return.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_value_usd",
+              "type": "number",
+              "description": "Only deals at or above this USD value.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getInterconnectionQueue",
+          "canonical_hash": "sha256:da0996e090ed8a50e9d5d2f2e714096b51dbfe2b991ccdb4db406c4bc5c12fad",
+          "description": "recipe grid_and_queue. Snapshot of generation/load projects in the ISO interconnection queues (queued capacity by ISO, fuel, and status) - the leading indicator of where new power is coming online. Optionally filter with ?iso=. For the de-duplicated, analyst-cleaned view use getRefinedQueue. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "iso"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "iso": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "iso": {
+                "type": "string",
+                "description": "Optional ISO filter, e.g. 'ercot', 'pjm', 'miso'."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8dc3236d54ae0bb38f67489fe69f919ae6b193c5c076058fb52097e50c519574",
+          "parameters": [
+            {
+              "name": "iso",
+              "type": "string",
+              "description": "Optional ISO filter, e.g. 'ercot', 'pjm', 'miso'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getMarketDcpiRank",
+          "canonical_hash": "sha256:1494b83e9997d4b44cdd63eea854e4d07db3c9ea9033390a1ed07ce582af3561",
+          "description": "recipe market_selection, step 2 of 2. Returns the full Data Center Power Index (DCPI) breakdown for a single market: composite_score, constraint_score, excess_power_score, avg_kwh_cents, curtailment_pct, data_basis and computed_at. Pass the metro_slug from a rankMarkets row (e.g. 'ashburn') or a market slug (e.g. 'ashburn-va'). Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "slug"
+          ],
+          "required_keys": [
+            "slug"
+          ],
+          "parameter_types": {
+            "slug": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "description": "Market slug - metro_slug from rankMarkets (e.g. 'ashburn') or market slug (e.g. 'ashburn-va')."
+              }
+            },
+            "required": [
+              "slug"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:75d84d7ba748b97c5d7c0cff4e6ae5065cdc365314d269171eb365fcda8297b5",
+          "parameters": [
+            {
+              "name": "slug",
+              "type": "string",
+              "description": "Market slug - metro_slug from rankMarkets (e.g. 'ashburn') or market slug (e.g. 'ashburn-va').",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getRefinedQueue",
+          "canonical_hash": "sha256:92d95381c62d9043586641a2f5f3e1e9c848c4b97c2e5df64c5352e7ca0fb4c2",
+          "description": "recipe grid_and_queue. The refined interconnection queue: de-duplicated and normalized across ISOs so counts and MW are comparable market-to-market. Optionally filter with ?iso= and cap with ?limit=. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "iso",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "iso": "string",
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "iso": {
+                "type": "string",
+                "description": "Optional ISO filter."
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Optional row cap."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:15cc4a3817408cdc296f568c6c5e647cd7a8715e4cf7c2a06b219787d99a4975",
+          "parameters": [
+            {
+              "name": "iso",
+              "type": "string",
+              "description": "Optional ISO filter.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Optional row cap.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "getWaterRisk",
+          "canonical_hash": "sha256:6b2886a21698183535428811553d9ef7198b3cbe5dc79a5825b7ca4d9cefd109",
+          "description": "recipe water_risk. Current U.S. Drought Monitor severity (water-supply risk) for a state or county - the water-availability read for a candidate data-center site. Pass ?state= (2-letter, e.g. 'VA') and optionally ?county=. For point-level WRI water-stress scoring use a site analysis. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "county",
+            "state"
+          ],
+          "required_keys": [
+            "state"
+          ],
+          "parameter_types": {
+            "state": "string",
+            "county": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "description": "2-letter US state code, e.g. 'VA', 'TX', 'AZ'."
+              },
+              "county": {
+                "type": "string",
+                "description": "Optional county name to narrow the read."
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5bfcf02f7f7142297362722340d70743141af7ce0834e6956be67ba7d0deaed9",
+          "parameters": [
+            {
+              "name": "county",
+              "type": "string",
+              "description": "Optional county name to narrow the read.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "2-letter US state code, e.g. 'VA', 'TX', 'AZ'.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "rankMarkets",
+          "canonical_hash": "sha256:8d7169f92adda8bb4d5094b382ed8853b4a0e9e60a168a87d6dc176b369f3225",
+          "description": "recipe market_selection, step 1 of 2. Returns the top-N ranked DCPI markets with facility_count, total_mw, operator_count, score, and a metro_slug for each row. Step 2: take the top row's metro_slug and call getMarketDcpiRank with it for the full DCPI score. Cite 'DC Hub, dchub.cloud'.",
+          "is_mutating": false,
+          "property_keys": [
+            "criteria",
+            "limit",
+            "region"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "region": "string",
+            "criteria": "string",
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "region": {
+                "type": "string",
+                "description": "Region filter, e.g. 'us', 'uk', 'eu'. Default 'us'."
+              },
+              "criteria": {
+                "type": "string",
+                "description": "Ranking criterion, e.g. 'best_overall', 'cheapest_power', 'most_headroom'. Default 'best_overall'."
+              },
+              "limit": {
+                "type": "integer",
+                "description": "How many markets to return. Default 10.",
+                "minimum": 1,
+                "maximum": 100
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9c7ae9427a61f4ecf2d1736e0adf4584aafdac6c128ffbbf86539ed2d5123aa1",
+          "parameters": [
+            {
+              "name": "criteria",
+              "type": "string",
+              "description": "Ranking criterion, e.g. 'best_overall', 'cheapest_power', 'most_headroom'. Default 'best_overall'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "How many markets to return. Default 10.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "region",
+              "type": "string",
+              "description": "Region filter, e.g. 'us', 'uk', 'eu'. Default 'us'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "recoverMyKey",
+          "canonical_hash": "sha256:7c98617c93f56d460addbfedfccbfdaa6e45bebd2d6fbb29b26b8e780b08f704",
+          "description": "IDENTITY. Enumeration-safe key recovery: if the email has a bound key, DC Hub emails the key back to that inbox. Always returns HTTP 200 with the same neutral message whether or not a key exists, so never infer account existence from the response. Use when the user previously bound an email (via bindEmail) but lost their key.",
+          "is_mutating": false,
+          "property_keys": [
+            "email"
+          ],
+          "required_keys": [
+            "email"
+          ],
+          "parameter_types": {
+            "email": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "The email the key was bound to."
+              }
+            },
+            "required": [
+              "email"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:89e507485004d80ee95183aac5f35b4441878c0f0bd3fed788fe93b2928f93ed",
+          "parameters": [
+            {
+              "name": "email",
+              "type": "string",
+              "description": "The email the key was bound to.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": "email",
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "2.12.0",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -35,9 +784,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }
