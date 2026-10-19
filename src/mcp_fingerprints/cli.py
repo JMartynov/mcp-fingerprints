@@ -85,8 +85,6 @@ def main() -> None:
         "init", help="Run interactive setup wizard to bootstrap configuration"
     )
 
-
-
     # Sync
     sync_p = subparsers.add_parser(
         "sync", help="Synchronize MCP server passports from registries"
@@ -101,6 +99,12 @@ def main() -> None:
     )
     sync_p.add_argument(
         "--discover-new", action="store_true", help="Discover and pull new MCP servers"
+    )
+    sync_p.add_argument(
+        "--docker", action="store_true", help="Include Docker Hub discovery"
+    )
+    sync_p.add_argument(
+        "--polyglot", action="store_true", help="Include Polyglot (Rust/Go) discovery"
     )
     sync_p.add_argument(
         "--enrich-ast",
@@ -198,10 +202,16 @@ def main() -> None:
         help="Connection and RPC timeout in seconds",
     )
     probe_p.add_argument(
-        "--json", action="store_true", help="Output full probe report as JSON (deprecated, use --format json)"
+        "--json",
+        action="store_true",
+        help="Output full probe report as JSON (deprecated, use --format json)",
     )
     probe_p.add_argument(
-        "--format", "-f", choices=["short", "long", "table", "json"], default="long", help="Output format"
+        "--format",
+        "-f",
+        choices=["short", "long", "table", "json"],
+        default="long",
+        help="Output format",
     )
     probe_p.add_argument(
         "-s", "--short", action="store_true", help="Shortcut for --format short"
@@ -221,6 +231,12 @@ def main() -> None:
     )
     val_p.add_argument(
         "--dir", default="data/fingerprints", help="Passport directory to validate"
+    )
+    val_p.add_argument(
+        "--no-cache", action="store_true", help="Disable caching and force revalidation"
+    )
+    val_p.add_argument(
+        "--workers", type=int, default=None, help="Number of parallel worker processes"
     )
 
     # Snapshot
@@ -281,7 +297,9 @@ def main() -> None:
         "export-config",
         help="Export client configuration (Claude/Cursor/Cline/Zed/Windsurf/Docker)",
     )
-    export_p.add_argument("package", nargs="?", help="Package name to export configuration for")
+    export_p.add_argument(
+        "package", nargs="?", help="Package name to export configuration for"
+    )
     export_p.add_argument(
         "--dir", default="data/fingerprints", help="Passport data directory"
     )
@@ -437,9 +455,11 @@ def main() -> None:
 
         if args.path:
             from mcp_fingerprints import scan_config_file
+
             report = scan_config_file(args.path, probe_live=args.probe_live)
         else:
             from mcp_fingerprints import scan_local_configs
+
             report = scan_local_configs(probe_live=args.probe_live)
 
         if isinstance(report, snapshot_diff.InventorySnapshot):
@@ -448,15 +468,17 @@ def main() -> None:
             discovered = []
             for s in report.servers:
                 c_name = Path(s.get("config_source", "")).name or "unknown"
-                discovered.append(snapshot_diff.DiscoveredServer(
-                    server_name=s.get("name", ""),
-                    client_name=c_name,
-                    command=s.get("command"),
-                    args=s.get("args", []),
-                    env=s.get("env", {}),
-                    url=s.get("url"),
-                    headers=s.get("headers", {}),
-                ))
+                discovered.append(
+                    snapshot_diff.DiscoveredServer(
+                        server_name=s.get("name", ""),
+                        client_name=c_name,
+                        command=s.get("command"),
+                        args=s.get("args", []),
+                        env=s.get("env", {}),
+                        url=s.get("url"),
+                        headers=s.get("headers", {}),
+                    )
+                )
             inventory = snapshot_diff.InventorySnapshot(servers=discovered)
         else:
             inventory = snapshot_diff.InventorySnapshot()
@@ -517,14 +539,20 @@ def main() -> None:
                 if m.old_version != m.new_version:
                     print(f"    - Version: {m.old_version} -> {m.new_version}")
                 if m.old_hash != m.new_hash:
-                    print(f"    - Toolset Canonical Hash: Drifted ({m.old_hash} -> {m.new_hash})")
+                    print(
+                        f"    - Toolset Canonical Hash: Drifted ({m.old_hash} -> {m.new_hash})"
+                    )
                 if m.changes:
                     print("    - Tool Contract Mutations:")
                     for c in m.changes:
                         print(f"      * {c}")
 
-            print("======================================================================")
-            print(f"Result: {len(diff.added_servers)} server(s) added, {len(diff.modified_servers)} server(s) drifted.")
+            print(
+                "======================================================================"
+            )
+            print(
+                f"Result: {len(diff.added_servers)} server(s) added, {len(diff.modified_servers)} server(s) drifted."
+            )
 
             if args.fail_on_drift and diff.has_changes:
                 sys.exit(2)
@@ -533,39 +561,53 @@ def main() -> None:
             if args.format == "json":
                 print(json.dumps(report.to_dict(), indent=2))
             elif args.format == "table":
-                print(f"{'Server Name':<20} | {'Config Source':<40} | {'Command':<20} | {'Status'}")
+                print(
+                    f"{'Server Name':<20} | {'Config Source':<40} | {'Command':<20} | {'Status'}"
+                )
                 print("-" * 100)
                 for srv in report.servers:
                     status = "N/A"
                     if "live_probe" in srv:
-                        status = "Success" if srv["live_probe"].get("connection_successful") else "Failed"
+                        status = (
+                            "Success"
+                            if srv["live_probe"].get("connection_successful")
+                            else "Failed"
+                        )
                     cmd_str = srv.get("command") or srv.get("url") or ""
-                    print(f"{srv.get('name', 'Unknown')[:20]:<20} | {srv.get('config_source', '')[:40]:<40} | {cmd_str[:20]:<20} | {status}")
+                    print(
+                        f"{srv.get('name', 'Unknown')[:20]:<20} | {srv.get('config_source', '')[:40]:<40} | {cmd_str[:20]:<20} | {status}"
+                    )
             elif args.format == "markdown":
                 print("| Server Name | Config Source | Command | Status |")
                 print("|---|---|---|---|")
                 for srv in report.servers:
                     status = "N/A"
                     if "live_probe" in srv:
-                        status = "Success" if srv["live_probe"].get("connection_successful") else "Failed"
+                        status = (
+                            "Success"
+                            if srv["live_probe"].get("connection_successful")
+                            else "Failed"
+                        )
                     cmd_str = srv.get("command") or srv.get("url") or ""
-                    print(f"| {srv.get('name', 'Unknown')} | {srv.get('config_source', '')} | {cmd_str} | {status} |")
+                    print(
+                        f"| {srv.get('name', 'Unknown')} | {srv.get('config_source', '')} | {cmd_str} | {status} |"
+                    )
 
             if report.errors:
                 print("\nErrors encountered:")
                 for e in report.errors:
                     print(f" - {e}")
 
-
     elif args.command == "sync":
         sync = PassportSynchronizer(output_dir=args.output)
         if args.all or (
             not args.update_existing and not args.discover_new and not args.enrich_ast
+            and not getattr(args, "docker", False) and not getattr(args, "polyglot", False)
         ):
             logger.info("Running full multi-source passport synchronization...")
             sync.update_existing_passports()
             sync.enrich_zero_tool_passports(limit=args.limit, max_workers=args.workers)
-            sync.discover_new_mcps()
+            sync.discover_new_mcps(docker=True, polyglot=True)
         else:
             if args.update_existing:
                 sync.update_existing_passports()
@@ -574,7 +616,7 @@ def main() -> None:
                     limit=args.limit, max_workers=args.workers
                 )
             if args.discover_new:
-                sync.discover_new_mcps()
+                sync.discover_new_mcps(docker=getattr(args, "docker", False), polyglot=getattr(args, "polyglot", False))
 
         if getattr(args, "probe_runtime", False):
             logger.info(
@@ -599,9 +641,15 @@ def main() -> None:
             print_ecosystem_health_report(args.output)
 
     elif args.command == "validate":
-        valid, invalid, errors = PassportSchemaValidator.validate_directory(args.dir)
-        print(f"Validation summary: {valid} valid, {invalid} invalid passports.")
+        valid, invalid, errors, stats = PassportSchemaValidator.validate_directory(
+            args.dir, use_cache=not args.no_cache, max_workers=args.workers
+        )
+        total = valid + invalid
+        print(
+            f"Valid: {valid} ({stats['cached']} cached, {stats['validated']} validated in {stats['time_s']:.2f}s)"
+        )
         if invalid > 0:
+            print(f"Validation summary: {valid} valid, {invalid} invalid passports.")
             for err in errors:
                 print(f"ERROR: {err}")
             sys.exit(1)
@@ -693,7 +741,7 @@ def main() -> None:
         cmd = args.cmd
         if cmd and cmd[0] == "--":
             cmd = cmd[1:]
-            
+
         target = args.url if args.url else cmd
 
         if not target:
@@ -723,6 +771,7 @@ def main() -> None:
             fmt = "long"
 
         from mcp_fingerprints.reporter import format_probe_report
+
         print(format_probe_report(report, format_type=fmt))
 
     elif args.command == "build-index":
@@ -766,14 +815,22 @@ def main() -> None:
     elif args.command == "export-config":
         import urllib.parse
         from mcp_fingerprints.config_exporter import (
-            ZedExporter, ClineExporter, WindsurfExporter, ClaudeExporter, CursorExporter, DockerExporter, extract_base_config
+            ZedExporter,
+            ClineExporter,
+            WindsurfExporter,
+            ClaudeExporter,
+            CursorExporter,
+            DockerExporter,
+            extract_base_config,
         )
 
         target_client = args.target if args.target else args.client
         search_pkg = args.package or args.server
 
         if not search_pkg:
-            print("ERROR: Must provide either a package positional argument or --server.")
+            print(
+                "ERROR: Must provide either a package positional argument or --server."
+            )
             sys.exit(1)
 
         urllib.parse.quote_plus(search_pkg).replace("%40", "@")
@@ -799,18 +856,26 @@ def main() -> None:
                             "windsurf": WindsurfExporter,
                             "claude": ClaudeExporter,
                             "cursor": CursorExporter,
-                            "docker": DockerExporter
+                            "docker": DockerExporter,
                         }
                         exporter_cls = exporters.get(target_client, ClaudeExporter)
-                        
+
                         config_path = Path(args.config)
-                        existing_content = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
-                        
+                        existing_content = (
+                            config_path.read_text(encoding="utf-8")
+                            if config_path.exists()
+                            else ""
+                        )
+
                         base_config = extract_base_config(content)
                         package_name = content.get("package_name", "unknown")
-                        server_name = args.server or package_name.replace("@", "").replace("/", "-").replace("_", "-")
-                        
-                        patched = exporter_cls.patch_config(existing_content, server_name, base_config)
+                        server_name = args.server or package_name.replace(
+                            "@", ""
+                        ).replace("/", "-").replace("_", "-")
+
+                        patched = exporter_cls.patch_config(
+                            existing_content, server_name, base_config
+                        )
                         config_path.write_text(patched, encoding="utf-8")
                         print(f"Patched configuration into {config_path}")
                     else:
@@ -893,10 +958,11 @@ def main() -> None:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                bufsize=1
+                bufsize=1,
             )
 
             q = queue.Queue()
+
             def reader_thread(stream):
                 for line in stream:
                     q.put(line)
@@ -917,7 +983,10 @@ def main() -> None:
                 except json.JSONDecodeError:
                     return None
 
-            from mcp_fingerprints.protocol_validator import validate_mcp_handshake, validate_jsonrpc_message
+            from mcp_fingerprints.protocol_validator import (
+                validate_mcp_handshake,
+                validate_jsonrpc_message,
+            )
 
             # 1. Valid handshake
             init_req = {
@@ -927,8 +996,8 @@ def main() -> None:
                 "params": {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {},
-                    "clientInfo": {"name": "validator", "version": "1.0"}
-                }
+                    "clientInfo": {"name": "validator", "version": "1.0"},
+                },
             }
             send_msg(init_req)
 
@@ -938,10 +1007,7 @@ def main() -> None:
                 proc.kill()
                 sys.exit(1)
 
-            init_notif = {
-                "jsonrpc": "2.0",
-                "method": "notifications/initialized"
-            }
+            init_notif = {"jsonrpc": "2.0", "method": "notifications/initialized"}
             send_msg(init_notif)
 
             messages = [init_req, init_resp, init_notif]
@@ -958,7 +1024,7 @@ def main() -> None:
                 "jsonrpc": "2.0",
                 "id": 2,
                 "method": "invalid/method/does/not/exist",
-                "params": {}
+                "params": {},
             }
             send_msg(bad_req)
 
@@ -988,11 +1054,9 @@ def main() -> None:
 
         except Exception as e:
             print(f"FAIL: Exception during validation: {e}")
-            if 'proc' in locals() and proc.poll() is None:
+            if "proc" in locals() and proc.poll() is None:
                 proc.kill()
             sys.exit(1)
-
-
 
 
 if __name__ == "__main__":

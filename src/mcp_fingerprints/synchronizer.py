@@ -1479,7 +1479,7 @@ class PassportSynchronizer:
             self._save_state()
         return enriched_count
 
-    def discover_new_mcps(self, limit: int = 500) -> int:
+    def discover_new_mcps(self, limit: int = 500, docker: bool = False, polyglot: bool = False) -> int:
         """Query search feeds, full Smithery directory, PyPI registry, and awesome-mcp-servers."""
         discovered_count = 0
 
@@ -1612,6 +1612,62 @@ class PassportSynchronizer:
             cursor = reg_data.get("metadata", {}).get("nextCursor")
             if not cursor or not srv_list:
                 break
+
+
+        # Docker Hub Discovery
+        if docker:
+            logger.info("Crawling Docker Hub for MCP containers...")
+            docker_search_url = "https://hub.docker.com/v2/search/repositories?query=mcp&page_size=20"
+            docker_data, _ = fetch_json(docker_search_url)
+            if docker_data and "results" in docker_data:
+                for repo in docker_data["results"]:
+                    repo_name_full = repo.get("repo_name", "")
+                    if not repo_name_full:
+                        continue
+                    
+                    parts = repo_name_full.split("/")
+                    if len(parts) == 2:
+                        namespace, repo_name = parts
+                    else:
+                        namespace = "library"
+                        repo_name = repo_name_full
+                        
+                    pkg_name = f"docker_{namespace}_{repo_name}"
+                    clean_name = f"{pkg_name}.json"
+                    if (self.output_dir / clean_name).is_file():
+                        continue
+                        
+                    description = repo.get("short_description", "")
+                    
+                    # Fetch full description
+                    repo_url = f"https://hub.docker.com/v2/repositories/{repo_name_full}/"
+                    repo_data, _ = fetch_json(repo_url)
+                    full_description = ""
+                    if repo_data:
+                        full_description = repo_data.get("full_description", "")
+                    
+                    tools = []
+                    if full_description:
+                        tools = parse_markdown_tool_docs(full_description)
+                        
+                    if not tools and description:
+                        tools = [{"name": "unknown", "description": description, "inputSchema": {"type": "object", "properties": {}}}]
+                        
+                    if tools:
+                        spec = FingerprintGenerator.generate_server_spec(
+                            package_name=pkg_name,
+                            ecosystem="docker",
+                            purl=f"pkg:docker/{repo_name_full}",
+                            version="latest",
+                            tools=tools,
+                            description=description,
+                            repository_url=f"https://hub.docker.com/r/{repo_name_full}"
+                        )
+                        
+                        target_file = self.output_dir / clean_name
+                        FingerprintGenerator.save_spec_to_file(spec, target_file)
+                        discovered_count += 1
+                        logger.info("Discovered NEW passport from Docker Hub: %s", pkg_name)
 
         # 5. Query community curated awesome-mcp-servers stream with multi-manifest extraction
         logger.info("Crawling awesome-mcp-servers GitHub repository manifests concurrently...")
@@ -1795,6 +1851,64 @@ class PassportSynchronizer:
             logger.debug("Failed crawling awesome-mcp-servers: %s", exc)
 
         self._save_state()
+
+        # Polyglot GitHub Discovery (Rust, Go)
+        if polyglot:
+            logger.info("Crawling GitHub for Polyglot (Rust, Go) MCP servers...")
+            # We search for mcp-server topic and language rust or go
+            for lang in ["rust", "go"]:
+                github_search_url = f"https://api.github.com/search/repositories?q=topic:mcp-server+language:{lang}&per_page=10"
+                github_data, _ = fetch_json(github_search_url)
+                if github_data and "items" in github_data:
+                    for repo in github_data["items"]:
+                        full_name = repo.get("full_name")
+                        if not full_name:
+                            continue
+                            
+                        owner, repo_name = full_name.split("/")
+                        pkg_name = f"github_{owner}_{repo_name}"
+                        clean_name = f"{pkg_name}.json"
+                        
+                        if (self.output_dir / clean_name).is_file():
+                            continue
+                            
+                        description = repo.get("description", "")
+                        default_branch = repo.get("default_branch", "main")
+                        
+                        # Try to parse tools from README
+                        readme_url = f"https://raw.githubusercontent.com/{full_name}/{default_branch}/README.md"
+                        try:
+                            req = urllib.request.Request(readme_url, headers={"User-Agent": "VerityRedTeam-Sync/1.0"})
+                            with urllib.request.urlopen(req, context=_create_ssl_context(), timeout=5) as resp:
+                                readme_text = resp.read().decode("utf-8")
+                        except Exception:
+                            readme_text = ""
+                            
+                        tools = []
+                        if readme_text:
+                            tools = parse_markdown_tool_docs(readme_text)
+                            
+                        if not tools and description:
+                            tools = [{"name": "unknown", "description": description, "inputSchema": {"type": "object", "properties": {}}}]
+                            
+                        if tools:
+                            purl = f"pkg:github/{full_name}"
+                            ecosystem = "cargo" if lang == "rust" else "go"
+                            spec = FingerprintGenerator.generate_server_spec(
+                                package_name=pkg_name,
+                                ecosystem=ecosystem,
+                                purl=purl,
+                                version="latest",
+                                tools=tools,
+                                description=description,
+                                repository_url=f"https://github.com/{full_name}"
+                            )
+                            
+                            target_file = self.output_dir / clean_name
+                            FingerprintGenerator.save_spec_to_file(spec, target_file)
+                            discovered_count += 1
+                            logger.info("Discovered NEW polyglot passport from GitHub: %s", pkg_name)
+
         return discovered_count
 
     def probe_runtime_passports(
