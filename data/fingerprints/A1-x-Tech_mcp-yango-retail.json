@@ -4,20 +4,1438 @@
   "purl": "pkg:generic/A1-x-Tech%2Fmcp-yango-retail",
   "ecosystem": "generic",
   "display_name": "A1-x-Tech/mcp-yango-retail",
-  "description": "MCP server for the Yango Tech Retail B2B API: orders, products, prices, discounts, stocks.",
-  "repository_url": "https://github.com/A1-x-Tech/mcp-yango-retail",
+  "description": "MCP server for Yango Tech Retail — inspect and manage stores, catalog, prices, stock and orders from an AI app",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/A1-x-Tech/mcp-yango-retail",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "A1-x-Tech/mcp-yango-retail",
-    "Yango Tech Retail MCP"
+    "a1-x-tech/mcp-yango-retail"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:3d9a60fa9221be5b28e3936e58cb00b55e78900f4e151f4b99317f09e293aa79",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "9739bdc2-d9c6-490e-b85f-52a54c11391e/bc9efaf9-52eb-4bf9-9341-00a76bce831f/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "token"
+            ],
+            "properties": {
+              "token": {
+                "type": "string",
+                "title": "Token",
+                "x-order": 0,
+                "description": "Bearer token issued by Yango Tech for the retailer account. Treat it as a secret."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "cancel_order",
+          "canonical_hash": "sha256:6692ef979f5470838755f1fbf9920226289087f22d7e7d9a9e7838c00d0af08c",
+          "description": "Cancels an existing order (POST /b2b/v1/orders/cancel). Optionally pass a reason. The response body is not documented upstream and is returned verbatim; verify the outcome with get_orders_state (expec",
+          "is_mutating": false,
+          "property_keys": [
+            "order_id",
+            "reason"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "reason": "string",
+            "order_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "Free-form cancellation reason."
+              },
+              "order_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The order id (the client-side id the order was created with)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:69aca1cbd4a55ac6f5ae2e905065739edea08556d2929ba79f7c6e8224bd5802",
+          "parameters": [
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "The order id (the client-side id the order was created with).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "reason",
+              "type": "string",
+              "description": "Free-form cancellation reason.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_discounts",
+          "canonical_hash": "sha256:4f47a99df73d669a788323f22df8c7ed5d22b74f32cb25fc85fef44a0f3ea39c",
+          "description": "Creates per-store product discounts (POST /b2b/v1/discounts/create), at most 100 per request. CAUTION: the exact key names inside discount_activity_period and discount_value are NOT documented (the of",
+          "is_mutating": false,
+          "property_keys": [
+            "discounts"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "discounts": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "discounts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "product_id",
+                    "store_id",
+                    "discount_activity_period",
+                    "discount_value"
+                  ],
+                  "properties": {
+                    "store_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "WMS store id from get_stores."
+                    },
+                    "product_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Product id the discount applies to."
+                    },
+                    "discount_value": {
+                      "type": "object",
+                      "description": "Discount value map (string→string). Key names are undocumented upstream — passed through verbatim.",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "discount_activity_period": {
+                      "type": "object",
+                      "description": "Activity period map (string→string). Key names are undocumented upstream — passed through verbatim.",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Discounts to create (at most 100 per request)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e74489b454d438cbce43e0ed0263c5503bd2aae80c31e0af3deebbdc508e1ba1",
+          "parameters": [
+            {
+              "name": "discounts",
+              "type": "array",
+              "description": "Discounts to create (at most 100 per request).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_order",
+          "canonical_hash": "sha256:7abd6844463dea5dd789e8b554e09fe2fba12e4deae5485d9ff8d1c988e72b5a",
+          "description": "Creates an order on the Yango Tech platform (POST /b2b/v1/orders/create). You supply the order_id; the same body shape is used by the platform for order updates. All money fields are decimal STRINGS (",
+          "is_mutating": false,
+          "property_keys": [
+            "cart",
+            "client_phone_number",
+            "courier_pin",
+            "delivery_address",
+            "delivery_properties",
+            "human_order_id",
+            "order_id",
+            "payment_type",
+            "store_id",
+            "use_external_logistics"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cart": "object",
+            "order_id": "string",
+            "store_id": "string",
+            "courier_pin": "string",
+            "payment_type": "string",
+            "human_order_id": "string",
+            "delivery_address": "object",
+            "client_phone_number": "string",
+            "delivery_properties": "object",
+            "use_external_logistics": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cart": {
+                "type": "object",
+                "required": [
+                  "items",
+                  "total_price"
+                ],
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "product_id",
+                        "quantity",
+                        "price"
+                      ],
+                      "properties": {
+                        "vat": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(\\.\\d+)?$",
+                          "description": "VAT rate/amount for the line as a decimal string, e.g. \"20\"."
+                        },
+                        "price": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(\\.\\d+)?$",
+                          "description": "Price per unit as a decimal string, e.g. \"150.00\"."
+                        },
+                        "discount": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(\\.\\d+)?$",
+                          "description": "Discount amount for the line, decimal string."
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "Units of the product."
+                        },
+                        "product_id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "Product id from the catalog."
+                        }
+                      },
+                      "additionalProperties": true
+                    },
+                    "minItems": 1,
+                    "description": "Cart lines."
+                  },
+                  "total_vat": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "VAT total, decimal string."
+                  },
+                  "total_price": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Cart total, decimal string."
+                  },
+                  "total_promo": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Promo total, decimal string."
+                  },
+                  "total_package": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Packaging fee total, decimal string."
+                  },
+                  "total_delivery": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Delivery fee total, decimal string."
+                  },
+                  "total_discount": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Discount total, decimal string."
+                  }
+                },
+                "description": "Shopping cart: items plus totals (all money as decimal strings).",
+                "additionalProperties": true
+              },
+              "order_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Client-side order id (you choose it; reuse it in the other order tools)."
+              },
+              "store_id": {
+                "type": "string",
+                "description": "WMS store (darkstore) id from get_stores."
+              },
+              "courier_pin": {
+                "type": "string",
+                "description": "PIN the courier must present on handover."
+              },
+              "payment_type": {
+                "type": "string",
+                "description": "Payment type. Known values: cash, online, card, apple_pay, loyalty (the list is open-ended)."
+              },
+              "human_order_id": {
+                "type": "string",
+                "description": "Human-readable order number shown to the customer."
+              },
+              "delivery_address": {
+                "type": "object",
+                "required": [
+                  "position"
+                ],
+                "properties": {
+                  "address": {
+                    "type": "object",
+                    "properties": {
+                      "city": {
+                        "type": "string",
+                        "description": "City."
+                      },
+                      "house": {
+                        "type": "string",
+                        "description": "House number."
+                      },
+                      "street": {
+                        "type": "string",
+                        "description": "Street."
+                      },
+                      "country": {
+                        "type": "string",
+                        "description": "Country."
+                      }
+                    },
+                    "description": "Structured address parts.",
+                    "additionalProperties": true
+                  },
+                  "comment": {
+                    "type": "string",
+                    "description": "Comment for the courier."
+                  },
+                  "position": {
+                    "type": "object",
+                    "required": [
+                      "lat",
+                      "lon"
+                    ],
+                    "properties": {
+                      "lat": {
+                        "type": "number",
+                        "description": "Latitude."
+                      },
+                      "lon": {
+                        "type": "number",
+                        "description": "Longitude."
+                      }
+                    },
+                    "description": "Delivery point coordinates {lat, lon} — required inside delivery_address.",
+                    "additionalProperties": false
+                  }
+                },
+                "description": "Delivery address: coordinates plus optional structured address and comment.",
+                "additionalProperties": true
+              },
+              "client_phone_number": {
+                "type": "string",
+                "description": "Customer phone number in international format."
+              },
+              "delivery_properties": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "slot": {
+                    "type": "object",
+                    "required": [
+                      "start",
+                      "end"
+                    ],
+                    "properties": {
+                      "end": {
+                        "type": "string",
+                        "description": "Slot end timestamp."
+                      },
+                      "start": {
+                        "type": "string",
+                        "description": "Slot start timestamp."
+                      }
+                    },
+                    "description": "Delivery time slot.",
+                    "additionalProperties": false
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Delivery type identifier (open-ended string)."
+                  }
+                },
+                "description": "Delivery properties: type and optional {start, end} slot.",
+                "additionalProperties": true
+              },
+              "use_external_logistics": {
+                "type": "boolean",
+                "description": "true — delivery is handled by external (3PL) logistics instead of the platform."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7dc47a4600574ecc07c87b9ab43fbe008a0856ca49b091d3d2411c2c1eef57ac",
+          "parameters": [
+            {
+              "name": "cart",
+              "type": "object",
+              "description": "Shopping cart: items plus totals (all money as decimal strings).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "product_id",
+                      "quantity",
+                      "price"
+                    ],
+                    "properties": {
+                      "vat": {
+                        "type": "string",
+                        "pattern": "^-?\\d+(\\.\\d+)?$",
+                        "description": "VAT rate/amount for the line as a decimal string, e.g. \"20\"."
+                      },
+                      "price": {
+                        "type": "string",
+                        "pattern": "^-?\\d+(\\.\\d+)?$",
+                        "description": "Price per unit as a decimal string, e.g. \"150.00\"."
+                      },
+                      "discount": {
+                        "type": "string",
+                        "pattern": "^-?\\d+(\\.\\d+)?$",
+                        "description": "Discount amount for the line, decimal string."
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Units of the product."
+                      },
+                      "product_id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Product id from the catalog."
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  "minItems": 1,
+                  "description": "Cart lines."
+                },
+                "total_vat": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "VAT total, decimal string."
+                },
+                "total_price": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Cart total, decimal string."
+                },
+                "total_promo": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Promo total, decimal string."
+                },
+                "total_package": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Packaging fee total, decimal string."
+                },
+                "total_delivery": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Delivery fee total, decimal string."
+                },
+                "total_discount": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Discount total, decimal string."
+                }
+              }
+            },
+            {
+              "name": "client_phone_number",
+              "type": "string",
+              "description": "Customer phone number in international format.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "courier_pin",
+              "type": "string",
+              "description": "PIN the courier must present on handover.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "delivery_address",
+              "type": "object",
+              "description": "Delivery address: coordinates plus optional structured address and comment.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "address": {
+                  "type": "object",
+                  "properties": {
+                    "city": {
+                      "type": "string",
+                      "description": "City."
+                    },
+                    "house": {
+                      "type": "string",
+                      "description": "House number."
+                    },
+                    "street": {
+                      "type": "string",
+                      "description": "Street."
+                    },
+                    "country": {
+                      "type": "string",
+                      "description": "Country."
+                    }
+                  },
+                  "description": "Structured address parts.",
+                  "additionalProperties": true
+                },
+                "comment": {
+                  "type": "string",
+                  "description": "Comment for the courier."
+                },
+                "position": {
+                  "type": "object",
+                  "required": [
+                    "lat",
+                    "lon"
+                  ],
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "description": "Latitude."
+                    },
+                    "lon": {
+                      "type": "number",
+                      "description": "Longitude."
+                    }
+                  },
+                  "description": "Delivery point coordinates {lat, lon} — required inside delivery_address.",
+                  "additionalProperties": false
+                }
+              }
+            },
+            {
+              "name": "delivery_properties",
+              "type": "object",
+              "description": "Delivery properties: type and optional {start, end} slot.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "slot": {
+                  "type": "object",
+                  "required": [
+                    "start",
+                    "end"
+                  ],
+                  "properties": {
+                    "end": {
+                      "type": "string",
+                      "description": "Slot end timestamp."
+                    },
+                    "start": {
+                      "type": "string",
+                      "description": "Slot start timestamp."
+                    }
+                  },
+                  "description": "Delivery time slot.",
+                  "additionalProperties": false
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Delivery type identifier (open-ended string)."
+                }
+              }
+            },
+            {
+              "name": "human_order_id",
+              "type": "string",
+              "description": "Human-readable order number shown to the customer.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "Client-side order id (you choose it; reuse it in the other order tools).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "payment_type",
+              "type": "string",
+              "description": "Payment type. Known values: cash, online, card, apple_pay, loyalty (the list is open-ended).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "store_id",
+              "type": "string",
+              "description": "WMS store (darkstore) id from get_stores.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "use_external_logistics",
+              "type": "boolean",
+              "description": "true — delivery is handled by external (3PL) logistics instead of the platform.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_products",
+          "canonical_hash": "sha256:95fa7106db7a88276c54bd3c164f1047ee94eaced2a1947a0d599013e83d9984",
+          "description": "Creates (or upserts) products in the catalog (POST /b2b/v1/products/create), at most 100 per request. Each product uses the same shape query_products returns: {product_id, master_category, status, is_",
+          "is_mutating": false,
+          "property_keys": [
+            "products"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "products": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "products": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "product_id",
+                    "master_category",
+                    "status",
+                    "is_meta",
+                    "custom_attributes"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "active",
+                        "disabled",
+                        "archived"
+                      ],
+                      "type": "string",
+                      "description": "Product lifecycle status."
+                    },
+                    "is_meta": {
+                      "type": "boolean",
+                      "description": "true for meta (virtual/grouping) products."
+                    },
+                    "product_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Unique product id."
+                    },
+                    "master_category": {
+                      "type": "string",
+                      "description": "Master category id/path the product belongs to."
+                    },
+                    "custom_attributes": {
+                      "type": "object",
+                      "description": "Attribute map. Required by the platform: longName ({lang: text}), shortNameLoc ({lang: text}), markCount (number), markCountUnitList (unit/gram/kilogram/liter/millilitre — open-ended). Optional: barcode (string[]), images (string[]), descriptionLoc, nomenclatureType, typeAccounting (byUnit|byWeight|byTrueWeight), trueMark, mercury, plus arbitrary extra attributes.",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Products to create/upsert (at most 100 per request)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:98ef58bc2ad54d01c1644712eb42dc44f7e49d2fa36cfc15dc7e9779d1cae20e",
+          "parameters": [
+            {
+              "name": "products",
+              "type": "array",
+              "description": "Products to create/upsert (at most 100 per request).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_order",
+          "canonical_hash": "sha256:67f2c03e3b95624326c51d1a525541bd96c798a4d882c911891c377e25915600",
+          "description": "Details of a single order (POST /b2b/v1/orders/get): every field the order was created with (cart, delivery_address, payment_type, store_id, …) plus create_time. NOTE: the response does NOT include th",
+          "is_mutating": false,
+          "property_keys": [
+            "order_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "order_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The order id (the client-side id the order was created with)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fdb95e9c7658001b4b3db11dd9fa9779c6c3d0a61e02a74c6e8330cac8396ca0",
+          "parameters": [
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "The order id (the client-side id the order was created with).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_orders_state",
+          "canonical_hash": "sha256:013f588982bfaa3f9e8b21143e291be318331eab818c61f8401423cfbd165a2f",
+          "description": "Batch order tracking (POST /b2b/v1/orders/state). Returns {query_results: [{order_id, query_result, state?}]} — query_result reports per-order lookup success (an unknown id is reported here, not as an",
+          "is_mutating": false,
+          "property_keys": [
+            "orders"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orders": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orders": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Order ids to check (client-side ids used at creation)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bf66a77b95076e9c538a8c29c2a3cde26408df92e4c3d6395ae9602d559d906c",
+          "parameters": [
+            {
+              "name": "orders",
+              "type": "array",
+              "description": "Order ids to check (client-side ids used at creation).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_prices",
+          "canonical_hash": "sha256:46aabd43b7d495673f1412d75f4bb65ec1b0e225b85196e5227694515ce0eb1f",
+          "description": "Product prices for one or more price lists (POST /b2b/v1/prices/get). Returns {results: [{pricelist_id, prices_data: [{product_id, price, price_per_quantity?}]}]}. price may arrive as a number or a st",
+          "is_mutating": false,
+          "property_keys": [
+            "pricelist_ids"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pricelist_ids": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pricelist_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Price-list ids from query_price_lists."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1d826a8faf21d530c97f4972eb4898fbc90b9567fb247386f8db404f79eaadd3",
+          "parameters": [
+            {
+              "name": "pricelist_ids",
+              "type": "array",
+              "description": "Price-list ids from query_price_lists.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_receipt",
+          "canonical_hash": "sha256:1d8e8b9093ec17c2d2a493a9981e1774cbb6001024047b638c4338029458dc7f",
+          "description": "Fiscal receipt(s) by receipt id OR order id (POST /b2b/v1/receipts/get) — pass exactly one of the two. Returns {receipts: [{receipt_id, order, create_time, store, receipt_type (payment|refund), paymen",
+          "is_mutating": false,
+          "property_keys": [
+            "client_fields",
+            "order_id",
+            "receipt_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "order_id": "string",
+            "receipt_id": "string",
+            "client_fields": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "order_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Order id to fetch receipts for. Mutually exclusive with receipt_id."
+              },
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Receipt id (e.g. from a receipt_issued order event). Mutually exclusive with order_id."
+              },
+              "client_fields": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "full_name",
+                    "phone_number",
+                    "email",
+                    "delivery_address"
+                  ],
+                  "type": "string"
+                },
+                "description": "Which client PII fields to include in the response (omitted = no PII)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3183d81f2b9bed6034c4d55c22938a79082aed49d5d80f6b2e5411cc8e9a470f",
+          "parameters": [
+            {
+              "name": "client_fields",
+              "type": "array",
+              "description": "Which client PII fields to include in the response (omitted = no PII).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "order_id",
+              "type": "string",
+              "description": "Order id to fetch receipts for. Mutually exclusive with receipt_id.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "receipt_id",
+              "type": "string",
+              "description": "Receipt id (e.g. from a receipt_issued order event). Mutually exclusive with order_id.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_stores",
+          "canonical_hash": "sha256:9895ce73bddef095f133fb630dd5f73ca8e45ed6b09ece62c73c9de4ed3f939d",
+          "description": "All stores (darkstores) of the retailer (POST /b2b/v1/stores/get, no parameters). Returns {stores: [{id, status, location: {lat, lon}, address?, name?}]}. The store id is the WMS store id used by crea",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:be1b7945beb40e5b4dd1e70add2848a0a34dadbb517b160ba0601ec8c06e759a",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "query_order_events",
+          "canonical_hash": "sha256:2b31654637fc4a24119b79c6c05bd1b645467dc580124ab18aa91e84aaa42f45",
+          "description": "Cursor-based order event feed (POST /b2b/v1/orders/events/query): new orders, state changes and issued receipts. Returns {cursor, orders_events: [{order_id, occurred, data: {type, …}}]} where data.typ",
+          "is_mutating": false,
+          "property_keys": [
+            "cursor"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "cursor": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "cursor": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d7835d110063bafa36eb0d243209dd2bef5009a2cf94bf745449669ad274ff3e",
+          "parameters": [
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_price_lists",
+          "canonical_hash": "sha256:8e6a35670457c9e3b3f895358c0fe0e80802ef66f37843734f096fb04154376e",
+          "description": "Cursor-based price-list feed (POST /b2b/v1/pricelists/query) — the API's only way to list price lists, so a full snapshot means iterating until a page has fewer items than limit. Returns {pricelists: ",
+          "is_mutating": false,
+          "property_keys": [
+            "cursor",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "cursor": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Page size (default 100 — the official client's value; the server-side maximum is undocumented)."
+              },
+              "cursor": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5e0b5ec68f379b6ee330284af500b911d396abdac094c70780905e1287082603",
+          "parameters": [
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Page size (default 100 — the official client's value; the server-side maximum is undocumented).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_products",
+          "canonical_hash": "sha256:62a25f94430eacbeed0553dd0dfa506dd07006c6aee58a397e78a62e3fdb7fe9",
+          "description": "Cursor-based product catalog / product-updates feed (POST /b2b/v1/products/query). Returns {products, cursor}; iterate until a page has fewer items than limit to build a full snapshot. Each product: {",
+          "is_mutating": false,
+          "property_keys": [
+            "cursor",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "cursor": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Page size (default 300 — the official client's value; the server-side maximum is undocumented)."
+              },
+              "cursor": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:11cd024b702deb4d3096ed10beb6e70f5694944160c00608ba985cfb7eee65a1",
+          "parameters": [
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Page size (default 300 — the official client's value; the server-side maximum is undocumented).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_stocks",
+          "canonical_hash": "sha256:663f21c3e92c8911cb926b48abc46391fedc288f0e0b2cc83b7e542f0fcfa85e",
+          "description": "Cursor-based stock feed across stores (POST /b2b/v1/stocks/query). Returns {stocks: [{product_id, quantity, shelf_type, store_id}], cursor}; iterate until a page has fewer items than limit for a full ",
+          "is_mutating": false,
+          "property_keys": [
+            "cursor",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "cursor": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Page size (default 100 — the official client's value; the server-side maximum is undocumented)."
+              },
+              "cursor": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:39168e0f06cb3d48dc9b5c43cd4712b5582ea1dc3f1b12100faaa1960304c55e",
+          "parameters": [
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Opaque cursor from the previous response of this tool. Omit it for the first page; the feed is exhausted when a page comes back with fewer items than `limit`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Page size (default 100 — the official client's value; the server-side maximum is undocumented).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "raw_request",
+          "canonical_hash": "sha256:e11e1a16d7693b3049028f0279b7f2a91845ebeb712b4bfcb0e6c79a063a5006",
+          "description": "Escape hatch: direct call to any Yango Tech Retail B2B endpoint — for paths without a dedicated tool (orders/update, receipts/documents/upload, wms/picking/set-state, logistics/delivery/set-state, pro",
+          "is_mutating": false,
+          "property_keys": [
+            "body",
+            "path"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "body": "object",
+            "path": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "object",
+                "description": "JSON request body (defaults to {} — the API expects a JSON object on every call).",
+                "additionalProperties": {}
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Relative API path, e.g. \"b2b/v1/pricelists/get\". Absolute URLs are rejected (SSRF guard)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:99855df7e163021fc45126b923aa9d584d93bbadd55f5451fc431efed0977b7d",
+          "parameters": [
+            {
+              "name": "body",
+              "type": "object",
+              "description": "JSON request body (defaults to {} — the API expects a JSON object on every call).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "description": "Relative API path, e.g. \"b2b/v1/pricelists/get\". Absolute URLs are rejected (SSRF guard).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "set_prices",
+          "canonical_hash": "sha256:46d4e40b49cb1002960c0ba774b438593102aa1fc6968e65ef2606c6791040ed",
+          "description": "Sets product prices in price lists (POST /b2b/v1/prices/set), at most 100 per request. Prices are decimal STRINGS (e.g. \"150.00\"); price_per_quantity (pack size the price applies to) defaults to 1 whe",
+          "is_mutating": false,
+          "property_keys": [
+            "prices"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "prices": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "prices": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "price",
+                    "pricelist_id",
+                    "product_id"
+                  ],
+                  "properties": {
+                    "price": {
+                      "type": "string",
+                      "pattern": "^-?\\d+(\\.\\d+)?$",
+                      "description": "New price as a decimal string, e.g. \"150.00\"."
+                    },
+                    "product_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Product id the price applies to."
+                    },
+                    "pricelist_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Target price list id."
+                    },
+                    "price_per_quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Quantity the price covers (default 1)."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Price assignments (at most 100 per request)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2107920a08b5318a5fdd9a186bfc97f34a38b5bf999cdd1fd1adfb62296e60f3",
+          "parameters": [
+            {
+              "name": "prices",
+              "type": "array",
+              "description": "Price assignments (at most 100 per request).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "update_stocks",
+          "canonical_hash": "sha256:2f5a0bdea88748294c053767ddb9a6cbfd476ebbe2b6e0dbc2a84b7a15aa36b1",
+          "description": "Writes stock quantities for one store. mode=modify (default) POSTs /b2b/v1/stocks/update with update_mode \"modify\" (at most 1000 items per request); mode=initialize POSTs /b2b/v1/stocks/initialize for",
+          "is_mutating": false,
+          "property_keys": [
+            "mode",
+            "stocks",
+            "store_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mode": "string",
+            "stocks": "array",
+            "store_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "modify",
+                  "initialize"
+                ],
+                "type": "string",
+                "description": "modify (default) — regular stock update; initialize — first-time stock load of a store."
+              },
+              "stocks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "product_id",
+                    "quantity"
+                  ],
+                  "properties": {
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "New quantity (integer units)."
+                    },
+                    "product_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Product id."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 1000,
+                "minItems": 1,
+                "description": "Stock lines to write (at most 1000 per request)."
+              },
+              "store_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "WMS store id from get_stores."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ec0dddac83e6f0472c113d34ec78817fd077de2511314040d6ab898c00fc7824",
+          "parameters": [
+            {
+              "name": "mode",
+              "type": "string",
+              "description": "modify (default) — regular stock update; initialize — first-time stock load of a store.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "modify",
+                "initialize"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "stocks",
+              "type": "array",
+              "description": "Stock lines to write (at most 1000 per request).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "store_id",
+              "type": "string",
+              "description": "WMS store id from get_stores.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.1.0",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -29,9 +1447,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

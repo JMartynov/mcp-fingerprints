@@ -4,20 +4,1588 @@
   "purl": "pkg:generic/A1-x-Tech%2Fmcp-yango-delivery",
   "ecosystem": "generic",
   "display_name": "A1-x-Tech/mcp-yango-delivery",
-  "description": "MCP server for the Yango Delivery claims B2B API: price checks, delivery claims, courier tracking.",
-  "repository_url": "https://github.com/A1-x-Tech/mcp-yango-delivery",
+  "description": "MCP server for Yango Delivery’s B2B Express Claims API — quote, book and track courier deliveries from an AI app",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/A1-x-Tech/mcp-yango-delivery",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "A1-x-Tech/mcp-yango-delivery",
-    "Yango Delivery MCP"
+    "a1-x-tech/mcp-yango-delivery"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:99025d206663e5eb857d9a0b8d39ff2c41a11fb613faed2e7b89f37a6bf55e41",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "0910831c-e20b-43f9-8168-395cc55afb70/243fc148-8ab8-4452-84ad-e96c0ff045bb/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "token"
+            ],
+            "properties": {
+              "token": {
+                "type": "string",
+                "title": "Token",
+                "x-order": 0,
+                "description": "OAuth Bearer token from the delivery cabinet (Integration tab -> \"Get token\"). Treat it as a secret."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "accept_claim",
+          "canonical_hash": "sha256:d773ef06711f78514accc83114d0720af4582f2d8900c30629a89ee7dbfa5de7",
+          "description": "Confirms a claim after successful estimation (status ready_for_approval) and starts the courier search — from this point the delivery is actually ordered. The priced offer inside a claim expires ~10 m",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id",
+            "version"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "version": "integer",
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "description": "Claim version from the latest get_claim response."
+              },
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:64988456024951ee3ef6387b96ef35289be1e92a11d66b2502a6d1444dd1f40c",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version",
+              "type": "integer",
+              "description": "Claim version from the latest get_claim response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "cancel_claim",
+          "canonical_hash": "sha256:d9b95d9ceddbcd36d777c4f9b012204460ee1428b4b413c0f132000b667200ed",
+          "description": "Cancels a claim (including an already accepted one). Get the terms with get_cancel_info first and pass its cancel_state: with paid the cancellation fee is charged. version comes from get_claim. 409 er",
+          "is_mutating": false,
+          "property_keys": [
+            "cancel_state",
+            "claim_id",
+            "version"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "version": "integer",
+            "claim_id": "string",
+            "cancel_state": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "description": "Claim version from the latest get_claim response."
+              },
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              },
+              "cancel_state": {
+                "enum": [
+                  "free",
+                  "paid"
+                ],
+                "type": "string",
+                "description": "Cancellation mode from get_cancel_info: free — no charge, paid — a fee applies."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b87b13ab435a044b6fe81efde794da28c6e9d00699a6a96196a7e39c46eee932",
+          "parameters": [
+            {
+              "name": "cancel_state",
+              "type": "string",
+              "description": "Cancellation mode from get_cancel_info: free — no charge, paid — a fee applies.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "free",
+                "paid"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version",
+              "type": "integer",
+              "description": "Claim version from the latest get_claim response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "check_price",
+          "canonical_hash": "sha256:67cf8fbf3058caa86ef16a407aee9e4deab27f04918c35ae9cce897182231db1",
+          "description": "Preliminary delivery cost estimate WITHOUT creating a claim — the pricing method for countries outside Russia. Returns price (a decimal STRING, not a number!), currency_rules {code, sign, template}, d",
+          "is_mutating": false,
+          "property_keys": [
+            "items",
+            "requirements",
+            "route_points",
+            "skip_door_to_door"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "items": "array",
+            "requirements": "object",
+            "route_points": "array",
+            "skip_door_to_door": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "quantity"
+                  ],
+                  "properties": {
+                    "size": {
+                      "type": "object",
+                      "required": [
+                        "length",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "width": {
+                          "type": "number",
+                          "description": "Width, meters."
+                        },
+                        "height": {
+                          "type": "number",
+                          "description": "Height, meters."
+                        },
+                        "length": {
+                          "type": "number",
+                          "description": "Length, meters."
+                        }
+                      },
+                      "description": "Dimensions of one unit, in METERS.",
+                      "additionalProperties": false
+                    },
+                    "weight": {
+                      "type": "number",
+                      "description": "Weight of one unit, kg."
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Number of item units."
+                    },
+                    "pickup_point": {
+                      "type": "integer",
+                      "description": "Pickup point id from route_points."
+                    },
+                    "dropoff_point": {
+                      "type": "integer",
+                      "description": "Drop-off point id from route_points."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Items / cargo places."
+              },
+              "requirements": {
+                "type": "object",
+                "properties": {
+                  "cargo_type": {
+                    "enum": [
+                      "van",
+                      "lcv_m",
+                      "lcv_l"
+                    ],
+                    "type": "string",
+                    "description": "Vehicle body type for cargo: van, lcv_m, lcv_l."
+                  },
+                  "taxi_class": {
+                    "enum": [
+                      "courier",
+                      "express",
+                      "cargo"
+                    ],
+                    "type": "string",
+                    "description": "Delivery class: courier, express or cargo."
+                  }
+                },
+                "description": "Delivery requirements (class, body type, extra options).",
+                "additionalProperties": true
+              },
+              "route_points": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "Point id (referenced by the items' pickup_point/dropoff_point)."
+                    },
+                    "fullname": {
+                      "type": "string",
+                      "description": "Full address as a string, e.g. \"Tashkent, Amir Timur Avenue, 107\"."
+                    },
+                    "coordinates": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "description": "Point coordinates as [longitude, latitude], e.g. [69.279737, 41.311151]."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Route points: coordinates and/or an address (at least one of the two per point)."
+              },
+              "skip_door_to_door": {
+                "type": "boolean",
+                "description": "true — disable door-to-door delivery (default false)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bcfdcfa79fc7acb3b7a4414d4e93bf26915241a290b64a6616c4e6537dfe113c",
+          "parameters": [
+            {
+              "name": "items",
+              "type": "array",
+              "description": "Items / cargo places.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "requirements",
+              "type": "object",
+              "description": "Delivery requirements (class, body type, extra options).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "cargo_type": {
+                  "enum": [
+                    "van",
+                    "lcv_m",
+                    "lcv_l"
+                  ],
+                  "type": "string",
+                  "description": "Vehicle body type for cargo: van, lcv_m, lcv_l."
+                },
+                "taxi_class": {
+                  "enum": [
+                    "courier",
+                    "express",
+                    "cargo"
+                  ],
+                  "type": "string",
+                  "description": "Delivery class: courier, express or cargo."
+                }
+              }
+            },
+            {
+              "name": "route_points",
+              "type": "array",
+              "description": "Route points: coordinates and/or an address (at least one of the two per point).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "skip_door_to_door",
+              "type": "boolean",
+              "description": "true — disable door-to-door delivery (default false).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_claim",
+          "canonical_hash": "sha256:b51d19c10123bfe11c360d17b46fae5cd0594f71b1b65075a4440050aa9b6571",
+          "description": "Creates a delivery claim. IMPORTANT: the claim is NOT dispatched immediately — it goes through estimation (status: new → estimating → ready_for_approval) and must then be confirmed with accept_claim, ",
+          "is_mutating": false,
+          "property_keys": [
+            "auto_accept",
+            "callback_properties",
+            "client_requirements",
+            "comment",
+            "due",
+            "emergency_contact",
+            "items",
+            "optional_return",
+            "request_id",
+            "route_points",
+            "same_day_data",
+            "shipping_document",
+            "skip_act",
+            "skip_client_notify",
+            "skip_door_to_door",
+            "skip_emergency_notify"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "due": "string",
+            "items": "array",
+            "comment": "string",
+            "skip_act": "boolean",
+            "request_id": "string",
+            "auto_accept": "boolean",
+            "route_points": "array",
+            "same_day_data": "object",
+            "optional_return": "boolean",
+            "emergency_contact": "object",
+            "shipping_document": "string",
+            "skip_door_to_door": "boolean",
+            "skip_client_notify": "boolean",
+            "callback_properties": "object",
+            "client_requirements": "object",
+            "skip_emergency_notify": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "due": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Desired courier arrival time (ISO-8601), e.g. 2026-08-10T12:00:00+05:00."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "quantity",
+                    "cost_value",
+                    "cost_currency"
+                  ],
+                  "properties": {
+                    "size": {
+                      "type": "object",
+                      "required": [
+                        "length",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "width": {
+                          "type": "number",
+                          "description": "Width, meters."
+                        },
+                        "height": {
+                          "type": "number",
+                          "description": "Height, meters."
+                        },
+                        "length": {
+                          "type": "number",
+                          "description": "Length, meters."
+                        }
+                      },
+                      "description": "Dimensions of one unit, meters.",
+                      "additionalProperties": false
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Item name."
+                    },
+                    "weight": {
+                      "type": "number",
+                      "description": "Weight of one unit, kg."
+                    },
+                    "extra_id": {
+                      "type": "string",
+                      "description": "External SKU / item id in the merchant's system."
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Number of units."
+                    },
+                    "cost_value": {
+                      "type": "string",
+                      "description": "Price per unit as a decimal string, e.g. \"350.00\"."
+                    },
+                    "pickup_point": {
+                      "type": "integer",
+                      "description": "point_id of the pickup point from route_points."
+                    },
+                    "cost_currency": {
+                      "type": "string",
+                      "description": "ISO 4217 currency code, e.g. \"UZS\"."
+                    },
+                    "dropoff_point": {
+                      "type": "integer",
+                      "description": "point_id of the drop-off point from route_points."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Items to deliver."
+              },
+              "comment": {
+                "type": "string",
+                "maxLength": 7000,
+                "description": "Comment for the courier (up to 7000 characters)."
+              },
+              "skip_act": {
+                "type": "boolean",
+                "description": "true — do not generate a handover act."
+              },
+              "request_id": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1,
+                "description": "Idempotency token (1–128 characters, a query parameter). A UUID is generated automatically when omitted."
+              },
+              "auto_accept": {
+                "type": "boolean",
+                "description": "true — confirm the claim automatically after successful estimation (no accept_claim needed)."
+              },
+              "route_points": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "point_id",
+                    "type",
+                    "visit_order",
+                    "contact",
+                    "address"
+                  ],
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "source",
+                        "destination",
+                        "return"
+                      ],
+                      "type": "string",
+                      "description": "Point type: source — pickup, destination — hand-over, return — return point."
+                    },
+                    "address": {
+                      "type": "object",
+                      "required": [
+                        "fullname"
+                      ],
+                      "properties": {
+                        "fullname": {
+                          "type": "string",
+                          "description": "Full address as a string."
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "description": "Coordinates [longitude, latitude] — improve geocoding accuracy."
+                        }
+                      },
+                      "description": "Point address.",
+                      "additionalProperties": true
+                    },
+                    "contact": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "phone"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Contact person name."
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "Contact person email."
+                        },
+                        "phone": {
+                          "type": "string",
+                          "description": "Phone in international format, e.g. +998901234567."
+                        }
+                      },
+                      "description": "Contact at the point.",
+                      "additionalProperties": true
+                    },
+                    "point_id": {
+                      "type": "integer",
+                      "description": "Point id, unique within the claim."
+                    },
+                    "visit_order": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Visit order, starting from 1."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 2,
+                "description": "Route points (at least 2): a source and a destination at minimum."
+              },
+              "same_day_data": {
+                "type": "object",
+                "description": "Same-day delivery settings: {delivery_interval: {from, to}} (a non-Russia feature).",
+                "additionalProperties": {}
+              },
+              "optional_return": {
+                "type": "boolean",
+                "description": "true — the courier does not return items to the sender when hand-over fails."
+              },
+              "emergency_contact": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "phone"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Contact name."
+                  },
+                  "phone": {
+                    "type": "string",
+                    "description": "Contact phone."
+                  }
+                },
+                "description": "Contact to reach if there is a problem with the delivery.",
+                "additionalProperties": true
+              },
+              "shipping_document": {
+                "type": "string",
+                "description": "Accompanying shipping document reference."
+              },
+              "skip_door_to_door": {
+                "type": "boolean",
+                "description": "true — no door-to-door: hand over at the entrance."
+              },
+              "skip_client_notify": {
+                "type": "boolean",
+                "description": "true — do not send SMS/push notifications to the recipient."
+              },
+              "callback_properties": {
+                "type": "object",
+                "required": [
+                  "callback_url"
+                ],
+                "properties": {
+                  "callback_url": {
+                    "type": "string",
+                    "description": "URL that receives claim status-change notifications."
+                  }
+                },
+                "description": "Webhook for claim status changes.",
+                "additionalProperties": true
+              },
+              "client_requirements": {
+                "type": "object",
+                "required": [
+                  "taxi_class"
+                ],
+                "properties": {
+                  "cargo_type": {
+                    "enum": [
+                      "van",
+                      "lcv_m",
+                      "lcv_l"
+                    ],
+                    "type": "string",
+                    "description": "Vehicle body type (for cargo): van, lcv_m, lcv_l."
+                  },
+                  "taxi_class": {
+                    "enum": [
+                      "courier",
+                      "express",
+                      "cargo"
+                    ],
+                    "type": "string",
+                    "description": "Delivery class: courier, express or cargo."
+                  },
+                  "pro_courier": {
+                    "type": "boolean",
+                    "description": "true — experienced (pro) courier."
+                  },
+                  "cargo_loaders": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of loaders (for cargo)."
+                  }
+                },
+                "description": "Delivery requirements. Optional per the docs, but always passing taxi_class is safest.",
+                "additionalProperties": true
+              },
+              "skip_emergency_notify": {
+                "type": "boolean",
+                "description": "true — do not notify the emergency contact."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5ea4937110efc1c6aeddd9a28426773926a5581718bf3a8632acabd783019a6f",
+          "parameters": [
+            {
+              "name": "auto_accept",
+              "type": "boolean",
+              "description": "true — confirm the claim automatically after successful estimation (no accept_claim needed).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "callback_properties",
+              "type": "object",
+              "description": "Webhook for claim status changes.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "callback_url": {
+                  "type": "string",
+                  "description": "URL that receives claim status-change notifications."
+                }
+              }
+            },
+            {
+              "name": "client_requirements",
+              "type": "object",
+              "description": "Delivery requirements. Optional per the docs, but always passing taxi_class is safest.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "cargo_type": {
+                  "enum": [
+                    "van",
+                    "lcv_m",
+                    "lcv_l"
+                  ],
+                  "type": "string",
+                  "description": "Vehicle body type (for cargo): van, lcv_m, lcv_l."
+                },
+                "taxi_class": {
+                  "enum": [
+                    "courier",
+                    "express",
+                    "cargo"
+                  ],
+                  "type": "string",
+                  "description": "Delivery class: courier, express or cargo."
+                },
+                "pro_courier": {
+                  "type": "boolean",
+                  "description": "true — experienced (pro) courier."
+                },
+                "cargo_loaders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of loaders (for cargo)."
+                }
+              }
+            },
+            {
+              "name": "comment",
+              "type": "string",
+              "description": "Comment for the courier (up to 7000 characters).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "due",
+              "type": "string",
+              "description": "Desired courier arrival time (ISO-8601), e.g. 2026-08-10T12:00:00+05:00.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "emergency_contact",
+              "type": "object",
+              "description": "Contact to reach if there is a problem with the delivery.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Contact name."
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Contact phone."
+                }
+              }
+            },
+            {
+              "name": "items",
+              "type": "array",
+              "description": "Items to deliver.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "optional_return",
+              "type": "boolean",
+              "description": "true — the courier does not return items to the sender when hand-over fails.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "request_id",
+              "type": "string",
+              "description": "Idempotency token (1–128 characters, a query parameter). A UUID is generated automatically when omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "route_points",
+              "type": "array",
+              "description": "Route points (at least 2): a source and a destination at minimum.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "same_day_data",
+              "type": "object",
+              "description": "Same-day delivery settings: {delivery_interval: {from, to}} (a non-Russia feature).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "shipping_document",
+              "type": "string",
+              "description": "Accompanying shipping document reference.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_act",
+              "type": "boolean",
+              "description": "true — do not generate a handover act.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_client_notify",
+              "type": "boolean",
+              "description": "true — do not send SMS/push notifications to the recipient.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_door_to_door",
+              "type": "boolean",
+              "description": "true — no door-to-door: hand over at the entrance.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_emergency_notify",
+              "type": "boolean",
+              "description": "true — do not notify the emergency contact.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_cancel_info",
+          "canonical_hash": "sha256:a09688577b329e85aede5f0fc22a7a8bb1ed435f27912c64a40a1facdc933e0b",
+          "description": "Cancellation terms for a claim — call BEFORE cancel_claim. Returns cancel_state: free (free of charge), paid (a fee applies — price/price_with_vat and currency are returned) or unavailable (the claim ",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:99388deab63d3ddf34404629930686ecbf9155642f3c6852fbc94a42d747237c",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_claim",
+          "canonical_hash": "sha256:4fa176854fadf295d9e01de73da8e88512d9ed9f584d6b4ece4ff3545781cb43",
+          "description": "Full claim information: status, version (needed for accept/cancel), items, route_points (with visit status), pricing {offer, final_price, currency}, performer_info (courier name, vehicle, transport ty",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:260761264f5e4bf84eb37ea95a2c665d99b2d38bc702c335ec8f0e40f2ab7741",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_confirmation_code",
+          "canonical_hash": "sha256:13b8060f93c6ec5dc39897a4db3496b8887bb29424f8d9ebd739d09f5fa6d8c1",
+          "description": "Pickup/delivery confirmation code for the current point of the claim (when a code applies). Returns code (string) and attempts (remaining code entry attempts). 404 — claim not found or issuing a confi",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2b5c43d08050a6d7899a469df44a73ceffef65054f8618bfa87026aca47d7471",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_courier_phone",
+          "canonical_hash": "sha256:e52c1b2efcdb5b11367c1f8627a9deebe3688c0251a6f8d3471ffdfad18825de",
+          "description": "Temporary forwarded phone number to call the courier of an active claim: phone (e.g. \"+79099999998\"), ext (extension, e.g. \"0163\") and ttl_seconds (how long the number stays operational). Errors: 400 ",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id",
+            "point_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string",
+            "point_id": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              },
+              "point_id": {
+                "type": "integer",
+                "description": "Route point the contact person calls from (int64 point id)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d827a525bdef2e58ce430d4a657b3cba9f8624bef6b5311efb45e561b0c163a5",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "point_id",
+              "type": "integer",
+              "description": "Route point the contact person calls from (int64 point id).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_performer_position",
+          "canonical_hash": "sha256:59d5d7d645647a06207e0d92db815304a3a7aa0e0ff5ba254f9bde61355124da",
+          "description": "Current courier geoposition for an active claim: position {lat, lon, timestamp (unix), accuracy, speed (m/s), direction (0–360°, clockwise from north)} and route_points with sharing_link. Errors: 404 ",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6292dd87e47c88ac4f4458063bb4bfa0e8c06a4d6d6ed84399aca7b981460cf2",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_points_eta",
+          "canonical_hash": "sha256:d8416e33d6d7c5d9178b9b09f2af6c78cb387d88daa14dbca8b656510939f5b2",
+          "description": "Expected arrival times per route point plus the current courier position. Works only while the claim is active and a courier is assigned. Returns route_points [{id, address, type, visit_order, visit_s",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:431c6f0245dc7e707d506e881e3ce695ba39384b51ba0ab2a3084556c33e1a8e",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_tracking_links",
+          "canonical_hash": "sha256:808f5349b85c8b3aa0a488a70d6bf955c57a9090b3faa01fe6b81bf9f3c12ac5",
+          "description": "Public courier tracking links — safe to share with the recipient. Returns route_points [{id, type, visit_order, sharing_link}]; sharing_link is available only for type=destination points. 409 errors: ",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4251482f7e31ac4c06c387b411fcdfca3e76bba125c0211eb03156b407940d12",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Claim id (claim_id, 32–64 characters) from the create_claim or search_claims response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "raw_request",
+          "canonical_hash": "sha256:5e10602cab50be58d28e963a4f898414e255166ad04f7d61d1036a92d58feeec",
+          "description": "Escape hatch: a direct call to any method of the Yango Delivery claims B2B API — for endpoints without a dedicated tool (tariffs, delivery-methods, claims/proof-of-delivery/info, claims/edit, claims/a",
+          "is_mutating": false,
+          "property_keys": [
+            "body",
+            "method",
+            "path",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "body": "object",
+            "path": "string",
+            "query": "object",
+            "method": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "object",
+                "description": "JSON request body.",
+                "additionalProperties": {}
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Relative API path, e.g. \"b2b/cargo/integration/v2/claims/bulk_info\"."
+              },
+              "query": {
+                "type": "object",
+                "description": "Query-string parameters, e.g. {\"claim_id\": \"...\"}.",
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "method": {
+                "enum": [
+                  "GET",
+                  "POST"
+                ],
+                "type": "string",
+                "description": "HTTP method; defaults to POST."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0970d46df843081395fd1d7196830b621d151930f61a0c74d571fcb12bcc7969",
+          "parameters": [
+            {
+              "name": "body",
+              "type": "object",
+              "description": "JSON request body.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "method",
+              "type": "string",
+              "description": "HTTP method; defaults to POST.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "GET",
+                "POST"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "description": "Relative API path, e.g. \"b2b/cargo/integration/v2/claims/bulk_info\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "object",
+              "description": "Query-string parameters, e.g. {\"claim_id\": \"...\"}.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_claims",
+          "canonical_hash": "sha256:cde9d91c978782be50933bc3b286da5289dfb27b936b8786dec6405e4000d1aa",
+          "description": "Search claims by filters with pagination (sorted by creation date). Returns claims (each shaped like get_claim) and a cursor for the next page. Pagination: either offset/limit, or cursor-based — pass ",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id",
+            "created_from",
+            "created_to",
+            "cursor",
+            "due_from",
+            "due_to",
+            "external_order_id",
+            "limit",
+            "offset",
+            "phone",
+            "state",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "phone": "string",
+            "state": "string",
+            "cursor": "string",
+            "due_to": "string",
+            "offset": "integer",
+            "status": "string",
+            "claim_id": "string",
+            "due_from": "string",
+            "created_to": "string",
+            "created_from": "string",
+            "external_order_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 0,
+                "description": "How many claims to return (up to 1000)."
+              },
+              "phone": {
+                "type": "string",
+                "maxLength": 30,
+                "description": "Filter by a phone number from the claim contacts."
+              },
+              "state": {
+                "enum": [
+                  "active",
+                  "finished",
+                  "delayed"
+                ],
+                "type": "string",
+                "description": "Status group: active, finished or delayed claims."
+              },
+              "cursor": {
+                "type": "string",
+                "description": "Cursor from the previous response — an alternative to offset/limit."
+              },
+              "due_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Courier arrival no later than (ISO-8601)."
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Offset for offset/limit pagination (default 0)."
+              },
+              "status": {
+                "type": "string",
+                "description": "Filter by status. Known statuses: new, estimating, estimating_failed, ready_for_approval, accepted, performer_lookup, performer_draft, performer_found, performer_not_found, pickup_arrived, ready_for_pickup_confirmation, pickuped, delivery_arrived, ready_for_delivery_confirmation, delivered, delivered_finish, pay_waiting, returning, return_arrived, ready_for_return_confirmation, returned, returned_finish, failed, cancelled, cancelled_with_payment, cancelled_by_taxi, cancelled_with_items_on_hands."
+              },
+              "claim_id": {
+                "type": "string",
+                "description": "Filter by claim id."
+              },
+              "due_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Courier arrival no earlier than (ISO-8601)."
+              },
+              "created_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Created no later than (ISO-8601)."
+              },
+              "created_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Created no earlier than (ISO-8601)."
+              },
+              "external_order_id": {
+                "type": "string",
+                "maxLength": 512,
+                "description": "Filter by the external order id."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7343ac702855b6e5a158cdde0643f6aed1cfc41ac2881750fa16b4c6c8d9d1f3",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Filter by claim id.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "created_from",
+              "type": "string",
+              "description": "Created no earlier than (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "created_to",
+              "type": "string",
+              "description": "Created no later than (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Cursor from the previous response — an alternative to offset/limit.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "due_from",
+              "type": "string",
+              "description": "Courier arrival no earlier than (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "due_to",
+              "type": "string",
+              "description": "Courier arrival no later than (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "external_order_id",
+              "type": "string",
+              "description": "Filter by the external order id.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "How many claims to return (up to 1000).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Offset for offset/limit pagination (default 0).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "phone",
+              "type": "string",
+              "description": "Filter by a phone number from the claim contacts.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "Status group: active, finished or delayed claims.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "active",
+                "finished",
+                "delayed"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Filter by status. Known statuses: new, estimating, estimating_failed, ready_for_approval, accepted, performer_lookup, performer_draft, performer_found, performer_not_found, pickup_arrived, ready_for_pickup_confirmation, pickuped, delivery_arrived, ready_for_delivery_confirmation, delivered, delivered_finish, pay_waiting, returning, return_arrived, ready_for_return_confirmation, returned, returned_finish, failed, cancelled, cancelled_with_payment, cancelled_by_taxi, cancelled_with_items_on_hands.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.1.0",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -29,9 +1597,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

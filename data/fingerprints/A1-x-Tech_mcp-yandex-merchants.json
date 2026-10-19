@@ -4,20 +4,801 @@
   "purl": "pkg:generic/A1-x-Tech%2Fmcp-yandex-merchants",
   "ecosystem": "generic",
   "display_name": "A1-x-Tech/mcp-yandex-merchants",
-  "description": "MCP server for the Yandex Merchants partner API: feeds, offer prices, discounts, hide/unhide.",
-  "repository_url": "https://github.com/A1-x-Tech/mcp-yandex-merchants",
+  "description": "MCP-сервер для Яндекс Товаров — менять цены, скидки и видимость товаров без пересборки и повторной загрузки YML-фида",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/A1-x-Tech/mcp-yandex-merchants",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "A1-x-Tech/mcp-yandex-merchants",
-    "Yandex Merchants MCP"
+    "a1-x-tech/mcp-yandex-merchants"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:70f86688e82205d7df5a71177d6eddb5536d99553dbd97f727bb1b5d065c34de",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "28c60928-5b7f-4d51-9d8c-6b7f0cb94b45/c23e6f5f-eb1b-4d72-a305-9edcefd59479/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "oauth_token"
+            ],
+            "properties": {
+              "oauth_token": {
+                "type": "string",
+                "title": "OAuth token",
+                "x-order": 0,
+                "description": "Yandex OAuth token with the products:partner-api scope, obtained under the login that uploaded the feed. Treat it as a secret."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "auth_status",
+          "canonical_hash": "sha256:41f344757b951abb1a01de5b6cf7327360cc2b9fdd3bd1029b9fb60056d10580",
+          "description": "Показывает, подключены ли Яндекс Товары: есть ли токен, откуда он взят (переменная окружения YANDEX_MERCHANTS_OAUTH_TOKEN или сохранённый вход), когда истекает и где лежит файл с сохранёнными данными.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5b952c36b6d69c6c9c680df510d3031a734a2cbae359934c8c8b1f0e3f2e4908",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "check_access",
+          "canonical_hash": "sha256:7669f33adbd3f0daed92b5a9aa6dd2318bbb152358697f8c24c39f3fc2c4e9f0",
+          "description": "Диагностика подключения: выполняет тот же GET /feeds-info и возвращает { ok, feedsCount } либо { ok: false, error }. Отдельного ping-эндпоинта в API нет. Если ok: false — проверьте, что OAuth-токен вы",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:11f5887bac51e3b157f62a231d2d272405be7e18ae9c8d97b7924ffd1d2c3c54",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "finish_login",
+          "canonical_hash": "sha256:89948f11cd8250a528d8ad779f5c9458fa874529dd2ff7f1f94805f4ba3b0cd5",
+          "description": "Второй шаг подключения: обменивает код подтверждения из start_login на токен доступа, сохраняет его в файл только для владельца (0600) и сразу проверяет живым запросом к списку фидов. После успеха ост",
+          "is_mutating": false,
+          "property_keys": [
+            "code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Код подтверждения, который Яндекс показал пользователю после входа."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cb883c5901256fd20c9eb46bbf70794793a950b5ccf9da5df726a40c49015d23",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": "Код подтверждения, который Яндекс показал пользователю после входа.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "hide_offer",
+          "canonical_hash": "sha256:2d103d6836aa33c057b2198524fcc574a624b6bb3838e570c98bd44fee167f66",
+          "description": "Скрывает одно предложение из Поиска по товарам (POST /hidden-offers), например когда товар закончился. ttl_in_hours — необязательный срок скрытия в часах (максимум 720 = 30 дней, иначе ошибка INVALID_",
+          "is_mutating": false,
+          "property_keys": [
+            "feed_id",
+            "offer_id",
+            "ttl_in_hours"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "feed_id": "integer",
+            "offer_id": "string",
+            "ttl_in_hours": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "feed_id": {
+                "type": "integer",
+                "description": "Идентификатор фида (feedId из list_feeds)."
+              },
+              "offer_id": {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1,
+                "description": "Идентификатор предложения из фида (id в YML, до 50 символов)."
+              },
+              "ttl_in_hours": {
+                "type": "integer",
+                "maximum": 720,
+                "minimum": 1,
+                "description": "Срок скрытия в часах, максимум 720 (30 дней). Без него предложение скрыто бессрочно."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:136021e21d26d8f5609be55ecba848f3fb12f9ad64c508e9b7408a8198346766",
+          "parameters": [
+            {
+              "name": "feed_id",
+              "type": "integer",
+              "description": "Идентификатор фида (feedId из list_feeds).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "Идентификатор предложения из фида (id в YML, до 50 символов).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "ttl_in_hours",
+              "type": "integer",
+              "description": "Срок скрытия в часах, максимум 720 (30 дней). Без него предложение скрыто бессрочно.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "hide_offers",
+          "canonical_hash": "sha256:3a8979447e311785abf73facdca125a2823fde4783881281e47c93b4ee11706c",
+          "description": "Массово скрывает предложения из Поиска: от 1 до 500 за запрос (POST /hidden-offers). Общий ttl_in_hours (максимум 720 часов) применяется ко всем предложениям запроса. Ответ API: { status: \"OK\" } либо ",
+          "is_mutating": false,
+          "property_keys": [
+            "offers",
+            "ttl_in_hours"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offers": "array",
+            "ttl_in_hours": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "feed_id",
+                    "offer_id"
+                  ],
+                  "properties": {
+                    "feed_id": {
+                      "type": "integer",
+                      "description": "Идентификатор фида (feedId из list_feeds)."
+                    },
+                    "offer_id": {
+                      "type": "string",
+                      "maxLength": 50,
+                      "minLength": 1,
+                      "description": "Идентификатор предложения из фида (id в YML, до 50 символов)."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 500,
+                "minItems": 1,
+                "description": "Предложения для скрытия (1–500 за запрос)."
+              },
+              "ttl_in_hours": {
+                "type": "integer",
+                "maximum": 720,
+                "minimum": 1,
+                "description": "Срок скрытия в часах, максимум 720 (30 дней). Без него предложение скрыто бессрочно."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1058235e83646d0e487126815817f93d837d90cb3515e265d3148134faba5039",
+          "parameters": [
+            {
+              "name": "offers",
+              "type": "array",
+              "description": "Предложения для скрытия (1–500 за запрос).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "ttl_in_hours",
+              "type": "integer",
+              "description": "Срок скрытия в часах, максимум 720 (30 дней). Без него предложение скрыто бессрочно.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_feeds",
+          "canonical_hash": "sha256:76bb6b7f63e7bfee8e5b309304e0560d9e8c35c29c82c1d67c7f131e0a21b19e",
+          "description": "Возвращает список товарных фидов, доступных текущему OAuth-логину: { status, feeds: [{ feedId, feedUrl }] }. Точка входа для всех остальных инструментов — их параметр feed_id берётся из feedId этого о",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:01835a5142d660fd18c3a48ba19f5cb82774bdaab6a1966ccc95f765153872b6",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "logout",
+          "canonical_hash": "sha256:fb59139266c24967c21a04daaaf906e5db60d5b95ed907989685c01bbb52cb79",
+          "description": "Удаляет сохранённый токен Яндекс Товаров с диска. Токен, заданный переменной окружения YANDEX_MERCHANTS_OAUTH_TOKEN, не трогает — его нужно убирать из конфигурации клиента вручную. Доступ, выданный пр",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4afab7951e9a6c3a5282b52d4a89ff28a94d65cbe6f20f7fb46814c18d02c7a5",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "raw_request",
+          "canonical_hash": "sha256:3f9f832896e0992502e55fda09575e2b3327c4f059e34e110de7b49e7abb14f7",
+          "description": "Запасной выход: прямой вызов любого пути партнёрского API Яндекс Товаров относительно базового URL (https://yandex.ru/products/api/ext/partner), например \"feeds-info\" или \"offer-prices/updates\". Метод",
+          "is_mutating": false,
+          "property_keys": [
+            "body",
+            "method",
+            "path"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "body": "object",
+            "path": "string",
+            "method": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "object",
+                "description": "JSON-тело запроса в wire-формате API (для POST/DELETE).",
+                "additionalProperties": {}
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Путь API относительно базового URL, например \"feeds-info\"."
+              },
+              "method": {
+                "enum": [
+                  "GET",
+                  "POST",
+                  "DELETE"
+                ],
+                "type": "string",
+                "description": "HTTP-метод; по умолчанию GET."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3d1da2b8c37ef1af3b965a462449ac269ad7908581f16349d9aec6edde3b20ce",
+          "parameters": [
+            {
+              "name": "body",
+              "type": "object",
+              "description": "JSON-тело запроса в wire-формате API (для POST/DELETE).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "method",
+              "type": "string",
+              "description": "HTTP-метод; по умолчанию GET.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "GET",
+                "POST",
+                "DELETE"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "description": "Путь API относительно базового URL, например \"feeds-info\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "set_offer_discount",
+          "canonical_hash": "sha256:fb508fd50c907db9146c29b8a30dd0475bdd278b49629709698d391530fb449e",
+          "description": "Устанавливает скидку: price — цена со скидкой, discount_base — старая цена, которая покажется зачёркнутой (тот же POST /offer-prices/updates, но discount_base обязателен). Скидка должна быть не меньше",
+          "is_mutating": false,
+          "property_keys": [
+            "discount_base",
+            "feed_id",
+            "offer_id",
+            "price"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "price": "number",
+            "feed_id": "integer",
+            "offer_id": "string",
+            "discount_base": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "price": {
+                "type": "number",
+                "description": "Цена в рублях (валюта всегда RUR), больше 0.",
+                "exclusiveMinimum": 0
+              },
+              "feed_id": {
+                "type": "integer",
+                "description": "Идентификатор фида (feedId из list_feeds)."
+              },
+              "offer_id": {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1,
+                "description": "Идентификатор предложения из фида (id в YML, до 50 символов)."
+              },
+              "discount_base": {
+                "type": "number",
+                "description": "Старая цена (зачёркнутая), обязательна и строго больше price.",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a53b961a36fe11c04ac8b7a04fd12b7c4e1fb8bd84a70b1234b9689279060488",
+          "parameters": [
+            {
+              "name": "discount_base",
+              "type": "number",
+              "description": "Старая цена (зачёркнутая), обязательна и строго больше price.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "feed_id",
+              "type": "integer",
+              "description": "Идентификатор фида (feedId из list_feeds).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "Идентификатор предложения из фида (id в YML, до 50 символов).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "price",
+              "type": "number",
+              "description": "Цена в рублях (валюта всегда RUR), больше 0.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "set_offer_price",
+          "canonical_hash": "sha256:a830f33e3d7ab4135af96464e5231c4efb97c02f6c34c0fef70f23e12aed1f41",
+          "description": "Изменяет цену одного товарного предложения (POST /offer-prices/updates c одним элементом). Валюта всегда RUR — подставляется автоматически. Опционально: discount_base — цена до скидки (покажется зачёр",
+          "is_mutating": false,
+          "property_keys": [
+            "discount_base",
+            "feed_id",
+            "offer_id",
+            "pay_by_condition",
+            "pay_by_price",
+            "price"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "price": "number",
+            "feed_id": "integer",
+            "offer_id": "string",
+            "pay_by_price": "integer",
+            "discount_base": "number",
+            "pay_by_condition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "price": {
+                "type": "number",
+                "description": "Цена в рублях (валюта всегда RUR), больше 0.",
+                "exclusiveMinimum": 0
+              },
+              "feed_id": {
+                "type": "integer",
+                "description": "Идентификатор фида (feedId из list_feeds)."
+              },
+              "offer_id": {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1,
+                "description": "Идентификатор предложения из фида (id в YML, до 50 символов)."
+              },
+              "pay_by_price": {
+                "type": "integer",
+                "description": "Спеццена при выполнении условия оплаты (целое, в рублях); только вместе с pay_by_condition.",
+                "exclusiveMinimum": 0
+              },
+              "discount_base": {
+                "type": "number",
+                "description": "Цена до скидки (зачёркнутая), больше price; скидка 5–95%.",
+                "exclusiveMinimum": 0
+              },
+              "pay_by_condition": {
+                "enum": [
+                  "yandex_pay",
+                  "fast_payment_system",
+                  "ozon_card"
+                ],
+                "type": "string",
+                "description": "Условие оплаты для спеццены: yandex_pay, fast_payment_system или ozon_card; только вместе с pay_by_price."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:41debbbabb02664246023105ec32ab65cc0aa4a4d1a9d56931183e33dbdb7188",
+          "parameters": [
+            {
+              "name": "discount_base",
+              "type": "number",
+              "description": "Цена до скидки (зачёркнутая), больше price; скидка 5–95%.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "feed_id",
+              "type": "integer",
+              "description": "Идентификатор фида (feedId из list_feeds).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "Идентификатор предложения из фида (id в YML, до 50 символов).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pay_by_condition",
+              "type": "string",
+              "description": "Условие оплаты для спеццены: yandex_pay, fast_payment_system или ozon_card; только вместе с pay_by_price.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "yandex_pay",
+                "fast_payment_system",
+                "ozon_card"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pay_by_price",
+              "type": "integer",
+              "description": "Спеццена при выполнении условия оплаты (целое, в рублях); только вместе с pay_by_condition.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "price",
+              "type": "number",
+              "description": "Цена в рублях (валюта всегда RUR), больше 0.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "show_offers",
+          "canonical_hash": "sha256:ea95c9a0ebf83919e58989f39d33113f1fa60fd44834f66c1e2e938253be18ab",
+          "description": "Возобновляет показ ранее скрытых предложений: от 1 до 500 за запрос (DELETE /hidden-offers с JSON-телом). Ответ API: { status: \"OK\" } либо { status: \"ERROR\", errors: [...] }; коды: DUPLICATE_OFFER, IN",
+          "is_mutating": false,
+          "property_keys": [
+            "offers"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offers": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "feed_id",
+                    "offer_id"
+                  ],
+                  "properties": {
+                    "feed_id": {
+                      "type": "integer",
+                      "description": "Идентификатор фида (feedId из list_feeds)."
+                    },
+                    "offer_id": {
+                      "type": "string",
+                      "maxLength": 50,
+                      "minLength": 1,
+                      "description": "Идентификатор предложения из фида (id в YML, до 50 символов)."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 500,
+                "minItems": 1,
+                "description": "Предложения, показ которых нужно возобновить (1–500 за запрос)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:017189838b5034040f2a8d94f6586d8856e5087ad093620ae1478ef84a28d6e0",
+          "parameters": [
+            {
+              "name": "offers",
+              "type": "array",
+              "description": "Предложения, показ которых нужно возобновить (1–500 за запрос).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "start_login",
+          "canonical_hash": "sha256:ef349d7d3f33227124b4a9f14235bb352829e940b77eb285a08677840d09b870",
+          "description": "Первый шаг подключения Яндекс Товаров без правки конфигурации и без перезапуска клиента. Возвращает ссылку на страницу Яндекс OAuth. Покажите ссылку пользователю целиком и попросите: открыть её в брау",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a32263847e4a2f751d0ccbee10e73f289d588854dd776db8123a25e49950c8c3",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "update_offer_prices",
+          "canonical_hash": "sha256:e67862ce4be97f843d2dbd96c06fa439c9d33d2edd578c0beb7f16d0d41d3941",
+          "description": "Массово обновляет цены: от 1 до 2000 предложений одним запросом (POST /offer-prices/updates). Валюта всегда RUR. Ответ API: { status: \"OK\" } либо { status: \"ERROR\", errors: [{ code, message }] }; возм",
+          "is_mutating": false,
+          "property_keys": [
+            "offers"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offers": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "feed_id",
+                    "offer_id",
+                    "price"
+                  ],
+                  "properties": {
+                    "price": {
+                      "type": "number",
+                      "description": "Цена в рублях (валюта всегда RUR), больше 0.",
+                      "exclusiveMinimum": 0
+                    },
+                    "feed_id": {
+                      "type": "integer",
+                      "description": "Идентификатор фида (feedId из list_feeds)."
+                    },
+                    "offer_id": {
+                      "type": "string",
+                      "maxLength": 50,
+                      "minLength": 1,
+                      "description": "Идентификатор предложения из фида (id в YML, до 50 символов)."
+                    },
+                    "pay_by_price": {
+                      "type": "integer",
+                      "description": "Спеццена при выполнении условия оплаты (целое, в рублях); только вместе с pay_by_condition.",
+                      "exclusiveMinimum": 0
+                    },
+                    "discount_base": {
+                      "type": "number",
+                      "description": "Цена до скидки (зачёркнутая), больше price; скидка 5–95%.",
+                      "exclusiveMinimum": 0
+                    },
+                    "pay_by_condition": {
+                      "enum": [
+                        "yandex_pay",
+                        "fast_payment_system",
+                        "ozon_card"
+                      ],
+                      "type": "string",
+                      "description": "Условие оплаты для спеццены: yandex_pay, fast_payment_system или ozon_card; только вместе с pay_by_price."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 2000,
+                "minItems": 1,
+                "description": "Предложения с новыми ценами (1–2000 за запрос)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c8596cc4cc9b056916a583fb6b735772f9a613bb112997d5c24c0eb945c3eef0",
+          "parameters": [
+            {
+              "name": "offers",
+              "type": "array",
+              "description": "Предложения с новыми ценами (1–2000 за запрос).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.1.1",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -29,9 +810,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

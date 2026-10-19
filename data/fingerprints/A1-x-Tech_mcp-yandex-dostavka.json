@@ -4,20 +4,2493 @@
   "purl": "pkg:generic/A1-x-Tech%2Fmcp-yandex-dostavka",
   "ecosystem": "generic",
   "display_name": "A1-x-Tech/mcp-yandex-dostavka",
-  "description": "MCP server for the Yandex Delivery B2B API: express claims, tracking, NDD/pickup-point orders.",
-  "repository_url": "https://github.com/A1-x-Tech/mcp-yandex-dostavka",
+  "description": "MCP-сервер для B2B API Яндекс Доставки — рассчитать стоимость, оформить и отследить отправление из AI-приложения без собственной интеграции",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/A1-x-Tech/mcp-yandex-dostavka",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "A1-x-Tech/mcp-yandex-dostavka",
-    "Yandex Delivery MCP"
+    "a1-x-tech/mcp-yandex-dostavka"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:57f5349f3e25750652ecfeccc00111abdc60f2c9e93cd99c5c2a2e3d10cf1305",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "fb91b890-8157-4e7a-ba4c-9f0536995ce6/e937073f-70c5-4f78-9fe5-8ebb41729a62/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "token"
+            ],
+            "properties": {
+              "token": {
+                "type": "string",
+                "title": "Token",
+                "x-order": 0,
+                "description": "Shared Bearer token for both contours (dostavka.yandex.ru cabinet, «Интеграции» → «Получить токен»). Treat it as a secret."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "express_accept_claim",
+          "canonical_hash": "sha256:4b6db230615bdc42d1221c47c9ce37e420c1a3761cc717be391096e636a1667f",
+          "description": "Подтверждает заявку после успешной оценки (status ready_for_approval) и запускает поиск курьера — с этого момента доставка реально заказана. version берётся из express_get_claim. Ошибки 409: inappropr",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id",
+            "version"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "version": "integer",
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "description": "Версия заявки из последнего ответа express_get_claim."
+              },
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7425bb1fa838bc7eaed76d97d1c95679e8cd4c14f94b4ba176e130a0d1ebcf89",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version",
+              "type": "integer",
+              "description": "Версия заявки из последнего ответа express_get_claim.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_cancel_claim",
+          "canonical_hash": "sha256:860c3161685a8c97a8ad8004e108b3def0dcb1c6ee343548b607f87a19495d86",
+          "description": "Отменяет заявку (в том числе уже подтверждённую). Перед вызовом получите условия отмены через express_cancel_info и передайте её cancel_state: при paid спишется стоимость отмены. version берётся из ex",
+          "is_mutating": false,
+          "property_keys": [
+            "cancel_state",
+            "claim_id",
+            "version"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "version": "integer",
+            "claim_id": "string",
+            "cancel_state": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "description": "Версия заявки из последнего ответа express_get_claim."
+              },
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims."
+              },
+              "cancel_state": {
+                "enum": [
+                  "free",
+                  "paid"
+                ],
+                "type": "string",
+                "description": "Режим отмены из express_cancel_info: free — бесплатно, paid — платно."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8e9e6a8da082abbd62ece3a93def74dc391415a8026c0ff3af0d5164e2918b31",
+          "parameters": [
+            {
+              "name": "cancel_state",
+              "type": "string",
+              "description": "Режим отмены из express_cancel_info: free — бесплатно, paid — платно.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "free",
+                "paid"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version",
+              "type": "integer",
+              "description": "Версия заявки из последнего ответа express_get_claim.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_cancel_info",
+          "canonical_hash": "sha256:20e9ae0a35d4aec198f2e4f9f1abf9dcc1ed1e93fdd5959ac8ca51b00e8ab6e3",
+          "description": "Условия отмены заявки — вызывайте ПЕРЕД express_cancel_claim. Возвращает cancel_state: free (бесплатная), paid (платная — вернётся price/price_with_vat и currency) или unavailable (отменить уже нельзя",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ec333d117464b55a0e565258dce66d53a170e50d0da409a049ebc426551fcb97",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_check_price",
+          "canonical_hash": "sha256:2d1ee4026a06de00426b7624635287af651a7fbafee5791f2f58be78c3a8609b",
+          "description": "Первичная оценка стоимости экспресс-доставки (день в день) БЕЗ создания заявки. Возвращает price (строка-decimal, не число!), currency_rules {code, sign}, distance_meters, eta (минуты) и zone_id. Точк",
+          "is_mutating": false,
+          "property_keys": [
+            "items",
+            "requirements",
+            "route_points",
+            "skip_door_to_door"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "items": "array",
+            "requirements": "object",
+            "route_points": "array",
+            "skip_door_to_door": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "quantity"
+                  ],
+                  "properties": {
+                    "size": {
+                      "type": "object",
+                      "required": [
+                        "length",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "width": {
+                          "type": "number",
+                          "description": "Ширина, метры."
+                        },
+                        "height": {
+                          "type": "number",
+                          "description": "Высота, метры."
+                        },
+                        "length": {
+                          "type": "number",
+                          "description": "Длина, метры."
+                        }
+                      },
+                      "description": "Габариты единицы товара в МЕТРАХ.",
+                      "additionalProperties": false
+                    },
+                    "weight": {
+                      "type": "number",
+                      "description": "Вес единицы товара, кг."
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Количество единиц товара."
+                    },
+                    "pickup_point": {
+                      "type": "integer",
+                      "description": "id точки забора из route_points."
+                    },
+                    "dropoff_point": {
+                      "type": "integer",
+                      "description": "id точки вручения из route_points."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Товары/грузоместа."
+              },
+              "requirements": {
+                "type": "object",
+                "properties": {
+                  "cargo_type": {
+                    "enum": [
+                      "van",
+                      "lcv_m",
+                      "lcv_l"
+                    ],
+                    "type": "string",
+                    "description": "Тип кузова для cargo: van, lcv_m, lcv_l."
+                  },
+                  "taxi_class": {
+                    "enum": [
+                      "courier",
+                      "express",
+                      "cargo",
+                      "sdd_multislot"
+                    ],
+                    "type": "string",
+                    "description": "Класс доставки: courier, express или cargo."
+                  }
+                },
+                "description": "Требования к доставке (класс, тип кузова, доп. опции).",
+                "additionalProperties": true
+              },
+              "route_points": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "id точки (на него ссылаются pickup_point/dropoff_point товаров)."
+                    },
+                    "fullname": {
+                      "type": "string",
+                      "description": "Полный адрес строкой, например «Москва, ул. Льва Толстого, 16»."
+                    },
+                    "coordinates": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "description": "Координаты точки [долгота, широта], например [37.588074, 55.733924]."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Точки маршрута: координаты и/или адрес (хотя бы одно из двух у каждой точки)."
+              },
+              "skip_door_to_door": {
+                "type": "boolean",
+                "description": "true — отключить доставку до двери (по умолчанию false)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:52d8035d395e59787701ac0a1af74877243f9ff0cdf8299b17455f26422e1da3",
+          "parameters": [
+            {
+              "name": "items",
+              "type": "array",
+              "description": "Товары/грузоместа.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "requirements",
+              "type": "object",
+              "description": "Требования к доставке (класс, тип кузова, доп. опции).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "cargo_type": {
+                  "enum": [
+                    "van",
+                    "lcv_m",
+                    "lcv_l"
+                  ],
+                  "type": "string",
+                  "description": "Тип кузова для cargo: van, lcv_m, lcv_l."
+                },
+                "taxi_class": {
+                  "enum": [
+                    "courier",
+                    "express",
+                    "cargo",
+                    "sdd_multislot"
+                  ],
+                  "type": "string",
+                  "description": "Класс доставки: courier, express или cargo."
+                }
+              }
+            },
+            {
+              "name": "route_points",
+              "type": "array",
+              "description": "Точки маршрута: координаты и/или адрес (хотя бы одно из двух у каждой точки).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "skip_door_to_door",
+              "type": "boolean",
+              "description": "true — отключить доставку до двери (по умолчанию false).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_create_claim",
+          "canonical_hash": "sha256:aa4dd2b90ccaee9e824175928ad6463e007c4f7d62bf38a9f8349fc1ebaf9296",
+          "description": "Создаёт заявку на экспресс-доставку. ВАЖНО: заявка не запускается сразу — после создания она проходит оценку (status: new → estimating → ready_for_approval), затем её нужно подтвердить инструментом ex",
+          "is_mutating": false,
+          "property_keys": [
+            "auto_accept",
+            "callback_properties",
+            "client_requirements",
+            "comment",
+            "due",
+            "emergency_contact",
+            "items",
+            "optional_return",
+            "request_id",
+            "route_points",
+            "same_day_data",
+            "skip_act",
+            "skip_client_notify",
+            "skip_door_to_door"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "due": "string",
+            "items": "array",
+            "comment": "string",
+            "skip_act": "boolean",
+            "request_id": "string",
+            "auto_accept": "boolean",
+            "route_points": "array",
+            "same_day_data": "object",
+            "optional_return": "boolean",
+            "emergency_contact": "object",
+            "skip_door_to_door": "boolean",
+            "skip_client_notify": "boolean",
+            "callback_properties": "object",
+            "client_requirements": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "due": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Желаемое время подачи курьера (ISO-8601), например 2026-08-10T12:00:00+03:00."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "quantity",
+                    "cost_value",
+                    "cost_currency"
+                  ],
+                  "properties": {
+                    "size": {
+                      "type": "object",
+                      "required": [
+                        "length",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "width": {
+                          "type": "number",
+                          "description": "Ширина, метры."
+                        },
+                        "height": {
+                          "type": "number",
+                          "description": "Высота, метры."
+                        },
+                        "length": {
+                          "type": "number",
+                          "description": "Длина, метры."
+                        }
+                      },
+                      "description": "Габариты единицы, метры.",
+                      "additionalProperties": false
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Название товара."
+                    },
+                    "weight": {
+                      "type": "number",
+                      "description": "Вес единицы, кг."
+                    },
+                    "extra_id": {
+                      "type": "string",
+                      "description": "Внешний артикул/id товара в системе магазина."
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Количество единиц."
+                    },
+                    "cost_value": {
+                      "type": "string",
+                      "description": "Цена за единицу, строка-decimal, например \"350.00\"."
+                    },
+                    "pickup_point": {
+                      "type": "integer",
+                      "description": "point_id точки забора из route_points."
+                    },
+                    "cost_currency": {
+                      "type": "string",
+                      "description": "Валюта ISO 4217, например \"RUB\"."
+                    },
+                    "dropoff_point": {
+                      "type": "integer",
+                      "description": "point_id точки вручения из route_points."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Товары к доставке. Ставка НДС передаётся кодами vat_none | vat0 | vat10 | vat20."
+              },
+              "comment": {
+                "type": "string",
+                "maxLength": 7000,
+                "description": "Комментарий курьеру (до 7000 символов)."
+              },
+              "skip_act": {
+                "type": "boolean",
+                "description": "true — не формировать акт приёма-передачи."
+              },
+              "request_id": {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1,
+                "description": "Токен идемпотентности (1–128 символов, query-параметр). Если не задан — UUID сгенерируется автоматически."
+              },
+              "auto_accept": {
+                "type": "boolean",
+                "description": "true — подтвердить заявку автоматически после успешной оценки (без express_accept_claim)."
+              },
+              "route_points": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "point_id",
+                    "type",
+                    "visit_order",
+                    "contact",
+                    "address"
+                  ],
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "source",
+                        "destination",
+                        "return"
+                      ],
+                      "type": "string",
+                      "description": "Тип точки: source — забор, destination — вручение, return — возврат."
+                    },
+                    "address": {
+                      "type": "object",
+                      "required": [
+                        "fullname"
+                      ],
+                      "properties": {
+                        "fullname": {
+                          "type": "string",
+                          "description": "Полный адрес строкой."
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "description": "Координаты [долгота, широта] — повышают точность геокодинга."
+                        }
+                      },
+                      "description": "Адрес точки.",
+                      "additionalProperties": true
+                    },
+                    "contact": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "phone"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Имя контактного лица."
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "Email контактного лица."
+                        },
+                        "phone": {
+                          "type": "string",
+                          "description": "Телефон в международном формате, например +79991234567."
+                        }
+                      },
+                      "description": "Контакт на точке.",
+                      "additionalProperties": true
+                    },
+                    "point_id": {
+                      "type": "integer",
+                      "description": "Уникальный id точки в рамках заявки."
+                    },
+                    "visit_order": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Порядок посещения, начиная с 1."
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "maxItems": 300,
+                "minItems": 2,
+                "description": "Точки маршрута (2–300): как минимум source и destination."
+              },
+              "same_day_data": {
+                "type": "object",
+                "description": "Параметры доставки «в течение дня» (для taxi_class=sdd_multislot): {delivery_interval: {from, to}}.",
+                "additionalProperties": {}
+              },
+              "optional_return": {
+                "type": "boolean",
+                "description": "true — при неудачном вручении курьер не возвращает товары отправителю."
+              },
+              "emergency_contact": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "phone"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Имя контакта."
+                  },
+                  "phone": {
+                    "type": "string",
+                    "description": "Телефон контакта."
+                  }
+                },
+                "description": "Контакт на случай проблем с доставкой.",
+                "additionalProperties": true
+              },
+              "skip_door_to_door": {
+                "type": "boolean",
+                "description": "true — не подниматься до двери (вручение у подъезда)."
+              },
+              "skip_client_notify": {
+                "type": "boolean",
+                "description": "true — не отправлять SMS/пуши получателю."
+              },
+              "callback_properties": {
+                "type": "object",
+                "required": [
+                  "callback_url"
+                ],
+                "properties": {
+                  "callback_url": {
+                    "type": "string",
+                    "description": "URL, на который придут уведомления о смене статуса."
+                  }
+                },
+                "description": "Webhook о смене статусов заявки.",
+                "additionalProperties": true
+              },
+              "client_requirements": {
+                "type": "object",
+                "required": [
+                  "taxi_class"
+                ],
+                "properties": {
+                  "cargo_type": {
+                    "enum": [
+                      "van",
+                      "lcv_m",
+                      "lcv_l"
+                    ],
+                    "type": "string",
+                    "description": "Тип кузова (для cargo): van, lcv_m, lcv_l."
+                  },
+                  "taxi_class": {
+                    "enum": [
+                      "courier",
+                      "express",
+                      "cargo",
+                      "sdd_multislot"
+                    ],
+                    "type": "string",
+                    "description": "Класс доставки: courier, express, cargo или sdd_multislot."
+                  },
+                  "pro_courier": {
+                    "type": "boolean",
+                    "description": "true — опытный курьер («Профи»)."
+                  },
+                  "cargo_loaders": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Число грузчиков (для cargo)."
+                  }
+                },
+                "description": "Требования к доставке; taxi_class обязателен.",
+                "additionalProperties": true
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b8994cbaf6db475f9641a6861d35ed8f4b5a036f7609b94f795d022b35216ebb",
+          "parameters": [
+            {
+              "name": "auto_accept",
+              "type": "boolean",
+              "description": "true — подтвердить заявку автоматически после успешной оценки (без express_accept_claim).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "callback_properties",
+              "type": "object",
+              "description": "Webhook о смене статусов заявки.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "callback_url": {
+                  "type": "string",
+                  "description": "URL, на который придут уведомления о смене статуса."
+                }
+              }
+            },
+            {
+              "name": "client_requirements",
+              "type": "object",
+              "description": "Требования к доставке; taxi_class обязателен.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "cargo_type": {
+                  "enum": [
+                    "van",
+                    "lcv_m",
+                    "lcv_l"
+                  ],
+                  "type": "string",
+                  "description": "Тип кузова (для cargo): van, lcv_m, lcv_l."
+                },
+                "taxi_class": {
+                  "enum": [
+                    "courier",
+                    "express",
+                    "cargo",
+                    "sdd_multislot"
+                  ],
+                  "type": "string",
+                  "description": "Класс доставки: courier, express, cargo или sdd_multislot."
+                },
+                "pro_courier": {
+                  "type": "boolean",
+                  "description": "true — опытный курьер («Профи»)."
+                },
+                "cargo_loaders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Число грузчиков (для cargo)."
+                }
+              }
+            },
+            {
+              "name": "comment",
+              "type": "string",
+              "description": "Комментарий курьеру (до 7000 символов).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "due",
+              "type": "string",
+              "description": "Желаемое время подачи курьера (ISO-8601), например 2026-08-10T12:00:00+03:00.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "emergency_contact",
+              "type": "object",
+              "description": "Контакт на случай проблем с доставкой.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Имя контакта."
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Телефон контакта."
+                }
+              }
+            },
+            {
+              "name": "items",
+              "type": "array",
+              "description": "Товары к доставке. Ставка НДС передаётся кодами vat_none | vat0 | vat10 | vat20.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "optional_return",
+              "type": "boolean",
+              "description": "true — при неудачном вручении курьер не возвращает товары отправителю.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "request_id",
+              "type": "string",
+              "description": "Токен идемпотентности (1–128 символов, query-параметр). Если не задан — UUID сгенерируется автоматически.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "route_points",
+              "type": "array",
+              "description": "Точки маршрута (2–300): как минимум source и destination.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "same_day_data",
+              "type": "object",
+              "description": "Параметры доставки «в течение дня» (для taxi_class=sdd_multislot): {delivery_interval: {from, to}}.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_act",
+              "type": "boolean",
+              "description": "true — не формировать акт приёма-передачи.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_client_notify",
+              "type": "boolean",
+              "description": "true — не отправлять SMS/пуши получателю.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_door_to_door",
+              "type": "boolean",
+              "description": "true — не подниматься до двери (вручение у подъезда).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_get_claim",
+          "canonical_hash": "sha256:dc00f2fc80673a3fc1c4d6a39ac71c3859970bac52218b6eeb1d1d9e4b0144c9",
+          "description": "Полная информация по заявке: status, version (нужен для accept/cancel), items, route_points, pricing {offer, final_price, currency}, performer_info (имя курьера, транспорт), eta, created_ts/updated_ts",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:294f9aa9b6a55fe0e2e2641c49cdef721bc31039e88aadc0e50dac34f61090a5",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_performer_position",
+          "canonical_hash": "sha256:37b99053e42da9aa6809dbb40eff0e9e2935e0918a1bd73c5af1277388593752",
+          "description": "Текущая геопозиция курьера по активной заявке: position {lat, lon, timestamp (unix), accuracy, speed (м/с), direction (0–360°)} и route_points с sharing_link. Ошибки: 404 — курьер/позиция не найдены, ",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f93a2726b5b99a799b9c274b9d036855fa8d01ec5c7a45ba658d578e7972c9d7",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_search_claims",
+          "canonical_hash": "sha256:8773ffb5ec8549d6743f44064f90e7840ab1b3fc8a82badbb8cc8bf34dfae6c7",
+          "description": "Поиск заявок по фильтрам с пагинацией (сортировка — по дате создания). Возвращает claims (каждая — как в express_get_claim) и cursor для следующей страницы. Пагинация: либо offset/limit, либо курсорна",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id",
+            "created_from",
+            "created_to",
+            "cursor",
+            "due_from",
+            "due_to",
+            "external_order_id",
+            "limit",
+            "offset",
+            "phone",
+            "state",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "phone": "string",
+            "state": "string",
+            "cursor": "string",
+            "due_to": "string",
+            "offset": "integer",
+            "status": "string",
+            "claim_id": "string",
+            "due_from": "string",
+            "created_to": "string",
+            "created_from": "string",
+            "external_order_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "Сколько заявок вернуть (1–1000)."
+              },
+              "phone": {
+                "type": "string",
+                "description": "Фильтр по телефону из контактов заявки."
+              },
+              "state": {
+                "enum": [
+                  "active",
+                  "finished",
+                  "delayed"
+                ],
+                "type": "string",
+                "description": "Группа статусов: active — активные, finished — завершённые, delayed — отложенные."
+              },
+              "cursor": {
+                "type": "string",
+                "description": "Курсор из предыдущего ответа — альтернатива offset/limit."
+              },
+              "due_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Подача не позднее (ISO-8601)."
+              },
+              "offset": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Смещение offset-пагинации (по умолчанию 0)."
+              },
+              "status": {
+                "type": "string",
+                "description": "Фильтр по статусу. Известные статусы: new, estimating, ready_for_approval, accepted, performer_lookup, performer_found, performer_not_found, pickup_arrived, pickuped, delivery_arrived, delivered, returning, returned, failed, cancelled, cancelled_by_taxi."
+              },
+              "claim_id": {
+                "type": "string",
+                "description": "Фильтр по id заявки."
+              },
+              "due_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Подача не ранее (ISO-8601)."
+              },
+              "created_to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Создана не позднее (ISO-8601)."
+              },
+              "created_from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+                "description": "Создана не ранее (ISO-8601)."
+              },
+              "external_order_id": {
+                "type": "string",
+                "description": "Фильтр по внешнему id заказа."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3344ee9de8bc86b1f27196463f26fca4161acc8a62a0dadf6e8e51319ae0b361",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Фильтр по id заявки.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "created_from",
+              "type": "string",
+              "description": "Создана не ранее (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "created_to",
+              "type": "string",
+              "description": "Создана не позднее (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Курсор из предыдущего ответа — альтернатива offset/limit.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "due_from",
+              "type": "string",
+              "description": "Подача не ранее (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "due_to",
+              "type": "string",
+              "description": "Подача не позднее (ISO-8601).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "external_order_id",
+              "type": "string",
+              "description": "Фильтр по внешнему id заказа.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Сколько заявок вернуть (1–1000).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Смещение offset-пагинации (по умолчанию 0).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "phone",
+              "type": "string",
+              "description": "Фильтр по телефону из контактов заявки.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "Группа статусов: active — активные, finished — завершённые, delayed — отложенные.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "active",
+                "finished",
+                "delayed"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Фильтр по статусу. Известные статусы: new, estimating, ready_for_approval, accepted, performer_lookup, performer_found, performer_not_found, pickup_arrived, pickuped, delivery_arrived, delivered, returning, returned, failed, cancelled, cancelled_by_taxi.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "express_tracking_links",
+          "canonical_hash": "sha256:c3da09ec63fa075f2c947434611f17e8dbdfb1b9c40e35d81c9c626e5a6848ac",
+          "description": "Публичные ссылки для отслеживания курьера — их можно отдавать получателю. Возвращает route_points [{id, type, visit_order, sharing_link}]; sharing_link доступен только для точек type=destination. Ошиб",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:79501f434cbc1e0f0a0d692d489a6c1f53cab3eca0740a9740c8ebd4e094f671",
+          "parameters": [
+            {
+              "name": "claim_id",
+              "type": "string",
+              "description": "Идентификатор заявки (claim_id, 32–64 символа) из ответа express_create_claim или express_search_claims.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "platform_cancel_request",
+          "canonical_hash": "sha256:0bab76ecb0ca98a2414721a15a58e5c73d079c709f02ec4b34c346b9862f3b8d",
+          "description": "Отменяет заказ в логистической платформе. Курьерский заказ можно отменить до статуса DELIVERY_TRANSPORTATION_RECIPIENT (передача получателю). Возвращает status (CREATED | SUCCESS | ERROR), reason и de",
+          "is_mutating": false,
+          "property_keys": [
+            "request_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "request_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "id заказа в платформе (из platform_confirm_offer)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e27a7556cf35f745494424dece0ff7b602e1443ecad5ea904ed3781c56b6014e",
+          "parameters": [
+            {
+              "name": "request_id",
+              "type": "string",
+              "description": "id заказа в платформе (из platform_confirm_offer).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "platform_confirm_offer",
+          "canonical_hash": "sha256:7ebbb1bb0b50c463ade9eb1de4b6bde7cfe541400f8a3bf55f88aa813a4d9319",
+          "description": "Бронирует выбранный оффер — СОЗДАЁТ заказ в логистической платформе. Возвращает request_id (id заказа, например «77241d8009bb46d0bff5c65a73077bcd-udp») — используйте его в platform_get_request, platfo",
+          "is_mutating": false,
+          "property_keys": [
+            "offer_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offer_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offer_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "offer_id выбранного варианта из ответа platform_create_offers."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:436a724c042f2d10e90ec3702d5400dfe722c73ab576393cfde0dc4214cf1b1d",
+          "parameters": [
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "offer_id выбранного варианта из ответа platform_create_offers.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "platform_create_offers",
+          "canonical_hash": "sha256:088912d4f873563d983ed7ef68a4cfa0b46e63ea57d1059427e27eae9d49b4f3",
+          "description": "Рассчитывает варианты доставки (офферы) для заказа «в другой день» (НДД/ПВЗ). Возвращает offers [{offer_id, expires_at, offer_details {delivery_interval {min, max, policy}, pickup_interval, pricing, p",
+          "is_mutating": false,
+          "property_keys": [
+            "billing_info",
+            "destination",
+            "forbid_unboxing",
+            "info",
+            "items",
+            "last_mile_policy",
+            "particular_items_refuse",
+            "places",
+            "recipient_info",
+            "source"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "info": "object",
+            "items": "array",
+            "places": "array",
+            "source": "object",
+            "destination": "object",
+            "billing_info": "object",
+            "recipient_info": "object",
+            "forbid_unboxing": "boolean",
+            "last_mile_policy": "string",
+            "particular_items_refuse": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "info": {
+                "type": "object",
+                "required": [
+                  "operator_request_id"
+                ],
+                "properties": {
+                  "comment": {
+                    "type": "string",
+                    "description": "Комментарий к заказу."
+                  },
+                  "merchant_id": {
+                    "type": "string",
+                    "description": "id мерчанта (если в кабинете их несколько)."
+                  },
+                  "operator_request_id": {
+                    "type": "string",
+                    "description": "Уникальный id заказа на стороне магазина (идемпотентность расчёта)."
+                  }
+                },
+                "description": "Служебная информация о заказе.",
+                "additionalProperties": true
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "count",
+                    "name"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Название товара."
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Количество единиц."
+                    },
+                    "article": {
+                      "type": "string",
+                      "description": "Артикул товара."
+                    },
+                    "physical_dims": {
+                      "type": "object",
+                      "properties": {
+                        "dx": {
+                          "type": "number",
+                          "description": "Длина, см."
+                        },
+                        "dy": {
+                          "type": "number",
+                          "description": "Ширина, см."
+                        },
+                        "dz": {
+                          "type": "number",
+                          "description": "Высота, см."
+                        },
+                        "weight_gross": {
+                          "type": "number",
+                          "description": "Вес брутто, граммы."
+                        }
+                      },
+                      "description": "Габариты и вес товара.",
+                      "additionalProperties": true
+                    },
+                    "place_barcode": {
+                      "type": "string",
+                      "description": "Штрихкод грузоместа, в котором лежит товар."
+                    },
+                    "billing_details": {
+                      "type": "object",
+                      "required": [
+                        "unit_price"
+                      ],
+                      "properties": {
+                        "currency": {
+                          "type": "string",
+                          "description": "Валюта, например RUB."
+                        },
+                        "unit_price": {
+                          "type": "number",
+                          "description": "Цена за единицу, копейки (целое число)."
+                        },
+                        "assessed_unit_price": {
+                          "type": "number",
+                          "description": "Оценочная стоимость единицы, копейки."
+                        }
+                      },
+                      "description": "Стоимость товара.",
+                      "additionalProperties": true
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Товары заказа."
+              },
+              "places": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "barcode"
+                  ],
+                  "properties": {
+                    "barcode": {
+                      "type": "string",
+                      "description": "Штрихкод грузоместа."
+                    },
+                    "physical_dims": {
+                      "type": "object",
+                      "properties": {
+                        "dx": {
+                          "type": "number",
+                          "description": "Длина, см."
+                        },
+                        "dy": {
+                          "type": "number",
+                          "description": "Ширина, см."
+                        },
+                        "dz": {
+                          "type": "number",
+                          "description": "Высота, см."
+                        },
+                        "weight_gross": {
+                          "type": "number",
+                          "description": "Вес брутто, граммы."
+                        }
+                      },
+                      "description": "Габариты и вес грузоместа.",
+                      "additionalProperties": true
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "minItems": 1,
+                "description": "Грузоместа (коробки)."
+              },
+              "source": {
+                "type": "object",
+                "required": [
+                  "platform_station"
+                ],
+                "properties": {
+                  "interval_utc": {
+                    "type": "object",
+                    "required": [
+                      "from",
+                      "to"
+                    ],
+                    "properties": {
+                      "to": {
+                        "type": "string",
+                        "description": "Конец интервала (UTC, ISO-8601)."
+                      },
+                      "from": {
+                        "type": "string",
+                        "description": "Начало интервала (UTC, ISO-8601)."
+                      }
+                    },
+                    "description": "Желаемый интервал отгрузки (UTC).",
+                    "additionalProperties": true
+                  },
+                  "platform_station": {
+                    "type": "object",
+                    "required": [
+                      "platform_id"
+                    ],
+                    "properties": {
+                      "platform_id": {
+                        "type": "string",
+                        "description": "id станции отгрузки (platform_station_id из ЛК)."
+                      }
+                    },
+                    "description": "Станция самопривоза/склад отгрузки.",
+                    "additionalProperties": true
+                  }
+                },
+                "description": "Откуда забирать отправление.",
+                "additionalProperties": true
+              },
+              "destination": {
+                "type": "object",
+                "properties": {
+                  "interval_utc": {
+                    "type": "object",
+                    "required": [
+                      "from",
+                      "to"
+                    ],
+                    "properties": {
+                      "to": {
+                        "type": "string",
+                        "description": "Конец интервала (UTC, ISO-8601)."
+                      },
+                      "from": {
+                        "type": "string",
+                        "description": "Начало интервала (UTC, ISO-8601)."
+                      }
+                    },
+                    "description": "Желаемый интервал доставки (UTC).",
+                    "additionalProperties": true
+                  },
+                  "custom_location": {
+                    "type": "object",
+                    "description": "Курьерская доставка по адресу: {details: {full_address: \"...\"}} и/или {latitude, longitude}. Полная схема — в документации метода offers/create.",
+                    "additionalProperties": {}
+                  },
+                  "platform_station": {
+                    "type": "object",
+                    "required": [
+                      "platform_id"
+                    ],
+                    "properties": {
+                      "platform_id": {
+                        "type": "string",
+                        "description": "id ПВЗ/постамата из platform_list_pickup_points."
+                      }
+                    },
+                    "description": "Доставка в ПВЗ/постамат.",
+                    "additionalProperties": true
+                  }
+                },
+                "description": "Куда доставить: platform_station (ПВЗ/постамат) ИЛИ custom_location (адрес курьером).",
+                "additionalProperties": true
+              },
+              "billing_info": {
+                "type": "object",
+                "required": [
+                  "payment_method"
+                ],
+                "properties": {
+                  "delivery_cost": {
+                    "type": "number",
+                    "description": "Стоимость доставки для получателя, копейки."
+                  },
+                  "payment_method": {
+                    "enum": [
+                      "already_paid",
+                      "card_on_receipt",
+                      "postpay"
+                    ],
+                    "type": "string",
+                    "description": "already_paid — заказ уже оплачен, card_on_receipt — карта при получении, postpay — постоплата."
+                  }
+                },
+                "description": "Параметры оплаты.",
+                "additionalProperties": true
+              },
+              "recipient_info": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "phone"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Email получателя."
+                  },
+                  "phone": {
+                    "type": "string",
+                    "description": "Телефон получателя, например +79991234567."
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "description": "Фамилия получателя."
+                  },
+                  "first_name": {
+                    "type": "string",
+                    "description": "Имя получателя."
+                  }
+                },
+                "description": "Получатель.",
+                "additionalProperties": true
+              },
+              "forbid_unboxing": {
+                "type": "boolean",
+                "description": "true — запретить вскрытие при получении."
+              },
+              "last_mile_policy": {
+                "enum": [
+                  "time_interval",
+                  "self_pickup"
+                ],
+                "type": "string",
+                "description": "Последняя миля: time_interval — курьерская доставка в интервал, self_pickup — самовывоз из ПВЗ/постамата."
+              },
+              "particular_items_refuse": {
+                "type": "boolean",
+                "description": "true — разрешить частичный выкуп (отказ от части товаров)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ed7ead2a8ecea83018bc2b6851d2d8d9e705205774de7dd28ba3eb53feee3cd8",
+          "parameters": [
+            {
+              "name": "billing_info",
+              "type": "object",
+              "description": "Параметры оплаты.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "delivery_cost": {
+                  "type": "number",
+                  "description": "Стоимость доставки для получателя, копейки."
+                },
+                "payment_method": {
+                  "enum": [
+                    "already_paid",
+                    "card_on_receipt",
+                    "postpay"
+                  ],
+                  "type": "string",
+                  "description": "already_paid — заказ уже оплачен, card_on_receipt — карта при получении, postpay — постоплата."
+                }
+              }
+            },
+            {
+              "name": "destination",
+              "type": "object",
+              "description": "Куда доставить: platform_station (ПВЗ/постамат) ИЛИ custom_location (адрес курьером).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "interval_utc": {
+                  "type": "object",
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "properties": {
+                    "to": {
+                      "type": "string",
+                      "description": "Конец интервала (UTC, ISO-8601)."
+                    },
+                    "from": {
+                      "type": "string",
+                      "description": "Начало интервала (UTC, ISO-8601)."
+                    }
+                  },
+                  "description": "Желаемый интервал доставки (UTC).",
+                  "additionalProperties": true
+                },
+                "custom_location": {
+                  "type": "object",
+                  "description": "Курьерская доставка по адресу: {details: {full_address: \"...\"}} и/или {latitude, longitude}. Полная схема — в документации метода offers/create.",
+                  "additionalProperties": {}
+                },
+                "platform_station": {
+                  "type": "object",
+                  "required": [
+                    "platform_id"
+                  ],
+                  "properties": {
+                    "platform_id": {
+                      "type": "string",
+                      "description": "id ПВЗ/постамата из platform_list_pickup_points."
+                    }
+                  },
+                  "description": "Доставка в ПВЗ/постамат.",
+                  "additionalProperties": true
+                }
+              }
+            },
+            {
+              "name": "forbid_unboxing",
+              "type": "boolean",
+              "description": "true — запретить вскрытие при получении.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "info",
+              "type": "object",
+              "description": "Служебная информация о заказе.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "comment": {
+                  "type": "string",
+                  "description": "Комментарий к заказу."
+                },
+                "merchant_id": {
+                  "type": "string",
+                  "description": "id мерчанта (если в кабинете их несколько)."
+                },
+                "operator_request_id": {
+                  "type": "string",
+                  "description": "Уникальный id заказа на стороне магазина (идемпотентность расчёта)."
+                }
+              }
+            },
+            {
+              "name": "items",
+              "type": "array",
+              "description": "Товары заказа.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "last_mile_policy",
+              "type": "string",
+              "description": "Последняя миля: time_interval — курьерская доставка в интервал, self_pickup — самовывоз из ПВЗ/постамата.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "time_interval",
+                "self_pickup"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "particular_items_refuse",
+              "type": "boolean",
+              "description": "true — разрешить частичный выкуп (отказ от части товаров).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "places",
+              "type": "array",
+              "description": "Грузоместа (коробки).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "recipient_info",
+              "type": "object",
+              "description": "Получатель.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "email": {
+                  "type": "string",
+                  "description": "Email получателя."
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Телефон получателя, например +79991234567."
+                },
+                "last_name": {
+                  "type": "string",
+                  "description": "Фамилия получателя."
+                },
+                "first_name": {
+                  "type": "string",
+                  "description": "Имя получателя."
+                }
+              }
+            },
+            {
+              "name": "source",
+              "type": "object",
+              "description": "Откуда забирать отправление.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "interval_utc": {
+                  "type": "object",
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "properties": {
+                    "to": {
+                      "type": "string",
+                      "description": "Конец интервала (UTC, ISO-8601)."
+                    },
+                    "from": {
+                      "type": "string",
+                      "description": "Начало интервала (UTC, ISO-8601)."
+                    }
+                  },
+                  "description": "Желаемый интервал отгрузки (UTC).",
+                  "additionalProperties": true
+                },
+                "platform_station": {
+                  "type": "object",
+                  "required": [
+                    "platform_id"
+                  ],
+                  "properties": {
+                    "platform_id": {
+                      "type": "string",
+                      "description": "id станции отгрузки (platform_station_id из ЛК)."
+                    }
+                  },
+                  "description": "Станция самопривоза/склад отгрузки.",
+                  "additionalProperties": true
+                }
+              }
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "platform_get_request",
+          "canonical_hash": "sha256:c8c9af108dc651054afe96704de3ed0721b99f8100a1485d6595c0f84d364e7e",
+          "description": "Информация о заказе НДД: state {status (например CREATED), description, timestamp, timestamp_utc, reason}, request (адреса, товары, получатель) и courier_order_id. Возможные причины отмены: SHOP_CANCE",
+          "is_mutating": false,
+          "property_keys": [
+            "request_code",
+            "request_id",
+            "slim"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "slim": "boolean",
+            "request_id": "string",
+            "request_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "slim": {
+                "type": "boolean",
+                "description": "true — сокращённый ответ."
+              },
+              "request_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "id заказа в платформе (из platform_confirm_offer)."
+              },
+              "request_code": {
+                "type": "string",
+                "description": "Номер заказа в системе заказчика (дополнительный фильтр)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f4f63dc231171ae6df2a18cec31dcdd4525f18334b7b28895c41708aea04e3f1",
+          "parameters": [
+            {
+              "name": "request_code",
+              "type": "string",
+              "description": "Номер заказа в системе заказчика (дополнительный фильтр).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "request_id",
+              "type": "string",
+              "description": "id заказа в платформе (из platform_confirm_offer).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "slim",
+              "type": "boolean",
+              "description": "true — сокращённый ответ.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "platform_list_pickup_points",
+          "canonical_hash": "sha256:9f224fb2b711beee7da69ec5498b715fa9c79cfdde08415690aa05a3aa774af7",
+          "description": "Список ПВЗ, постаматов и точек самопривоза платформенного контура (доставка «в другой день»). Возвращает points [{id, operator_id, name, type, position {latitude, longitude}, address, payment_methods,",
+          "is_mutating": false,
+          "property_keys": [
+            "available_for_dropoff",
+            "geo_id",
+            "is_yandex_branded",
+            "latitude",
+            "longitude",
+            "operator_ids",
+            "payment_method",
+            "payment_methods",
+            "pickup_point_ids",
+            "pickup_services",
+            "type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "type": "string",
+            "geo_id": "integer",
+            "latitude": "object",
+            "longitude": "object",
+            "operator_ids": "array",
+            "payment_method": "string",
+            "payment_methods": "array",
+            "pickup_services": "array",
+            "pickup_point_ids": "array",
+            "is_yandex_branded": "boolean",
+            "available_for_dropoff": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "pickup_point",
+                  "terminal",
+                  "warehouse"
+                ],
+                "type": "string",
+                "description": "Тип точки: pickup_point — ПВЗ, terminal — постамат, warehouse — точка самопривоза."
+              },
+              "geo_id": {
+                "type": "integer",
+                "description": "Гео-id города/региона по геобазе Яндекса, например 213 — Москва."
+              },
+              "latitude": {
+                "type": "object",
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "properties": {
+                  "to": {
+                    "type": "number",
+                    "description": "Верхняя граница широты."
+                  },
+                  "from": {
+                    "type": "number",
+                    "description": "Нижняя граница широты."
+                  }
+                },
+                "description": "Диапазон по широте {from, to}.",
+                "additionalProperties": false
+              },
+              "longitude": {
+                "type": "object",
+                "required": [
+                  "from",
+                  "to"
+                ],
+                "properties": {
+                  "to": {
+                    "type": "number",
+                    "description": "Верхняя граница долготы."
+                  },
+                  "from": {
+                    "type": "number",
+                    "description": "Нижняя граница долготы."
+                  }
+                },
+                "description": "Диапазон по долготе {from, to}.",
+                "additionalProperties": false
+              },
+              "operator_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Фильтр по операторам точек."
+              },
+              "payment_method": {
+                "enum": [
+                  "already_paid",
+                  "card_on_receipt",
+                  "postpay"
+                ],
+                "type": "string",
+                "description": "Только точки, поддерживающие способ оплаты: already_paid, card_on_receipt, postpay."
+              },
+              "payment_methods": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "already_paid",
+                    "card_on_receipt",
+                    "postpay"
+                  ],
+                  "type": "string"
+                },
+                "description": "Несколько способов оплаты сразу."
+              },
+              "pickup_services": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Фильтр по доступным услугам точки."
+              },
+              "pickup_point_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Точечный запрос по id точек."
+              },
+              "is_yandex_branded": {
+                "type": "boolean",
+                "description": "true — только брендированные ПВЗ Яндекса."
+              },
+              "available_for_dropoff": {
+                "type": "boolean",
+                "description": "true — только точки, куда можно самопривозить отправления."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:51fe012d8d312743bc6a66912141aec5d55a7dbddb667c9a44432d96ca0357b8",
+          "parameters": [
+            {
+              "name": "available_for_dropoff",
+              "type": "boolean",
+              "description": "true — только точки, куда можно самопривозить отправления.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "geo_id",
+              "type": "integer",
+              "description": "Гео-id города/региона по геобазе Яндекса, например 213 — Москва.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "is_yandex_branded",
+              "type": "boolean",
+              "description": "true — только брендированные ПВЗ Яндекса.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "latitude",
+              "type": "object",
+              "description": "Диапазон по широте {from, to}.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "to": {
+                  "type": "number",
+                  "description": "Верхняя граница широты."
+                },
+                "from": {
+                  "type": "number",
+                  "description": "Нижняя граница широты."
+                }
+              }
+            },
+            {
+              "name": "longitude",
+              "type": "object",
+              "description": "Диапазон по долготе {from, to}.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "to": {
+                  "type": "number",
+                  "description": "Верхняя граница долготы."
+                },
+                "from": {
+                  "type": "number",
+                  "description": "Нижняя граница долготы."
+                }
+              }
+            },
+            {
+              "name": "operator_ids",
+              "type": "array",
+              "description": "Фильтр по операторам точек.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "payment_method",
+              "type": "string",
+              "description": "Только точки, поддерживающие способ оплаты: already_paid, card_on_receipt, postpay.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "already_paid",
+                "card_on_receipt",
+                "postpay"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "payment_methods",
+              "type": "array",
+              "description": "Несколько способов оплаты сразу.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "pickup_point_ids",
+              "type": "array",
+              "description": "Точечный запрос по id точек.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "pickup_services",
+              "type": "array",
+              "description": "Фильтр по доступным услугам точки.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "description": "Тип точки: pickup_point — ПВЗ, terminal — постамат, warehouse — точка самопривоза.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "pickup_point",
+                "terminal",
+                "warehouse"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "platform_request_history",
+          "canonical_hash": "sha256:07ea503fd31e4dae253478e73ed2b71564d541a958373f7d21c3579f470ffbf6",
+          "description": "История смены статусов заказа НДД: state_history [{status, description, timestamp (unix), timestamp_utc (ISO-8601), reason?}] — от создания до текущего момента.",
+          "is_mutating": false,
+          "property_keys": [
+            "request_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "request_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "request_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "id заказа в платформе (из platform_confirm_offer)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:303debc35718f71941e0ea29a4b29f9a2a35a0842334b227e864f8b05a08e7ea",
+          "parameters": [
+            {
+              "name": "request_id",
+              "type": "string",
+              "description": "id заказа в платформе (из platform_confirm_offer).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "raw_request",
+          "canonical_hash": "sha256:989ee094df22e2a8d48d15928ad78131f64e5f56cee64b06a02bf2cfa81c40e0",
+          "description": "Запасной выход: прямой вызов любого метода B2B API Яндекс Доставки — для эндпоинтов без выделенного инструмента (тарифы, points-eta, ярлыки/акты, мерчанты, склады, отгрузки, proof-of-delivery и т.д.).",
+          "is_mutating": false,
+          "property_keys": [
+            "body",
+            "contour",
+            "method",
+            "path",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "body": "object",
+            "path": "string",
+            "query": "object",
+            "method": "string",
+            "contour": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "object",
+                "description": "JSON-тело запроса.",
+                "additionalProperties": {}
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Относительный путь API, например \"b2b/cargo/integration/v2/claims/info\" или \"api/b2b/platform/request/info\"."
+              },
+              "query": {
+                "type": "object",
+                "description": "Query-параметры, например {\"claim_id\": \"...\"}.",
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "method": {
+                "enum": [
+                  "GET",
+                  "POST"
+                ],
+                "type": "string",
+                "description": "HTTP-метод; по умолчанию POST."
+              },
+              "contour": {
+                "enum": [
+                  "express",
+                  "platform"
+                ],
+                "type": "string",
+                "description": "Контур API: express — экспресс-доставка (claims), platform — НДД/ПВЗ."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c28ff761a2fa3e57b14184342a87af496bf8629f7b9972a91045f2c979ba98dc",
+          "parameters": [
+            {
+              "name": "body",
+              "type": "object",
+              "description": "JSON-тело запроса.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "contour",
+              "type": "string",
+              "description": "Контур API: express — экспресс-доставка (claims), platform — НДД/ПВЗ.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "express",
+                "platform"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "method",
+              "type": "string",
+              "description": "HTTP-метод; по умолчанию POST.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "GET",
+                "POST"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "description": "Относительный путь API, например \"b2b/cargo/integration/v2/claims/info\" или \"api/b2b/platform/request/info\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "object",
+              "description": "Query-параметры, например {\"claim_id\": \"...\"}.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.1.0",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -29,9 +2502,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }
