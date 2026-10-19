@@ -54,7 +54,7 @@ Every passport document in `data/fingerprints/<package_name>.json` conforms to t
 ServerPackageSpec
  ├── package_name: string (Required)
  ├── purl: string (Required, Package URL RFC)
- ├── ecosystem: "npm" | "pypi" | "generic" | "github" | "golang"
+ ├── ecosystem: "npm" | "pypi" | "generic" | "github" | "golang" | "docker" | "cargo" | "go"
  ├── display_name: string | null
  ├── description: string | null
  ├── repository_url: string | null
