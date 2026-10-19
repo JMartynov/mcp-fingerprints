@@ -3,37 +3,36 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import datetime
+import io
 import json
 import logging
+import os
 import re
-import concurrent.futures
 import ssl
+import tarfile
 import threading
+import time
 import urllib.error
 import urllib.request
-import io
-import os
-import tarfile
-import time
-
 from pathlib import Path
 from typing import Any
 
 from mcp_fingerprints.ast_parser import (
     parse_mcp_source_code,
-    parse_typescript_mcp_ast,
     parse_python_mcp_ast_bundle,
+    parse_typescript_mcp_ast,
 )
-from mcp_fingerprints.monorepo_prober import match_monorepo_subpackage_dir
-from mcp_fingerprints.openapi_parser import parse_openapi_spec
-from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
-from mcp_fingerprints.runtime_sandbox import probe_mcp_server_stdio
 from mcp_fingerprints.crawler import FingerprintGenerator
+from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
+from mcp_fingerprints.monorepo_prober import match_monorepo_subpackage_dir
+from mcp_fingerprints.openapi_parser import parse_openapi_spec
+from mcp_fingerprints.runtime_sandbox import probe_mcp_server_stdio
 from mcp_fingerprints.validator import McpServerValidator, sanitize_tool_definition
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -80,7 +79,6 @@ def fetch_json(
 
 class ArchiveNotFoundError(Exception):
     """Raised when a repository or package returns 404 / Not Found."""
-    pass
 
 
 class PassportSynchronizer:
@@ -150,12 +148,168 @@ class PassportSynchronizer:
         self,
         output_dir: str | Path = "data/fingerprints",
         state_file: str | Path | None = None,
+        time_budget: int = 2400,
+        ignore_checkpoint: bool = False,
+        clear_checkpoint: bool = False,
     ) -> None:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.state_file = Path(state_file) if state_file else self.output_dir / "sync_state.json"
         self.state: dict[str, Any] = self._load_state()
         self._last_detected_gateway: dict[str, tuple[list[dict[str, Any]], dict[str, bool]]] = {}
+        
+        self.time_budget = time_budget
+        self.start_time = time.monotonic()
+        self._stop_requested = False
+        self.checkpoint_file = Path("data/.sync_checkpoint.json")
+        
+        if clear_checkpoint and self.checkpoint_file.exists():
+            self.checkpoint_file.unlink()
+            
+        self.checkpoint_data = self._load_checkpoint(ignore_checkpoint)
+        
+        import signal
+        try:
+            signal.signal(signal.SIGINT, self._handle_signal)
+            signal.signal(signal.SIGTERM, self._handle_signal)
+        except Exception as e:
+            logger.debug(f"Could not register signal handlers: {e}")
+
+    def _handle_signal(self, signum, frame):
+        logger.warning(f"Received signal {signum}, requesting graceful shutdown...")
+        self._stop_requested = True
+
+    def _load_checkpoint(self, ignore_checkpoint: bool) -> dict[str, Any]:
+        if ignore_checkpoint or not self.checkpoint_file.exists():
+            return {
+                "checkpoint_active": False,
+                "current_stage": None,
+                "substage": None,
+                "page": None,
+                "cursor": None,
+                "completed_stages": [],
+                "timestamp": None,
+                "reason": None
+            }
+        try:
+            return json.loads(self.checkpoint_file.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning(f"Failed to load checkpoint: {e}")
+            return {
+                "checkpoint_active": False,
+                "current_stage": None,
+                "substage": None,
+                "page": None,
+                "cursor": None,
+                "completed_stages": [],
+                "timestamp": None,
+                "reason": None
+            }
+
+    def _save_checkpoint(self, stage: str, substage: str | None = None, page: int | None = None, cursor: str | None = None, reason: str = "time_budget_reached"):
+        self.checkpoint_data["checkpoint_active"] = True
+        self.checkpoint_data["current_stage"] = stage
+        self.checkpoint_data["substage"] = substage
+        self.checkpoint_data["page"] = page
+        self.checkpoint_data["cursor"] = cursor
+        self.checkpoint_data["timestamp"] = datetime.datetime.now(datetime.UTC).isoformat()
+        self.checkpoint_data["reason"] = reason
+        
+        import os
+        import tempfile
+        
+        self.checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
+        fd, temp_path = tempfile.mkstemp(dir=self.checkpoint_file.parent, prefix=".sync_checkpoint_", suffix=".json")
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                json.dump(self.checkpoint_data, f, indent=2)
+            os.replace(temp_path, self.checkpoint_file)
+        except Exception as e:
+            logger.error(f"Failed to save checkpoint: {e}")
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    def _clear_checkpoint(self):
+        self.checkpoint_data = {
+            "checkpoint_active": False,
+            "current_stage": None,
+            "substage": None,
+            "page": None,
+            "cursor": None,
+            "completed_stages": [],
+            "timestamp": None,
+            "reason": None
+        }
+        if self.checkpoint_file.exists():
+            self.checkpoint_file.unlink()
+
+    def _mark_stage_completed(self, stage: str):
+        if stage not in self.checkpoint_data["completed_stages"]:
+            self.checkpoint_data["completed_stages"].append(stage)
+        self.checkpoint_data["checkpoint_active"] = False
+        self.checkpoint_data["current_stage"] = None
+        self.checkpoint_data["substage"] = None
+        self.checkpoint_data["page"] = None
+        self.checkpoint_data["cursor"] = None
+        if self.checkpoint_file.exists():
+            self.checkpoint_file.unlink()
+            
+    def _is_stage_completed(self, stage: str) -> bool:
+        return stage in self.checkpoint_data.get("completed_stages", [])
+
+    def _check_budget(self, stage: str, substage: str | None = None, page: int | None = None, cursor: str | None = None, safety_threshold: float = 30.0) -> bool:
+        """Returns True if budget is exhausted or stop is requested. False otherwise."""
+        if self._stop_requested:
+            self._save_checkpoint(stage, substage, page, cursor, reason="signal_interrupt")
+            logger.info(f"Stop requested via signal. Gracefully checkpointed at stage '{stage}' (substage {substage}, page {page}, cursor {cursor}). Exiting with status 0.")
+            self._save_state()
+            import sys
+            sys.exit(0)
+            
+        if self.time_budget > 0:
+            elapsed = time.monotonic() - self.start_time
+            if elapsed + safety_threshold >= self.time_budget:
+                self._save_checkpoint(stage, substage, page, cursor, reason="time_budget_reached")
+                logger.info(f"Time budget reached. Gracefully checkpointed at stage '{stage}' (substage {substage}, page {page}, cursor {cursor}). Exiting with status 0.")
+                self._save_state()
+                import sys
+                sys.exit(0)
+        return False
+
+    def run_sync_pipeline(
+        self,
+        update_existing: bool = False,
+        enrich_ast: bool = False,
+        discover_new: bool = False,
+        docker: bool = False,
+        polyglot: bool = False,
+        limit: int = 500,
+        max_workers: int = 8,
+        probe_runtime: bool = False,
+        runtime_limit: int = 50,
+        runtime_timeout: float = 5.0,
+    ) -> None:
+        """Run the synchronization pipeline stage by stage."""
+        if update_existing and not self._is_stage_completed("stage_update_existing"):
+            self.update_existing_passports()
+            self._mark_stage_completed("stage_update_existing")
+
+        if enrich_ast and not self._is_stage_completed("stage_enrich_ast"):
+            self.enrich_zero_tool_passports(limit=limit, max_workers=max_workers)
+            self._mark_stage_completed("stage_enrich_ast")
+
+        if discover_new and not self._is_stage_completed("stage_discover_new"):
+            self.discover_new_mcps(limit=limit, docker=docker, polyglot=polyglot)
+            self._mark_stage_completed("stage_discover_new")
+
+        if probe_runtime and not self._is_stage_completed("stage_runtime_probing"):
+            logger.info("Probing runtime handshakes for up to %d safe servers...", runtime_limit)
+            probed = self.probe_runtime_passports(limit=runtime_limit, timeout=runtime_timeout)
+            logger.info("Successfully runtime-verified %d servers.", probed)
+            self._mark_stage_completed("stage_runtime_probing")
+
+        # Cleanup at the very end
+        self._clear_checkpoint()
 
     def _load_state(self) -> dict[str, Any]:
         if self.state_file.is_file():
@@ -1205,9 +1359,22 @@ class PassportSynchronizer:
     def update_existing_passports(self) -> int:
         """Scan all passport files in data/fingerprints/ and check for upstream version updates across npm, PyPI, and Smithery."""
         updated_count = 0
+        
+        # Load from checkpoint if applicable
+        start_cursor = self.checkpoint_data.get("cursor") if self.checkpoint_data.get("current_stage") == "stage_update_existing" else None
+        skip = bool(start_cursor)
+
         for j_file in sorted(self.output_dir.rglob("*.json")):
-            if j_file.name in ("sync_state.json", "index.json"):
+            if j_file.name in ("sync_state.json", "index.json", ".passport_index.pickle"):
                 continue
+                
+            if skip:
+                if j_file.name == start_cursor:
+                    skip = False
+                continue
+
+            self._check_budget("stage_update_existing", cursor=j_file.name)
+            
             try:
                 spec = ServerPackageSpec.from_dict(json.loads(j_file.read_text(encoding="utf-8")))
                 pkg_name = spec.package_name
@@ -1314,6 +1481,9 @@ class PassportSynchronizer:
         """Scan passports with zero tool signatures and attempt static AST enrichment via GitHub or npm tarball."""
         enriched_count = 0
         
+        start_cursor = self.checkpoint_data.get("cursor") if self.checkpoint_data.get("current_stage") == "stage_enrich_ast" else None
+        skip = bool(start_cursor)
+
         # State cleanup: sanitize `ast_probed_repos` to remove non-github strings
         ast_probed_repos_list = self.state.get("ast_probed_repos", [])
         cleaned_ast_probed_repos = [repo for repo in ast_probed_repos_list if "github.com" in repo]
@@ -1332,8 +1502,14 @@ class PassportSynchronizer:
 
         
         for j_file in sorted(self.output_dir.rglob("*.json")):
-            if j_file.name in ("sync_state.json", "index.json"):
+            if j_file.name in ("sync_state.json", "index.json", ".passport_index.pickle"):
                 continue
+                
+            if skip:
+                if j_file.name == start_cursor:
+                    skip = False
+                continue
+
             try:
                 spec = ServerPackageSpec.from_dict(json.loads(j_file.read_text(encoding="utf-8")))
                 has_tools = any(bool(v.tool_signatures) for v in spec.versions)
@@ -1458,8 +1634,11 @@ class PassportSynchronizer:
             return False
 
         try:
+            for idx, candidate in enumerate(candidates_to_probe):
+                self._check_budget("stage_enrich_ast", cursor=candidate[0].name)
+            
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = [executor.submit(_process_candidate, c) for c in candidates_to_probe]
+                futures = {executor.submit(_process_candidate, c): c for c in candidates_to_probe}
                 probed_count = 0
                 for future in concurrent.futures.as_completed(futures):
                     probed_count += 1
@@ -1482,16 +1661,21 @@ class PassportSynchronizer:
     def discover_new_mcps(self, limit: int = 500, docker: bool = False, polyglot: bool = False) -> int:
         """Query search feeds, full Smithery directory, PyPI registry, and awesome-mcp-servers."""
         discovered_count = 0
+        
+        start_substage = self.checkpoint_data.get("substage") if self.checkpoint_data.get("current_stage") == "stage_discover_new" else None
 
         # 1. Query ALL Smithery Public Directory Pages
-        logger.info("Crawling Smithery Public Registry directory...")
-        for page in range(1, 15):
-            smithery_url = f"https://api.smithery.ai/servers?page={page}&pageSize=50"
-            smithery_list, _ = fetch_json(smithery_url)
-            if not smithery_list or "servers" not in smithery_list or not smithery_list["servers"]:
-                break
-            for s in smithery_list["servers"]:
-                q_name = s.get("qualifiedName")
+        if not start_substage or start_substage == "smithery":
+            logger.info("Crawling Smithery Public Registry directory...")
+            start_page = self.checkpoint_data.get("page", 1) if self.checkpoint_data.get("substage") == "smithery" else 1
+            for page in range(start_page, 15):
+                self._check_budget("stage_discover_new", substage="smithery", page=page)
+                smithery_url = f"https://api.smithery.ai/servers?page={page}&pageSize=50"
+                smithery_list, _ = fetch_json(smithery_url)
+                if not smithery_list or "servers" not in smithery_list or not smithery_list["servers"]:
+                    break
+                for s in smithery_list["servers"]:
+                    q_name = s.get("qualifiedName")
                 if not q_name:
                     continue
                 clean_name = q_name.replace("/", "_") + ".json"
@@ -1513,9 +1697,13 @@ class PassportSynchronizer:
                         logger.info("Discovered and created NEW passport from Smithery: %s", q_name)
 
         # 2. Query PyPI for Official & Community Python MCP Servers
-        logger.info("Crawling PyPI Registry for Python MCP packages...")
-        pypi_candidates = [
-            "mcp-server-git",
+        if not start_substage or start_substage in ("smithery", "pypi"):
+            logger.info("Crawling PyPI Registry for Python MCP packages...")
+            start_cursor = self.checkpoint_data.get("cursor") if self.checkpoint_data.get("substage") == "pypi" else None
+            skip_pypi = bool(start_cursor)
+
+            pypi_candidates = [
+                "mcp-server-git",
             "mcp-server-sqlite",
             "mcp-server-time",
             "mcp-server-fetch",
@@ -1533,6 +1721,11 @@ class PassportSynchronizer:
             "mcp-proxy",
         ]
         for pkg in pypi_candidates:
+            if skip_pypi:
+                if pkg == start_cursor:
+                    skip_pypi = False
+                continue
+            self._check_budget("stage_discover_new", substage="pypi", cursor=pkg)
             clean_name = f"{pkg}.json"
             if (self.output_dir / clean_name).is_file():
                 continue
@@ -1550,74 +1743,86 @@ class PassportSynchronizer:
                     logger.info("Discovered and created NEW passport from PyPI: %s", pkg)
 
         # 3. Query npm search for MCP keywords
-        logger.info("Crawling npm registry for MCP keyword packages...")
-        search_url = f"https://registry.npmjs.org/-/v1/search?text=keywords:modelcontextprotocol,mcp-server&size={limit}"
-        search_data, _ = fetch_json(search_url)
-        if search_data and "objects" in search_data:
-            for item in search_data["objects"]:
-                pkg_name = item["package"]["name"]
-                clean_name = pkg_name.replace("/", "_") + ".json"
-                if (self.output_dir / clean_name).is_file() or (
-                    self.output_dir / pkg_name
-                ).with_suffix(".json").is_file():
-                    continue
+        if not start_substage or start_substage in ("smithery", "pypi", "npm"):
+            logger.info("Crawling npm registry for MCP keyword packages...")
+            search_url = f"https://registry.npmjs.org/-/v1/search?text=keywords:modelcontextprotocol,mcp-server&size={limit}"
+            self._check_budget("stage_discover_new", substage="npm")
+            search_data, _ = fetch_json(search_url)
+            start_cursor = self.checkpoint_data.get("cursor") if self.checkpoint_data.get("substage") == "npm" else None
+            skip_npm = bool(start_cursor)
 
-                # Fetch full metadata
-                npm_meta, _ = fetch_json(f"https://registry.npmjs.org/{pkg_name}")
-                if npm_meta:
+            if search_data and "objects" in search_data:
+                for item in search_data["objects"]:
+                    pkg_name = item["package"]["name"]
+                    if skip_npm:
+                        if pkg_name == start_cursor:
+                            skip_npm = False
+                        continue
+                    self._check_budget("stage_discover_new", substage="npm", cursor=pkg_name)
+                    clean_name = pkg_name.replace("/", "_") + ".json"
+                    if (self.output_dir / clean_name).is_file() or (
+                        self.output_dir / pkg_name
+                    ).with_suffix(".json").is_file():
+                        continue
+
+                    # Fetch full metadata
+                    npm_meta, _ = fetch_json(f"https://registry.npmjs.org/{pkg_name}")
+                    if npm_meta:
+                        merged = self.merge_and_enrich_passport(
+                            package_name=pkg_name,
+                            ecosystem="npm",
+                            npm_data=npm_meta,
+                        )
+                        if merged:
+                            target_file = self.output_dir / clean_name
+                            FingerprintGenerator.save_spec_to_file(merged, target_file)
+                            discovered_count += 1
+                            logger.info("Discovered and created NEW passport from npm: %s", pkg_name)
+
+        # 4. Query Official MCP Registry API (/v0.1/servers)
+        if not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry"):
+            logger.info("Crawling Official MCP Registry (/v0.1/servers)...")
+            cursor = self.checkpoint_data.get("cursor") if self.checkpoint_data.get("substage") == "official_registry" else None
+            for _ in range(15):
+                self._check_budget("stage_discover_new", substage="official_registry", cursor=cursor)
+                reg_url = "https://registry.modelcontextprotocol.io/v0.1/servers"
+                if cursor:
+                    reg_url += f"?cursor={urllib.parse.quote(cursor)}"
+                reg_data, _ = fetch_json(reg_url)
+                if not reg_data or "servers" not in reg_data:
+                    break
+                srv_list = reg_data.get("servers", [])
+                for entry in srv_list:
+                    srv = entry.get("server", {})
+                    srv_name = srv.get("name")
+                    if not srv_name:
+                        continue
+                    clean_name = srv_name.replace("/", "_") + ".json"
+                    if (self.output_dir / clean_name).is_file():
+                        continue
+
                     merged = self.merge_and_enrich_passport(
-                        package_name=pkg_name,
-                        ecosystem="npm",
-                        npm_data=npm_meta,
+                        package_name=srv_name,
+                        ecosystem="generic",
+                        official_registry_data=entry,
                     )
                     if merged:
                         target_file = self.output_dir / clean_name
                         FingerprintGenerator.save_spec_to_file(merged, target_file)
                         discovered_count += 1
-                        logger.info("Discovered and created NEW passport from npm: %s", pkg_name)
+                        logger.info(
+                            "Discovered and created NEW passport from Official Registry: %s", srv_name
+                        )
 
-        # 4. Query Official MCP Registry API (/v0.1/servers)
-        logger.info("Crawling Official MCP Registry (/v0.1/servers)...")
-        cursor = None
-        for _ in range(15):
-            reg_url = "https://registry.modelcontextprotocol.io/v0.1/servers"
-            if cursor:
-                reg_url += f"?cursor={urllib.parse.quote(cursor)}"
-            reg_data, _ = fetch_json(reg_url)
-            if not reg_data or "servers" not in reg_data:
-                break
-            srv_list = reg_data.get("servers", [])
-            for entry in srv_list:
-                srv = entry.get("server", {})
-                srv_name = srv.get("name")
-                if not srv_name:
-                    continue
-                clean_name = srv_name.replace("/", "_") + ".json"
-                if (self.output_dir / clean_name).is_file():
-                    continue
-
-                merged = self.merge_and_enrich_passport(
-                    package_name=srv_name,
-                    ecosystem="generic",
-                    official_registry_data=entry,
-                )
-                if merged:
-                    target_file = self.output_dir / clean_name
-                    FingerprintGenerator.save_spec_to_file(merged, target_file)
-                    discovered_count += 1
-                    logger.info(
-                        "Discovered and created NEW passport from Official Registry: %s", srv_name
-                    )
-
-            cursor = reg_data.get("metadata", {}).get("nextCursor")
-            if not cursor or not srv_list:
-                break
-
+                cursor = reg_data.get("metadata", {}).get("nextCursor")
+                if not cursor or not srv_list:
+                    break
 
         # Docker Hub Discovery
-        if docker:
+        if docker and (not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub")):
             logger.info("Crawling Docker Hub for MCP containers...")
             docker_search_url = "https://hub.docker.com/v2/search/repositories?query=mcp&page_size=20"
+            self._check_budget("stage_discover_new", substage="docker_hub")
             docker_data, _ = fetch_json(docker_search_url)
             if docker_data and "results" in docker_data:
                 for repo in docker_data["results"]:
@@ -1670,8 +1875,10 @@ class PassportSynchronizer:
                         logger.info("Discovered NEW passport from Docker Hub: %s", pkg_name)
 
         # 5. Query community curated awesome-mcp-servers stream with multi-manifest extraction
-        logger.info("Crawling awesome-mcp-servers GitHub repository manifests concurrently...")
-        awesome_url = (
+        if not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub", "polyglot", "awesome_mcp"):
+            logger.info("Crawling awesome-mcp-servers GitHub repository manifests concurrently...")
+            self._check_budget("stage_discover_new", substage="awesome_mcp")
+            awesome_url = (
             "https://raw.githubusercontent.com/punkpeye/awesome-mcp-servers/main/README.md"
         )
         req_awesome = urllib.request.Request(
@@ -1720,6 +1927,7 @@ class PassportSynchronizer:
             logger.info("Parsed %d candidate repositories from awesome-mcp README", len(entries))
 
             import concurrent.futures
+
             import tomllib
 
             def process_awesome_entry(entry: dict[str, str]) -> ServerPackageSpec | None:
@@ -1853,8 +2061,9 @@ class PassportSynchronizer:
         self._save_state()
 
         # Polyglot GitHub Discovery (Rust, Go)
-        if polyglot:
+        if polyglot and (not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub", "polyglot")):
             logger.info("Crawling GitHub for Polyglot (Rust, Go) MCP servers...")
+            self._check_budget("stage_discover_new", substage="polyglot")
             # We search for mcp-server topic and language rust or go
             for lang in ["rust", "go"]:
                 github_search_url = f"https://api.github.com/search/repositories?q=topic:mcp-server+language:{lang}&per_page=10"
@@ -1923,9 +2132,17 @@ class PassportSynchronizer:
         """
         candidates: list[tuple[Path, ServerPackageSpec, list[str], dict[str, str]]] = []
         safe_commands = ("npx", "uvx", "node", "python", "python3")
+        
+        start_cursor = self.checkpoint_data.get("cursor") if self.checkpoint_data.get("current_stage") == "stage_runtime_probing" else None
+        skip = bool(start_cursor)
 
         for j_file in sorted(self.output_dir.rglob("*.json")):
             if j_file.name in ("sync_state.json", "index.json", ".passport_index.pickle"):
+                continue
+                
+            if skip:
+                if j_file.name == start_cursor:
+                    skip = False
                 continue
             try:
                 spec = ServerPackageSpec.from_dict(json.loads(j_file.read_text(encoding="utf-8")))
@@ -1967,6 +2184,7 @@ class PassportSynchronizer:
 
         verified_count = 0
         for j_file, spec, cmd, env in candidates:
+            self._check_budget("stage_runtime_probing", cursor=j_file.name)
             try:
                 tools = probe_mcp_server_stdio(cmd, env=env, timeout_seconds=timeout)
                 if not tools:
