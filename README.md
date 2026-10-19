@@ -57,10 +57,10 @@ Automatically discovers configuration files across Claude Desktop (`claude_deskt
 
 ```bash
 # Auto-discover and audit all local MCP configurations
-mcp-fingerprints scan-configs --auto
+mcp-fingerprints scan --auto
 
 # Export a consolidated JSON schema inventory of all local MCP tools
-mcp-fingerprints scan-configs --auto --output mcp-inventory.json
+mcp-fingerprints scan --auto --output mcp-inventory.json
 ```
 
 **Python SDK:**
@@ -78,10 +78,10 @@ Establish a baseline snapshot of your local MCP tools and catch unauthorized mod
 
 ```bash
 # 1. Save an initial baseline snapshot
-mcp-fingerprints scan-configs --auto --save-snapshot mcp-baseline.json
+mcp-fingerprints scan --auto --save-snapshot mcp-baseline.json
 
 # 2. Check for drift on subsequent runs (or in CI/CD pre-commit hooks)
-mcp-fingerprints scan-configs --auto --compare-snapshot mcp-baseline.json --fail-on-drift
+mcp-fingerprints scan --auto --compare-snapshot mcp-baseline.json --fail-on-drift
 ```
 
 **Sample Differential Drift Output:**
@@ -162,6 +162,18 @@ print(f"Loaded {data['total_passports']} MCP server passports.")
 The CLI provides a focused set of pure structural commands:
 
 ```bash
+
+# Auto-discover local configs with generic agent detection and baseline drift tracking
+python -m mcp_fingerprints.cli scan --auto --save-baseline baseline.json
+python -m mcp_fingerprints.cli scan --auto --diff baseline.json
+
+# Detect if a generic command or URL is an MCP server
+python -m mcp_fingerprints.cli detect "uvx mcp-server-git"
+python -m mcp_fingerprints.cli detect http://localhost:8000/sse
+
+# Auto-generate passports for locally discovered tools
+python -m mcp_fingerprints.cli scan --auto --auto-passport
+
 # Sync from registries
 python -m mcp_fingerprints.cli sync --all
 

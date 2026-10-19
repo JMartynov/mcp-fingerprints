@@ -1,6 +1,7 @@
 """CLI for MCP Fingerprint and Passport Knowledge Base."""
-
 from __future__ import annotations
+from pathlib import Path
+
 
 import argparse
 import json
@@ -8,7 +9,6 @@ import logging
 import os
 import sys
 from collections import Counter
-from pathlib import Path
 
 from mcp_fingerprints.config_scanner import ConfigScanner
 from mcp_fingerprints.config_exporter import (
@@ -316,6 +316,20 @@ def main() -> None:
         "server_command", nargs="+", help="Server command to run"
     )
 
+    # Detect
+    detect_p = subparsers.add_parser(
+        "detect", help="Generic MCP Server Detection"
+    )
+    detect_p.add_argument(
+        "target", nargs="+", help="URL or Server command to probe"
+    )
+    detect_p.add_argument(
+        "--transport", choices=["stdio", "http"], help="Transport override (default: auto-detect from target)"
+    )
+    detect_p.add_argument(
+        "--timeout", type=float, default=3.0, help="Connection timeout in seconds"
+    )
+
     # Detect Drift
     drift_p = subparsers.add_parser(
         "detect-drift",
@@ -346,7 +360,7 @@ def main() -> None:
 
     # Scan Configs
     scan_configs_p = subparsers.add_parser(
-        "scan-configs",
+        "scan-configs", aliases=["scan"],
         help="Scan local configuration files, build inventory, and detect schema drift.",
     )
     scan_configs_p.add_argument(
@@ -365,14 +379,30 @@ def main() -> None:
         "--no-probe-live", dest="probe_live", action="store_false", help="Skip live probing"
     )
     scan_configs_p.add_argument(
+        "--client", help="Client type to scan (claude, cursor, etc.)"
+    )
+    scan_configs_p.add_argument(
+        "--config-file", help="Path to config file"
+    )
+    scan_configs_p.add_argument(
+        "--custom-clients", help="Path to custom client config file"
+    )
+    scan_configs_p.add_argument(
+        "--auto-passport", action="store_true", help="Auto generate passports for newly discovered active servers"
+    )
+    scan_configs_p.add_argument(
+        "--diff", help="Alias for --compare-snapshot"
+    )
+    scan_configs_p.add_argument(
+        "--save-baseline", dest="save_baseline", help="Save current scan as baseline snapshot (default: mcp-inventory.json)"
+    )
+    scan_configs_p.add_argument(
         "--format", choices=["table", "json", "markdown", "summary", "detailed"], default="table", help="Output formatting option"
     )
     scan_configs_p.add_argument(
         "--output", help="Save full inventory report to a JSON file."
     )
-    scan_configs_p.add_argument(
-        "--save-snapshot", help="Save current scan as baseline snapshot (default: mcp-inventory.json)"
-    )
+    
     scan_configs_p.add_argument(
         "--compare-snapshot", help="Compare current scan against a previous baseline snapshot"
     )
@@ -386,7 +416,15 @@ def main() -> None:
         from mcp_fingerprints.wizard import run_init_wizard
 
         run_init_wizard()
-    elif args.command == "scan-configs":
+    elif args.command == "detect":
+        from mcp_fingerprints.detector import detect_mcp
+        target = args.target[0] if len(args.target) == 1 and args.target[0].startswith("http") else args.target
+        result = detect_mcp(target=target, transport=args.transport, timeout=args.timeout)
+        print(json.dumps(result, indent=2))
+        if not result["is_mcp"]:
+             sys.exit(1)
+
+    elif args.command == "scan-configs" or args.command == "scan":
         import mcp_fingerprints.snapshot_diff as snapshot_diff
         from mcp_fingerprints.config_scanner import ConfigScanner, LocalInventoryReport
 
@@ -432,18 +470,31 @@ def main() -> None:
                 inventory.save(args.output)
                 print(f"Saved local inventory to {args.output}")
 
-        if args.save_snapshot:
-            snapshot_diff.save_inventory_snapshot(inventory, args.save_snapshot)
-            print(f"Saved snapshot to {args.save_snapshot}")
 
-        if args.compare_snapshot:
-            baseline = snapshot_diff.InventorySnapshot.load_file(args.compare_snapshot)
+        if getattr(args, "auto_passport", False) and isinstance(report, LocalInventoryReport):
+            from mcp_fingerprints.auto_passport import generate_auto_passport
+            from mcp_fingerprints.prober import ProbeReport
+            for s in report.servers:
+                if s.get("live_probe", {}).get("connection_successful") and "tools_observed" in s["live_probe"]:
+                     probe_rep = ProbeReport(
+                         server_command=s.get("command", []),
+                         connection_successful=True,
+                         tools_observed=s["live_probe"]["tools_observed"]
+                     )
+                     generate_auto_passport(probe_rep, Path("data/fingerprints"), server_name=s.get("name"))
+
+        if args.save_baseline:
+            snapshot_diff.save_inventory_snapshot(inventory, args.save_baseline)
+            print(f"Saved snapshot to {args.save_baseline}")
+
+        if (args.compare_snapshot or getattr(args, "diff", None)):
+            baseline = snapshot_diff.InventorySnapshot.load_file((args.compare_snapshot or getattr(args, "diff", None)))
             diff = snapshot_diff.compare_snapshots(baseline, inventory)
 
             print("======================================================================")
             print("               LOCAL MCP INVENTORY DRIFT REPORT")
             print("======================================================================")
-            print(f"Baseline Snapshot: {args.compare_snapshot} (Captured: {baseline.timestamp})")
+            print(f"Baseline Snapshot: {(args.compare_snapshot or getattr(args, "diff", None))} (Captured: {baseline.timestamp})")
             print(f"Current Scan:      {inventory.timestamp} ({len(inventory.servers)} servers observed)")
             print("")
             print(f"➕ ADDED SERVERS ({len(diff.added_servers)}):")
