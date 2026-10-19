@@ -17,6 +17,11 @@ class DiscoveredServer:
     version: str | None = None
     tools: list[ToolContractSignature] = field(default_factory=list)
     toolset_canonical_hash: str | None = None
+    command: str | None = None
+    args: list[str] = field(default_factory=list)
+    env: dict[str, str] = field(default_factory=dict)
+    url: str | None = None
+    headers: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -26,6 +31,11 @@ class DiscoveredServer:
             "version": self.version,
             "tools": [t.to_dict() for t in self.tools],
             "toolset_canonical_hash": self.toolset_canonical_hash,
+            "command": self.command,
+            "args": self.args,
+            "env": self.env,
+            "url": self.url,
+            "headers": self.headers,
         }
 
     @classmethod
@@ -38,6 +48,11 @@ class DiscoveredServer:
             version=data.get("version"),
             tools=tools,
             toolset_canonical_hash=data.get("toolset_canonical_hash"),
+            command=data.get("command"),
+            args=data.get("args", []),
+            env=data.get("env", {}),
+            url=data.get("url"),
+            headers=data.get("headers", {}),
         )
 
 
