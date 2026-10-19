@@ -10,7 +10,6 @@ import os
 import sys
 from collections import Counter
 
-from mcp_fingerprints.config_scanner import ConfigScanner
 from mcp_fingerprints.config_exporter import (
     export_all_client_configs,
     export_client_config,
@@ -70,6 +69,11 @@ def print_ecosystem_health_report(data_dir: str | Path) -> None:
 def main() -> None:
     import mcp_fingerprints
 
+    if len(sys.argv) == 1 and sys.stdin.isatty():
+        from mcp_fingerprints.hub import run_interactive_hub
+        run_interactive_hub()
+        return
+
     parser = argparse.ArgumentParser(
         description="MCP Fingerprint & Passport Knowledge Base CLI"
     )
@@ -78,7 +82,18 @@ def main() -> None:
         action="version",
         version=f"mcp-fingerprints {mcp_fingerprints.__version__}",
     )
+    
+    # Check if there's no command and not a tty
+    if len(sys.argv) == 1 and not sys.stdin.isatty():
+        parser.print_help()
+        sys.exit(0)
+
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Hub
+    subparsers.add_parser(
+        "interactive", aliases=["hub"], help="Launch Interactive MCP Command Hub"
+    )
 
     # Init
     subparsers.add_parser(
@@ -446,7 +461,11 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.command == "init":
+    if args.command in ("interactive", "hub"):
+        from mcp_fingerprints.hub import run_interactive_hub
+
+        run_interactive_hub()
+    elif args.command == "init":
         from mcp_fingerprints.wizard import run_init_wizard
 
         run_init_wizard()
@@ -460,7 +479,7 @@ def main() -> None:
 
     elif args.command == "scan-configs" or args.command == "scan":
         import mcp_fingerprints.snapshot_diff as snapshot_diff
-        from mcp_fingerprints.config_scanner import ConfigScanner, LocalInventoryReport
+        from mcp_fingerprints.config_scanner import LocalInventoryReport
 
         paths = None
         if args.path:
@@ -532,7 +551,7 @@ def main() -> None:
             print("======================================================================")
             print("               LOCAL MCP INVENTORY DRIFT REPORT")
             print("======================================================================")
-            print(f"Baseline Snapshot: {(args.compare_snapshot or getattr(args, "diff", None))} (Captured: {baseline.timestamp})")
+            print(f"Baseline Snapshot: {(args.compare_snapshot or getattr(args, 'diff', None))} (Captured: {baseline.timestamp})")
             print(f"Current Scan:      {inventory.timestamp} ({len(inventory.servers)} servers observed)")
             print("")
             print(f"➕ ADDED SERVERS ({len(diff.added_servers)}):")
