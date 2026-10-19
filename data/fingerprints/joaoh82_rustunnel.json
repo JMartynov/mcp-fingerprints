@@ -4,17 +4,19 @@
   "purl": "pkg:generic/joaoh82%2Frustunnel",
   "ecosystem": "generic",
   "display_name": "joaoh82/rustunnel",
-  "description": "Give AI agents public HTTPS/TCP/UDP URLs for any localhost service. Open source, self-hostable.",
-  "repository_url": "https://github.com/joaoh82/rustunnel",
+  "description": "Expose any localhost service so an AI agent can reach it — public HTTPS/TCP/UDP URLs via six MCP tools (create_tunnel, list_tunnels, close_tunnel, get_connection_info, list_regions, get_tunnel_history). Webhook testing, dev-server sharing, agent-to-agent access. Open source, self-hostable (AGPL), managed cloud at rustunnel.com.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/joaoh82/rustunnel",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "joaoh82/rustunnel",
-    "rustunnel"
+    "joaoh82/rustunnel"
   ],
   "sources_merged": [
-    "official_registry"
+    "github_readme",
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -29,9 +31,879 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:98ecb9f479835d3ebd67317b3278bfb8d5bc4477c8c91e74dc92212498fd6293",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "702122b1-25f1-4f33-8b6f-59b6e699185a/44c32335-0b49-464d-9141-82536c08d5f6/server.mcpb",
+          "runtime": "binary",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "token": {
+                "type": "string",
+                "title": "API token",
+                "x-order": 2,
+                "description": "Create one free at rustunnel.com → Dashboard → API Keys (or use your self-hosted admin token). Optional at startup — the server boots and lists tools without it; creating tunnels requires it."
+              },
+              "server": {
+                "type": "string",
+                "title": "Tunnel server address",
+                "default": "eu.edge.rustunnel.com:4040",
+                "x-order": 0,
+                "description": "Control-plane address. Hosted: eu.edge.rustunnel.com:4040 (or us/ap). Self-hosted: your-host:4040."
+              },
+              "api_url": {
+                "type": "string",
+                "title": "Dashboard API URL",
+                "default": "https://eu.edge.rustunnel.com:8443",
+                "x-order": 1,
+                "description": "REST API base URL. Hosted: https://eu.edge.rustunnel.com:8443 (match the server region). Self-hosted: https://your-host:8443."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "documentation_extracted_tools": true,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "close_tunnel",
+          "canonical_hash": "sha256:e94eab5ab65d6bbc26d750d67837c51511cb5707e79f8fa79d2f217660b3a8ae",
+          "description": "Force-close a specific tunnel by its ID. The public URL stops working immediately. Use this when a tunnel is no longer needed or public access must be revoked right away — e.g. after a webhook test or demo finishes. Use list_tunnels to find the tunnel_id.",
+          "is_mutating": false,
+          "property_keys": [
+            "token",
+            "tunnel_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "token": "string",
+            "tunnel_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "API token. Optional if RUSTUNNEL_TOKEN is set."
+              },
+              "tunnel_id": {
+                "type": "string",
+                "description": "UUID of the tunnel to close"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45819ca770bf9750639ce521b9e1bbedcc1a3595655c3ba0d0362e1793d58796",
+          "parameters": [
+            {
+              "name": "token",
+              "type": "string",
+              "description": "API token. Optional if RUSTUNNEL_TOKEN is set.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "tunnel_id",
+              "type": "string",
+              "description": "UUID of the tunnel to close",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_tunnel",
+          "canonical_hash": "sha256:cfb162684caacd6d29b7456830c09d49033e164b202c320379180674f06fb11f",
+          "description": "Open a tunnel to a locally running service and get a public URL. Use this when the user or task needs a public URL for a service running locally — webhook testing, sharing a dev server, or letting another agent or device reach localhost. Spawns the rustunnel CLI as a subprocess — the tunnel stays open until close_tunnel is called or the MCP server exits.\n\nModes:\n- protocol='http'  → public https:// URL (web/API services)\n- protocol='tcp'   → public host:port (databases, SSH, raw TCP)\n- protocol='udp'   → public host:port (game servers, DNS)\n- protocol='p2p'   → peer-to-peer; requires `secret` plus `peer_name` (to publish) or `peer_target` (to connect)\n- load balancing   → set `group` + `group_key` (http/tcp only) to join this tunnel into a load-balanced pool; add `health_check` to auto-remove sick backends.\n\nThe token may be omitted if RUSTUNNEL_TOKEN is configured.",
+          "is_mutating": false,
+          "property_keys": [
+            "group",
+            "group_key",
+            "health_check",
+            "local_host",
+            "local_port",
+            "peer_name",
+            "peer_target",
+            "protocol",
+            "region",
+            "secret",
+            "subdomain",
+            "token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "group": "string",
+            "token": "string",
+            "region": "string",
+            "secret": "string",
+            "protocol": "string",
+            "group_key": "string",
+            "peer_name": "string",
+            "subdomain": "string",
+            "local_host": "string",
+            "local_port": "integer",
+            "peer_target": "string",
+            "health_check": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "group": {
+                "type": "string",
+                "description": "Load-balancing pool name. Tunnels sharing the same (group, group_key) form one pool (http/tcp only)."
+              },
+              "token": {
+                "type": "string",
+                "description": "API token. Optional if RUSTUNNEL_TOKEN is set in the MCP client config."
+              },
+              "region": {
+                "type": "string",
+                "description": "Region ID (e.g. 'eu', 'us', 'ap'). Omit to auto-select the nearest by latency. Use list_regions to see options."
+              },
+              "secret": {
+                "type": "string",
+                "description": "Shared secret for P2P (protocol='p2p'). Publisher and subscriber must use the same value."
+              },
+              "protocol": {
+                "enum": [
+                  "http",
+                  "tcp",
+                  "udp",
+                  "p2p"
+                ],
+                "type": "string",
+                "description": "Tunnel type"
+              },
+              "group_key": {
+                "type": "string",
+                "description": "Shared secret for the load-balancing group. Members of one pool must agree on this value."
+              },
+              "peer_name": {
+                "type": "string",
+                "description": "P2P publisher mode: publish the local service under this name."
+              },
+              "subdomain": {
+                "type": "string",
+                "description": "Custom subdomain (HTTP tunnels only). Server assigns a random one if omitted."
+              },
+              "local_host": {
+                "type": "string",
+                "description": "Local hostname to forward to (default 'localhost'). Use to expose a service on another host in your network."
+              },
+              "local_port": {
+                "type": "integer",
+                "description": "Local port the service is listening on, e.g. 3000"
+              },
+              "peer_target": {
+                "type": "string",
+                "description": "P2P subscriber mode: connect to a published P2P tunnel with this name."
+              },
+              "health_check": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "Path to GET (required when type='http'), e.g. /health"
+                  },
+                  "type": {
+                    "enum": [
+                      "tcp",
+                      "http"
+                    ],
+                    "type": "string",
+                    "description": "Probe kind: 'tcp' opens a connection, 'http' issues a GET"
+                  },
+                  "expect_2xx": {
+                    "type": "boolean",
+                    "description": "When false, any HTTP response counts as healthy (default true)"
+                  },
+                  "max_failed": {
+                    "type": "integer",
+                    "description": "Consecutive failures before marking unhealthy (default 3)"
+                  },
+                  "timeout_secs": {
+                    "type": "integer",
+                    "description": "Per-probe timeout in seconds (default 3)"
+                  },
+                  "alert_webhook": {
+                    "type": "string",
+                    "description": "URL the server POSTs to when this tunnel's group drops to 0 healthy members"
+                  },
+                  "interval_secs": {
+                    "type": "integer",
+                    "description": "Probe period in seconds (default 10)"
+                  }
+                },
+                "description": "Optional client-side health probe. The client probes the local service and reports health so the server routes around a sick backend. Only meaningful for load-balanced tunnels (group set)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:51277667385ec640399a49f2ecf11ef80204be6a3a5cd604acbfbc31d147215f",
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "description": "Load-balancing pool name. Tunnels sharing the same (group, group_key) form one pool (http/tcp only).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "group_key",
+              "type": "string",
+              "description": "Shared secret for the load-balancing group. Members of one pool must agree on this value.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "health_check",
+              "type": "object",
+              "description": "Optional client-side health probe. The client probes the local service and reports health so the server routes around a sick backend. Only meaningful for load-balanced tunnels (group set).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Path to GET (required when type='http'), e.g. /health"
+                },
+                "type": {
+                  "enum": [
+                    "tcp",
+                    "http"
+                  ],
+                  "type": "string",
+                  "description": "Probe kind: 'tcp' opens a connection, 'http' issues a GET"
+                },
+                "expect_2xx": {
+                  "type": "boolean",
+                  "description": "When false, any HTTP response counts as healthy (default true)"
+                },
+                "max_failed": {
+                  "type": "integer",
+                  "description": "Consecutive failures before marking unhealthy (default 3)"
+                },
+                "timeout_secs": {
+                  "type": "integer",
+                  "description": "Per-probe timeout in seconds (default 3)"
+                },
+                "alert_webhook": {
+                  "type": "string",
+                  "description": "URL the server POSTs to when this tunnel's group drops to 0 healthy members"
+                },
+                "interval_secs": {
+                  "type": "integer",
+                  "description": "Probe period in seconds (default 10)"
+                }
+              }
+            },
+            {
+              "name": "local_host",
+              "type": "string",
+              "description": "Local hostname to forward to (default 'localhost'). Use to expose a service on another host in your network.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "local_port",
+              "type": "integer",
+              "description": "Local port the service is listening on, e.g. 3000",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "peer_name",
+              "type": "string",
+              "description": "P2P publisher mode: publish the local service under this name.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "peer_target",
+              "type": "string",
+              "description": "P2P subscriber mode: connect to a published P2P tunnel with this name.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "protocol",
+              "type": "string",
+              "description": "Tunnel type",
+              "required": false,
+              "default": null,
+              "enum": [
+                "http",
+                "tcp",
+                "udp",
+                "p2p"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "region",
+              "type": "string",
+              "description": "Region ID (e.g. 'eu', 'us', 'ap'). Omit to auto-select the nearest by latency. Use list_regions to see options.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "secret",
+              "type": "string",
+              "description": "Shared secret for P2P (protocol='p2p'). Publisher and subscriber must use the same value.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "subdomain",
+              "type": "string",
+              "description": "Custom subdomain (HTTP tunnels only). Server assigns a random one if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "token",
+              "type": "string",
+              "description": "API token. Optional if RUSTUNNEL_TOKEN is set in the MCP client config.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_connection_info",
+          "canonical_hash": "sha256:1eda13d6dac486df3182ee5d97b2dbf5ddb3e41a12306ba9411d5998a196f968",
+          "description": "Get the CLI command (and, for load-balanced tunnels, a config file) needed to create a tunnel manually — without spawning anything. Use this when the MCP server cannot spawn subprocesses (e.g. cloud sandbox), when the tunnel must outlive the MCP server, or when you prefer to run the client yourself. Accepts the same arguments as create_tunnel.",
+          "is_mutating": false,
+          "property_keys": [
+            "group",
+            "group_key",
+            "health_check",
+            "local_host",
+            "local_port",
+            "peer_name",
+            "peer_target",
+            "protocol",
+            "region",
+            "secret",
+            "subdomain",
+            "token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "group": "string",
+            "token": "string",
+            "region": "string",
+            "secret": "string",
+            "protocol": "string",
+            "group_key": "string",
+            "peer_name": "string",
+            "subdomain": "string",
+            "local_host": "string",
+            "local_port": "integer",
+            "peer_target": "string",
+            "health_check": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "group": {
+                "type": "string",
+                "description": "Load-balancing pool name (http/tcp only)"
+              },
+              "token": {
+                "type": "string",
+                "description": "API token. Optional if RUSTUNNEL_TOKEN is set."
+              },
+              "region": {
+                "type": "string",
+                "description": "Region ID (e.g. 'eu', 'us', 'ap'). Omit to auto-select."
+              },
+              "secret": {
+                "type": "string",
+                "description": "Shared secret for P2P (protocol='p2p')"
+              },
+              "protocol": {
+                "enum": [
+                  "http",
+                  "tcp",
+                  "udp",
+                  "p2p"
+                ],
+                "type": "string",
+                "description": "Tunnel type"
+              },
+              "group_key": {
+                "type": "string",
+                "description": "Shared secret for the load-balancing group"
+              },
+              "peer_name": {
+                "type": "string",
+                "description": "P2P publisher mode: publish under this name"
+              },
+              "subdomain": {
+                "type": "string",
+                "description": "Custom subdomain (HTTP only)"
+              },
+              "local_host": {
+                "type": "string",
+                "description": "Local hostname to forward to (default 'localhost')"
+              },
+              "local_port": {
+                "type": "integer",
+                "description": "Local port the service is listening on"
+              },
+              "peer_target": {
+                "type": "string",
+                "description": "P2P subscriber mode: connect to this name"
+              },
+              "health_check": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "Path to GET (required when type='http'), e.g. /health"
+                  },
+                  "type": {
+                    "enum": [
+                      "tcp",
+                      "http"
+                    ],
+                    "type": "string",
+                    "description": "Probe kind: 'tcp' opens a connection, 'http' issues a GET"
+                  },
+                  "expect_2xx": {
+                    "type": "boolean",
+                    "description": "When false, any HTTP response counts as healthy (default true)"
+                  },
+                  "max_failed": {
+                    "type": "integer",
+                    "description": "Consecutive failures before marking unhealthy (default 3)"
+                  },
+                  "timeout_secs": {
+                    "type": "integer",
+                    "description": "Per-probe timeout in seconds (default 3)"
+                  },
+                  "alert_webhook": {
+                    "type": "string",
+                    "description": "URL the server POSTs to when this tunnel's group drops to 0 healthy members"
+                  },
+                  "interval_secs": {
+                    "type": "integer",
+                    "description": "Probe period in seconds (default 10)"
+                  }
+                },
+                "description": "Optional client-side health probe. The client probes the local service and reports health so the server routes around a sick backend. Only meaningful for load-balanced tunnels (group set)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4cbc04f5e715794ea73462f7016b6b2817dabf2272a07ae6c220c7939aa34251",
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "description": "Load-balancing pool name (http/tcp only)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "group_key",
+              "type": "string",
+              "description": "Shared secret for the load-balancing group",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "health_check",
+              "type": "object",
+              "description": "Optional client-side health probe. The client probes the local service and reports health so the server routes around a sick backend. Only meaningful for load-balanced tunnels (group set).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Path to GET (required when type='http'), e.g. /health"
+                },
+                "type": {
+                  "enum": [
+                    "tcp",
+                    "http"
+                  ],
+                  "type": "string",
+                  "description": "Probe kind: 'tcp' opens a connection, 'http' issues a GET"
+                },
+                "expect_2xx": {
+                  "type": "boolean",
+                  "description": "When false, any HTTP response counts as healthy (default true)"
+                },
+                "max_failed": {
+                  "type": "integer",
+                  "description": "Consecutive failures before marking unhealthy (default 3)"
+                },
+                "timeout_secs": {
+                  "type": "integer",
+                  "description": "Per-probe timeout in seconds (default 3)"
+                },
+                "alert_webhook": {
+                  "type": "string",
+                  "description": "URL the server POSTs to when this tunnel's group drops to 0 healthy members"
+                },
+                "interval_secs": {
+                  "type": "integer",
+                  "description": "Probe period in seconds (default 10)"
+                }
+              }
+            },
+            {
+              "name": "local_host",
+              "type": "string",
+              "description": "Local hostname to forward to (default 'localhost')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "local_port",
+              "type": "integer",
+              "description": "Local port the service is listening on",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "peer_name",
+              "type": "string",
+              "description": "P2P publisher mode: publish under this name",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "peer_target",
+              "type": "string",
+              "description": "P2P subscriber mode: connect to this name",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "protocol",
+              "type": "string",
+              "description": "Tunnel type",
+              "required": false,
+              "default": null,
+              "enum": [
+                "http",
+                "tcp",
+                "udp",
+                "p2p"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "region",
+              "type": "string",
+              "description": "Region ID (e.g. 'eu', 'us', 'ap'). Omit to auto-select.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "secret",
+              "type": "string",
+              "description": "Shared secret for P2P (protocol='p2p')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "subdomain",
+              "type": "string",
+              "description": "Custom subdomain (HTTP only)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "token",
+              "type": "string",
+              "description": "API token. Optional if RUSTUNNEL_TOKEN is set.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_tunnel_history",
+          "canonical_hash": "sha256:a78d0753f0c6a342b56097a4ec47675f89f2aea20823f110a9ff8e6dd4efdc33",
+          "description": "Retrieve the history of past tunnels, including their duration and which token opened them. Use this when auditing past tunnel activity or debugging why a tunnel dropped or is no longer listed by list_tunnels.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "protocol",
+            "token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "token": "string",
+            "protocol": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 25,
+                "description": "Maximum number of entries to return"
+              },
+              "token": {
+                "type": "string",
+                "description": "API token. Optional if RUSTUNNEL_TOKEN is set."
+              },
+              "protocol": {
+                "enum": [
+                  "http",
+                  "tcp",
+                  "udp",
+                  "p2p"
+                ],
+                "type": "string",
+                "description": "Optional: filter by protocol. Omit for all."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0942acbddbf39af74b43ab570a2653ad09e04dfbb8c8867049809ad094262084",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum number of entries to return",
+              "required": false,
+              "default": 25,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "protocol",
+              "type": "string",
+              "description": "Optional: filter by protocol. Omit for all.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "http",
+                "tcp",
+                "udp",
+                "p2p"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "token",
+              "type": "string",
+              "description": "API token. Optional if RUSTUNNEL_TOKEN is set.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_regions",
+          "canonical_hash": "sha256:c13a67ef5fa1720b3949fd6558bd1a52b135f3968bed147b7c10a31bf56995a9",
+          "description": "List available tunnel server regions with their IDs, names, and locations. Use this when you need to pick a specific `region` for create_tunnel or check which edge locations exist. No authentication required.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7097c35f05d787de86e27f7942a615057540c30f8566e1f674b2efd2a5d53676",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_tunnels",
+          "canonical_hash": "sha256:3e31d2c2f76bd53ae4b31e0976fa51702524580998989b0044c3ec03bb6e43f4",
+          "description": "List all tunnels currently open on this server. Returns the public URL, protocol, and traffic count for each active tunnel. Use this when you need to check whether a tunnel is still running, recover the public URL of an existing tunnel, or find a tunnel_id to pass to close_tunnel.",
+          "is_mutating": false,
+          "property_keys": [
+            "token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "token": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "API token. Optional if RUSTUNNEL_TOKEN is set."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:293510ef6b17065cc30a0e5fdb9ce533e0338cc1695f40794a217f2711c46207",
+          "parameters": [
+            {
+              "name": "token",
+              "type": "string",
+              "description": "API token. Optional if RUSTUNNEL_TOKEN is set.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

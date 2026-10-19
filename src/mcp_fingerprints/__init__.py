@@ -28,7 +28,7 @@ from mcp_fingerprints.models import (
 from mcp_fingerprints.snapshot_diff import compare_snapshots, InventorySnapshot
 
 
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 
 from mcp_fingerprints.prober import McpProber, ProbeReport
 

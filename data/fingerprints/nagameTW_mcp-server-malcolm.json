@@ -4,8 +4,9 @@
   "purl": "pkg:generic/nagameTW%2Fmcp-server-malcolm",
   "ecosystem": "generic",
   "display_name": "nagameTW/mcp-server-malcolm",
-  "description": "MCP server for Malcolm (Zeek/Suricata/Arkime/OpenSearch): threat-hunting access for AI agents",
-  "repository_url": "https://github.com/nagameTW/mcp-server-malcolm",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,10 +14,1817 @@
     "nagameTW/mcp-server-malcolm"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:0902781ff7a99693508499c3491b629bb908d14698c2cba50cc5af933f7588b0",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "arkime_build_query",
+          "canonical_hash": "sha256:33e03d3694930ec0e59e31dd7a227557458ee0d4f634c99605ad2e21ae58ea68",
+          "description": "Translate an Arkime expression into the OpenSearch DSL it compiles to, without running it.",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "expression": "string",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "expression": {
+                "type": "string",
+                "description": "Arkime expression syntax to compile, e.g. \"protocols == http && ip.dst == 203.0.113.5\". Empty compiles the time window alone, which is a useful starting skeleton.",
+                "default": ""
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). It becomes a range clause on lastPacket in the compiled query and decides which daily indices the search covers.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b901266b7af7406643ea78212fa22ca7288f0c4c834d431b1e55ca041b46e8a5",
+          "parameters": [
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Arkime expression syntax to compile, e.g. \"protocols == http && ip.dst == 203.0.113.5\". Empty compiles the time window alone, which is a useful starting skeleton.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). It becomes a range clause on lastPacket in the compiled query and decides which daily indices the search covers.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_connections",
+          "canonical_hash": "sha256:73fd50039ec750ca269804d3553cf2878c426d739950dae7cf787bb59e9a2515",
+          "description": "Build a source/destination connection graph of who talked to whom.",
+          "is_mutating": false,
+          "property_keys": [
+            "dst_field",
+            "expression",
+            "sessions",
+            "src_field",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "src_field": "string",
+            "dst_field": "string",
+            "expression": "string",
+            "sessions": "integer",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "src_field": {
+                "type": "string",
+                "description": "Arkime db field for source nodes (default srcIp). Common choices: srcIp, dstIp, dstPort, node — arkime_field_search's db column. The dotted storage path works here too and gives the identical graph: srcIp/dstIp and source.ip/destination.ip draw the same nodes and links. What this route will NOT take is the exp column: srcField=ip.src gets HTTP 403 and dstField=port.dst HTTP 500 \"TypeError: Cannot read properties of undefined\", so the expression names whose db spelling differs are refused here before the request is sent.",
+                "default": "srcIp"
+              },
+              "dst_field": {
+                "type": "string",
+                "description": "Arkime db field for destination nodes (default dstIp; dstPort graphs by port instead of by host). Same vocabulary as src_field: db column or dotted storage path, never the exp column.",
+                "default": "dstIp"
+              },
+              "expression": {
+                "type": "string",
+                "description": "Optional Arkime expression syntax to scope the graph. Empty = all sessions.",
+                "default": ""
+              },
+              "sessions": {
+                "type": "integer",
+                "description": "How many matching sessions the graph is drawn from (Arkime's length; its own default is 100). More sessions find more hosts and take longer: on Malcolm's training instance a query matching 41,768 sessions drew 8 nodes from 100 sessions, 23 from 10,000 (1.4 s) and 39 from 50,000 (3.5 s).",
+                "default": 10000
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a480e0eecbab2ccd7bfcd2b4138131ee0a82b30e1171e5af5315911d75721942",
+          "parameters": [
+            {
+              "name": "dst_field",
+              "type": "string",
+              "description": "Arkime db field for destination nodes (default dstIp; dstPort graphs by port instead of by host). Same vocabulary as src_field: db column or dotted storage path, never the exp column.",
+              "required": false,
+              "default": "dstIp",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Optional Arkime expression syntax to scope the graph. Empty = all sessions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sessions",
+              "type": "integer",
+              "description": "How many matching sessions the graph is drawn from (Arkime's length; its own default is 100). More sessions find more hosts and take longer: on Malcolm's training instance a query matching 41,768 sessions drew 8 nodes from 100 sessions, 23 from 10,000 (1.4 s) and 39 from 50,000 (3.5 s).",
+              "required": false,
+              "default": 10000,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "src_field",
+              "type": "string",
+              "description": "Arkime db field for source nodes (default srcIp). Common choices: srcIp, dstIp, dstPort, node — arkime_field_search's db column. The dotted storage path works here too and gives the identical graph: srcIp/dstIp and source.ip/destination.ip draw the same nodes and links. What this route will NOT take is the exp column: srcField=ip.src gets HTTP 403 and dstField=port.dst HTTP 500 \"TypeError: Cannot read properties of undefined\", so the expression names whose db spelling differs are refused here before the request is sent.",
+              "required": false,
+              "default": "srcIp",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_crons",
+          "canonical_hash": "sha256:2aa5b80ef2d0834638bb30556e2ccb0a03cb1085120181497ce71a15fbe589ec",
+          "description": "List Arkime's cron queries — saved expressions that re-run on a schedule.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3b77bddaa7f2a9740e8cd86811afd67521725ffee31b56d5b90d8497dc209d9e",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_field_search",
+          "canonical_hash": "sha256:d88ad91d28eb77d9f304db455c690d6e3f3dc3e0e8242e60b232665f229cf6d9",
+          "description": "Discover the field names Arkime's routes accept — call before writing one.",
+          "is_mutating": false,
+          "property_keys": [
+            "group",
+            "keyword",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "keyword": "string",
+            "group": "string",
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "keyword": {
+                "type": "string",
+                "description": "Substring matched against the expression name, db name and help text, e.g. \"user\", \"cert\", \"ja3\". Empty = no keyword filter.",
+                "default": ""
+              },
+              "group": {
+                "type": "string",
+                "description": "Exact Arkime field group to restrict to, e.g. \"http\", \"dns\", \"tls\", \"general\". Empty = any group.",
+                "default": ""
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max fields to return.",
+                "default": 50
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5dc2342f6215da559c5ae48d0e4780e039a47e5ece422d58d9820fab656d482a",
+          "parameters": [
+            {
+              "name": "group",
+              "type": "string",
+              "description": "Exact Arkime field group to restrict to, e.g. \"http\", \"dns\", \"tls\", \"general\". Empty = any group.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "keyword",
+              "type": "string",
+              "description": "Substring matched against the expression name, db name and help text, e.g. \"user\", \"cert\", \"ja3\". Empty = no keyword filter.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max fields to return.",
+              "required": false,
+              "default": 50,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_file_by_hash",
+          "canonical_hash": "sha256:e185408a27ebcc6c8216c553ff2618a7038566c5f4dd9883c6db2f6ea6847f8b",
+          "description": "Extract the transferred file matching a content hash across sessions; returns METADATA ONLY.",
+          "is_mutating": false,
+          "property_keys": [
+            "file_hash",
+            "url_only"
+          ],
+          "required_keys": [
+            "file_hash"
+          ],
+          "parameter_types": {
+            "file_hash": "string",
+            "url_only": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "file_hash": {
+                "type": "string",
+                "description": "The transferred file's content hash: md5 (32 hex chars) or sha256 (64 hex chars). Taken from a session's http.md5 / http.sha256 field, which malcolm_search returns and arkime_session_detail does not."
+              },
+              "url_only": {
+                "type": "boolean",
+                "description": "If true, return only the download URL and skip the download.",
+                "default": false
+              }
+            },
+            "required": [
+              "file_hash"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0389d5f2c0e330be985616fb1364f031646f9f64c1a3e9c1b32ad1248c64a02e",
+          "parameters": [
+            {
+              "name": "file_hash",
+              "type": "string",
+              "description": "The transferred file's content hash: md5 (32 hex chars) or sha256 (64 hex chars). Taken from a session's http.md5 / http.sha256 field, which malcolm_search returns and arkime_session_detail does not.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "url_only",
+              "type": "boolean",
+              "description": "If true, return only the download URL and skip the download.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_hunt_status",
+          "canonical_hash": "sha256:664ac2723dc52d365349e458063ca4bf82da202d36068c7fafb589f9d1bee6ae",
+          "description": "List Arkime hunt jobs with their progress, match counts and status.",
+          "is_mutating": false,
+          "property_keys": [
+            "active_only",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "active_only": "boolean",
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "active_only": {
+                "type": "boolean",
+                "description": "If true, show queued/running/paused jobs; if false, finished (history) jobs.",
+                "default": true
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max hunts to return. Arkime honours whatever it is given here and this tool sets no ceiling of its own, unlike the 500-row cap on the other list tools — pair a large value with active_only=false only when you really want the whole history.",
+                "default": 50
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1866d4afe2444e1d254184e68a2b27917f89039612edb3bb09505a5a1b4061b9",
+          "parameters": [
+            {
+              "name": "active_only",
+              "type": "boolean",
+              "description": "If true, show queued/running/paused jobs; if false, finished (history) jobs.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max hunts to return. Arkime honours whatever it is given here and this tool sets no ceiling of its own, unlike the 500-row cap on the other list tools — pair a large value with active_only=false only when you really want the whole history.",
+              "required": false,
+              "default": 50,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_multiunique",
+          "canonical_hash": "sha256:87998c2f7f3616b838b1ebbba5687ff464911e6913a55dc4a19e31dd9562af55",
+          "description": "List distinct value COMBINATIONS across a tuple of Arkime fields as plain text.",
+          "is_mutating": false,
+          "property_keys": [
+            "counts",
+            "expression",
+            "fields",
+            "limit",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [
+            "fields"
+          ],
+          "parameter_types": {
+            "fields": "string",
+            "expression": "string",
+            "counts": "boolean",
+            "limit": "integer",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "string",
+                "description": "Comma-separated Arkime field names forming the tuple, e.g. \"source.ip,destination.port\"."
+              },
+              "expression": {
+                "type": "string",
+                "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+                "default": ""
+              },
+              "counts": {
+                "type": "boolean",
+                "description": "Include a per-combination occurrence count (default true).",
+                "default": true
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max combinations to return. Arkime sends every one, so the rest are cut here and counted on a last line.",
+                "default": 1000
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": [
+              "fields"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4e14059a89d37d5acfca4863394fd62c87fdb3d1427d8cae6b64edd55b62b1ea",
+          "parameters": [
+            {
+              "name": "counts",
+              "type": "boolean",
+              "description": "Include a per-combination occurrence count (default true).",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "fields",
+              "type": "string",
+              "description": "Comma-separated Arkime field names forming the tuple, e.g. \"source.ip,destination.port\".",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max combinations to return. Arkime sends every one, so the rest are cut here and counted on a last line.",
+              "required": false,
+              "default": 1000,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_node_stats",
+          "canonical_hash": "sha256:4f6b34ccd5cbb3686caa298d15c46213ffe60017d55aedfd62f8513811948522",
+          "description": "Report each Arkime capture node's health: drops, disk, memory, queues.",
+          "is_mutating": false,
+          "property_keys": [
+            "node"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "node": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "node": {
+                "type": "string",
+                "description": "Substring of a node name to narrow the list, e.g. \"upload\". Empty = every node.",
+                "default": ""
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f1eae671d4988f7ebc68272f8f0ab9e61ed3a0f1c2d5c996d30175ead9b88769",
+          "parameters": [
+            {
+              "name": "node",
+              "type": "string",
+              "description": "Substring of a node name to narrow the list, e.g. \"upload\". Empty = every node.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_pcap_files",
+          "canonical_hash": "sha256:1fa0b87d9747e0806fbdd7426b69463501acd5456c48e3a937c216d146bc29e2",
+          "description": "List the PCAP files Arkime has indexed, with each file's coverage.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Max files to return.",
+                "default": 50
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b92041dc91bbec88a4184f27f84ae2b497cc733be59f6a3e4a3f0f6a6e64953e",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max files to return.",
+              "required": false,
+              "default": 50,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_reverse_dns",
+          "canonical_hash": "sha256:a7a7b8dd005bec54455b367dd5dee7879b7b1fc790d74062a4c9e5aded408b0b",
+          "description": "Resolve one IP address to its PTR hostname, using Arkime's resolver.",
+          "is_mutating": false,
+          "property_keys": [
+            "ip"
+          ],
+          "required_keys": [
+            "ip"
+          ],
+          "parameter_types": {
+            "ip": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "ip": {
+                "type": "string",
+                "description": "One IPv4 or IPv6 address to reverse-resolve, e.g. \"8.8.8.8\". Not a hostname, not a CIDR range."
+              }
+            },
+            "required": [
+              "ip"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2c1cfd36de3f194a164f94819f54699c1feb84b61d4354f1d21fd59fbb9203ea",
+          "parameters": [
+            {
+              "name": "ip",
+              "type": "string",
+              "description": "One IPv4 or IPv6 address to reverse-resolve, e.g. \"8.8.8.8\". Not a hostname, not a CIDR range.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_session_detail",
+          "canonical_hash": "sha256:e7990f84d67369024e6a78e87d74879d4da536b541670bc39541955b128f3efa",
+          "description": "Fetch the session Arkime holds under one id — a point lookup, not a search.",
+          "is_mutating": false,
+          "property_keys": [
+            "session_id"
+          ],
+          "required_keys": [
+            "session_id"
+          ],
+          "parameter_types": {
+            "session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "One Arkime session id from arkime_sessions results (arkime_sessions is the only source of these ids)."
+              }
+            },
+            "required": [
+              "session_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1b1333f6e174a41c2263b5ca55b0f2a7563e833a9b4e8d5394efc2a93fcf9f4d",
+          "parameters": [
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "One Arkime session id from arkime_sessions results (arkime_sessions is the only source of these ids).",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_session_file_by_hash",
+          "canonical_hash": "sha256:8e95dbb766640d45068e3547b828346c134e2952b511bfeb945d3e23e1019a41",
+          "description": "Fetch the file one NAMED session carried, by content hash; returns METADATA ONLY.",
+          "is_mutating": false,
+          "property_keys": [
+            "file_hash",
+            "node",
+            "session_id",
+            "url_only"
+          ],
+          "required_keys": [
+            "file_hash",
+            "session_id"
+          ],
+          "parameter_types": {
+            "session_id": "string",
+            "file_hash": "string",
+            "node": "string",
+            "url_only": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "The session that carried the file, from an arkime_sessions row. This is what makes the answer specific: the same file moving five times has five sessions, and this asks about one of them."
+              },
+              "file_hash": {
+                "type": "string",
+                "description": "Content hash of the carried body: md5 (32 hex chars) or sha256 (64). It lives in this session's own http.md5 / http.sha256, which malcolm_search returns and arkime_session_detail does not (that row carries http.uri but no hash). A hash from a different session is answered \"no match\" even though the file exists elsewhere."
+              },
+              "node": {
+                "type": "string",
+                "description": "Capture node that recorded the session (the `node` field of the arkime_sessions row). Empty resolves it from the session document, one extra request, and is also done for url_only.",
+                "default": ""
+              },
+              "url_only": {
+                "type": "boolean",
+                "description": "If true, return only the download URL and skip the download.",
+                "default": false
+              }
+            },
+            "required": [
+              "file_hash",
+              "session_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3f1b20fbc195614ffc042502777140189b8fd7584dfffaa243c91de7e0ae7689",
+          "parameters": [
+            {
+              "name": "file_hash",
+              "type": "string",
+              "description": "Content hash of the carried body: md5 (32 hex chars) or sha256 (64). It lives in this session's own http.md5 / http.sha256, which malcolm_search returns and arkime_session_detail does not (that row carries http.uri but no hash). A hash from a different session is answered \"no match\" even though the file exists elsewhere.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "node",
+              "type": "string",
+              "description": "Capture node that recorded the session (the `node` field of the arkime_sessions row). Empty resolves it from the session document, one extra request, and is also done for url_only.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "The session that carried the file, from an arkime_sessions row. This is what makes the answer specific: the same file moving five times has five sessions, and this asks about one of them.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "url_only",
+              "type": "boolean",
+              "description": "If true, return only the download URL and skip the download.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_session_payload",
+          "canonical_hash": "sha256:35f1ca29d234209613030f0d5460e6791cd29de536d634b38c3566af253d109b",
+          "description": "Read the decoded payload of one Arkime session — the bytes that crossed the wire.",
+          "is_mutating": false,
+          "property_keys": [
+            "base",
+            "node",
+            "packets",
+            "session_id"
+          ],
+          "required_keys": [
+            "session_id"
+          ],
+          "parameter_types": {
+            "session_id": "string",
+            "node": "string",
+            "base": "string",
+            "packets": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "One Arkime session id from arkime_sessions results, in either spelling: the bare id or the node-prefixed \"3@231115:231115-...\" form (both reach the same session). arkime_sessions is the only source of these ids."
+              },
+              "node": {
+                "type": "string",
+                "description": "Capture node that recorded the session — the `node` field of the arkime_sessions row. Leave empty and it is looked up from the session document, at the cost of one extra request. A name this deployment does not have is reported as an input error rather than answered, because Arkime replies 200 to it.",
+                "default": ""
+              },
+              "base": {
+                "type": "string",
+                "description": "How to render the bytes: \"hex\" for an offset + hex + ASCII gutter (what makes a binary protocol such as Modbus legible), \"ascii\" or \"utf8\" for text protocols such as HTTP. Anything else is rejected here — Arkime would silently fall back to ASCII.",
+                "default": "hex"
+              },
+              "packets": {
+                "type": "integer",
+                "description": "How many packets to decode, counted as packets and not as rendered blocks: consecutive same-direction packets coalesce into one block and a packet with no payload renders nothing, so a TCP session opening with a handshake can spend the first few on column headers alone. Raise it to read further into the conversation, a few at a time: what each packet costs scales with the bytes it carried, so the same value can render a few hundred characters on one session and tens of thousands on another. The 200,000-character cap is the backstop.",
+                "default": 10
+              }
+            },
+            "required": [
+              "session_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cdedc32b49a513846a20b0e4fa269d377562f203502bc6f6d644d1fd44337c6a",
+          "parameters": [
+            {
+              "name": "base",
+              "type": "string",
+              "description": "How to render the bytes: \"hex\" for an offset + hex + ASCII gutter (what makes a binary protocol such as Modbus legible), \"ascii\" or \"utf8\" for text protocols such as HTTP. Anything else is rejected here — Arkime would silently fall back to ASCII.",
+              "required": false,
+              "default": "hex",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "node",
+              "type": "string",
+              "description": "Capture node that recorded the session — the `node` field of the arkime_sessions row. Leave empty and it is looked up from the session document, at the cost of one extra request. A name this deployment does not have is reported as an input error rather than answered, because Arkime replies 200 to it.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "packets",
+              "type": "integer",
+              "description": "How many packets to decode, counted as packets and not as rendered blocks: consecutive same-direction packets coalesce into one block and a packet with no payload renders nothing, so a TCP session opening with a handshake can spend the first few on column headers alone. Raise it to read further into the conversation, a few at a time: what each packet costs scales with the bytes it carried, so the same value can render a few hundred characters on one session and tens of thousands on another. The 200,000-character cap is the backstop.",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "One Arkime session id from arkime_sessions results, in either spelling: the bare id or the node-prefixed \"3@231115:231115-...\" form (both reach the same session). arkime_sessions is the only source of these ids.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_session_pcap",
+          "canonical_hash": "sha256:10c9bc8a5b2608b7c763ea4ff85daf38329e3b7fbe36f38b651757110123ef2b",
+          "description": "Fetch and validate the PCAP for one or more Arkime sessions; returns METADATA ONLY.",
+          "is_mutating": false,
+          "property_keys": [
+            "session_id",
+            "url_only"
+          ],
+          "required_keys": [
+            "session_id"
+          ],
+          "parameter_types": {
+            "session_id": "string",
+            "url_only": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "description": "One Arkime session id, or several comma-separated, each taken from arkime_sessions results (arkime_sessions is the only source of these ids). Several ids are merged into one combined PCAP, and the size ceiling applies to that merged total rather than to each session."
+              },
+              "url_only": {
+                "type": "boolean",
+                "description": "If true, return only the download URL and skip the download (use for very large sessions).",
+                "default": false
+              }
+            },
+            "required": [
+              "session_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ef107f715c8d754fc31268a2b84763f976bcc51438aeaab28aee3b9521a58727",
+          "parameters": [
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "One Arkime session id, or several comma-separated, each taken from arkime_sessions results (arkime_sessions is the only source of these ids). Several ids are merged into one combined PCAP, and the size ceiling applies to that merged total rather than to each session.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "url_only",
+              "type": "boolean",
+              "description": "If true, return only the download URL and skip the download (use for very large sessions).",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_sessions",
+          "canonical_hash": "sha256:2d6bd3b86a1ef040b5daf26c8512b2ce55c162f7fc3173e6286526e73e6dde3c",
+          "description": "Search Arkime sessions by expression; returns trimmed rows each carrying a session id.",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "limit",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [
+            "expression"
+          ],
+          "parameter_types": {
+            "expression": "string",
+            "limit": "integer",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "expression": {
+                "type": "string",
+                "description": "Arkime expression syntax (NOT OpenSearch DSL, NOT a Malcolm filter dict). Examples: \"ip==192.0.2.77\"; \"ip.src==192.0.2.77 && ip.dst==198.51.100.1\"; \"protocols==dns\"; \"port.dst==443\"; \"http.uri==/login*\"; \"country.dst==CN\". Every clause must be field-operator-value — there is no free-text search. Field existence is the literal token EXISTS!, as in \"zeek.ftp.password == EXISTS!\". A list is an OR: \"port == [80,443]\". Field names are Arkime's own, NOT the ECS names malcolm_field_search returns — look them up with arkime_field_search. A name Arkime cannot resolve, or an expression it cannot parse, is reported as an error carrying Arkime's own message."
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max sessions to return. Each row is a JSON object carrying its own keys, which is why this stops at 100; when you want thousands of rows and no session id, arkime_sessions_csv takes up to 10,000.",
+                "default": 10
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string like \"7 days ago\"). Empty = Arkime's recent-only default; pass a range for historical data.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": [
+              "expression"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6122a64b9f9454b5ef08aa731ffadedef66d77a54554d7dcea87056ccb7b7de8",
+          "parameters": [
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Arkime expression syntax (NOT OpenSearch DSL, NOT a Malcolm filter dict). Examples: \"ip==192.0.2.77\"; \"ip.src==192.0.2.77 && ip.dst==198.51.100.1\"; \"protocols==dns\"; \"port.dst==443\"; \"http.uri==/login*\"; \"country.dst==CN\". Every clause must be field-operator-value — there is no free-text search. Field existence is the literal token EXISTS!, as in \"zeek.ftp.password == EXISTS!\". A list is an OR: \"port == [80,443]\". Field names are Arkime's own, NOT the ECS names malcolm_field_search returns — look them up with arkime_field_search. A name Arkime cannot resolve, or an expression it cannot parse, is reported as an error carrying Arkime's own message.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max sessions to return. Each row is a JSON object carrying its own keys, which is why this stops at 100; when you want thousands of rows and no session id, arkime_sessions_csv takes up to 10,000.",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string like \"7 days ago\"). Empty = Arkime's recent-only default; pass a range for historical data.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_sessions_csv",
+          "canonical_hash": "sha256:6b6bb971f7927ad414af361684eb89e02d386b782395141211c487525ecaf324",
+          "description": "Export many sessions as a compact CSV table, one row each.",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "fields",
+            "limit",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "expression": "string",
+            "fields": "string",
+            "limit": "integer",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "expression": {
+                "type": "string",
+                "description": "Arkime expression syntax to scope the rows, e.g. \"ip == 192.0.2.7 && protocols == dns\". Empty = all sessions.",
+                "default": ""
+              },
+              "fields": {
+                "type": "string",
+                "description": "Comma-separated columns, as ECS DOTTED names (\"source.ip,destination.port\") — the names malcolm_field_search returns, NOT Arkime db names (srcIp) or expression names (ip.src). A name Arkime does not accept is never reported as an error: it either comes back as an empty column or the request hangs until it times out. Leave empty for Arkime's default columns, which always work.",
+                "default": ""
+              },
+              "limit": {
+                "type": "integer",
+                "description": "Max rows to export.",
+                "default": 100
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's default recent window.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c73da39490b4d0394e8fad8b9d48d5d621c109850ffe8d1a2c55312b7c1d0711",
+          "parameters": [
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Arkime expression syntax to scope the rows, e.g. \"ip == 192.0.2.7 && protocols == dns\". Empty = all sessions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "fields",
+              "type": "string",
+              "description": "Comma-separated columns, as ECS DOTTED names (\"source.ip,destination.port\") — the names malcolm_field_search returns, NOT Arkime db names (srcIp) or expression names (ip.src). A name Arkime does not accept is never reported as an error: it either comes back as an empty column or the request hangs until it times out. Leave empty for Arkime's default columns, which always work.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max rows to export.",
+              "required": false,
+              "default": 100,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's default recent window.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_sessions_summary",
+          "canonical_hash": "sha256:9290f3f7adb01e4292375070e46c98001a09e6efedebb43c8503d79da9c81ff9",
+          "description": "Total sessions, bytes and packets for an expression, plus per-field breakdowns.",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "fields",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [
+            "fields"
+          ],
+          "parameter_types": {
+            "expression": "string",
+            "fields": "string",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "expression": {
+                "type": "string",
+                "description": "Arkime expression syntax scoping what is counted, e.g. \"protocols == http && ip.dst == 203.0.113.5\". Empty counts every session in the window.",
+                "default": ""
+              },
+              "fields": {
+                "type": "string",
+                "description": "Comma-separated fields to break the totals down by, one breakdown each, e.g. \"protocols,ip.dst\". Arkime expression names (\"ip.src\") and dotted ECS names (\"source.ip\") both work; a db name (\"srcIp\") is silently ignored upstream and is reported back in ignored_fields. Cannot be empty — Arkime rejects the request without it — so an empty value falls back to protocols."
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty summarises Arkime's default recent window, which on a historical capture reports zero and looks like a broken tool.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": [
+              "fields"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:71767a5f75a5a39ee66d40f6d3e916e451e85e9840349f8d208472a7f07f0ab7",
+          "parameters": [
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Arkime expression syntax scoping what is counted, e.g. \"protocols == http && ip.dst == 203.0.113.5\". Empty counts every session in the window.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "fields",
+              "type": "string",
+              "description": "Comma-separated fields to break the totals down by, one breakdown each, e.g. \"protocols,ip.dst\". Arkime expression names (\"ip.src\") and dotted ECS names (\"source.ip\") both work; a db name (\"srcIp\") is silently ignored upstream and is reported back in ignored_fields. Cannot be empty — Arkime rejects the request without it — so an empty value falls back to protocols.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty summarises Arkime's default recent window, which on a historical capture reports zero and looks like a broken tool.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_shortcuts",
+          "canonical_hash": "sha256:6e8e2e8311227a79fab278fa8c46ac9f6068fe0c0840094514d75571b104d188",
+          "description": "List Arkime's named value lists (IOC sets) and what each one contains.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Max shortcuts to return.",
+                "default": 100
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:140ec9e8395f5dba615065d7365fdd9adce42be3140286f9ad3fb3e6084d18dc",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max shortcuts to return.",
+              "required": false,
+              "default": 100,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_spigraph",
+          "canonical_hash": "sha256:43dbb5716ac7c08e104df932d2b53a8924ebed4bdb1501bfb7cc7f86ac63fbc8",
+          "description": "Return top values of ONE Arkime field plus a per-value time-series graph.",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "field",
+            "size",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [
+            "field"
+          ],
+          "parameter_types": {
+            "field": "string",
+            "expression": "string",
+            "size": "integer",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "description": "One Arkime field named by its STORAGE PATH, e.g. \"destination.ip\", \"protocol\", \"http.host\" — arkime_field_search's db column. NOT the exp column: field=destination.ip, field=protocol and field=http.host fill the requested size, while field=ip.dst, field=protocols, field=dstIp, field=port.dst and field=dstPort each return 0 — every one of them HTTP 200, so an empty result is the only signal a name was wrong. The db column is the storage path for all but a few fields, which print a camelCase alias (srcIp, dstPort, totBytes, dstGEO) and store under the dotted name (source.ip, destination.port, network.bytes, destination.geo.country_iso_code); pass the dotted one for those."
+              },
+              "expression": {
+                "type": "string",
+                "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+                "default": ""
+              },
+              "size": {
+                "type": "integer",
+                "description": "Number of top values to return. It bounds how many distinct values are graphed, never how many time buckets each one is split into — Arkime decides that from the time range.",
+                "default": 20
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": [
+              "field"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ca8046d11fbdc489b9e969bcebd4215e23dfa449450534d33577710addbcbc0c",
+          "parameters": [
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "field",
+              "type": "string",
+              "description": "One Arkime field named by its STORAGE PATH, e.g. \"destination.ip\", \"protocol\", \"http.host\" — arkime_field_search's db column. NOT the exp column: field=destination.ip, field=protocol and field=http.host fill the requested size, while field=ip.dst, field=protocols, field=dstIp, field=port.dst and field=dstPort each return 0 — every one of them HTTP 200, so an empty result is the only signal a name was wrong. The db column is the storage path for all but a few fields, which print a camelCase alias (srcIp, dstPort, totBytes, dstGEO) and store under the dotted name (source.ip, destination.port, network.bytes, destination.geo.country_iso_code); pass the dotted one for those.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "size",
+              "type": "integer",
+              "description": "Number of top values to return. It bounds how many distinct values are graphed, never how many time buckets each one is split into — Arkime decides that from the time range.",
+              "required": false,
+              "default": 20,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_spigraphhierarchy",
+          "canonical_hash": "sha256:0644e3ddb293c145c8bd567a0c673cfbb324fb876cbb39bc8d0f0efc4c0491d4",
+          "description": "Build a nested top-N hierarchy across Arkime fields (a treemap / drill-down).",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "fields",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [
+            "fields"
+          ],
+          "parameter_types": {
+            "fields": "string",
+            "expression": "string",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "string",
+                "description": "Comma-separated Arkime fields defining the hierarchy levels in order, e.g. \"source.ip,destination.ip,destination.port\"."
+              },
+              "expression": {
+                "type": "string",
+                "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+                "default": ""
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": [
+              "fields"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5a178c5596b0951e3b4dfa9aa6297bd1a1d2e209978ad6dd13377918ecabebe1",
+          "parameters": [
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "fields",
+              "type": "string",
+              "description": "Comma-separated Arkime fields defining the hierarchy levels in order, e.g. \"source.ip,destination.ip,destination.port\".",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_spiview",
+          "canonical_hash": "sha256:20fc438549c0a0bfe642e903164ba984afe1c94670f926a92ff266f542fc11cf",
+          "description": "Profile top values across SEVERAL Arkime fields at once, each with counts.",
+          "is_mutating": false,
+          "property_keys": [
+            "expression",
+            "spi",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [
+            "spi"
+          ],
+          "parameter_types": {
+            "spi": "string",
+            "expression": "string",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "spi": {
+                "type": "string",
+                "description": "Comma-separated Arkime fields named by their STORAGE PATH, each optionally suffixed \":<count>\" to cap its values, e.g. \"protocol:10,destination.ip:20,http.host\" — the same spelling arkime_spigraph's field takes. NOT the exp column: spi=protocol:10, spi=destination.ip:20 and spi=http.host:5 fill their buckets, while spi=protocols:10, spi=ip.dst:20 and spi=dstIp:20 each return an empty bucket list under HTTP 200. For the few fields whose db column is a camelCase alias, pass the dotted storage path instead (source.ip for srcIp, destination.port for dstPort). A field left without the suffix takes Arkime's own default of 10 values, not all of them, and the sessions behind the rest are swept into sum_other_doc_count. Pass a count whenever you need a known depth."
+              },
+              "expression": {
+                "type": "string",
+                "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+                "default": ""
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": [
+              "spi"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b7d1298fe5e55ea98204a60316128a2dfe0e625f127c9efd2fac50c7e3d6a1ef",
+          "parameters": [
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Optional Arkime expression syntax to scope the data. Empty = all sessions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "spi",
+              "type": "string",
+              "description": "Comma-separated Arkime fields named by their STORAGE PATH, each optionally suffixed \":<count>\" to cap its values, e.g. \"protocol:10,destination.ip:20,http.host\" — the same spelling arkime_spigraph's field takes. NOT the exp column: spi=protocol:10, spi=destination.ip:20 and spi=http.host:5 fill their buckets, while spi=protocols:10, spi=ip.dst:20 and spi=dstIp:20 each return an empty bucket list under HTTP 200. For the few fields whose db column is a camelCase alias, pass the dotted storage path instead (source.ip for srcIp, destination.port for dstPort). A field left without the suffix takes Arkime's own default of 10 values, not all of them, and the sessions behind the rest are swept into sum_other_doc_count. Pass a count whenever you need a known depth.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's recent-only default.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_unique",
+          "canonical_hash": "sha256:4bba5c6c6e600cc8b33aaae0c6756759c82b0e3a693301e488345cd56f8d676a",
+          "description": "List distinct values of ONE Arkime field as plain text, optionally with counts.",
+          "is_mutating": false,
+          "property_keys": [
+            "counts",
+            "expression",
+            "field",
+            "time_from",
+            "time_to"
+          ],
+          "required_keys": [
+            "field"
+          ],
+          "parameter_types": {
+            "field": "string",
+            "expression": "string",
+            "counts": "boolean",
+            "time_from": "string",
+            "time_to": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "description": "One Arkime field expression, e.g. \"ip.dst\", \"protocols\", \"http.host\"."
+              },
+              "expression": {
+                "type": "string",
+                "description": "Optional Arkime expression syntax to scope the values, e.g. \"protocols==dns\". Empty = all sessions.",
+                "default": ""
+              },
+              "counts": {
+                "type": "boolean",
+                "description": "Include a per-value occurrence count (default true). Turning it off drops the count from every line and is the right choice when you only need the value set itself — to paste into arkime_create_shortcut, for instance.",
+                "default": true
+              },
+              "time_from": {
+                "type": "string",
+                "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's default recent window, which finds nothing in a capture older than it — pass a range to reach historical data.",
+                "default": ""
+              },
+              "time_to": {
+                "type": "string",
+                "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+                "default": ""
+              }
+            },
+            "required": [
+              "field"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ce3ce2b7648f947c373b1e459863c6aa9745354b264e2e9ce3a935e546c1d474",
+          "parameters": [
+            {
+              "name": "counts",
+              "type": "boolean",
+              "description": "Include a per-value occurrence count (default true). Turning it off drops the count from every line and is the right choice when you only need the value set itself — to paste into arkime_create_shortcut, for instance.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "expression",
+              "type": "string",
+              "description": "Optional Arkime expression syntax to scope the values, e.g. \"protocols==dns\". Empty = all sessions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "field",
+              "type": "string",
+              "description": "One Arkime field expression, e.g. \"ip.dst\", \"protocols\", \"http.host\".",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_from",
+              "type": "string",
+              "description": "Start time as EPOCH SECONDS (NOT a dateparser string). Empty = Arkime's default recent window, which finds nothing in a capture older than it — pass a range to reach historical data.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_to",
+              "type": "string",
+              "description": "End time as EPOCH SECONDS (NOT a dateparser string). Empty = now.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "arkime_views",
+          "canonical_hash": "sha256:24bf082006e0392b89f952a94ec0d98cd0126676ea384fe6faaaa937533eb673",
+          "description": "List the saved search views this Arkime holds, with each one's expression.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "description": "Max views to return.",
+                "default": 100
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:50a845111a8982820be9ffe0cf7b07ad6e361eced959b87b500dc76788a0a63e",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max views to return.",
+              "required": false,
+              "default": 100,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.1.1",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -28,9 +1836,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

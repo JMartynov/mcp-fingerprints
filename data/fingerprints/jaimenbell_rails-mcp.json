@@ -4,8 +4,9 @@
   "purl": "pkg:generic/jaimenbell%2Frails-mcp",
   "ecosystem": "generic",
   "display_name": "jaimenbell/rails-mcp",
-  "description": "Default-deny action registry, append-only spend ledger, and human sign-off audit trail (MCP tools).",
-  "repository_url": "https://github.com/jaimenbell/rails-mcp",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,6 +14,7 @@
     "jaimenbell/rails-mcp"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
@@ -28,9 +30,315 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:c2457e8f7c01f7bca04e826c169c73f79dbc908be7499186fbc00a5d495d6516",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "classify_action",
+          "canonical_hash": "sha256:b56e1c816778333ea31ff2d85bcee4eebea84f9fb44c6cd0b2d8cca60c9833e7",
+          "description": "Default-deny classification for an action_type: ALWAYS returns GATED, whether or not the action_type is registered. There is no fail-open branch and no argument that can change this -- it is the one invariant this server refuses to make configurable. Use is_action_registered to check whether an action_type has a known enforcement entry; that is a separate, informational question.",
+          "is_mutating": false,
+          "property_keys": [
+            "action_type"
+          ],
+          "required_keys": [
+            "action_type"
+          ],
+          "parameter_types": {
+            "action_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action_type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "action_type"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:62911cee7c5e3a8d6bd8f2360049811221707f0ec38845cc4b8b7a71d78c4a44",
+          "parameters": [
+            {
+              "name": "action_type",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "evaluate_budget",
+          "canonical_hash": "sha256:d1b73b477ef8022d500cdbe3f261aaf3737bf30ac3ad6308b4600d71dcb1f460",
+          "description": "Sum spend_intent amounts recorded within the last window_days and compare against limit_usd. Never raises -- an empty ledger reads as total_spent_usd=0.0, within_budget=True.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit_usd",
+            "window_days"
+          ],
+          "required_keys": [
+            "limit_usd"
+          ],
+          "parameter_types": {
+            "limit_usd": "number",
+            "window_days": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit_usd": {
+                "type": "number"
+              },
+              "window_days": {
+                "type": "number",
+                "default": 30.0
+              }
+            },
+            "required": [
+              "limit_usd"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d50df5cafd35a163af6296ebed11c212c1903f55e527d3c212dcb154fc6750a6",
+          "parameters": [
+            {
+              "name": "limit_usd",
+              "type": "number",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "window_days",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": 30.0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_rails_hash",
+          "canonical_hash": "sha256:f7de54785e434e0cdecf1d467dc3b92b534ceddd73f860e16a6af1776599ca82",
+          "description": "12-hex sha256 digest of the currently loaded action registry, plus its entry count. Changes iff the registry's contents change -- this is the value a human sign-off (rails-mcp sign, CLI-only, never an MCP tool) records into the audit ledger.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:90030c2704a0ca7e3b4528999fd3e80b822cf55c55d81cf9f25b39ba0939d6cb",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_signoff_state",
+          "canonical_hash": "sha256:76891e05a12051f1b4113ea2af419936c87b9dd70c8a71c56d2e1e9c775ee6d7",
+          "description": "Current active human sign-off of the registry (operator, signedAt, the registryHash they signed, optional note), or null if never signed or most-recently revoked. Read-only -- signing itself is a CLI-only ceremony (`rails-mcp sign --operator ...`), never something reachable from this or any MCP tool call.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a1edf9f6047b9dfd626e1e43adf8b28c36c98ce99c2cf87504af614200e9b98b",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "is_action_registered",
+          "canonical_hash": "sha256:14cb1eac04aeb759776ce47205ccb02adae3ee3bb4d2229b64192f68dcd9591f",
+          "description": "Whether action_type has an entry in the loaded rails registry, plus its enforcement_layer / enforcement_pointer / ceremony when present. Registration is informational only -- classify_action's GATED verdict never depends on it.",
+          "is_mutating": false,
+          "property_keys": [
+            "action_type"
+          ],
+          "required_keys": [
+            "action_type"
+          ],
+          "parameter_types": {
+            "action_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action_type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "action_type"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:459acc3c1966a903128e711bd620aa90f0b62f824583a3ad0d2ea8108399e54c",
+          "parameters": [
+            {
+              "name": "action_type",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "record_spend_intent",
+          "canonical_hash": "sha256:a6125dfe7c2a5333fee8d7b658ba15dba5f865f1d40ce0be6da2ef42151b7742",
+          "description": "Append one spend-intent record to the append-only ledger. This RECORDS intent to spend -- it never calls a vendor, a paid API, or a broker, and it cannot itself authorize or block a spend.",
+          "is_mutating": false,
+          "property_keys": [
+            "actor",
+            "amount_usd",
+            "purpose",
+            "vendor"
+          ],
+          "required_keys": [
+            "actor",
+            "amount_usd",
+            "purpose",
+            "vendor"
+          ],
+          "parameter_types": {
+            "amount_usd": "number",
+            "vendor": "string",
+            "purpose": "string",
+            "actor": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amount_usd": {
+                "type": "number"
+              },
+              "vendor": {
+                "type": "string"
+              },
+              "purpose": {
+                "type": "string"
+              },
+              "actor": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "actor",
+              "amount_usd",
+              "purpose",
+              "vendor"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c25acdab0e8537ea9b4b277e0362570198bf14bec34fae724a96d85620cdc37f",
+          "parameters": [
+            {
+              "name": "actor",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "amount_usd",
+              "type": "number",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "purpose",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "vendor",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

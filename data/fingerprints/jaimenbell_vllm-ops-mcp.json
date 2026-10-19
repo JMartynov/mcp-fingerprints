@@ -4,8 +4,9 @@
   "purl": "pkg:generic/jaimenbell%2Fvllm-ops-mcp",
   "ecosystem": "generic",
   "display_name": "jaimenbell/vllm-ops-mcp",
-  "description": "Read-only ops/health MCP server for a local vLLM instance: health tiers, GPU/VRAM, service status.",
-  "repository_url": "https://github.com/jaimenbell/vllm-ops-mcp",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,6 +14,7 @@
     "jaimenbell/vllm-ops-mcp"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
@@ -28,9 +30,210 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:f8c035c73fbe0ac8623875192adec03a31cdbc6041dd950d30c86f1b246e408b",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "check_health",
+          "canonical_hash": "sha256:4d16b9e77ae4c5c854b84716f16b26806a2e04b8e167a8600d4d3ebb853310a2",
+          "description": "Two-stage health probe for the local vLLM server, mirroring check-vllm.cmd. deep=False (default): GET /v1/models liveness check only. deep=True: additionally fires one minimal real /v1/chat/completions call to confirm the server actually generates text, not just reports a model loaded (rate-limited -- this consumes real GPU inference cycles on shared infra). Returns {ok, status: up|degraded|down, tier, model_id, latency_ms, completion_s, error}.",
+          "is_mutating": false,
+          "property_keys": [
+            "deep"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "deep": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "deep": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:80c82e5299b40025eeb438c036b1c4ee919502a8ca5b5e98094dec93463bf8c9",
+          "parameters": [
+            {
+              "name": "deep",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_gpu_status",
+          "canonical_hash": "sha256:f2ebe458fb3ccbf3e4ad1b6eb102a6c028d0533d47821a5afeb31fefe1d6d756",
+          "description": "nvidia-smi wrapper: per-GPU VRAM used/total and utilization%, plus per-process VRAM usage (to catch VRAM-overshoot). Read-only.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:da971523defc84e9e7972e33a045e173f63d529b2b81066960efe71651789d06",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_serve_config",
+          "canonical_hash": "sha256:b72fbf2a8159af258b91faa56ec1bdf0bb402344e7673ea4409c3c1680c6e36d",
+          "description": "Read-only introspection of the current vLLM launch flags. Prefers the LIVE process's real argv (/proc/<pid>/cmdline of the systemd unit's MainPID) as ground truth; falls back to the static exec script if the process isn't currently up. vLLM does not expose its own launch flags over the API, so this never queries the server itself. Any argv value following a flag matching a known-sensitive pattern (token/key/secret/password/credential) is redacted before being returned.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2a4396a2aef470fdb2cf3238cc99f17ea3ef4c5512512c65c5a58738944331bc",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_service_status",
+          "canonical_hash": "sha256:7daad03f9afb5a0a355a3f7718da9053aa5ecc1a9dc4bee32c153fe688d3f2ea",
+          "description": "systemd unit status for the vLLM service (via `wsl -d <distro> -- systemctl show`, or native systemctl if this server runs inside WSL2/Linux). Returns load/active/sub state, restart count, main PID, and last-active timestamp. Read-only -- never starts/stops the unit.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:56a556fb953540c8b04d06b013b1e495cc5ca63a092cc5c0e2b14d8b93e53af1",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_models",
+          "canonical_hash": "sha256:6e2346f729ef901eb23776130a83cdcb424bfd1fd750c8616c25769f2283cb55",
+          "description": "GET /v1/models passthrough -- lists model IDs currently loaded/served.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fbeae71cd6a6d44c299b36b81e30a9a20f14b250f5aaa03d07e9a9abf515e819",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "test_completion",
+          "canonical_hash": "sha256:51632a456d8bbdda44c62b9afd23647e7fd637d041660d9c7f7143ad202c8e3d",
+          "description": "On-demand real /v1/chat/completions call with a caller-supplied prompt, for manual sanity-checking (same mechanism as check_health(deep=True) but user-controlled). Rate-limited -- consumes real GPU inference cycles on shared infra. max_tokens is clamped server-side to config.MAX_TEST_COMPLETION_TOKENS and the prompt is capped at config.MAX_TEST_COMPLETION_PROMPT_CHARS (oversized prompts are rejected) -- the rate limiter bounds call frequency, not the cost of a single call. Returns {ok, model_id, completion_s, text, error}.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_tokens",
+            "prompt"
+          ],
+          "required_keys": [
+            "prompt"
+          ],
+          "parameter_types": {
+            "prompt": "string",
+            "max_tokens": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "prompt": {
+                "type": "string"
+              },
+              "max_tokens": {
+                "type": "integer",
+                "default": 16
+              }
+            },
+            "required": [
+              "prompt"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:db0f054eb5ae0ce6cd5344edcb1b61e99ca68e3f5b5156f38e7b51c58fcacb62",
+          "parameters": [
+            {
+              "name": "max_tokens",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 16,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

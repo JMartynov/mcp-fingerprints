@@ -4,8 +4,9 @@
   "purl": "pkg:generic/mnemox-ai%2Ftradememory-protocol",
   "ecosystem": "generic",
   "display_name": "mnemox-ai/tradememory-protocol",
-  "description": "Decision audit trail + persistent memory for AI trading agents. Recall past trades weighted by outcome before you trade; leave a tamper-evident, RFC 3161 anchored record after.",
-  "repository_url": "https://github.com/mnemox-ai/tradememory-protocol",
+  "description": "AI trading memory layer for MT5/forex. 3-tier architecture (L1 raw trades → L2 pattern discovery → L3 strategy adjustment). 15 MCP tools: store/recall trades, performance analytics, reflections, evolution engine, and Outcome-Weighted Memory (OWM).\n",
+  "author": null,
+  "repository_url": "https://tradememory-protocol--mnemox-ai.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "mnemox-ai/tradememory-protocol"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,2159 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:726a107638d913188a87f94f59a911a229d5237b119e63191e52c905039ede48",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://tradememory-protocol--mnemox-ai.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "apiKey": {
+                "type": "string",
+                "x-from": {
+                  "query": "apiKey"
+                },
+                "x-order": 0,
+                "description": "Optional. Bearer API key for tool calls; browsing tools requires none."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "check_active_plans",
+          "canonical_hash": "sha256:0bef5702be0480f70b0c3343c853d54ab87e21a87a0e8469238d27d17a325593",
+          "description": "Check active trading plans against current market context.\n\nQueries all active prospective plans, expires any past their expiry date,\nand matches remaining plans against the provided context.",
+          "is_mutating": false,
+          "property_keys": [
+            "context_atr_d1",
+            "context_regime"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "context_atr_d1": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Current ATR(14) on D1 in dollars"
+              },
+              "context_regime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Current market regime (trending_up/trending_down/ranging/volatile)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:59ae19ccd12ae0928f6751b2de6b71fea04bce29bac7685f692bd2f1954460d0",
+          "parameters": [
+            {
+              "name": "context_atr_d1",
+              "type": "string",
+              "description": "Current ATR(14) on D1 in dollars",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "context_regime",
+              "type": "string",
+              "description": "Current market regime (trending_up/trending_down/ranging/volatile)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "check_trade_legitimacy",
+          "canonical_hash": "sha256:b20386bb089b81c4f791ac17e6dd474c6caaf7099a744d8046c4f7cf01f0fca9",
+          "description": "Check if the agent has sufficient data and confidence to trade.\n\nCall this before making any trade decision. Evaluates sample size,\nmemory quality, regime experience, streak state, and drawdown to\ndetermine whether the agent has earned the right to trade at full size.",
+          "is_mutating": false,
+          "property_keys": [
+            "current_atr_d1",
+            "current_regime",
+            "strategy_name",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "symbol": "string",
+            "strategy_name": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "default": "XAUUSD",
+                "description": "Trading instrument (default \"XAUUSD\")."
+              },
+              "strategy_name": {
+                "type": "string",
+                "description": "Strategy to evaluate (e.g. \"VolBreakout\")."
+              },
+              "current_atr_d1": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Current ATR(14) on D1 in dollars (informational)."
+              },
+              "current_regime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Current market regime (trending_up/trending_down/ranging/volatile)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:8d4d3c26676e07db5697538af391cf43482a8b81c7ce079d6f931131da47979f",
+          "parameters": [
+            {
+              "name": "current_atr_d1",
+              "type": "string",
+              "description": "Current ATR(14) on D1 in dollars (informational).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "current_regime",
+              "type": "string",
+              "description": "Current market regime (trending_up/trending_down/ranging/volatile).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "strategy_name",
+              "type": "string",
+              "description": "Strategy to evaluate (e.g. \"VolBreakout\").",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading instrument (default \"XAUUSD\").",
+              "required": false,
+              "default": "XAUUSD",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "compute_dqs",
+          "canonical_hash": "sha256:8ccf519791cebb276c057b8e68c0c134fc0800cef1e7dadb6560e32aa9a85337",
+          "description": "Compute Decision Quality Score before executing a trade.\n\nEvaluates the quality of the decision *process* (not outcome) across\n5 factors: regime match, position sizing vs Kelly, process adherence\n(OWM similarity), risk state, and historical pattern.",
+          "is_mutating": false,
+          "property_keys": [
+            "context_atr_d1",
+            "context_regime",
+            "direction",
+            "market_context",
+            "proposed_lot_size",
+            "strategy_name",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "symbol": "string",
+            "direction": "string",
+            "strategy_name": "string",
+            "market_context": "string",
+            "proposed_lot_size": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "description": "Trading instrument (e.g. \"XAUUSD\")."
+              },
+              "direction": {
+                "type": "string",
+                "description": "Intended direction (\"long\" or \"short\")."
+              },
+              "strategy_name": {
+                "type": "string",
+                "description": "Strategy being considered (e.g. \"VolBreakout\")."
+              },
+              "context_atr_d1": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ATR(14) on D1 in dollars."
+              },
+              "context_regime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Market regime (trending_up/trending_down/ranging/volatile)."
+              },
+              "market_context": {
+                "type": "string",
+                "default": "",
+                "description": "Description of current market conditions."
+              },
+              "proposed_lot_size": {
+                "type": "number",
+                "default": 0.1,
+                "description": "Planned position size in lots (default 0.1)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:2fd24d2908d9c8baedc1ec3679655ba2a3ad2f80b37d2a36b6abb9fa0a362c5b",
+          "parameters": [
+            {
+              "name": "context_atr_d1",
+              "type": "string",
+              "description": "ATR(14) on D1 in dollars.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "context_regime",
+              "type": "string",
+              "description": "Market regime (trending_up/trending_down/ranging/volatile).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "direction",
+              "type": "string",
+              "description": "Intended direction (\"long\" or \"short\").",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "market_context",
+              "type": "string",
+              "description": "Description of current market conditions.",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "proposed_lot_size",
+              "type": "number",
+              "description": "Planned position size in lots (default 0.1).",
+              "required": false,
+              "default": 0.1,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "strategy_name",
+              "type": "string",
+              "description": "Strategy being considered (e.g. \"VolBreakout\").",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading instrument (e.g. \"XAUUSD\").",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "create_trading_plan",
+          "canonical_hash": "sha256:9021059f7abc01005abde56db86d62c41906a88689876014a931554868d3ee08",
+          "description": "Create a prospective trading plan that activates when conditions are met.\n\nStores a rule-based plan in prospective memory. The plan stays active\nuntil triggered, expired, or manually cancelled.",
+          "is_mutating": false,
+          "property_keys": [
+            "expiry_days",
+            "planned_action",
+            "priority",
+            "reasoning",
+            "trigger_condition",
+            "trigger_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "priority": "number",
+            "reasoning": "string",
+            "expiry_days": "integer",
+            "trigger_type": "string",
+            "planned_action": "string",
+            "trigger_condition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "priority": {
+                "type": "number",
+                "default": 0.5,
+                "description": "Priority 0-1, higher = checked first (default 0.5)"
+              },
+              "reasoning": {
+                "type": "string",
+                "description": "Why this plan was created"
+              },
+              "expiry_days": {
+                "type": "integer",
+                "default": 30,
+                "description": "Days until plan expires (default 30)"
+              },
+              "trigger_type": {
+                "type": "string",
+                "description": "Type of trigger (e.g. \"market_condition\", \"drawdown\", \"time_based\")"
+              },
+              "planned_action": {
+                "type": "string",
+                "description": "JSON string describing what to do (e.g. '{\"type\": \"skip_trade\"}')"
+              },
+              "trigger_condition": {
+                "type": "string",
+                "description": "JSON string describing when to trigger (e.g. '{\"regime\": \"ranging\"}')"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:f402adac73bd252bf980e825a9cf105e6076169a16c7adb815dbbdcc8dd738b1",
+          "parameters": [
+            {
+              "name": "expiry_days",
+              "type": "integer",
+              "description": "Days until plan expires (default 30)",
+              "required": false,
+              "default": 30,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "planned_action",
+              "type": "string",
+              "description": "JSON string describing what to do (e.g. '{\"type\": \"skip_trade\"}')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "priority",
+              "type": "number",
+              "description": "Priority 0-1, higher = checked first (default 0.5)",
+              "required": false,
+              "default": 0.5,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "reasoning",
+              "type": "string",
+              "description": "Why this plan was created",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "trigger_condition",
+              "type": "string",
+              "description": "JSON string describing when to trigger (e.g. '{\"regime\": \"ranging\"}')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "trigger_type",
+              "type": "string",
+              "description": "Type of trigger (e.g. \"market_condition\", \"drawdown\", \"time_based\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "evolution_discover_patterns",
+          "canonical_hash": "sha256:ba111c38e0720f23cc6ba579196941af46e8fc64b0640fe97993ce26a916f084",
+          "description": "Discover trading patterns from market data using LLM analysis.\n\nUses Claude to analyze OHLCV data and generate candidate trading patterns\nwith entry/exit conditions. Each pattern can be backtested afterward.",
+          "is_mutating": false,
+          "property_keys": [
+            "count",
+            "days",
+            "symbol",
+            "temperature",
+            "timeframe"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "integer",
+            "count": "integer",
+            "symbol": "string",
+            "timeframe": "string",
+            "temperature": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "integer",
+                "default": 90,
+                "description": "Days of history to analyze (default 90)"
+              },
+              "count": {
+                "type": "integer",
+                "default": 5,
+                "description": "Number of patterns to generate (default 5)"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Trading pair (e.g. \"BTCUSDT\")"
+              },
+              "timeframe": {
+                "type": "string",
+                "default": "1h",
+                "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\""
+              },
+              "temperature": {
+                "type": "number",
+                "default": 0.7,
+                "description": "LLM creativity 0-1 (default 0.7, higher = more diverse)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:f55e6f9aed508d662bae4e0a144a8a4d4c43cc39435748ba34df6b5db9a8710e",
+          "parameters": [
+            {
+              "name": "count",
+              "type": "integer",
+              "description": "Number of patterns to generate (default 5)",
+              "required": false,
+              "default": 5,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "days",
+              "type": "integer",
+              "description": "Days of history to analyze (default 90)",
+              "required": false,
+              "default": 90,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading pair (e.g. \"BTCUSDT\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "temperature",
+              "type": "number",
+              "description": "LLM creativity 0-1 (default 0.7, higher = more diverse)",
+              "required": false,
+              "default": 0.7,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeframe",
+              "type": "string",
+              "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\"",
+              "required": false,
+              "default": "1h",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "evolution_evolve_strategy",
+          "canonical_hash": "sha256:f7a7d8c7050b0a7cb704178ce5e19ad6475ed332ba3c70ef165f3c3eb9d9039c",
+          "description": "Run full evolution loop — generate, backtest, select, eliminate.\n\nMulti-generation strategy evolution: generates candidate patterns via LLM,\nbacktests on in-sample data, validates survivors on out-of-sample data,\neliminates weak hypotheses. Returns graduated strategies and graveyard.",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "generations",
+            "population_size",
+            "symbol",
+            "timeframe"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "integer",
+            "symbol": "string",
+            "timeframe": "string",
+            "generations": "integer",
+            "population_size": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "integer",
+                "default": 90,
+                "description": "Days of history to use (default 90)"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Trading pair (e.g. \"BTCUSDT\")"
+              },
+              "timeframe": {
+                "type": "string",
+                "default": "1h",
+                "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\""
+              },
+              "generations": {
+                "type": "integer",
+                "default": 3,
+                "description": "Number of evolution generations (default 3)"
+              },
+              "population_size": {
+                "type": "integer",
+                "default": 10,
+                "description": "Hypotheses per generation (default 10)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:701130d8dc6e4aee5c86f4f58307dd9b5d33f88df6d2762ba4b0c01405c67de4",
+          "parameters": [
+            {
+              "name": "days",
+              "type": "integer",
+              "description": "Days of history to use (default 90)",
+              "required": false,
+              "default": 90,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "generations",
+              "type": "integer",
+              "description": "Number of evolution generations (default 3)",
+              "required": false,
+              "default": 3,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "population_size",
+              "type": "integer",
+              "description": "Hypotheses per generation (default 10)",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading pair (e.g. \"BTCUSDT\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeframe",
+              "type": "string",
+              "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\"",
+              "required": false,
+              "default": "1h",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "evolution_fetch_market_data",
+          "canonical_hash": "sha256:da3f56beded0e6b6e905c610d6d40e9a66a9c39c83e5388b0fb9b7e3d7773203",
+          "description": "Fetch OHLCV market data from Binance for evolution analysis.\n\nDownloads historical price bars for backtesting and pattern discovery.\nUse this before discover_patterns or run_backtest to get data.",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "symbol",
+            "timeframe"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "integer",
+            "symbol": "string",
+            "timeframe": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "integer",
+                "default": 90,
+                "description": "Number of days of history to fetch (default 90)"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Trading pair (e.g. \"BTCUSDT\", \"ETHUSDT\")"
+              },
+              "timeframe": {
+                "type": "string",
+                "default": "1h",
+                "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\""
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:d43bd9f73a017405df9d8dab3e89a8450cd030af63b48b38bd5c68738b620341",
+          "parameters": [
+            {
+              "name": "days",
+              "type": "integer",
+              "description": "Number of days of history to fetch (default 90)",
+              "required": false,
+              "default": 90,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading pair (e.g. \"BTCUSDT\", \"ETHUSDT\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeframe",
+              "type": "string",
+              "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\"",
+              "required": false,
+              "default": "1h",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "evolution_get_log",
+          "canonical_hash": "sha256:b4115d32dd3ee7f2bb0bb01f49c727372b7b3e03495bdbb04413a3dbf19c77f8",
+          "description": "Get the log of past evolution runs from this session.\n\nReturns a list of all evolution runs with their results, including\ngraduated strategies, graveyard, token usage, and backtest counts.\nData is in-memory (resets on server restart).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:ec35435457a2f6e4ee4149e881cd8fcd7947a4cdead2749fb8ee15134e97220d",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "evolution_run_backtest",
+          "canonical_hash": "sha256:ace273f86a2c888e7735fecdff9c08b894872fac96ecb3be224d37155bb5c7ea",
+          "description": "Backtest a candidate pattern against historical OHLCV data.\n\nTakes a pattern dict (from discover_patterns) and runs a vectorized\nbacktest. Returns fitness metrics: Sharpe ratio, win rate, trade count,\nmax drawdown, total PnL.",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "pattern_dict",
+            "symbol",
+            "timeframe"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "integer",
+            "symbol": "string",
+            "timeframe": "string",
+            "pattern_dict": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "integer",
+                "default": 90,
+                "description": "Days of history to backtest against (default 90)"
+              },
+              "symbol": {
+                "type": "string",
+                "default": "BTCUSDT",
+                "description": "Trading pair (e.g. \"BTCUSDT\")"
+              },
+              "timeframe": {
+                "type": "string",
+                "default": "1h",
+                "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\""
+              },
+              "pattern_dict": {
+                "type": "object",
+                "description": "CandidatePattern as dict (from discover_patterns output)",
+                "additionalProperties": true
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:b16ce21c618cc3313434e8cd9dc3f16d6274cb10cc0c61804b00adc1df4175eb",
+          "parameters": [
+            {
+              "name": "days",
+              "type": "integer",
+              "description": "Days of history to backtest against (default 90)",
+              "required": false,
+              "default": 90,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pattern_dict",
+              "type": "object",
+              "description": "CandidatePattern as dict (from discover_patterns output)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading pair (e.g. \"BTCUSDT\")",
+              "required": false,
+              "default": "BTCUSDT",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeframe",
+              "type": "string",
+              "description": "Bar timeframe — \"5m\", \"15m\", \"1h\", \"4h\", \"1d\"",
+              "required": false,
+              "default": "1h",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "export_audit_trail",
+          "canonical_hash": "sha256:54640aa88fa6c9f2eb9b2f125a4b75a38640dc18f218762ab86a9bfb2d0b3fd5",
+          "description": "Export Trading Decision Records for audit and compliance review.\n\nProvides a complete, tamper-evident record of trading decisions including\nthe memory context (similar trades, beliefs) that informed each decision.",
+          "is_mutating": false,
+          "property_keys": [
+            "end",
+            "limit",
+            "start",
+            "strategy",
+            "trade_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "end": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "End date (ISO format, exclusive). E.g., \"2026-04-01\"."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 50,
+                "description": "Maximum records to return (default 50)."
+              },
+              "start": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Start date (ISO format, inclusive). E.g., \"2026-03-01\"."
+              },
+              "strategy": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter by strategy name (e.g., \"VolBreakout\")."
+              },
+              "trade_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Get a single TDR by trade ID (e.g., \"MT5-7047640363\").\nIf provided, other filters are ignored."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:c1482cfd9906c59c0fe74fa4a699b9f44c3aba9abbd513d2ba2a56d3d0f26a07",
+          "parameters": [
+            {
+              "name": "end",
+              "type": "string",
+              "description": "End date (ISO format, exclusive). E.g., \"2026-04-01\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum records to return (default 50).",
+              "required": false,
+              "default": 50,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "Start date (ISO format, inclusive). E.g., \"2026-03-01\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "strategy",
+              "type": "string",
+              "description": "Filter by strategy name (e.g., \"VolBreakout\").",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "trade_id",
+              "type": "string",
+              "description": "Get a single TDR by trade ID (e.g., \"MT5-7047640363\").\nIf provided, other filters are ignored.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_agent_state",
+          "canonical_hash": "sha256:985ba41fa95f594977cf4e8e8595f919289bc48af39aa8df8f86f5681cbaa678",
+          "description": "Get the current agent affective state (confidence, risk, drawdown).\n\nReturns confidence level, risk appetite, drawdown percentage,\nwin/loss streaks, equity tracking, and a recommended action\nbased on current drawdown severity.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:b67a5b7981858cde86d6fea618c99ab00f637c761e490a28867c655aa45ee7f0",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_behavioral_analysis",
+          "canonical_hash": "sha256:0687888738178dfb0df0da864711c8e5f35842bbb0ae1971c8f4f75f4d9cd26d",
+          "description": "Get behavioral analysis from procedural memory.\n\nReturns aggregate trading behavior stats: hold times, disposition ratio,\nlot sizing variance, and Kelly criterion comparison.",
+          "is_mutating": false,
+          "property_keys": [
+            "strategy_name",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter by symbol. Returns all if omitted."
+              },
+              "strategy_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter by strategy name. Returns all if omitted."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:dc9f6d2c03b29d60fb452e4c3ce9fbb84b58edbf9e560943282f1dbe32981731",
+          "parameters": [
+            {
+              "name": "strategy_name",
+              "type": "string",
+              "description": "Filter by strategy name. Returns all if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Filter by symbol. Returns all if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_daily_root",
+          "canonical_hash": "sha256:d873899a31d48746a88c36ba2a073e574a46728603f01509cd598982a5ad586f",
+          "description": "Get (or rebuild) the daily Merkle root for a UTC date.\n\nThe Merkle root summarises every audit_chain entry whose `chained_at`\nfalls inside the UTC day. Verifying this single 32-byte root proves\nthe integrity of every TDR for that day without re-walking each one.",
+          "is_mutating": false,
+          "property_keys": [
+            "date",
+            "include_token",
+            "rebuild",
+            "request_tsa"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "date": "string",
+            "rebuild": "boolean",
+            "include_token": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "description": "Date in YYYY-MM-DD format (or full ISO datetime)."
+              },
+              "rebuild": {
+                "type": "boolean",
+                "default": false,
+                "description": "If True, recompute and overwrite the stored root."
+              },
+              "request_tsa": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Whether to submit the rebuilt root to the configured\nRFC 3161 TSA (default freetsa.org) and store the returned\nTimeStampToken. None (default) follows the TRADEMEMORY_TSA env\nsetting — ON unless set to \"off\". TSA failures are logged but\ndo not abort the rebuild."
+              },
+              "include_token": {
+                "type": "boolean",
+                "default": false,
+                "description": "If True, include a base64-encoded `tsa_token`\nin the response (default False — the token can be large)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:08ae67afec56b3035669c04a2ef96e15f64bd582a8e88157975464bc0225b3a7",
+          "parameters": [
+            {
+              "name": "date",
+              "type": "string",
+              "description": "Date in YYYY-MM-DD format (or full ISO datetime).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "include_token",
+              "type": "boolean",
+              "description": "If True, include a base64-encoded `tsa_token`\nin the response (default False — the token can be large).",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "rebuild",
+              "type": "boolean",
+              "description": "If True, recompute and overwrite the stored root.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "request_tsa",
+              "type": "string",
+              "description": "Whether to submit the rebuilt root to the configured\nRFC 3161 TSA (default freetsa.org) and store the returned\nTimeStampToken. None (default) follows the TRADEMEMORY_TSA env\nsetting — ON unless set to \"off\". TSA failures are logged but\ndo not abort the rebuild.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_strategy_performance",
+          "canonical_hash": "sha256:a710433f91cfcb5fa2295abe94de1a449bfa0b71b434ebe70bbbb8980391129c",
+          "description": "Get aggregate performance stats per strategy.\n\nUse this to evaluate which strategies are working and which need adjustment.",
+          "is_mutating": false,
+          "property_keys": [
+            "strategy_name",
+            "symbol"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter by symbol. Returns all symbols if omitted."
+              },
+              "strategy_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Filter by strategy name. Returns all strategies if omitted."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:b352c686d7b2ff4150ee3df999dbbb76071c74ffb2a3e7bc3b7865f5b92e3941",
+          "parameters": [
+            {
+              "name": "strategy_name",
+              "type": "string",
+              "description": "Filter by strategy name. Returns all strategies if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Filter by symbol. Returns all symbols if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_trade_reflection",
+          "canonical_hash": "sha256:3ebf378f8f1873e26f49f6a419e964abbe52019aa20eb4356885477b37d12e8d",
+          "description": "Get the full context and reflection for a specific trade.\n\nUse this to deep-dive into a particular trade's reasoning and lessons.",
+          "is_mutating": false,
+          "property_keys": [
+            "trade_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "trade_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "trade_id": {
+                "type": "string",
+                "description": "The trade ID to look up"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:041d1b5bdcf42afc4aadc09fa87001ad27200f474d6cda10713903bf1dd581b5",
+          "parameters": [
+            {
+              "name": "trade_id",
+              "type": "string",
+              "description": "The trade ID to look up",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "recall_memories",
+          "canonical_hash": "sha256:abc0bf3d07a595ee37931d8053c4e1f0bc82594e10cbae1f19646a158f675ce1",
+          "description": "Recall memories using OWM outcome-weighted scoring.\n\nQueries episodic and semantic memories, scores them by outcome quality,\ncontext similarity, recency, confidence, and affective modulation.\nReturns ranked memories with score breakdown.",
+          "is_mutating": false,
+          "property_keys": [
+            "context_atr_d1",
+            "context_regime",
+            "hybrid_alpha",
+            "limit",
+            "market_context",
+            "memory_types",
+            "strategy_name",
+            "symbol",
+            "use_hybrid"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "symbol": "string",
+            "use_hybrid": "boolean",
+            "hybrid_alpha": "number",
+            "market_context": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max results (default 10)"
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Trading instrument (e.g. \"XAUUSD\")"
+              },
+              "use_hybrid": {
+                "type": "boolean",
+                "default": true,
+                "description": "If True (default), enable vector + OWM hybrid scoring when\nan embedding backend is available. Falls back to pure OWM silently\nwhen sentence-transformers is not installed."
+              },
+              "hybrid_alpha": {
+                "type": "number",
+                "default": 0.3,
+                "description": "Vector vs OWM blend weight [0..1] when hybrid is active.\n0.0 = pure OWM, 1.0 = pure vector. Default 0.3 (OWM-dominant)."
+              },
+              "memory_types": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Types to query (default: [\"episodic\", \"semantic\"])"
+              },
+              "strategy_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional strategy filter"
+              },
+              "context_atr_d1": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Current ATR(14) on D1 in dollars"
+              },
+              "context_regime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Current market regime (trending_up/trending_down/ranging/volatile)"
+              },
+              "market_context": {
+                "type": "string",
+                "description": "Current market conditions to match against"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:3f0fc7559f8c9944efef843f92d5db99ca985725881db85c6a1da8bb261cc1ae",
+          "parameters": [
+            {
+              "name": "context_atr_d1",
+              "type": "string",
+              "description": "Current ATR(14) on D1 in dollars",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "context_regime",
+              "type": "string",
+              "description": "Current market regime (trending_up/trending_down/ranging/volatile)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hybrid_alpha",
+              "type": "number",
+              "description": "Vector vs OWM blend weight [0..1] when hybrid is active.\n0.0 = pure OWM, 1.0 = pure vector. Default 0.3 (OWM-dominant).",
+              "required": false,
+              "default": 0.3,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max results (default 10)",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "market_context",
+              "type": "string",
+              "description": "Current market conditions to match against",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "memory_types",
+              "type": "string",
+              "description": "Types to query (default: [\"episodic\", \"semantic\"])",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "strategy_name",
+              "type": "string",
+              "description": "Optional strategy filter",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading instrument (e.g. \"XAUUSD\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "use_hybrid",
+              "type": "boolean",
+              "description": "If True (default), enable vector + OWM hybrid scoring when\nan embedding backend is available. Falls back to pure OWM silently\nwhen sentence-transformers is not installed.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "remember_trade",
+          "canonical_hash": "sha256:f0d88df795cb741878305b9b3bba7c68a55ea0da4c501da6aaeea1d2c7a4872c",
+          "description": "Store a trade into OWM multi-layer memory with automatic updates.\n\nWrites to episodic memory and automatically updates semantic (Bayesian),\nprocedural (running averages + hold time + Kelly), and affective\n(EWMA confidence/streaks). Also writes to trade_records for backward\ncompatibility.",
+          "is_mutating": false,
+          "property_keys": [
+            "confidence",
+            "context_atr_d1",
+            "context_regime",
+            "direction",
+            "entry_price",
+            "entry_timestamp",
+            "exit_price",
+            "exit_timestamp",
+            "market_context",
+            "max_adverse_excursion",
+            "pnl",
+            "pnl_r",
+            "reflection",
+            "strategy_name",
+            "symbol",
+            "timestamp",
+            "trade_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pnl": "number",
+            "symbol": "string",
+            "direction": "string",
+            "confidence": "number",
+            "exit_price": "number",
+            "entry_price": "number",
+            "strategy_name": "string",
+            "market_context": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pnl": {
+                "type": "number",
+                "description": "Profit/loss in account currency"
+              },
+              "pnl_r": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "P&L as R-multiple (risk units). Improves OWM scoring quality."
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Trading instrument (e.g. \"XAUUSD\")"
+              },
+              "trade_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Optional custom ID. Auto-generated if omitted."
+              },
+              "direction": {
+                "type": "string",
+                "description": "\"long\" or \"short\""
+              },
+              "timestamp": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ISO format timestamp. Defaults to now (UTC)."
+              },
+              "confidence": {
+                "type": "number",
+                "default": 0.5,
+                "description": "Agent confidence level 0-1 (default 0.5)"
+              },
+              "exit_price": {
+                "type": "number",
+                "description": "Exit price of the trade"
+              },
+              "reflection": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Lessons learned from this trade"
+              },
+              "entry_price": {
+                "type": "number",
+                "description": "Entry price of the trade"
+              },
+              "strategy_name": {
+                "type": "string",
+                "description": "Strategy used (e.g. \"VolBreakout\")"
+              },
+              "context_atr_d1": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ATR(14) on D1 in dollars"
+              },
+              "context_regime": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Market regime (trending_up/trending_down/ranging/volatile)"
+              },
+              "exit_timestamp": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ISO format exit time. Used to compute hold duration."
+              },
+              "market_context": {
+                "type": "string",
+                "description": "Description of market conditions"
+              },
+              "entry_timestamp": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "ISO format entry time. Used to compute hold duration."
+              },
+              "max_adverse_excursion": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Maximum adverse excursion during the trade"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:e1ac1fcd4e7997699e5e229bb96eae57bbdbf18394690d39248409c3308d3bcb",
+          "parameters": [
+            {
+              "name": "confidence",
+              "type": "number",
+              "description": "Agent confidence level 0-1 (default 0.5)",
+              "required": false,
+              "default": 0.5,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "context_atr_d1",
+              "type": "string",
+              "description": "ATR(14) on D1 in dollars",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "context_regime",
+              "type": "string",
+              "description": "Market regime (trending_up/trending_down/ranging/volatile)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "direction",
+              "type": "string",
+              "description": "\"long\" or \"short\"",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "entry_price",
+              "type": "number",
+              "description": "Entry price of the trade",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "entry_timestamp",
+              "type": "string",
+              "description": "ISO format entry time. Used to compute hold duration.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "exit_price",
+              "type": "number",
+              "description": "Exit price of the trade",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "exit_timestamp",
+              "type": "string",
+              "description": "ISO format exit time. Used to compute hold duration.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "market_context",
+              "type": "string",
+              "description": "Description of market conditions",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_adverse_excursion",
+              "type": "string",
+              "description": "Maximum adverse excursion during the trade",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pnl",
+              "type": "number",
+              "description": "Profit/loss in account currency",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pnl_r",
+              "type": "string",
+              "description": "P&L as R-multiple (risk units). Improves OWM scoring quality.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "reflection",
+              "type": "string",
+              "description": "Lessons learned from this trade",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "strategy_name",
+              "type": "string",
+              "description": "Strategy used (e.g. \"VolBreakout\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "symbol",
+              "type": "string",
+              "description": "Trading instrument (e.g. \"XAUUSD\")",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timestamp",
+              "type": "string",
+              "description": "ISO format timestamp. Defaults to now (UTC).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "trade_id",
+              "type": "string",
+              "description": "Optional custom ID. Auto-generated if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "validate_strategy",
+          "canonical_hash": "sha256:17addd960d920131cddc8857bab533c92937d3f4b1bfb14b67ea25d752e364ac",
+          "description": "Validate a trading strategy using statistical tests (DSR + Walk-Forward + Regime + CPCV).\n\nFor educational and research purposes only. Not financial advice.\n\nUpload a trade log CSV (QuantConnect format) or daily returns CSV.\nThe tool runs four statistical tests:\n1. Deflated Sharpe Ratio (DSR) — detects overfitting from multiple testing\n2. Walk-Forward Validation — checks out-of-sample consistency\n3. Regime Analysis — performance across bull/bear/crisis markets\n4. CPCV — cross-validated Sharpe stability across time periods",
+          "is_mutating": false,
+          "property_keys": [
+            "file_path",
+            "format",
+            "num_strategies",
+            "strategy_name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "format": "string",
+            "file_path": "string",
+            "strategy_name": "string",
+            "num_strategies": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string",
+                "default": "quantconnect",
+                "description": "CSV format — \"quantconnect\" for trade logs (columns: Entry Time, Exit Time,\n    Direction, Entry Price, Exit Price, Quantity, P&L, Fees, IsWin) or\n    \"returns\" for daily returns (columns: date,return or single column of returns)."
+              },
+              "file_path": {
+                "type": "string",
+                "description": "Absolute path to the CSV file on your local machine."
+              },
+              "strategy_name": {
+                "type": "string",
+                "default": "",
+                "description": "Name of the strategy (for the report)."
+              },
+              "num_strategies": {
+                "type": "integer",
+                "default": 1,
+                "description": "How many strategies you tested before picking this one.\n            Higher M = stricter DSR threshold (corrects for selection bias)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:bee02e1d9541385124424e2a1f3f79a836d1e6248eacc6ce44df096dfa5075fc",
+          "parameters": [
+            {
+              "name": "file_path",
+              "type": "string",
+              "description": "Absolute path to the CSV file on your local machine.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "format",
+              "type": "string",
+              "description": "CSV format — \"quantconnect\" for trade logs (columns: Entry Time, Exit Time,\n    Direction, Entry Price, Exit Price, Quantity, P&L, Fees, IsWin) or\n    \"returns\" for daily returns (columns: date,return or single column of returns).",
+              "required": false,
+              "default": "quantconnect",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "num_strategies",
+              "type": "integer",
+              "description": "How many strategies you tested before picking this one.\n            Higher M = stricter DSR threshold (corrects for selection bias).",
+              "required": false,
+              "default": 1,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "strategy_name",
+              "type": "string",
+              "description": "Name of the strategy (for the report).",
+              "required": false,
+              "default": "",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "verify_audit_chain",
+          "canonical_hash": "sha256:af6f1eff9d5b014940e33a935829cedeb326d54313525da3f0be4238315878d5",
+          "description": "Verify the integrity of the audit chain.\n\nWalks the chain from `from_seq` (default: 1, the genesis record) to\n`to_seq` (default: latest), checking that every record's `prev_hash`\nmatches the previous record's `data_hash`, and that each `data_hash`\nequals SHA256(prev_hash || content_hash).\n\nReturns a dict with `verified`, `checked_count`, `first_break_at`,\n`reason`. A `first_break_at` of None with `verified=True` means the\nchain is intact across the verified range.",
+          "is_mutating": false,
+          "property_keys": [
+            "from_seq",
+            "to_seq"
+          ],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to_seq": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Ending sequence_num (inclusive). None = through latest."
+              },
+              "from_seq": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Starting sequence_num (inclusive). None = from beginning."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:8f5584b50406430dacc71d2ab3dde1914392609699caf2f5b0b784181d4cd3be",
+          "parameters": [
+            {
+              "name": "from_seq",
+              "type": "string",
+              "description": "Starting sequence_num (inclusive). None = from beginning.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "to_seq",
+              "type": "string",
+              "description": "Ending sequence_num (inclusive). None = through latest.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "verify_audit_hash",
+          "canonical_hash": "sha256:815fabe264273348309c7ef7cce0c87b5db905907cd63fdcc126a83bc98da8fc",
+          "description": "Verify the integrity of a Trading Decision Record.\n\nRecomputes the SHA256 data_hash from stored inputs and compares with\nthe hash computed at decision time. A mismatch indicates tampering.",
+          "is_mutating": false,
+          "property_keys": [
+            "trade_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "trade_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "trade_id": {
+                "type": "string",
+                "description": "Trade ID to verify (e.g., \"MT5-7047640363\")."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "description_hash": "sha256:d42f79521e8b974930bcdee6f5caad9e7fd1a11fb4debdd24f08da8a123ee872",
+          "parameters": [
+            {
+              "name": "trade_id",
+              "type": "string",
+              "description": "Trade ID to verify (e.g., \"MT5-7047640363\").",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

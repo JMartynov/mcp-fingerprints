@@ -4,17 +4,18 @@
   "purl": "pkg:generic/mnemoverse%2Fmcp-memory-server",
   "ecosystem": "generic",
   "display_name": "mnemoverse/mcp-memory-server",
-  "description": "Hosted memory for AI agents that learns and forgets \u2014 one key across Claude, Cursor & ChatGPT.",
-  "repository_url": "https://github.com/mnemoverse/mcp-memory-server",
+  "description": "Persistent memory for AI agents across sessions and tools. Save a preference, decision, or lesson in Claude Code and recall it in Cursor, VS Code, or another connected MCP client. Feedback re-ranks memories based on what helped or misled; shared rooms let people and their assistants work from the same context.\n\nConnect the hosted endpoint https://mcp.mnemoverse.com/mcp with OAuth. A free Mnemoverse account is required. The 11 tools cover writing, search, recent memories, feedback, statistics, association graphs, shared rooms, and Vault alias/purpose listing; secret values are never returned by the Vault tool.\n\nThe MCP client is MIT-licensed and available as @mnemoverse/mcp-memory-server on npm. Mnemoverse hosts the memory service. Setup: https://mnemoverse.com/docs/api/remote-mcp-server",
+  "author": null,
+  "repository_url": "https://mcp-memory-server--mnemoverse.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "Mnemoverse Memory",
     "mnemoverse/mcp-memory-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -35,9 +36,1294 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:dd65a3fd388266044f0bc259f00ef8b0c4df87ffdc02ce14daee8df5b1e56924",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://mcp-memory-server--mnemoverse.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "memory_create_room",
+          "canonical_hash": "sha256:75b1a7c78c8e0e4fcdb11eaebea1adc34374777f7d2956516f8be1afbed83d72",
+          "description": "Create a SHARED memory room — a space OTHER people's assistants can read, and write too when their invite granted read_write (the default scope), across Claude/ChatGPT/Cursor. Use when the user wants to share context or collaborate with someone else (e.g. 'make a room for me and my teammate'). Returns the room's address; pass that address as the `domain` on memory_write/memory_read to use it, and on memory_list_recent to catch up on what others added. People join through an invite minted with memory_invite_to_room.",
+          "is_mutating": false,
+          "property_keys": [
+            "description",
+            "name"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "name": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "Room name, unique within your account (e.g. 'launch-team')."
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "description": "Optional description of the room."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The room name as stored."
+              },
+              "address": {
+                "type": "string",
+                "description": "Domain address (xroom:<id>); pass as `domain` on read/write."
+              },
+              "room_id": {
+                "type": "string",
+                "description": "The room's id (room_...); pass to memory_invite_to_room."
+              }
+            },
+            "required": [
+              "room_id",
+              "address"
+            ]
+          },
+          "description_hash": "sha256:d86fc8528e42f20019a467ee63bd3c3e183b0c2c268e3f6922a71e9ecbece725",
+          "parameters": [
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Optional description of the room.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Room name, unique within your account (e.g. 'launch-team').",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "memory_feedback",
+          "canonical_hash": "sha256:52cad8ddddd641007b7d38542b3f03c2f969df53f83153d8caeb4d79b3b720b2",
+          "description": "Report whether memories returned by memory_read were actually helpful. This is a learning signal, not a log: positive feedback raises a memory's ranking so it surfaces faster next time (across all of the user's tools), negative feedback lowers it so other memories out-rank it — nothing is erased and nothing decays with time. Use it after an answer that relied on or rejected memories from memory_read: pass the ids of those memories as memory_ids, with outcome 1 when they helped and -1 when they were wrong or stale. For memories read from a shared room, also pass that room's address as domain; your own memories need no domain. A read-only room member cannot rate the room's memories.",
+          "is_mutating": false,
+          "property_keys": [
+            "domain",
+            "memory_ids",
+            "outcome"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "domain": "string",
+            "outcome": "number",
+            "memory_ids": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "Only for memories read from a shared room: that room's address (xroom:...), exactly as you read it. Omit it for your own memories, which are rated by id alone."
+              },
+              "outcome": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": -1,
+                "description": "How helpful was this? 1.0 = very helpful, 0 = neutral, -1.0 = harmful/wrong"
+              },
+              "memory_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "IDs of the memories to rate, the `id:` line of each memory_read result."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "avg_valence": {
+                "type": "number",
+                "description": "Average valence of the rated memories after the update. Reported as 0 in an asynchronous acknowledgement, where the real value is computed later — a 0 here is therefore not evidence of a neutral outcome."
+              },
+              "updated_count": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "How many memories the service reports it applied the rating to. Processed synchronously this is the real count of memories that existed and were updated; processed asynchronously it is a best-effort ACCEPTED-count estimate — the number of IDs submitted — and the authoritative number is not known until the background worker runs. Zero means no submitted ID matched in the service's resolved request scope."
+              },
+              "coactivation_edges": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of links between query concepts and result concepts that this rating changed. This connector does not send query_concepts, so live calls through this tool report 0; asynchronous acknowledgements also report 0."
+              }
+            },
+            "required": [
+              "updated_count"
+            ]
+          },
+          "description_hash": "sha256:9a81a22fd50d49b822eb3bb05bb59f85e920a5de2a6196372488e64e913bd6e6",
+          "parameters": [
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Only for memories read from a shared room: that room's address (xroom:...), exactly as you read it. Omit it for your own memories, which are rated by id alone.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "memory_ids",
+              "type": "array",
+              "description": "IDs of the memories to rate, the `id:` line of each memory_read result.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "outcome",
+              "type": "number",
+              "description": "How helpful was this? 1.0 = very helpful, 0 = neutral, -1.0 = harmful/wrong",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "memory_graph",
+          "canonical_hash": "sha256:93ed8554be10b0c0945bbad6f7a69840b98628469dd4fa2f4520356ac6a7f6a0",
+          "description": "Reads the association edges around given concepts: which concepts the memory has linked together, with each link's weight, outcome valence and co-activation count. Use to inspect what a memory store has learned or to explain why a read expanded to a concept. Reads your own graph, or a shared room's when its address is passed as domain; any other domain value has no effect. At depth 2 or 3 the engine drops edges below weight 0.05 unless min_weight is set. Read-only.",
+          "is_mutating": false,
+          "property_keys": [
+            "depth",
+            "domain",
+            "limit",
+            "min_weight",
+            "seeds"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "depth": "integer",
+            "limit": "integer",
+            "seeds": "array",
+            "domain": "string",
+            "min_weight": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "depth": {
+                "type": "integer",
+                "maximum": 3,
+                "minimum": 1,
+                "description": "Hops to expand from the seeds (1-3, default 1). At depth 2 or 3, if min_weight is omitted the engine floors edge weight at 0.05 at EVERY hop — including the first — so a hub concept cannot fan out across the whole store before limit applies; pass min_weight explicitly (0 included) to see every edge anyway."
+              },
+              "limit": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Max edges to return (1-500, default 100 — mirrors memory_read's top_k bounds)."
+              },
+              "seeds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "description": "Concepts to center the graph on (1-20, each ≤200 chars, non-blank) — e.g. ['deploy', 'staging']. An unrecognised concept simply contributes no edges; it is not an error."
+              },
+              "domain": {
+                "type": "string",
+                "description": "Read a shared room's graph instead of your own: pass that room's address (e.g. 'xroom:room_01ABC'). Find room addresses with memory_list_rooms. Unlike memory_read, any OTHER value has no effect here — the association store has no domain column, so a plain domain name behaves exactly like omitting this field."
+              },
+              "min_weight": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Only include edges at or above this weight (≥ 0). Omit for no floor at depth 1; at depth 2/3 the engine applies its own 0.05 floor when this is omitted (see depth) — pass 0 to see every edge at every depth."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "edges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "target",
+                    "weight",
+                    "valence",
+                    "count",
+                    "updated_at"
+                  ],
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Co-activation count."
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "One side of the edge (storage order, not learn order)."
+                    },
+                    "target": {
+                      "type": "string",
+                      "description": "The other side of the edge (storage order, not learn order)."
+                    },
+                    "weight": {
+                      "type": "number",
+                      "description": "Co-activation strength, 0 and up."
+                    },
+                    "valence": {
+                      "type": "number",
+                      "description": "Outcome polarity, -1 to 1."
+                    },
+                    "updated_at": {
+                      "type": "string",
+                      "description": "UTC instant this edge was last reinforced."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Association edges found within the requested depth."
+              },
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "concept",
+                    "degree"
+                  ],
+                  "properties": {
+                    "degree": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Edges in THIS response touching this concept — not its total degree across the whole store, which limit/truncated may cut short."
+                    },
+                    "concept": {
+                      "type": "string",
+                      "description": "The concept name."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Concepts touched by edges below. A seed with no surviving edge (unrecognised concept, or every edge fell below the weight floor) is not listed."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "True when a per-hop server cap or limit cut the walk short — the store may hold more edges than are reported here."
+              },
+              "min_weight_applied": {
+                "type": "number",
+                "description": "The weight floor actually used at every hop: your min_weight when you set one (0 included); otherwise 0.05 from depth 2, or 0 at depth 1."
+              }
+            },
+            "required": [
+              "nodes",
+              "edges",
+              "truncated",
+              "min_weight_applied"
+            ]
+          },
+          "description_hash": "sha256:33cb1549999d6487f205b21fd4edf756d38354a405134865c6eee58caba34775",
+          "parameters": [
+            {
+              "name": "depth",
+              "type": "integer",
+              "description": "Hops to expand from the seeds (1-3, default 1). At depth 2 or 3, if min_weight is omitted the engine floors edge weight at 0.05 at EVERY hop — including the first — so a hub concept cannot fan out across the whole store before limit applies; pass min_weight explicitly (0 included) to see every edge anyway.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Read a shared room's graph instead of your own: pass that room's address (e.g. 'xroom:room_01ABC'). Find room addresses with memory_list_rooms. Unlike memory_read, any OTHER value has no effect here — the association store has no domain column, so a plain domain name behaves exactly like omitting this field.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max edges to return (1-500, default 100 — mirrors memory_read's top_k bounds).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_weight",
+              "type": "number",
+              "description": "Only include edges at or above this weight (≥ 0). Omit for no floor at depth 1; at depth 2/3 the engine applies its own 0.05 floor when this is omitted (see depth) — pass 0 to see every edge at every depth.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "seeds",
+              "type": "array",
+              "description": "Concepts to center the graph on (1-20, each ≤200 chars, non-blank) — e.g. ['deploy', 'staging']. An unrecognised concept simply contributes no edges; it is not an error.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "memory_invite_to_room",
+          "canonical_hash": "sha256:767a3b764929e0ff45d985b69d47c7377247a486630882db611e2ecc719e85a9",
+          "description": "Mint an invite for a room you own and get a ready-to-forward message. An invite is single-use by default; pass max_uses to let several people join with the same one. The user sends that message to the person they want to add (any messenger); the recipient opens the link or tells THEIR assistant the code to join. Use when the user asks to invite someone to a room they own, including one just created with memory_create_room.",
+          "is_mutating": false,
+          "property_keys": [
+            "expires_in_days",
+            "max_uses",
+            "room_id",
+            "scope"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "scope": "string",
+            "room_id": "string",
+            "max_uses": "integer",
+            "expires_in_days": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "enum": [
+                  "read",
+                  "read_write"
+                ],
+                "type": "string",
+                "description": "Role the invitee gets — 'read' or 'read_write' (default read_write)."
+              },
+              "room_id": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1,
+                "description": "The room's id (room_...), from memory_create_room."
+              },
+              "max_uses": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "How many people may join with this invite (default 1, single-use)."
+              },
+              "expires_in_days": {
+                "type": "integer",
+                "maximum": 90,
+                "minimum": 1,
+                "description": "Days until the invite expires (default 7)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "The invite code (mnvr_...). Single-use by default, with a configurable use limit. Shown once."
+              },
+              "scope": {
+                "type": "string",
+                "description": "Role the invitee will get."
+              },
+              "join_url": {
+                "type": "string",
+                "description": "Landing URL the invitee can open to join."
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601 expiry, or null."
+              },
+              "room_address": {
+                "type": "string",
+                "description": "The room's domain address (xroom:<id>)."
+              },
+              "share_message": {
+                "type": "string",
+                "description": "Ready-to-forward invite text."
+              }
+            },
+            "required": [
+              "share_message"
+            ]
+          },
+          "description_hash": "sha256:a575e78864183284fde51983ecf5df1e9971bec98a4d372448f58d4f623ecb1e",
+          "parameters": [
+            {
+              "name": "expires_in_days",
+              "type": "integer",
+              "description": "Days until the invite expires (default 7).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_uses",
+              "type": "integer",
+              "description": "How many people may join with this invite (default 1, single-use).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "room_id",
+              "type": "string",
+              "description": "The room's id (room_...), from memory_create_room.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "scope",
+              "type": "string",
+              "description": "Role the invitee gets — 'read' or 'read_write' (default read_write).",
+              "required": false,
+              "default": null,
+              "enum": [
+                "read",
+                "read_write"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "memory_join_room",
+          "canonical_hash": "sha256:de9a34b00a07e2729a35ace2019b7c04e37457708009dad821d3d9d3af8cb856",
+          "description": "Join a shared memory room using an invite code (starts with 'mnvr_'). Use when the user pastes an invite code or says something like 'join room with code ...'. The result gives the room's address, which is the `domain` for reading the shared room with memory_read, and tells you what you may do with it: memory_write to that address is only allowed when your membership scope is read_write; a read-only membership has that write refused; and when the server does not report a scope, whether memory_write would succeed is stated as unknown rather than promised either way.",
+          "is_mutating": false,
+          "property_keys": [
+            "code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "The invite code (mnvr_...)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The room name."
+              },
+              "scope": {
+                "type": "string",
+                "description": "Your role in the room ('read' | 'read_write')."
+              },
+              "address": {
+                "type": "string",
+                "description": "Domain address (xroom:<id>); pass as `domain` on read/write."
+              },
+              "room_id": {
+                "type": "string",
+                "description": "The room's id (room_...)."
+              },
+              "next_steps": {
+                "type": "string",
+                "description": "How to use the room now."
+              },
+              "already_member": {
+                "type": "boolean",
+                "description": "True if you were already a member (no-op join)."
+              }
+            },
+            "required": [
+              "room_id",
+              "address",
+              "next_steps"
+            ]
+          },
+          "description_hash": "sha256:5af61bec62577b36f3e208c5b428bd047c2601d14d57d054efd7a0dff8284efe",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": "The invite code (mnvr_...).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "memory_list_recent",
+          "canonical_hash": "sha256:26fa6cbc820226eb65aea1a7d142e76a4d4d0afa7f250634e95ea819e5b3358a",
+          "description": "List the NEWEST memories first — no search query needed. Semantic search answers 'what do I know about X'; this answers 'what happened lately': resuming work after a break, catching up on a shared room ('any new messages?'), or reviewing what was saved recently. Pass `since` (your last-seen time) to get only what's new, and page through older entries with the returned cursor. Complete by construction WITHIN ONE SCOPE — nothing is skipped there, unlike a semantic search. A page is also bounded by SIZE, so a page of long entries comes back shorter than `limit` and hands you a cursor for the rest — nothing is dropped, and following the cursor is how you get it. To catch up on a shared room you MUST pass its address as `domain`: rooms are separate stores and an unscoped call never covers them.",
+          "is_mutating": false,
+          "property_keys": [
+            "cursor",
+            "domain",
+            "exclude_author",
+            "limit",
+            "since",
+            "until"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "since": "string",
+            "until": "string",
+            "cursor": "string",
+            "domain": "string",
+            "exclude_author": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Most entries per page (default: 20). Newest first. ⚠️ A CEILING, not a promise: the page is ALSO bounded by size, so a page of long entries stops early and returns a cursor for the rest. In rooms whose entries run long, ask for 5–10 — a large `limit` there buys nothing the size budget will not take back, and costs round trips."
+              },
+              "since": {
+                "type": "string",
+                "description": "Only entries created at/after this ISO-8601 instant (naive = UTC) — your novelty watermark."
+              },
+              "until": {
+                "type": "string",
+                "description": "Only entries created at/before this ISO-8601 instant (inclusive). Pair with `since` to read a closed window — 'what happened on Monday' — instead of paging back from now."
+              },
+              "cursor": {
+                "type": "string",
+                "maxLength": 512,
+                "description": "Opaque cursor from a previous page's 'More older entries exist' line — continues the listing without skips or duplicates."
+              },
+              "domain": {
+                "type": "string",
+                "description": "Restrict to one domain. REQUIRED to read a shared room — pass its address ('xroom:room_01ABC'), because rooms are separate stores that an unscoped feed does NOT cover. Omit only when you mean your own domains. Room addresses come from memory_list_rooms. Room entries are often long — a room feed usually reaches its size budget after a handful of them, so expect to page (see `limit`)."
+              },
+              "exclude_author": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Drop entries written by this author PRINCIPAL. ⚠️ NOT USABLE FROM HERE YET — the principal is never shown in these results, so there is no value you can get through this tool; a guess like 'me' filters nothing, silently. Same caveat as on memory_read."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "memory_id",
+                    "content",
+                    "domain"
+                  ],
+                  "properties": {
+                    "author": {
+                      "type": "string",
+                      "description": "Sanitized AGENT identity of the writer (never the human principal) — attribution in shared rooms."
+                    },
+                    "domain": {
+                      "type": "string",
+                      "description": "User-defined memory namespace or domain."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Stored memory content."
+                    },
+                    "memory_id": {
+                      "type": "string",
+                      "description": "Identifier needed to rate or manage this saved memory."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "UTC creation instant, ISO-8601; absent on legacy memories without a timestamp."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Entries newest-first (creation time descending)."
+              },
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Pass back as cursor for the next (older) page; null = listing complete. Absent when the service sent a continuation token this client will not pass on; the text then says the token could not be displayed."
+              }
+            },
+            "required": [
+              "items"
+            ]
+          },
+          "description_hash": "sha256:9efdff7537873adbd1bd442c8a5994422007762b5170cb481aa955b422305b16",
+          "parameters": [
+            {
+              "name": "cursor",
+              "type": "string",
+              "description": "Opaque cursor from a previous page's 'More older entries exist' line — continues the listing without skips or duplicates.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Restrict to one domain. REQUIRED to read a shared room — pass its address ('xroom:room_01ABC'), because rooms are separate stores that an unscoped feed does NOT cover. Omit only when you mean your own domains. Room addresses come from memory_list_rooms. Room entries are often long — a room feed usually reaches its size budget after a handful of them, so expect to page (see `limit`).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "exclude_author",
+              "type": "string",
+              "description": "Drop entries written by this author PRINCIPAL. ⚠️ NOT USABLE FROM HERE YET — the principal is never shown in these results, so there is no value you can get through this tool; a guess like 'me' filters nothing, silently. Same caveat as on memory_read.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Most entries per page (default: 20). Newest first. ⚠️ A CEILING, not a promise: the page is ALSO bounded by size, so a page of long entries stops early and returns a cursor for the rest. In rooms whose entries run long, ask for 5–10 — a large `limit` there buys nothing the size budget will not take back, and costs round trips.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "since",
+              "type": "string",
+              "description": "Only entries created at/after this ISO-8601 instant (naive = UTC) — your novelty watermark.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "until",
+              "type": "string",
+              "description": "Only entries created at/before this ISO-8601 instant (inclusive). Pair with `since` to read a closed window — 'what happened on Monday' — instead of paging back from now.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "memory_list_rooms",
+          "canonical_hash": "sha256:34608d0ec331fe1f521dcdb588d4efde9669575c34a86c4dcb8ac90d212a8c80",
+          "description": "List the shared memory rooms you can use — the ones you OWN plus the ones you've JOINED — each with the address to pass as `domain` on memory_read, and on memory_write too where your membership scope is read_write; a read-only membership has that write refused. Use this to RE-FIND a room in a new session (e.g. 'what rooms do I have?', 'resume the room with my teammate') instead of having to create or re-join it.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "rooms": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "room_id",
+                    "address",
+                    "role",
+                    "archived"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The room name."
+                    },
+                    "role": {
+                      "type": "string",
+                      "description": "'owner' or 'member'."
+                    },
+                    "scope": {
+                      "type": "string",
+                      "description": "'read' or 'read_write'."
+                    },
+                    "address": {
+                      "type": "string",
+                      "description": "Domain address (xroom:<id>); pass as `domain` on read/write."
+                    },
+                    "room_id": {
+                      "type": "string",
+                      "description": "The room's id (room_...)."
+                    },
+                    "archived": {
+                      "type": "boolean",
+                      "description": "True if archived (owned rooms only)."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "rooms"
+            ]
+          },
+          "description_hash": "sha256:95d906054afd9ba84aa17362b88100e3795e2349bcddfa4d45436b17a6cab928",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "memory_read",
+          "canonical_hash": "sha256:a0f7a67d454faf56115ff2b0baccc9e9977a5e9753a487063c613d853f800592",
+          "description": "Search long-term memory for user preferences, past decisions, project setup, people, or earlier context. The memory persists across sessions and across every AI tool the user has connected (Claude, ChatGPT, Cursor, VS Code). It applies when an answer may depend on something from an earlier session or another tool; it is not needed for general world knowledge. Returns matches ranked by relevance (or newest-first with order_by: 'recency'); each result carries an id; after the answer, memory_feedback takes these ids to record which memories helped. A wrong or stale memory is corrected by writing a fresh one with memory_write, not by deleting it.",
+          "is_mutating": false,
+          "property_keys": [
+            "domain",
+            "exclude_author",
+            "order_by",
+            "query",
+            "since",
+            "top_k",
+            "until"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "since": "string",
+            "top_k": "integer",
+            "until": "string",
+            "domain": "string",
+            "order_by": "string",
+            "exclude_author": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "maxLength": 5000,
+                "minLength": 1,
+                "description": "Natural-language description of what you're looking for, e.g. 'database choice for the API' or 'user's preferred testing framework'."
+              },
+              "since": {
+                "type": "string",
+                "maxLength": 40,
+                "description": "Only memories created at/after this ISO-8601 instant (naive = UTC) — e.g. your last-seen watermark in a shared room."
+              },
+              "top_k": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Requested number of results (default: 5, what this connector asks for when you omit it; the engine's own default of 10 never applies, because the field is always sent). ⚠️ Not a hard cap: association expansion can return MORE than this, and the relevance floor can return fewer — raising it does not reliably widen the result set. For a complete, exactly-bounded listing use memory_list_recent instead."
+              },
+              "until": {
+                "type": "string",
+                "maxLength": 40,
+                "description": "Only memories created at/before this ISO-8601 instant."
+              },
+              "domain": {
+                "type": "string",
+                "description": "Restrict the search to one domain namespace (e.g. 'project:acme'). Omitting it searches your OWN domains — it does NOT include shared rooms, which are separate stores: to search a room, pass its address here (e.g. 'xroom:room_01ABC'). Find room addresses with memory_list_rooms."
+              },
+              "order_by": {
+                "enum": [
+                  "relevance",
+                  "recency"
+                ],
+                "type": "string",
+                "description": "'relevance' (default) = ranking order. 'recency' = the matched set re-sorted newest-first. For a complete newest-first feed with no search at all, use memory_list_recent instead."
+              },
+              "exclude_author": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Drop memories written by this author PRINCIPAL — the server-side identity. ⚠️ NOT USABLE FROM HERE YET: the principal is not shown in these results, so there is no value you can obtain through this tool, and a guess like 'me' silently matches nothing and filters nothing. Only pass it if your system knows the exact principal from elsewhere (e.g. the REST API)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "memory_id",
+                    "content",
+                    "domain"
+                  ],
+                  "properties": {
+                    "author": {
+                      "type": "string",
+                      "description": "Sanitized AGENT identity of the writer (never the human principal) — attribution in shared rooms."
+                    },
+                    "domain": {
+                      "type": "string",
+                      "description": "User-defined memory namespace or domain."
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Stored memory content."
+                    },
+                    "memory_id": {
+                      "type": "string",
+                      "description": "Identifier needed to rate or manage this saved memory."
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "description": "UTC creation instant, ISO-8601; absent on legacy memories without a timestamp."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Matching memories, ordered per order_by."
+              }
+            },
+            "required": [
+              "items"
+            ]
+          },
+          "description_hash": "sha256:efb05ed2b5d0d4d9b2a98cf15b72786b8a77bde1745bfa89c1add3389846b0eb",
+          "parameters": [
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Restrict the search to one domain namespace (e.g. 'project:acme'). Omitting it searches your OWN domains — it does NOT include shared rooms, which are separate stores: to search a room, pass its address here (e.g. 'xroom:room_01ABC'). Find room addresses with memory_list_rooms.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "exclude_author",
+              "type": "string",
+              "description": "Drop memories written by this author PRINCIPAL — the server-side identity. ⚠️ NOT USABLE FROM HERE YET: the principal is not shown in these results, so there is no value you can obtain through this tool, and a guess like 'me' silently matches nothing and filters nothing. Only pass it if your system knows the exact principal from elsewhere (e.g. the REST API).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "order_by",
+              "type": "string",
+              "description": "'relevance' (default) = ranking order. 'recency' = the matched set re-sorted newest-first. For a complete newest-first feed with no search at all, use memory_list_recent instead.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "relevance",
+                "recency"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Natural-language description of what you're looking for, e.g. 'database choice for the API' or 'user's preferred testing framework'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "since",
+              "type": "string",
+              "description": "Only memories created at/after this ISO-8601 instant (naive = UTC) — e.g. your last-seen watermark in a shared room.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "top_k",
+              "type": "integer",
+              "description": "Requested number of results (default: 5, what this connector asks for when you omit it; the engine's own default of 10 never applies, because the field is always sent). ⚠️ Not a hard cap: association expansion can return MORE than this, and the relevance floor can return fewer — raising it does not reliably widen the result set. For a complete, exactly-bounded listing use memory_list_recent instead.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "until",
+              "type": "string",
+              "description": "Only memories created at/before this ISO-8601 instant.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "memory_stats",
+          "canonical_hash": "sha256:ec51183e3fd9b0295954ac4182eb961955dfcf190da086b28c699daa9a66f1d5",
+          "description": "Get an overview of the stored memory: total count, the number of learned concept associations, the list of domains, and average quality scores. This memory is shared across all AI tools the user has connected to Mnemoverse. Use it to orient yourself, to confirm the exact domain name before writing to it, or when the user asks what you remember. Read-only — changes nothing.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "User-defined memory domains."
+              },
+              "episodes": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of individual memories (not merged into a summary)."
+              },
+              "prototypes": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of summary memories merged from several individual ones. Consolidation is not running on the hosted service, so this count does not currently grow."
+              },
+              "avg_valence": {
+                "type": "number",
+                "description": "Average valence of stored memories: how well recalls turned out, on a scale from -1 to 1."
+              },
+              "memory_count": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of saved memories."
+              },
+              "hebbian_edges": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Number of learned concept-to-concept associations; memory_graph reads them."
+              },
+              "avg_importance": {
+                "type": "number",
+                "description": "Average importance of stored memories, on a scale from 0 to 1."
+              }
+            },
+            "required": [
+              "memory_count",
+              "domains"
+            ]
+          },
+          "description_hash": "sha256:242a79b534e4a1f5bfb2dcf397a6ca025edc362a808d10d40d0be05d2a9b6172",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "memory_write",
+          "canonical_hash": "sha256:385d847ac6f6f6dc9aad3f5f57935cbc6a3bee9b6565117fd626f346cc8d18f7",
+          "description": "Store a long-term memory that persists across sessions and across every AI tool the user has connected to Mnemoverse (Claude, ChatGPT, Cursor, VS Code). Suited to durable information: a stated preference, a decision, a fact about people, roles or project setup, a lesson learned; transient chatter that only matters this turn does not belong here. Never store passwords, API keys, payment data, MFA codes, government IDs, or health records. Behavior: an importance gate may filter low-value writes, so the result tells you whether the memory was stored or filtered. Write `content` as a self-contained statement that still makes sense when recalled out of context.",
+          "is_mutating": false,
+          "property_keys": [
+            "concepts",
+            "content",
+            "domain"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "domain": "string",
+            "content": "string",
+            "concepts": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "maxLength": 100,
+                "description": "Namespace to organize memories (e.g. 'engineering', 'user:alice', 'project:acme'). Matched byte-for-byte — a leading space, a different case, or an invisible character opens a SEPARATE, permanent store, so reuse an exact name from memory_stats rather than retyping one. To write into a shared room, pass its address here instead (e.g. 'xroom:room_01ABC'). Find room addresses with memory_list_rooms."
+              },
+              "content": {
+                "type": "string",
+                "maxLength": 10000,
+                "minLength": 1,
+                "description": "The memory to store as a self-contained statement, e.g. 'User prefers TypeScript strict mode' or 'Decided to deploy the API on Cloudflare Workers (2026-06)'."
+              },
+              "concepts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 256,
+                "description": "Key concepts for linking related memories (e.g. ['deploy', 'friday', 'staging'])"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "The memory service's own explanation of this outcome, quoted as sent — when stored is false this is the ONLY statement of WHY, e.g. \"Below importance threshold (0.047 < 0.1)\". Ordinary text is preserved exactly; only control, bidi, zero-width, and repeated-whitespace characters are normalized before display, and the value is capped at 400 characters. Absent when the service sent no explanation, or when nothing remains after that normalization."
+              },
+              "stored": {
+                "type": "boolean",
+                "description": "Whether the memory passed the novelty gate and was stored."
+              },
+              "memory_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Identifier of the stored memory, or null when it was not stored."
+              },
+              "importance": {
+                "type": "number",
+                "description": "Novelty score for this write (0-1): how much it adds over the nearest memories already saved in the same domain. Outside shared rooms, a write that scores below the service's importance threshold is not stored, and `reason` says why when the service sends one. The score is approximate and can read lower for non-English text. It is not a verdict on whether the memory was worth keeping. Absent when the service sent no score."
+              }
+            },
+            "required": [
+              "stored",
+              "memory_id"
+            ]
+          },
+          "description_hash": "sha256:09d179f8d8cc914086763974fbfe68d0c38a989d9e6f209bde2821b0c073fed9",
+          "parameters": [
+            {
+              "name": "concepts",
+              "type": "array",
+              "description": "Key concepts for linking related memories (e.g. ['deploy', 'friday', 'staging'])",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "content",
+              "type": "string",
+              "description": "The memory to store as a self-contained statement, e.g. 'User prefers TypeScript strict mode' or 'Decided to deploy the API on Cloudflare Workers (2026-06)'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Namespace to organize memories (e.g. 'engineering', 'user:alice', 'project:acme'). Matched byte-for-byte — a leading space, a different case, or an invisible character opens a SEPARATE, permanent store, so reuse an exact name from memory_stats rather than retyping one. To write into a shared room, pass its address here instead (e.g. 'xroom:room_01ABC'). Find room addresses with memory_list_rooms.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "vault_list",
+          "canonical_hash": "sha256:d2ef470b7d4792831a75ad79ea1f94dc1567b3c6950d3d5442648df0b7418545",
+          "description": "List the secrets stored in your Mnemoverse Vault — by ALIAS and purpose only; the secret VALUE is never returned or shown to you, and no tool on this connector returns it. Use this to check WHICH secrets the user has stored and under what alias (e.g. the user says 'do I have a GitHub token saved?'). Only YOUR account's secrets are listed.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "secrets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "alias",
+                    "context",
+                    "concepts"
+                  ],
+                  "properties": {
+                    "alias": {
+                      "type": "string",
+                      "description": "The secret's alias — the reference you use, never the value."
+                    },
+                    "context": {
+                      "type": "string",
+                      "description": "The secret's purpose/context — never the value."
+                    },
+                    "concepts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Concept tags."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "secrets"
+            ]
+          },
+          "description_hash": "sha256:5285aab84be470d8fa13dd6d0ae4385f47c846933f55f102ad6b4216db574b7b",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

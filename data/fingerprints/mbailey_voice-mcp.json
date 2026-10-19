@@ -4,8 +4,9 @@
   "purl": "pkg:generic/mbailey%2Fvoice-mcp",
   "ecosystem": "generic",
   "display_name": "mbailey/voice-mcp",
-  "description": "Natural voice conversations for AI assistants - STT/TTS via MCP",
-  "repository_url": "https://github.com/mbailey/voicemode",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,10 +14,854 @@
     "mbailey/voice-mcp"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:7d8c61a33f94b49e4abcbe0e987453a427adb2275dd6ec7722dbcd632a243e96",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "check_audio_dependencies",
+          "canonical_hash": "sha256:1be97aa13bdc366eb4e86a48c529f241b789847da83417e746162dae7471a71d",
+          "description": "Check system audio dependencies and provide installation guidance.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9e95cbbefa3978d20c0628273de11dd7f4da9a19ec1e3eb88242e2b4cf216cb3",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "conch",
+          "canonical_hash": "sha256:5af550cfa3239739bd28f41b0743fdc7349b6f660b42d2ef95820b66eb3fad24",
+          "description": "Observe and manage the conch (VoiceMode's single-speaker lock) over MCP.",
+          "is_mutating": false,
+          "property_keys": [
+            "action",
+            "agent",
+            "project_path",
+            "session_id",
+            "target",
+            "timeout",
+            "voice"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "action": "string",
+            "session_id": "string",
+            "target": "string",
+            "agent": "string",
+            "project_path": "string",
+            "voice": "string",
+            "timeout": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "description": "One of ``status | wait | queue | heartbeat | leave | give | bump | release`` (default ``status``). • ``status`` — return the current holder and the ordered waiter queue. No ``session_id`` needed. • ``queue`` — **recommended for joining when busy.** Register and return immediately with your position; you discover your grant by heartbeating or polling ``status`` (register-and-**poll**). Stays registered. • ``wait`` — register and block until it's your turn, bounded by ``min(timeout, VOICEMODE_CONCH_MCP_WAIT_CAP)`` (default cap 25 s). On success the conch is free for you — call ``converse()`` next. On timeout you are deregistered. • ``heartbeat`` — refresh your remote-liveness TTL while idle (keeps your place). Send ~every 30 s while queued, and check the response's ``granted`` field every time — that is how a queued waiter discovers its grant. • ``leave`` — deregister (give up your place). • ``give`` — hand the floor to a waiting ``target`` (resolved by session-id or agent name); it acquires when the holder releases. • ``bump`` — drop the current holder and promote the head of the queue. (Use ``release`` for a stale lock with no live holder.) • ``release`` — force-clear a stale/stuck holder lock and any grant. *(``\"callback\"`` was renamed to ``\"queue\"`` — VM-2078. The literal string still resolves, but only to a clear error naming the replacement; it is not a valid action any more.)*",
+                "default": "status"
+              },
+              "session_id": {
+                "type": "string",
+                "description": "REQUIRED for ``wait``/``queue``/``heartbeat``/``leave`` — the remote agent's stable queue/grant key.",
+                "default": null
+              },
+              "target": {
+                "type": "string",
+                "description": "REQUIRED for ``give`` — the waiting session id or agent name to hand the floor to. agent / project_path / voice: descriptive fields stored on your waiter entry (shown in ``status``), mirroring the holder payload.",
+                "default": null
+              },
+              "agent": {
+                "type": "string",
+                "default": null
+              },
+              "project_path": {
+                "type": "string",
+                "default": null
+              },
+              "voice": {
+                "type": "string",
+                "default": null
+              },
+              "timeout": {
+                "type": "number",
+                "description": "``wait`` only — desired max seconds to block; still hard-capped by ``VOICEMODE_CONCH_MCP_WAIT_CAP``.",
+                "default": null
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7e4f9fb94f5bcf45421232ee6fe93711de52674f7d22de26e62b19433faab27e",
+          "parameters": [
+            {
+              "name": "action",
+              "type": "string",
+              "description": "One of ``status | wait | queue | heartbeat | leave | give | bump | release`` (default ``status``). • ``status`` — return the current holder and the ordered waiter queue. No ``session_id`` needed. • ``queue`` — **recommended for joining when busy.** Register and return immediately with your position; you discover your grant by heartbeating or polling ``status`` (register-and-**poll**). Stays registered. • ``wait`` — register and block until it's your turn, bounded by ``min(timeout, VOICEMODE_CONCH_MCP_WAIT_CAP)`` (default cap 25 s). On success the conch is free for you — call ``converse()`` next. On timeout you are deregistered. • ``heartbeat`` — refresh your remote-liveness TTL while idle (keeps your place). Send ~every 30 s while queued, and check the response's ``granted`` field every time — that is how a queued waiter discovers its grant. • ``leave`` — deregister (give up your place). • ``give`` — hand the floor to a waiting ``target`` (resolved by session-id or agent name); it acquires when the holder releases. • ``bump`` — drop the current holder and promote the head of the queue. (Use ``release`` for a stale lock with no live holder.) • ``release`` — force-clear a stale/stuck holder lock and any grant. *(``\"callback\"`` was renamed to ``\"queue\"`` — VM-2078. The literal string still resolves, but only to a clear error naming the replacement; it is not a valid action any more.)*",
+              "required": false,
+              "default": "status",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "agent",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "project_path",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "REQUIRED for ``wait``/``queue``/``heartbeat``/``leave`` — the remote agent's stable queue/grant key.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "target",
+              "type": "string",
+              "description": "REQUIRED for ``give`` — the waiting session id or agent name to hand the floor to. agent / project_path / voice: descriptive fields stored on your waiter entry (shown in ``status``), mirroring the holder payload.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout",
+              "type": "number",
+              "description": "``wait`` only — desired max seconds to block; still hard-capped by ``VOICEMODE_CONCH_MCP_WAIT_CAP``.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "voice",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "config_reload",
+          "canonical_hash": "sha256:fe1c3997c96217812a5adfafdff98728fdf95513fbbc8252e29a49dbbcce0372",
+          "description": "Reload configuration from .voicemode.env files and clear all caches.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7aa6285888ae3e244fe9e6d4c150a6b8f253e9f6d02b37fe68cd8687f9aed91d",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "converse",
+          "canonical_hash": "sha256:93f76330efd944ba6943d43b70041c8b9934a3cb907adae01df765086f47be5c",
+          "description": "Speak to the user and, by default, listen for their reply.",
+          "is_mutating": false,
+          "property_keys": [
+            "ack",
+            "audio_format",
+            "chime_enabled",
+            "chime_leading_silence",
+            "chime_trailing_silence",
+            "conch_hold_timeout",
+            "disable_silence_detection",
+            "hold_conch",
+            "listen_duration_max",
+            "listen_duration_min",
+            "message",
+            "metrics_level",
+            "pause_after_ms",
+            "ref_text",
+            "session_id",
+            "skip_conch",
+            "skip_tts",
+            "speed",
+            "time_in_response",
+            "tts_instructions",
+            "tts_model",
+            "tts_provider",
+            "turns",
+            "vad_aggressiveness",
+            "voice",
+            "wait_for_conch",
+            "wait_for_response"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "message": "string",
+            "turns": "array",
+            "pause_after_ms": "integer",
+            "wait_for_response": "boolean",
+            "listen_duration_max": "number",
+            "listen_duration_min": "number",
+            "voice": "string",
+            "tts_provider": "string",
+            "tts_model": "string",
+            "tts_instructions": "string",
+            "chime_enabled": "boolean",
+            "audio_format": "string",
+            "disable_silence_detection": "boolean",
+            "speed": "number",
+            "vad_aggressiveness": "integer",
+            "skip_tts": "boolean",
+            "chime_leading_silence": "number",
+            "chime_trailing_silence": "number",
+            "metrics_level": "string",
+            "wait_for_conch": "boolean",
+            "hold_conch": "boolean",
+            "conch_hold_timeout": "number",
+            "skip_conch": "boolean",
+            "session_id": "string",
+            "ref_text": "string",
+            "ack": "boolean",
+            "time_in_response": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "default": null
+              },
+              "turns": {
+                "type": "array",
+                "default": null
+              },
+              "pause_after_ms": {
+                "type": "integer",
+                "default": 150
+              },
+              "wait_for_response": {
+                "type": "boolean",
+                "default": true
+              },
+              "listen_duration_max": {
+                "type": "number",
+                "default": null
+              },
+              "listen_duration_min": {
+                "type": "number",
+                "default": 2.0
+              },
+              "voice": {
+                "type": "string",
+                "default": null
+              },
+              "tts_provider": {
+                "type": "string",
+                "default": null
+              },
+              "tts_model": {
+                "type": "string",
+                "default": null
+              },
+              "tts_instructions": {
+                "type": "string",
+                "default": null
+              },
+              "chime_enabled": {
+                "type": "boolean",
+                "default": null
+              },
+              "audio_format": {
+                "type": "string",
+                "default": null
+              },
+              "disable_silence_detection": {
+                "type": "boolean",
+                "default": false
+              },
+              "speed": {
+                "type": "number",
+                "default": null
+              },
+              "vad_aggressiveness": {
+                "type": "integer",
+                "default": null
+              },
+              "skip_tts": {
+                "type": "boolean",
+                "default": null
+              },
+              "chime_leading_silence": {
+                "type": "number",
+                "default": null
+              },
+              "chime_trailing_silence": {
+                "type": "number",
+                "default": null
+              },
+              "metrics_level": {
+                "type": "string",
+                "default": null
+              },
+              "wait_for_conch": {
+                "type": "boolean",
+                "default": false
+              },
+              "hold_conch": {
+                "type": "boolean",
+                "default": false
+              },
+              "conch_hold_timeout": {
+                "type": "number",
+                "default": null
+              },
+              "skip_conch": {
+                "type": "boolean",
+                "default": false
+              },
+              "session_id": {
+                "type": "string",
+                "default": null
+              },
+              "ref_text": {
+                "type": "string",
+                "default": null
+              },
+              "ack": {
+                "type": "boolean",
+                "default": false
+              },
+              "time_in_response": {
+                "type": "boolean",
+                "default": null
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5836c99bc8dfd7d13d241f5e26fe4805523d2b72fff1301f5c498914ec56674a",
+          "parameters": [
+            {
+              "name": "ack",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "audio_format",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "chime_enabled",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "chime_leading_silence",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "chime_trailing_silence",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "conch_hold_timeout",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "disable_silence_detection",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hold_conch",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "listen_duration_max",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "listen_duration_min",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": 2.0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "metrics_level",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pause_after_ms",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 150,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "ref_text",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_conch",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_tts",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "speed",
+              "type": "number",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "time_in_response",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "tts_instructions",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "tts_model",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "tts_provider",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "turns",
+              "type": "array",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "vad_aggressiveness",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "voice",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "wait_for_conch",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "wait_for_response",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_config_keys",
+          "canonical_hash": "sha256:998480ee6a5be5990c3a9241420b026ffbecd9881c4acc012a8cfc6da053df7f",
+          "description": "List all available configuration keys with their descriptions.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b3dc20fe6a446c2aff5c101d0aa8796b9b71105721f2d888c90fb4b683ae2e88",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "pause_conversation",
+          "canonical_hash": "sha256:61cc09f72eda8d0cd8109e033ee7d6c2b93a1e58f03ac0fd532db51db8ff79c8",
+          "description": "Pause the conversation for a duration while KEEPING the floor (conch hold).",
+          "is_mutating": false,
+          "property_keys": [
+            "message",
+            "seconds"
+          ],
+          "required_keys": [
+            "seconds"
+          ],
+          "parameter_types": {
+            "seconds": "number",
+            "message": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "seconds": {
+                "type": "number",
+                "description": "How long to pause, in seconds."
+              },
+              "message": {
+                "type": "string",
+                "description": "Optional note shown in the tool-call display while pausing.",
+                "default": null
+              }
+            },
+            "required": [
+              "seconds"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5b39a2ee2b139b526a14ebe350b799d69505d23f7629ba3b23d9d90251333c5d",
+          "parameters": [
+            {
+              "name": "message",
+              "type": "string",
+              "description": "Optional note shown in the tool-call display while pausing.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "seconds",
+              "type": "number",
+              "description": "How long to pause, in seconds.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "show_config_files",
+          "canonical_hash": "sha256:659668fd69249aceaab3a35f381f2382266cbdff2bf3e2d78a36c0ff2db55f1e",
+          "description": "Show which .voicemode.env files are being used for configuration.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b9a0ea785a00aef37e1c28c362cb0fbc52b94dcaebaf0334fe8d5b9b5e8aba3d",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "update_config",
+          "canonical_hash": "sha256:8d6a85568eba46a8f6b6f84c6fc851eca75febf4e7d41f8c93116533465826dc",
+          "description": "Update a configuration value in the voicemode.env file.",
+          "is_mutating": false,
+          "property_keys": [
+            "key",
+            "value"
+          ],
+          "required_keys": [
+            "key",
+            "value"
+          ],
+          "parameter_types": {
+            "key": "string",
+            "value": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "The configuration key to update (e.g., 'VOICEMODE_VOICES')"
+              },
+              "value": {
+                "type": "string",
+                "description": "The new value for the configuration"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:94ec32fb983b8f373cf6032f8ae1e7ac8c826df078a6b7192d67263c652a40e1",
+          "parameters": [
+            {
+              "name": "key",
+              "type": "string",
+              "description": "The configuration key to update (e.g., 'VOICEMODE_VOICES')",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "description": "The new value for the configuration",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "8.12.0",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -28,9 +873,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

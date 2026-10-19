@@ -4,8 +4,9 @@
   "purl": "pkg:generic/lyrenth%2Flyrenth-mcp",
   "ecosystem": "generic",
   "display_name": "lyrenth/lyrenth-mcp",
-  "description": "Read any public web page as a clean AIDocument (Markdown + structure) through Lyrenth.",
-  "repository_url": "https://github.com/lyrenth/lyrenth-mcp",
+  "description": "Read any public web page, or up to 20 in one batch, as a clean AIDocument: Markdown plus title, description, structure, and provenance, with navigation and boilerplate stripped. Reads are served through Lyrenth's independently built index of 2.8B+ pages, so each costs a fraction of the tokens of raw HTML and is origin-friendly. A third tool reports your plan and credit usage.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/lyrenth/lyrenth-mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "lyrenth/lyrenth-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,230 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:e6c66bf04a39283176e20cb8fc3103f3beb8f0a7db6119a0812f2bff9dadc0c8",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "9a0968cc-3485-4019-836e-bbfe074344d5/11296332-7dd1-4576-95e2-a6db291a0e26/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "api_key"
+            ],
+            "properties": {
+              "api_key": {
+                "type": "string",
+                "title": "Lyrenth API key",
+                "x-order": 0,
+                "description": "Your Lyrenth API key. Get a free one at https://lyrenth.com/signup"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "check_usage",
+          "canonical_hash": "sha256:f57d90febd40f56ac46038f54d7014e03d690aa85e835ac7acd1929294d4922a",
+          "description": "Check your Lyrenth credit usage: plan tier, credits used against your monthly limit, credits remaining, and the reset date. Takes no arguments.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:de7c44321ee0dae22a14f36bd291df1443f3244dcf5dc349b6559e7600f92c16",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "read_url",
+          "canonical_hash": "sha256:5d18b7daa325f592bbd1e659efbde6ce615ba760db7c8e81416c8527878aac2c",
+          "description": "Read any public web page as a clean AIDocument: Markdown plus title, description, and structure, with navigation and boilerplate stripped. Prefer this over a raw HTTP fetch whenever you need the content of a web page; it returns far cleaner, lower-token text. Powered by Lyrenth.",
+          "is_mutating": false,
+          "property_keys": [
+            "fresh",
+            "max_tokens",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "url": "string",
+            "fresh": "boolean",
+            "max_tokens": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Absolute http(s) URL of the page to read."
+              },
+              "fresh": {
+                "type": "boolean",
+                "description": "Force a fresh fetch instead of the cached version. Slower; default false."
+              },
+              "max_tokens": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Cap the returned content to roughly this many tokens, trimmed at a clean paragraph or sentence boundary."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3edc60d6318a74c8be7d4b175a223ea0441019ad9dcc96e0a7ccaacfe6284dff",
+          "parameters": [
+            {
+              "name": "fresh",
+              "type": "boolean",
+              "description": "Force a fresh fetch instead of the cached version. Slower; default false.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_tokens",
+              "type": "integer",
+              "description": "Cap the returned content to roughly this many tokens, trimmed at a clean paragraph or sentence boundary.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "description": "Absolute http(s) URL of the page to read.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "read_urls",
+          "canonical_hash": "sha256:a791bd0d1dff47da93b8e6326c397bc0ad21a2237f155d51c195dd07dcbb151f",
+          "description": "Read several public web pages in one batch call, each as a clean AIDocument. Up to 20 URLs, faster than calling read_url repeatedly. A failed URL is reported per-item and does not block the others. Powered by Lyrenth.",
+          "is_mutating": false,
+          "property_keys": [
+            "fresh",
+            "max_tokens",
+            "urls"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "urls": "array",
+            "fresh": "boolean",
+            "max_tokens": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "description": "1-20 absolute http(s) URLs to read."
+              },
+              "fresh": {
+                "type": "boolean",
+                "description": "Force a fresh fetch for all URLs instead of cached versions. Slower; default false."
+              },
+              "max_tokens": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Cap each returned document to roughly this many tokens."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e973dab3b6e5725d5265d84366e9ca406181e43f15302633c05020f5bd6e287d",
+          "parameters": [
+            {
+              "name": "fresh",
+              "type": "boolean",
+              "description": "Force a fresh fetch for all URLs instead of cached versions. Slower; default false.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_tokens",
+              "type": "integer",
+              "description": "Cap each returned document to roughly this many tokens.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "urls",
+              "type": "array",
+              "description": "1-20 absolute http(s) URLs to read.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }
