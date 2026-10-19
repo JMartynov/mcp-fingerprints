@@ -39,7 +39,9 @@ class PassportSchemaValidator:
         required_top_level = ["package_name", "purl", "ecosystem", "versions"]
         for field in required_top_level:
             if field not in data or not data[field]:
-                errors.append(f"Missing required top-level field '{field}' in {filename}")
+                errors.append(
+                    f"Missing required top-level field '{field}' in {filename}"
+                )
 
         # 2. PURL format validation
         purl = data.get("purl", "")
@@ -59,12 +61,16 @@ class PassportSchemaValidator:
             for idx, v in enumerate(versions):
                 v_num = v.get("version", "")
                 if not v_num:
-                    errors.append(f"Version at idx {idx} missing 'version' in {filename}")
+                    errors.append(
+                        f"Version at idx {idx} missing 'version' in {filename}"
+                    )
 
                 # Canonical hash format
                 hash_val = v.get("toolset_canonical_hash", "")
                 if not hash_val or not SHA256_PATTERN.match(hash_val):
-                    errors.append(f"Invalid toolset_canonical_hash in {filename} ({v_num})")
+                    errors.append(
+                        f"Invalid toolset_canonical_hash in {filename} ({v_num})"
+                    )
 
                 # Tool signatures validation
                 tools = v.get("tool_signatures", [])
@@ -74,18 +80,26 @@ class PassportSchemaValidator:
                     for t_idx, tool in enumerate(tools):
                         t_name = tool.get("name", "")
                         if not t_name:
-                            errors.append(f"Tool at idx {t_idx} missing 'name' in {filename}")
+                            errors.append(
+                                f"Tool at idx {t_idx} missing 'name' in {filename}"
+                            )
                         t_hash = tool.get("canonical_hash", "")
                         if not t_hash or not SHA256_PATTERN.match(t_hash):
-                            errors.append(f"Invalid hash for tool {t_name} in {filename}")
+                            errors.append(
+                                f"Invalid hash for tool {t_name} in {filename}"
+                            )
 
                         # Schema properties
                         props = tool.get("property_keys", [])
                         if not isinstance(props, list):
-                            errors.append(f"Properties not a list for {t_name} in {filename}")
+                            errors.append(
+                                f"Properties not a list for {t_name} in {filename}"
+                            )
                         reqs = tool.get("required_keys", [])
                         if not isinstance(reqs, list):
-                            errors.append(f"Required keys not a list for {t_name} in {filename}")
+                            errors.append(
+                                f"Required keys not a list for {t_name} in {filename}"
+                            )
 
         # 5. Dataclass roundtrip validation
         try:
@@ -111,25 +125,143 @@ class PassportSchemaValidator:
         except Exception as exc:
             return False, [f"Read error in {file_path}: {exc}"]
 
-    @classmethod
-    def validate_directory(cls, directory: str | Path) -> tuple[int, int, list[str]]:
-        """Validate all passport files in a directory.
-
-        Returns (valid_count, invalid_count, all_errors).
+    @staticmethod
+    def _validate_chunk(chunk: list[Path]) -> tuple[int, int, list[str], list[tuple[Path, str]]]:
+        """Validate a chunk of files for parallel processing.
+        Returns: (valid_count, invalid_count, all_errors, [(Path, sha256_hash)])
         """
-        dir_path = Path(directory)
-        all_errors: list[str] = []
+        import hashlib
+        
         valid_count = 0
         invalid_count = 0
+        all_errors = []
+        valid_files_with_hash = []
 
-        for j_file in sorted(dir_path.rglob("*.json")):
-            if j_file.name in ("sync_state.json", "index.json"):
-                continue
-            is_valid, errors = cls.validate_file(j_file)
+        for j_file in chunk:
+            is_valid, errors = PassportSchemaValidator.validate_file(j_file)
             if is_valid:
                 valid_count += 1
+                # Compute hash inside worker to avoid main thread I/O bottleneck
+                h = hashlib.sha256()
+                try:
+                    with open(j_file, "rb") as f:
+                        for b_chunk in iter(lambda: f.read(65536), b""):
+                            h.update(b_chunk)
+                    valid_files_with_hash.append((j_file, h.hexdigest()))
+                except Exception:
+                    valid_files_with_hash.append((j_file, ""))
             else:
                 invalid_count += 1
                 all_errors.extend(errors)
 
-        return valid_count, invalid_count, all_errors
+        return valid_count, invalid_count, all_errors, valid_files_with_hash
+
+    @classmethod
+    def validate_directory(
+        cls,
+        directory: str | Path,
+        use_cache: bool = True,
+        max_workers: int | None = None,
+    ) -> tuple[int, int, list[str], dict[str, Any]]:
+        """Validate all passport files in a directory using parallel batching and cache.
+
+        Returns (valid_count, invalid_count, all_errors, stats).
+        """
+        import concurrent.futures
+        import os
+        import time
+        from mcp_fingerprints.cache import PassportCacheEngine
+
+        start_time = time.time()
+        dir_path = Path(directory)
+
+        cache_engine = None
+        if use_cache:
+            cache_engine = PassportCacheEngine()
+
+        all_errors: list[str] = []
+        valid_count = 0
+        invalid_count = 0
+        cached_count = 0
+
+        files_to_validate = []
+        current_files = set()
+
+        # Phase 1: File discovery and cache check
+        for j_file in sorted(dir_path.rglob("*.json")):
+            if j_file.name in (
+                "sync_state.json",
+                "index.json",
+                ".passport_index.pickle",
+                ".passport_cache.json",
+            ):
+                continue
+
+            abs_path_str = str(j_file.resolve())
+            current_files.add(abs_path_str)
+
+            if use_cache and cache_engine:
+                is_hit, _ = cache_engine.check_cache(j_file)
+                if is_hit:
+                    valid_count += 1
+                    cached_count += 1
+                    continue
+
+            files_to_validate.append(j_file)
+
+        # Prune cache of deleted files
+        if use_cache and cache_engine:
+            cache_engine.prune(current_files)
+
+        # Phase 2: Parallel validation
+        validated_count = 0
+        valid_files_to_cache = []
+        if files_to_validate:
+            chunk_size = 50
+            chunks = [
+                files_to_validate[i : i + chunk_size]
+                for i in range(0, len(files_to_validate), chunk_size)
+            ]
+
+            workers = max_workers if max_workers is not None else os.cpu_count()
+            if workers == 1:
+                # Fallback to sequential
+                for chunk in chunks:
+                    vc, ic, errs, v_files = cls._validate_chunk(chunk)
+                    valid_count += vc
+                    invalid_count += ic
+                    all_errors.extend(errs)
+                    valid_files_to_cache.extend(v_files)
+                    validated_count += vc + ic
+            else:
+                with concurrent.futures.ProcessPoolExecutor(
+                    max_workers=workers
+                ) as executor:
+                    futures = [
+                        executor.submit(cls._validate_chunk, chunk) for chunk in chunks
+                    ]
+                    for future in concurrent.futures.as_completed(futures):
+                        try:
+                            vc, ic, errs, v_files = future.result()
+                            valid_count += vc
+                            invalid_count += ic
+                            all_errors.extend(errs)
+                            valid_files_to_cache.extend(v_files)
+                            validated_count += vc + ic
+                        except Exception as e:
+                            all_errors.append(f"Worker process failed: {e}")
+
+        # Phase 3: Update Cache
+        if use_cache and cache_engine:
+            for j_file, h_val in valid_files_to_cache:
+                cache_engine.update_cache(j_file, None, known_hash=h_val if h_val else None)
+            cache_engine.save_cache()
+
+        elapsed = time.time() - start_time
+        stats = {
+            "cached": cached_count,
+            "validated": validated_count,
+            "time_s": elapsed,
+        }
+
+        return valid_count, invalid_count, all_errors, stats

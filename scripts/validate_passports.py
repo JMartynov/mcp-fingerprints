@@ -17,7 +17,7 @@ def validate_passports(data_dir: str = "data/fingerprints") -> int:
         print(f"ERROR: Data directory '{data_dir}' does not exist.")
         return 1
 
-    valid, invalid, errors = PassportSchemaValidator.validate_directory(dir_path)
+    valid, invalid, errors, stats = PassportSchemaValidator.validate_directory(dir_path)
     if invalid > 0 or errors:
         print(
             f"Validation FAILED: {invalid} invalid passports detected ({valid} valid)."
