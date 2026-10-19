@@ -146,6 +146,22 @@ def main() -> None:
         default=50,
         help="Maximum servers to probe in runtime handshake (default: 50)",
     )
+    sync_p.add_argument(
+        "--time-budget",
+        type=int,
+        default=2400,
+        help="Time budget in seconds for the sync process (default: 2400, 0 = unlimited)",
+    )
+    sync_p.add_argument(
+        "--ignore-checkpoint",
+        action="store_true",
+        help="Ignore any existing checkpoint and start from the beginning",
+    )
+    sync_p.add_argument(
+        "--clear-checkpoint",
+        action="store_true",
+        help="Clear any existing checkpoint and start from the beginning",
+    )
 
     # Match
     match_p = subparsers.add_parser(
@@ -599,34 +615,42 @@ def main() -> None:
                     print(f" - {e}")
 
     elif args.command == "sync":
-        sync = PassportSynchronizer(output_dir=args.output)
+        sync = PassportSynchronizer(
+            output_dir=args.output,
+            time_budget=args.time_budget,
+            ignore_checkpoint=args.ignore_checkpoint,
+            clear_checkpoint=args.clear_checkpoint,
+        )
         if args.all or (
             not args.update_existing and not args.discover_new and not args.enrich_ast
             and not getattr(args, "docker", False) and not getattr(args, "polyglot", False)
         ):
             logger.info("Running full multi-source passport synchronization...")
-            sync.update_existing_passports()
-            sync.enrich_zero_tool_passports(limit=args.limit, max_workers=args.workers)
-            sync.discover_new_mcps(docker=True, polyglot=True)
+            sync.run_sync_pipeline(
+                update_existing=True,
+                enrich_ast=True,
+                discover_new=True,
+                docker=True,
+                polyglot=True,
+                limit=args.limit,
+                max_workers=args.workers,
+                probe_runtime=getattr(args, "probe_runtime", False),
+                runtime_limit=args.runtime_limit,
+                runtime_timeout=args.runtime_timeout,
+            )
         else:
-            if args.update_existing:
-                sync.update_existing_passports()
-            if args.enrich_ast:
-                sync.enrich_zero_tool_passports(
-                    limit=args.limit, max_workers=args.workers
-                )
-            if args.discover_new:
-                sync.discover_new_mcps(docker=getattr(args, "docker", False), polyglot=getattr(args, "polyglot", False))
-
-        if getattr(args, "probe_runtime", False):
-            logger.info(
-                "Probing runtime handshakes for up to %d safe servers...",
-                args.runtime_limit,
+            sync.run_sync_pipeline(
+                update_existing=args.update_existing,
+                enrich_ast=args.enrich_ast,
+                discover_new=args.discover_new,
+                docker=getattr(args, "docker", False),
+                polyglot=getattr(args, "polyglot", False),
+                limit=args.limit,
+                max_workers=args.workers,
+                probe_runtime=getattr(args, "probe_runtime", False),
+                runtime_limit=args.runtime_limit,
+                runtime_timeout=args.runtime_timeout,
             )
-            probed = sync.probe_runtime_passports(
-                limit=args.runtime_limit, timeout=args.runtime_timeout
-            )
-            logger.info("Successfully runtime-verified %d servers.", probed)
 
         if args.snapshot:
             logger.info("Compiling consolidated snapshot...")
