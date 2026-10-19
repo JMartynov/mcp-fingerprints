@@ -104,13 +104,12 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
         conn_type = "generic"
 
     author = passport.get("author") or ""
-    if not author and "repository_url" in passport:
+    repo = passport.get("repository_url")
+    if not author and repo and isinstance(repo, str) and "github.com/" in repo:
         # Simple fallback for github repos
-        repo = passport["repository_url"]
-        if "github.com/" in repo:
-            parts = repo.split("github.com/")
-            if len(parts) > 1:
-                author = parts[1].split("/")[0]
+        parts = repo.split("github.com/")
+        if len(parts) > 1:
+            author = parts[1].split("/")[0]
 
     versions_data = []
     for v in versions:
@@ -213,7 +212,8 @@ def compile_web_catalog(
             content = json.loads(f.read_text(encoding="utf-8"))
             if "package_name" in content:
                 catalog.append(build_catalog_entry(content))
-        except Exception:
+        except Exception as err:
+            logger.warning("Failed to build catalog entry for %s: %s", f, err)
             continue
 
     catalog.sort(key=lambda x: (x["tool_count"] == 0, -x["tool_count"], x["name"]))

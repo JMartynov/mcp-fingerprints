@@ -270,3 +270,25 @@ def test_build_catalog_entry_missing_versions():
     assert entry["versions"] == []
     assert entry["tools"] == []
 
+
+def test_build_catalog_entry_null_repository_and_homepage():
+    """Ensure None values for repository_url, author, and homepage_url do not crash."""
+    passport = {
+        "package_name": "null-fields-pkg",
+        "ecosystem": "generic",
+        "author": None,
+        "repository_url": None,
+        "homepage_url": None,
+        "versions": [
+            {
+                "version": "1.0.0",
+                "tool_signatures": [],
+            }
+        ],
+    }
+    entry = build_catalog_entry(passport)
+    assert entry["name"] == "null-fields-pkg"
+    assert entry["author"] == ""
+    assert entry["repository_url"] == ""
+    assert entry["homepage_url"] == ""
+

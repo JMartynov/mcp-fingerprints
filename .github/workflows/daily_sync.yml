@@ -24,6 +24,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Preserve Baseline Snapshot for Delta & Drift
+        run: |
+          if [ -f "passports.json.gz" ]; then
+            cp passports.json.gz previous_passports.json.gz
+            echo "Preserved baseline passports.json.gz to previous_passports.json.gz"
+          fi
+
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -55,9 +62,6 @@ jobs:
         env:
           SECURITY_WEBHOOK_URL: ${{ secrets.SECURITY_WEBHOOK_URL }}
         run: |
-          # Preserve previous snapshot for drift detection
-          cp passports.json.gz previous_passports.json.gz || true
-
           # Compile new snapshot
           python -m mcp_fingerprints.snapshot data/fingerprints passports.json.gz
 
