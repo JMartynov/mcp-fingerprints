@@ -29,7 +29,7 @@ from mcp_fingerprints.snapshot_diff import compare_snapshots, InventorySnapshot
 from mcp_fingerprints.sanitizer import sanitize_unicode_text, sanitize_metadata, sanitize_tool_definition
 
 
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 
 from mcp_fingerprints.prober import McpProber, ProbeReport
 
