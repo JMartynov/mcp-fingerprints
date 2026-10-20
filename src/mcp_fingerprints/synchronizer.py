@@ -2344,7 +2344,7 @@ class PassportSynchronizer:
                             ver = crate.get("max_version") or "0.1.0"
                             spec = FingerprintGenerator.generate_server_spec(
                                 package_name=pkg_name,
-                                ecosystem="crates.io",
+                                ecosystem="cargo",
                                 purl=f"pkg:cargo/{pkg_name}",
                                 version=ver,
                                 tools=tools,

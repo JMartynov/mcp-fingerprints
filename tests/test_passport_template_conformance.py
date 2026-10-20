@@ -47,7 +47,7 @@ PASSPORT_TEMPLATE = {
         "keywords": list,
         "aliases": list,
     },
-    "allowed_ecosystems": {"npm", "pypi", "golang", "generic", "github", "docker", "cargo", "go"},
+    "allowed_ecosystems": {"npm", "pypi", "golang", "generic", "github", "docker", "cargo", "go", "maven", "nuget", "crates.io"},
 }
 
 VERSION_TEMPLATE = {

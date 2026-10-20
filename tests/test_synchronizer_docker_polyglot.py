@@ -157,7 +157,7 @@ class TestDockerPolyglotSync(unittest.TestCase):
             with open(out_file, "r") as f:
                 data = json.load(f)
             self.assertEqual(data["package_name"], "mcp-test-with-tools")
-            self.assertEqual(data["ecosystem"], "crates.io")
+            self.assertEqual(data["ecosystem"], "cargo")
             self.assertEqual(len(data["versions"][0]["tool_signatures"]), 1)
             self.assertEqual(data["versions"][0]["tool_signatures"][0]["name"], "test_rust_tool")
 

@@ -59,7 +59,8 @@ def test_codescene_mcp_passport_validation():
     assert is_valid, f"Passport should be valid, errors: {errors}"
     assert data["package_name"] == "@codescene/codehealth-mcp"
     
-    v0 = data["versions"][0]
+    v0 = next((ver for ver in data["versions"] if ver.get("version") == "1.0.0"), None)
+    assert v0 is not None, "Version 1.0.0 should be present in passport"
     assert len(v0["tool_signatures"]) == 28
     assert len(v0["prompt_signatures"]) == 5
     assert len(v0["resource_signatures"]) == 19

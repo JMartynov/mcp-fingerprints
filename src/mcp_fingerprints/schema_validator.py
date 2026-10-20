@@ -20,7 +20,7 @@ logger = logging.getLogger("verity.passport.schema_validator")
 SHA256_PATTERN = re.compile(r"^sha256:[a-f0-9]{64}$")
 
 # Package URL (PURL) pattern per RFC 3986
-PURL_PATTERN = re.compile(r"^pkg:(npm|pypi|golang|generic|github|docker|cargo|go)/[a-zA-Z0-9%_\-./@]+$")
+PURL_PATTERN = re.compile(r"^pkg:(npm|pypi|golang|generic|github|docker|cargo|go|maven|nuget)/[a-zA-Z0-9%_\-./@]+$")
 
 
 class PassportSchemaValidator:
@@ -50,7 +50,7 @@ class PassportSchemaValidator:
 
         # 3. Ecosystem validation
         eco = data.get("ecosystem", "").lower()
-        if eco not in ("npm", "pypi", "golang", "generic", "github", "docker", "cargo", "go"):
+        if eco not in ("npm", "pypi", "golang", "generic", "github", "docker", "cargo", "go", "maven", "nuget", "crates.io"):
             errors.append(f"Unknown ecosystem '{eco}' in {filename}")
 
         # 4. Versions array validation

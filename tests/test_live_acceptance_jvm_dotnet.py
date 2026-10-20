@@ -77,8 +77,8 @@ def test_dotnet_mcp_parsing():
 
 
 def test_enterprise_passport_validation():
-    # Will be tested after we add the passport
     with open("data/fingerprints/maven/s/spring-ai-mcp.json") as f:
         data = json.load(f)
     validator = PassportSchemaValidator()
-    validator.validate_passport_dict(data)
+    is_valid, errors = validator.validate_passport_dict(data)
+    assert is_valid, f"Passport should be valid: {errors}"
