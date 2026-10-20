@@ -19,6 +19,7 @@ class AstBundleResult(list):
         prompts: list[dict[str, Any]] | None = None,
         resources: list[dict[str, Any]] | None = None,
         env_vars: set[str] | list[str] | tuple[str, ...] | None = None,
+        dependencies: list[str] | None = None,
     ) -> None:
         raw_tools = list(tools or [])
         super().__init__(raw_tools)
@@ -27,6 +28,7 @@ class AstBundleResult(list):
         self.resources = list(resources or [])
         self.env_vars = tuple(sorted(set(env_vars or ())))
         self.required_env_vars = self.env_vars
+        self.dependencies = list(dependencies or [])
 
     def __getitem__(self, key: Any) -> Any:
         if isinstance(key, str):
@@ -38,6 +40,8 @@ class AstBundleResult(list):
                 return self.resources
             if key in ("env_vars", "required_env_vars"):
                 return list(self.env_vars)
+            if key == "dependencies":
+                return self.dependencies
         return super().__getitem__(key)
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -49,6 +53,8 @@ class AstBundleResult(list):
             return self.resources
         if key in ("env_vars", "required_env_vars"):
             return list(self.env_vars)
+        if key == "dependencies":
+            return self.dependencies
         return default
 
 
@@ -640,9 +646,22 @@ def parse_python_mcp_ast_bundle(files: dict[str, str]) -> AstBundleResult:
     """
     aggregated_models: dict[str, dict[str, Any]] = {}
     parsed_trees: dict[str, ast.Module] = {}
+    all_dependencies: list[str] = []
 
     # Pass 1: Parse AST and collect Pydantic models across all files
     for fname, code in files.items():
+        # Check for PEP 723 script block
+        script_match = re.search(r'(?sm)^# /// script\s*$(.*?)^# ///\s*$', code)
+        if script_match:
+            script_content = script_match.group(1)
+            cleaned_content = re.sub(r'(?m)^#\s?', '', script_content)
+            deps_match = re.search(r'dependencies\s*=\s*\[(.*?)\]\s*\n', cleaned_content, re.DOTALL)
+            if deps_match:
+                deps_str = deps_match.group(1)
+                deps = re.findall(r'["\']([^"\']+)["\']', deps_str)
+                for dep in deps:
+                    if dep not in all_dependencies:
+                        all_dependencies.append(dep)
         try:
             tree = ast.parse(code)
             parsed_trees[fname] = tree
@@ -678,6 +697,7 @@ def parse_python_mcp_ast_bundle(files: dict[str, str]) -> AstBundleResult:
         prompts=all_prompts,
         resources=all_resources,
         env_vars=all_env_vars,
+        dependencies=all_dependencies,
     )
 
 
