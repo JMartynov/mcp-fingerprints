@@ -1852,12 +1852,31 @@ class PassportSynchronizer:
                     if repo_data:
                         full_description = repo_data.get("full_description", "")
                     
+                    from mcp_fingerprints.crawler.docker_hub import extract_docker_stdio_args
                     tools = []
+                    docker_args = []
+                    docker_image = None
                     if full_description:
                         tools = parse_markdown_tool_docs(full_description)
                         
+                        # Try to find docker run command in the description
+                        for line in full_description.splitlines():
+                            if line.strip().startswith("docker run"):
+                                img, args = extract_docker_stdio_args(line.strip())
+                                if img and "mcp" in img.lower():
+                                    docker_image = img
+                                    docker_args = args
+                                    break
+                                elif "mcp" in line.lower():
+                                    img, args = extract_docker_stdio_args(line.strip())
+                                    if img:
+                                        docker_image = img
+                                        docker_args = args
+                                        break
+                                        
                     if not tools and description:
                         tools = [{"name": "unknown", "description": description, "inputSchema": {"type": "object", "properties": {}}}]
+                        
                         
                     if tools:
                         spec = FingerprintGenerator.generate_server_spec(
@@ -1869,6 +1888,49 @@ class PassportSynchronizer:
                             description=description,
                             repository_url=f"https://hub.docker.com/r/{repo_name_full}"
                         )
+                        
+                        if docker_image:
+                            # Update the connections in the version fingerprint
+                            latest_v = spec.versions[0]
+                            conn = {
+                                "type": "stdio",
+                                "command": "docker",
+                                "args": ["run", "-i", "--rm", docker_image] + docker_args,
+                            }
+                            caps = dict(latest_v.capabilities)
+                            
+                            updated_v = build_version_fingerprint(
+                                version=latest_v.version,
+                                tools=tools,
+                                capabilities=caps,
+                            )
+                            # Overwrite connections
+                            updated_v = VersionFingerprint(
+                                version=updated_v.version,
+                                toolset_canonical_hash=updated_v.toolset_canonical_hash,
+                                tool_signatures=updated_v.tool_signatures,
+                                prompt_signatures=updated_v.prompt_signatures,
+                                resource_signatures=updated_v.resource_signatures,
+                                release_date=updated_v.release_date,
+                                dependencies=updated_v.dependencies,
+                                connections=[conn],
+                                capabilities=updated_v.capabilities,
+                            )
+                            spec = ServerPackageSpec(
+                                package_name=spec.package_name,
+                                purl=spec.purl,
+                                ecosystem=spec.ecosystem,
+                                display_name=spec.display_name,
+                                description=spec.description,
+                                repository_url=spec.repository_url,
+                                homepage_url=spec.homepage_url,
+                                author=spec.author,
+                                license=spec.license,
+                                keywords=spec.keywords,
+                                aliases=spec.aliases,
+                                versions=(updated_v,),
+                                sources_merged=spec.sources_merged,
+                            )
                         
                         target_file = self.output_dir / clean_name
                         FingerprintGenerator.save_spec_to_file(spec, target_file)
