@@ -1253,7 +1253,9 @@ def parse_jvm_mcp_code(code: str) -> list[dict[str, Any]]:
     extracted: list[dict[str, Any]] = []
     seen_names: set[str] = set()
 
-    annotation_regex = re.compile(r"@(?:Tool|McpFunction)\s*(?:\(([^)]*)\))?", re.DOTALL)
+    annotation_regex = re.compile(
+        r"@(?:Tool|McpFunction)\s*(?:\(([^)]*)\))?", re.DOTALL
+    )
 
     for match in annotation_regex.finditer(code):
         attrs = (match.group(1) or "").strip()
@@ -1276,7 +1278,7 @@ def parse_jvm_mcp_code(code: str) -> list[dict[str, Any]]:
         chunk = code[start_idx : start_idx + 600]
 
         method_match = re.search(
-            r"(?:public|private|protected|internal)?\s*(?:open|override|final|suspend)?\s*(?:fun|[\w<>\[\]\?]+)\s+([a-zA-Z0-9_]+)\s*\(",
+            r"(?:public|private|protected|internal)?\s*(?:open|override|final|suspend)?\s*(?:fun|[\w<>\[\]\?]+)\s+([a-zA-Z0-9_]+)\s*\(\s*",
             chunk,
         )
 
@@ -1298,7 +1300,12 @@ def parse_jvm_mcp_code(code: str) -> list[dict[str, Any]]:
         required: list[str] = []
 
         if method_match:
-            params_start = method_match.end()
+            # Re-search to find end of parameters properly
+            # chunk starts after annotation for Java, but for .NET chunk starts at method end
+            # It's safer to search for the first '(' in chunk if params_start doesn't have it
+            params_start = 0
+            if "(" in chunk:
+                params_start = chunk.find("(") + 1
             open_parens = 1
             params_end = -1
             for i in range(params_start, len(chunk)):
@@ -1315,25 +1322,42 @@ def parse_jvm_mcp_code(code: str) -> list[dict[str, Any]]:
                 params = []
                 current_param = []
                 nesting = 0
+                in_string = False
                 for char in params_str:
-                    if char in "<[":
-                        nesting += 1
-                    elif char in ">]":
-                        nesting -= 1
-                    elif char == "," and nesting == 0:
-                        params.append("".join(current_param).strip())
-                        current_param = []
-                        continue
+                    if char == '"' and nesting == 0:
+                        in_string = not in_string
+                    if not in_string:
+                        if char in "<[":
+                            nesting += 1
+                        elif char in ">]":
+                            nesting -= 1
+                        elif char == "," and nesting == 0:
+                            params.append("".join(current_param).strip())
+                            current_param = []
+                            continue
                     current_param.append(char)
                 if current_param:
                     params.append("".join(current_param).strip())
 
                 for param in params:
+                    param = param.strip()
                     if not param:
                         continue
 
-                    has_default = "=" in param
-                    param_clean = param.split("=")[0].strip()
+                    param_desc = ""
+
+                    param_desc_m = re.search(
+                        r'@ToolParam\s*\(\s*(?:description\s*=\s*)?["\']([^"\']+)["\']',
+                        param,
+                    )
+                    if param_desc_m:
+                        param_desc = param_desc_m.group(1)
+
+                    # Remove all annotations before trying to parse the name/type
+                    param_clean = re.sub(
+                        r"@[A-Za-z0-9_]+(?:\([^)]*\))?\s*", "", param
+                    ).strip()
+                    param_clean = param_clean.split("=")[0].strip()
 
                     if ":" in param_clean:
                         # Kotlin: name: Type
@@ -1345,35 +1369,68 @@ def parse_jvm_mcp_code(code: str) -> list[dict[str, Any]]:
                         parts = param_clean.rsplit(" ", 1)
                         if len(parts) >= 2:
                             pname = parts[1].strip()
-                            ptype_raw = re.sub(r'@[A-Za-z0-9_]+\s*', '', parts[0]).strip().split("<")[0]
+                            ptype_raw = parts[0].strip().split("<")[0]
                         else:
                             continue
 
                     pname = pname.strip()
-                    ptype_base = ptype_raw.strip().lower().split("<")[0].split("[")[0].replace("?", "")
+                    ptype_base = (
+                        ptype_raw.strip()
+                        .lower()
+                        .split("<")[0]
+                        .split("[")[0]
+                        .replace("?", "")
+                    )
 
                     schema_type = "string"
-                    if ptype_base in ("int", "integer", "long", "short", "byte", "float", "double", "number"):
+                    if ptype_base in (
+                        "int",
+                        "integer",
+                        "long",
+                        "short",
+                        "byte",
+                        "float",
+                        "double",
+                        "number",
+                    ):
                         schema_type = "number"
                     elif ptype_base in ("boolean", "bool"):
                         schema_type = "boolean"
-                    elif ptype_base in ("list", "set", "collection", "array", "iterable"):
+                    elif ptype_base in (
+                        "list",
+                        "set",
+                        "collection",
+                        "array",
+                        "iterable",
+                    ):
                         schema_type = "array"
-                    elif ptype_base in ("map", "dictionary", "object", "record", "jsonnode", "objectnode"):
+                    elif ptype_base in (
+                        "map",
+                        "dictionary",
+                        "object",
+                        "record",
+                        "jsonnode",
+                        "objectnode",
+                    ):
                         schema_type = "object"
 
-                    properties[pname] = {"type": schema_type}
+                    prop_schema = {"type": schema_type}
+                    if param_desc:
+                        prop_schema["description"] = param_desc
+                    properties[pname] = prop_schema
                     required.append(pname)
 
-        extracted.append({
-            "name": name,
-            "description": desc,
-            "inputSchema": {
-                "type": "object",
-                "properties": properties,
-                "required": sorted(required),
-            },
-        })
+        extracted.append(
+            {
+                "name": name,
+                "description": desc,
+                "inputSchema": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": sorted(required),
+                },
+            }
+        )
 
     return extracted
 
@@ -1387,64 +1444,115 @@ def parse_dotnet_mcp_code(code: str) -> list[dict[str, Any]]:
         if not name or name in seen_names:
             return
         seen_names.add(name)
-        extracted.append({
-            "name": name,
-            "description": desc or name,
-            "inputSchema": {
-                "type": "object",
-                "properties": props,
-                "required": sorted(req),
-            },
-        })
-
-    # Pattern 1: Attributes on methods [McpTool("name", "description")] or [McpFunction("name")]
-    attr_regex = re.compile(r"\[(?:McpTool|McpFunction)\s*\(([^)]*)\)\]", re.DOTALL)
-    for match in attr_regex.finditer(code):
-        attrs = match.group(1).strip()
-        strings = re.findall(r'["\']([^"\']+)["\']', attrs)
-        name = strings[0] if strings else ""
-        desc = strings[1] if len(strings) > 1 else ""
-
-        start_idx = match.end()
-        chunk = code[start_idx : start_idx + 600]
-
-        desc_attr = re.search(r'\[Description\s*\(\s*["\']([^"\']+)["\']\s*\)\]', chunk)
-        if desc_attr and not desc:
-            desc = desc_attr.group(1)
-
-        method_match = re.search(
-            r"(?:public|private|protected|internal)?\s*(?:static|async|virtual|override)?\s*[\w<>\[\]\?]+\s+([a-zA-Z0-9_]+)\s*\(",
-            chunk,
+        extracted.append(
+            {
+                "name": name,
+                "description": desc or name,
+                "inputSchema": {
+                    "type": "object",
+                    "properties": props,
+                    "required": sorted(req),
+                },
+            }
         )
 
+    # Pattern 1: Attributes on methods [McpTool("name", "description")], [McpFunction("name")], [McpServerTool(Name = "name")], or [KernelFunction]
+    # Handle multiple attributes separated by comma or newlines within brackets, or consecutive brackets
+    # e.g., [KernelFunction, Description("Multiply numbers")]
+
+    # We find method declarations, then look backwards for attributes.
+    # We also avoid matching `new McpTool(...)` by requiring a return type that isn't `new`.
+    method_regex = re.compile(
+        r"(?:public|private|protected|internal)?\s*(?:static\s+)?(?:async\s+)?(?:virtual\s+)?(?:override\s+)?(?:Task\s*<[^>]+>\s+|Task\s+|[\w<>\[\]\?]+\s+)([a-zA-Z0-9_]+)\s*\(",
+        re.MULTILINE,
+    )
+
+    for method_match in method_regex.finditer(code):
+        name = method_match.group(1)
+        full_match = method_match.group(0).strip()
+        if full_match.startswith("new "):
+            continue
+        start_idx = method_match.start()
+
+        # Look at the previous 300 characters to find attributes
+        prev_chunk = code[max(0, start_idx - 300) : start_idx]
+
+        # Check if it has any tool attribute
+        if not re.search(
+            r"\[(?:McpTool|McpFunction|McpServerTool|KernelFunction)\b", prev_chunk
+        ):
+            continue
+
+        desc = ""
+
+        # Split by previous method closing brace if any, to isolate attributes
+        if "}" in prev_chunk:
+            prev_chunk = prev_chunk[prev_chunk.rfind("}") + 1 :]
+
+        # Try to extract Name/Description from attributes
+        attr_str = "".join(prev_chunk.splitlines())
+
+        name_m = re.search(r'(?:Name|name)\s*=\s*["\']([^"\']+)["\']', attr_str)
+        if name_m:
+            name = name_m.group(1)
+
+        desc_m = re.search(
+            r'(?:Description|description)\s*\(\s*["\']([^"\']+)["\']\s*\)', attr_str
+        )
+        if desc_m:
+            desc = desc_m.group(1)
+        else:
+            desc_m = re.search(
+                r'(?:Description|description)\s*=\s*["\']([^"\']+)["\']', attr_str
+            )
+            if desc_m:
+                desc = desc_m.group(1)
+
+        # Look for [McpTool("name", "description")] or [McpFunction("name", "description")]
+        mcp_tool_m = re.search(
+            r'\[(?:McpTool|McpFunction)\s*\(\s*["\']([^"\']+)["\'](?:\s*,\s*["\']([^"\']+)["\'])?\s*\)\]',
+            attr_str,
+        )
+        if mcp_tool_m:
+            name = mcp_tool_m.group(1)
+            if mcp_tool_m.group(2):
+                desc = mcp_tool_m.group(2)
+
+        if not desc:
+            desc = name
+
+        # method_match.end() is right after '('
+        params_start = method_match.end()
+        chunk = code[params_start : params_start + 600]
+
         if not name:
-            if method_match:
-                name = method_match.group(1)
-            else:
-                continue
+            name = method_match.group(1)
+            desc = name
 
         properties: dict[str, dict[str, str]] = {}
         required: list[str] = []
 
-        if method_match:
-            params_start = method_match.end()
-            open_parens = 1
-            params_end = -1
-            for i in range(params_start, len(chunk)):
-                if chunk[i] == "(":
-                    open_parens += 1
-                elif chunk[i] == ")":
-                    open_parens -= 1
-                    if open_parens == 0:
-                        params_end = i
-                        break
+        open_parens = 1
+        params_end = -1
+        for i in range(len(chunk)):
+            if chunk[i] == "(":
+                open_parens += 1
+            elif chunk[i] == ")":
+                open_parens -= 1
+                if open_parens == 0:
+                    params_end = i
+                    break
 
-            if params_end != -1:
-                params_str = chunk[params_start:params_end]
-                params = []
-                current_param = []
-                nesting = 0
-                for char in params_str:
+        if params_end != -1:
+            params_str = chunk[:params_end]
+            params = []
+            current_param = []
+            nesting = 0
+            in_string = False
+            for char in params_str:
+                if char == '"' and nesting == 0:
+                    in_string = not in_string
+                if not in_string:
                     if char in "<[":
                         nesting += 1
                     elif char in ">]":
@@ -1453,44 +1561,72 @@ def parse_dotnet_mcp_code(code: str) -> list[dict[str, Any]]:
                         params.append("".join(current_param).strip())
                         current_param = []
                         continue
-                    current_param.append(char)
-                if current_param:
-                    params.append("".join(current_param).strip())
+                current_param.append(char)
+            if current_param:
+                params.append("".join(current_param).strip())
 
-                for param in params:
-                    if not param:
-                        continue
-                    has_default = "=" in param
-                    is_nullable = "?" in param
-                    param_clean = param.split("=")[0].strip()
-                    parts = param_clean.rsplit(" ", 1)
-                    if len(parts) >= 2:
-                        pname = parts[1].strip()
-                        ptype_raw = parts[0].strip().split("<")[0].replace("?", "").lower()
-                        schema_type = "string"
-                        if ptype_raw in ("int", "long", "short", "byte", "float", "double", "decimal"):
-                            schema_type = "number"
-                        elif ptype_raw in ("bool", "boolean"):
-                            schema_type = "boolean"
-                        elif ptype_raw in ("list", "ienumerable", "ilist", "array"):
-                            schema_type = "array"
-                        elif ptype_raw in ("dictionary", "idictionary", "object"):
-                            schema_type = "object"
-                        properties[pname] = {"type": schema_type}
-                        if not has_default and not is_nullable:
-                            required.append(pname)
+            for param in params:
+                param = param.strip()
+                if not param:
+                    continue
+                has_default = "=" in param
+                is_nullable = "?" in param
+
+                param_desc = ""
+                param_desc_m = re.search(
+                    r'\[Description\s*\(\s*["\']([^"\']+)["\']\s*\)\]', param
+                )
+                if param_desc_m:
+                    param_desc = param_desc_m.group(1)
+
+                param_clean = re.sub(r"\[[^\]]+\]\s*", "", param.split("=")[0]).strip()
+                parts = param_clean.rsplit(" ", 1)
+                if len(parts) >= 2:
+                    pname = parts[1].strip()
+                    ptype_raw = parts[0].strip().split("<")[0].replace("?", "").lower()
+                    schema_type = "string"
+                    if ptype_raw in (
+                        "int",
+                        "long",
+                        "short",
+                        "byte",
+                        "float",
+                        "double",
+                        "decimal",
+                    ):
+                        schema_type = "number"
+                    elif ptype_raw in ("bool", "boolean"):
+                        schema_type = "boolean"
+                    elif ptype_raw in ("list", "ienumerable", "ilist", "array"):
+                        schema_type = "array"
+                    elif ptype_raw in ("dictionary", "idictionary", "object"):
+                        schema_type = "object"
+
+                    prop_schema = {"type": schema_type}
+                    if param_desc:
+                        prop_schema["description"] = param_desc
+
+                    properties[pname] = prop_schema
+                    if not has_default and not is_nullable:
+                        required.append(pname)
 
         add_tool(name, desc, properties, required)
 
     # Pattern 2: server.AddTool("name", "desc", ...)
-    for match in re.finditer(r'(?:server|app)\.AddTool\s*\(\s*["\']([^"\']+)["\']\s*(?:,\s*["\']([^"\']+)["\'])?', code):
+    for match in re.finditer(
+        r'(?:server|app)\.AddTool\s*\(\s*["\']([^"\']+)["\']\s*(?:,\s*["\']([^"\']+)["\'])?',
+        code,
+    ):
         add_tool(match.group(1), match.group(2) or match.group(1), {}, [])
 
     # Pattern 3: new McpTool("name", "desc")
-    for match in re.finditer(r'new\s+McpTool\s*\(\s*["\']([^"\']+)["\']\s*(?:,\s*["\']([^"\']+)["\'])?', code):
+    for match in re.finditer(
+        r'new\s+McpTool\s*\(\s*["\']([^"\']+)["\']\s*(?:,\s*["\']([^"\']+)["\'])?', code
+    ):
         add_tool(match.group(1), match.group(2) or match.group(1), {}, [])
 
     return extracted
+
 
 
 def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[str, Any]]:
@@ -1524,7 +1660,14 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
         res = parse_jvm_mcp_code(code)
         if res: return res
 
-    if "using ModelContextProtocol" in code or "[McpTool" in code or "[McpFunction" in code or "new McpTool" in code:
+    if (
+        "using ModelContextProtocol" in code
+        or "[McpTool" in code
+        or "[McpFunction" in code
+        or "[McpServerTool" in code
+        or "[KernelFunction" in code
+        or "new McpTool" in code
+    ):
         res = parse_dotnet_mcp_code(code)
         if res: return res
 
