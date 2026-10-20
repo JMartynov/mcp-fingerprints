@@ -716,7 +716,7 @@ class PassportSynchronizer:
                                 if subpackage_prefix and not p.startswith(subpackage_prefix):
                                     continue
                                 parts = p.split("/")
-                                if len(parts) > 4:
+                                if len(parts) > 7:
                                     continue
                                 filename = parts[-1]
                                 match1 = re.search(r'(^|/)tools/.*\.(ts|js|mjs|py|go|rs|java|kt|cs)$', p)
@@ -1589,7 +1589,20 @@ class PassportSynchronizer:
                         gateway_caps["http_status"] = 404
                         gateway_caps["archival_reason"] = "Repository or package returned HTTP 404/Not Found"
                         tools = []
+                    
+                    if not tools and check_repo:
+                        fallback_tools = self._extract_ast_tools_from_github(spec.package_name, check_repo)
+                        if fallback_tools:
+                            tools = fallback_tools
+                            gateway_caps["pypi_fallback_github_ast"] = True
+                        else:
+                            readme_tools = self._extract_tools_from_github_readme(spec.package_name, check_repo)
+                            if readme_tools:
+                                tools = readme_tools
+                                gateway_caps["documentation_extracted_tools"] = True
+                    
                     with state_lock:
+
                         pypi_probed_packages.add(spec.package_name)
                         self.state["pypi_probed_packages"] = list(pypi_probed_packages)
                 elif strategy == "github":
