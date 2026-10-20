@@ -4,8 +4,9 @@
   "purl": "pkg:generic/shaqmughal%2Fseekstone",
   "ecosystem": "generic",
   "display_name": "shaqmughal/seekstone",
-  "description": "Filesystem-direct Obsidian MCP server \u2014 search and edit your vault with low context-tax.",
-  "repository_url": "https://github.com/shaqmughal/seekstone",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,6 +14,7 @@
     "shaqmughal/seekstone"
   ],
   "sources_merged": [
+    "github_readme",
     "official_registry"
   ],
   "dist_tags": {},
@@ -28,9 +30,509 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:edf2a6833173753854b19aec435454316fe515e611b5a5d59144a64e7fa3c505",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "documentation_extracted_tools": true,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "Local semantic search, fully in-process. With SEEKSTONE_SEMANTIC=1, search and context_pack gain mode",
+          "canonical_hash": "sha256:1f48c30f5bdcdbc78a211939ebf648f616b550ad5eb5f4ea926ebd133e01cc51",
+          "description": "\"semantic\" and \"hybrid\" — meaning-based retrieval through a small on-device embedding model (one-time npx -y seekstone fetch-model download, or the seekstone-semantic.mcpb bundle which ships the model inside; the running server never touches the network), with a MaxSim late-interaction rerank on top since 0.17.0. On our committed 10k-note benchmark vault (150-query golden set, fixture v2), the default model — measured end-to-end through the real search tool — scores 83.3% overall hit@5, 86.7% on the held-out split (vs 34.7% for keyword search alone) at ~26 ms warm p50, and the opt-in potion-retrieval-32M model (SEEKSTONE_SEMANTIC_MODEL; ~129 MB) reaches 86.7% overall hit@5, 86.7% held-out at ~55 ms. No other server we benchmarked ships offline, zero-native-dependency embeddings — and we measured the alternatives head-to-head on the same golden set, same run, committed dev/holdout split ([committed comparison](packages/harness/fixtures/baseline-reports/retrieval-eval-competitors.md), read-out in [COMPETITORS-SHA-322](packages/harness/fixtures/baseline-reports/COMPETITORS-SHA-322.md)): obsidian-tc's plain Ollama-backed semantic search edges us on the held-out split (90.0% vs our 86.7%) at 169 ms/query and a 30-minute index vs our ~28 s, and its GraphRAG mode scores highest of anything we benchmarked (95.0% held-out), paying for it with seconds-per-query latency (2.9 s p50, 4.2 s p95 — against our 26–55 ms), ~8× the payload (16 KB vs ~2 KB per query), and a second server (Ollama + a 137M-parameter model) you must install and run. We pre-registered a gate to claim the #1 spot ([GATE-V2-SHA-316](packages/harness/fixtures/baseline-reports/GATE-V2-SHA-316.md), run on fixture v1) and missed it — that verdict is published with the same prominence a win would have been; no new gate ran on v2, and the same clauses recompute to the same miss. obsidian-mcp-pro could not index the 10k-note vault at all (its JSON vector store exceeds JavaScript's string limit after ~17 minutes of embedding). Pick your trade — the numbers are all committed.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:09b099b8728b2be9e981934193ebc00e61d18f3382308c9c754479af3cf092be",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "append_note",
+          "canonical_hash": "sha256:c3a625c995980b17d200630263eac72a7850108d2bf945294d51798859bbe144",
+          "description": "Append text to a note body without touching frontmatter.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9e4e9a9ab993a909a2f6a309409334c186d94bc8e44c7228f743385e97e461c2",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "append_periodic_note",
+          "canonical_hash": "sha256:43f0a538fb3ed098b25d78f5509a6728478155054bf786e7c3701fb9e5cd89b4",
+          "description": "Append to today's periodic note, creating it from a template if it doesn't yet exist.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:103c57a41ee8171aa8142af395a4aed76e7f8152011b9bb697e647958114d05a",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "context_pack",
+          "canonical_hash": "sha256:e985fdec21b94e1dbda3b9e2e8186fcf66805b87eea0ccd11e93257786506e58",
+          "description": "Answer-ready context for a natural-language question in one call, hard-capped at a byte budget (default 2 KB): ranked excerpts, linked neighbor notes with one-line summaries, and follow-up source paths — replaces a search → read → get_backlinks round-trip loop. Scopable by folder/tag and takes the same mode as search.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f25dcd38c56482f0e17f5f44351ba70fbaf8a559d71ee8346e8e6cd2a75fdfd3",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "create_note",
+          "canonical_hash": "sha256:a1bdcb65421e29ba36871b6127480bffa6239430d303258ba274c988d2aee9cb",
+          "description": "Create a note (optional frontmatter + body); parent directories are created automatically.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8286cfc1c1a6c245890a9ffcd66eaf0387718270488b991a0a509b1bc3568da4",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "delete_note",
+          "canonical_hash": "sha256:05b6c5c90cba39c210251173285ebdaf0cf486b18baedfe6b2b22f404867b0ed",
+          "description": "Move a note to the vault's .trash/ folder (Obsidian-compatible, restorable). Pass permanent: true to skip the trash — the write journal still lets undo_write restore it.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:95a6fa05d0038246f1e4adb97bd0484ce9f84d14668a3519c32d2ab463141bfb",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_backlinks",
+          "canonical_hash": "sha256:0029551fb348b4d9420da38b72bef2838b3f530b6d77b7c2afde91dee8219ca3",
+          "description": "Find all notes that link to a given note.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:695684e08d0d0137190541a7637e864f3a1a30544c97b301801480e3c344fde6",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_links",
+          "canonical_hash": "sha256:dc64ff3c412a89ba9bde10c3bbafff8c1abd97f003a13b67ec654cfd220a7746",
+          "description": "List all outgoing wikilinks and markdown links from a note.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f0fde3eb20615e0d05e0ff35a27967a18a5a1f1716e70edebfbaa76b73eb8377",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_periodic_note",
+          "canonical_hash": "sha256:e7289a5038544f1b5bf8d86b06c6ad38f3df8b891bb08c2362c4855c17ce40ba",
+          "description": "Read today's (or any date's) daily, weekly, monthly, quarterly, or yearly note — path resolved from your vault config, no Obsidian required.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:32b65f246b01031ea31817bb039242c946e51869093e8e9847c26ed7f9c887f8",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_notes",
+          "canonical_hash": "sha256:3f7f8d21bbc18b4a9389d02f6be41321773d73eeb725981d7ec631797ff3416e",
+          "description": "List notes, optionally filtered by folder prefix or tag.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:de9f33dd9f572e12a0e8e414850250838e85cc08089f1f3e2b52fe5fa801d66e",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_tags",
+          "canonical_hash": "sha256:628156e1fd32205ae4d35d9509fb1ff1e737cfa8a584ad11cd009ef8683ac660",
+          "description": "List all tags in the vault sorted by usage count (or alphabetically).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:733efb0f23361b9ca6eb23e9b14f432d5860e3d3563f5ad9218bd2839a81ec3c",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_tasks",
+          "canonical_hash": "sha256:64a8464ba3fa5234f5d43fb2757abb21e9535ee492a507f1abd419ad60b12ff1",
+          "description": "List Markdown checkbox tasks as compact structured rows (path, line, state, text, nearest heading) — vault-wide or filtered by note, folder, tag, state, or modified time. Custom markers (- [/], - [-], …) are first-class single-char states.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4d5d5c59a0577b6caec9a025d4407c146a2f2bc6786c2963e766ef78f19d83d7",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_writes",
+          "canonical_hash": "sha256:7da22b580948cf34ff6243c54637cb878e8f1a2216325d3c0800263dc6cc5c9b",
+          "description": "Recent writes from the journal — seq, timestamp, tool, touched paths, and whether each is still undoable. Metadata only, never note content.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5f45444cae2c71fa8c5fdbe0ae1ed629f2ecf142b106ce4ac38db69b178e7383",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "move_note",
+          "canonical_hash": "sha256:f811716bdaf00fa638a903b2a6d904f607f2ad045c88b6dec6afd8883652c9f4",
+          "description": "Move or rename a note — wikilinks and markdown links in other notes that point at it are rewritten so nothing breaks (rewriteLinks: false to opt out); destination directories are created automatically.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:377e698fdf1c083eac0e276635099ba1d0e2f837f064c9280a5f263d7c084211",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "outline_note",
+          "canonical_hash": "sha256:5872a5f6e4d1f47c3aae6fb3524475a219326a6dda2c8c19fb378982769d3b77",
+          "description": "Return a note's heading and block structure without its full content — cheap navigation before a targeted read.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4030b9a0f0772b4962aa89f77c6eccf57d3e6f9d9685ca79491e5074d1b5725a",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "patch_frontmatter",
+          "canonical_hash": "sha256:7f414d11a46c8ebe1c1d3b8577136fa262498603861323cbe52eb02bb4e6db5c",
+          "description": "Set, update, or delete frontmatter keys without reordering existing keys or changing quote style.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9f42ed131acb9c7c3250c06674479c0fd32fbda125a086f83f17e6e61a6ddaf1",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "patch_note",
+          "canonical_hash": "sha256:91e1f8a06ec2450b9f6b6c4a38bf00024c3ec1a31d23c364c66550218e867633",
+          "description": "Append, prepend, or replace text at a heading or block reference (createIfMissing to add the section) — frontmatter untouched.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f6a76aef9d10a96bcf774d07dc10c0a4ad0e0470cbb832a0a5941f122618b8b8",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "query_notes",
+          "canonical_hash": "sha256:e215230a202a352e14be1ce90b4d76b798cc4d281c634c6d5d0df598987ab1e6",
+          "description": "Structured metadata query. Filter by frontmatter key/value predicates (eq, ne, contains, exists, missing, gt/gte/lt/lte), tag, folder, modified time, and size; sort and select the fields you need. Returns compact rows (path + title by default), not note content.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0f126cd5d3948e667397c52a465c2cd6828b4696f62b828b963b6349ee60e5ee",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "read_note",
+          "canonical_hash": "sha256:52ba81da06ea0fa4d098b4ea961a8d5da57b902a0a84c2ffc91e3eeff5664363",
+          "description": "Read the full content of a note by vault-relative path. Supports returning a single section, block, or line range.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c015c0d580c63556c486b74d801fb8c1b65ff9fa4bb6b7f4e3faaf61a0856b77",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "read_notes",
+          "canonical_hash": "sha256:fcbe2167501db8b4809448410bee2a64df743040f4aebaf420e874a3c52c1f03",
+          "description": "Read up to 20 notes (or sections, blocks, line ranges) in one call under a total byte budget (default 16 KB). Over budget, each note is cut to a fair share and marked truncated; one bad path returns its own error without failing the batch.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7e0f6ee8e53dfef19ed4b0d2386a68eccb3ba24a3d0f139699bd0c273e9546c7",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "rename_heading",
+          "canonical_hash": "sha256:58bfb00e2e7a1a49ec062ca3d232363445b97a3c6f816bad6ab1ba8a4eeae9e0",
+          "description": "Rename a heading in a note — every [[note#heading]] wikilink and embed across the vault is rewritten so references keep working (aliases preserved, fenced code blocks left alone).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a6874718d619ed18508da89f19db35efd1c105723ffa78a57198116b8bb2cae5",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "replace_in_note",
+          "canonical_hash": "sha256:a69b16e393fbea8d9ee9db1ab52aa5899e4e4ae04f82c92c2e57834f3be9308f",
+          "description": "Find and replace text in the note body — literal or regex, case sensitivity, whole-word matching, optional limit (replaces all occurrences by default), and a dry-run preview.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:94de25cd76af4184d9c46c9413cbce7e4fa6e6f55352f347d420e1f8af935baa",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "resolve_note",
+          "canonical_hash": "sha256:221c1e8234be8abd02b38c0b71a52c15413cdc34cd208ad2206271f8fa4991f9",
+          "description": "Turn a note name, path, or frontmatter alias into its canonical vault path(s) — with provenance per match, all candidates when ambiguous, and did-you-mean suggestions when nothing matches.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:14b45ecb4ac7280dd3fe43086fa563952750991e5164e956c5b4b173ae1f70c7",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "search",
+          "canonical_hash": "sha256:605eb99a9e1f48886fc9b2ebe4ab99602d3b204e70696055df9236ff6cce51ac",
+          "description": "Full-text search. Returns ranked excerpts (default ~120 chars, tunable via excerptLength), not full notes. Fuzzy and prefix matching; with SEEKSTONE_SEMANTIC=1, mode: \"semantic\"/\"hybrid\" searches by meaning via a local embedding model (nothing leaves your machine).",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fe870275178ef0ec18badd0fffb69a8694367b7d40b2f6ece3206add2e0e1795",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "undo_write",
+          "canonical_hash": "sha256:d5ac1ce02c96c277750a5b07389162f890460298076e7fc26523fda2442cda1b",
+          "description": "Revert a journaled write: every file it touched goes back to its byte-identical pre-write state (a multi-file move or heading rename is restored whole; a delete is restored even if it was permanent). Defaults to the most recent write; refuses with undo_conflict if a file changed since, unless force: true. The undo is itself journaled — undo_write({ seq }) on the undo entry redoes it.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c4f9b52d40607bc6b90430065f32f928a8e132ff06ff87c739faa680880e62e7",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "update_task",
+          "canonical_hash": "sha256:4f078583eec30bc4d97ff2debeb1f56bb47a83c7b5e0c523db5fe96886193a67",
+          "description": "Set one checkbox's state by path + line (from list_tasks) — rewrites exactly one character, leaving every other byte untouched. An expectText guard refuses if the task text changed since it was listed.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7b4cccdd1fb17cb0203ae3f5e850381fd35cebab380a2ed5386d873ce4de8e0f",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

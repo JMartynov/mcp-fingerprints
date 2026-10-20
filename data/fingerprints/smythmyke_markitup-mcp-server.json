@@ -4,8 +4,9 @@
   "purl": "pkg:generic/smythmyke%2Fmarkitup-mcp-server",
   "ecosystem": "generic",
   "display_name": "smythmyke/markitup-mcp-server",
-  "description": "MarkItUp AI image annotation and marketing-visual generator (variations, outpaint, bg-removal).",
-  "repository_url": "https://github.com/smythmyke/markitup-mcp-server",
+  "description": "MCP server for MarkItUp (https://markitup.app) — AI-powered image annotation and marketing-visual generation. Lets Claude Code, Claude Desktop, Cursor, ChatGPT-with-MCP, and other MCP-compatible clients call\n  MarkItUp directly. Powered by Claude analysis + Gemini image generation.\n\n  ## Tools (5)\n\n  - **markitup_credit_balance** — check credits + subscription status (free)\n  - **markitup_generate** — create 3 marketing-visual variations from any image (1 credit)\n  - **markitup_regen** — regenerate one variation from a previous call (1 credit)\n  - **markitup_extend** — AI outpainting for aspect-ratio changes (1 credit)\n  - **markitup_remove_background** — HD background removal via Photoroom (1 credit)\n\n  Get your API key at https://markitup.app/dashboard/.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/smythmyke/markitup-mcp-server",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "smythmyke/markitup-mcp-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,659 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:cf33fdbf0e2ce3267d022e109a16814cc7edff165f0143e8590060ed60f73323",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "2b7cab18-529d-4fa9-9fd0-a61ad5ad12f1/ef305225-e870-4170-a79e-e4805b47da17/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "MARKITUP_API_KEY"
+            ],
+            "properties": {
+              "MARKITUP_API_KEY": {
+                "type": "string",
+                "title": "MarkItUp API Key",
+                "x-order": 0,
+                "description": "API key from your MarkItUp dashboard at https://markitup.app/dashboard/. Required."
+              },
+              "MARKITUP_API_BASE": {
+                "type": "string",
+                "title": "API Base URL (optional)",
+                "default": "https://markitup.app/api/v1",
+                "x-order": 1,
+                "description": "Override the API base URL. Default: https://markitup.app/api/v1"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "markitup_credit_balance",
+          "canonical_hash": "sha256:47e35567584df0b4e0475a60ecd7028e167846f9b384745b475d7e260f0de4e2",
+          "description": "Return the current MarkItUp credit balance and subscription status for the authenticated account. Use this before calling generation tools to verify the account has credits available.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fd8742e2a0bc25d18b56dd5a693df521c9783ba270205fc7328ab5cba64ef42c",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "markitup_extend",
+          "canonical_hash": "sha256:c963af6988e8f1758cc1995da94d17c4a617d4964cb82f20c65ba1b4c29c040f",
+          "description": "AI-outpaint an image to a larger canvas. Useful for converting a square asset to 16:9 or 9:16, or extending a tight crop. Costs 1 credit. Provide the source image as URL or base64, plus the target aspect ratio and pixel dimensions.",
+          "is_mutating": false,
+          "property_keys": [
+            "aspect_ratio",
+            "image_base64",
+            "image_mime_type",
+            "image_size",
+            "image_url",
+            "target_height",
+            "target_width"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image_url": "string",
+            "image_size": "string",
+            "aspect_ratio": "string",
+            "image_base64": "string",
+            "target_width": "number",
+            "target_height": "number",
+            "image_mime_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image_url": {
+                "type": "string",
+                "description": "Public HTTPS URL of the source image."
+              },
+              "image_size": {
+                "enum": [
+                  "1K",
+                  "2K",
+                  "4K"
+                ],
+                "type": "string"
+              },
+              "aspect_ratio": {
+                "type": "string",
+                "description": "Target aspect ratio. One of: 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9."
+              },
+              "image_base64": {
+                "type": "string",
+                "description": "Base64-encoded source image (no data: prefix). Mutually exclusive with image_url."
+              },
+              "target_width": {
+                "type": "number",
+                "description": "Target output width in pixels."
+              },
+              "target_height": {
+                "type": "number",
+                "description": "Target output height in pixels."
+              },
+              "image_mime_type": {
+                "type": "string",
+                "default": "image/png"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:53c3246aa492ab8dbe1bd0564386af8c6ba45ca7bc302ee30561b8d28b23a57a",
+          "parameters": [
+            {
+              "name": "aspect_ratio",
+              "type": "string",
+              "description": "Target aspect ratio. One of: 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_base64",
+              "type": "string",
+              "description": "Base64-encoded source image (no data: prefix). Mutually exclusive with image_url.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_mime_type",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "image/png",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_size",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "1K",
+                "2K",
+                "4K"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_url",
+              "type": "string",
+              "description": "Public HTTPS URL of the source image.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "target_height",
+              "type": "number",
+              "description": "Target output height in pixels.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "target_width",
+              "type": "number",
+              "description": "Target output width in pixels.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "markitup_generate",
+          "canonical_hash": "sha256:8f4a406d95d182f7909fb97a47fcf42a29f7e43393c057ab3024c6a19383fc71",
+          "description": "Generate polished marketing-visual variations of a screenshot or image using the MarkItUp pipeline (Claude analyzes the image and writes copy; Gemini renders the visuals). Costs 1 credit. Provide the image either as a public URL (image_url) OR as a base64-encoded string (image_base64) — exactly one. Common template IDs: glassmorphic, clean_minimal, bold_marketing, dark_professional, documentation. Returns the generated images plus the marketing copy (headline, subhead) written by Claude.",
+          "is_mutating": false,
+          "property_keys": [
+            "aspect_ratio",
+            "description",
+            "image_base64",
+            "image_mime_type",
+            "image_size",
+            "image_url",
+            "template_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image_url": "string",
+            "image_size": "string",
+            "description": "string",
+            "template_id": "string",
+            "aspect_ratio": "string",
+            "image_base64": "string",
+            "image_mime_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image_url": {
+                "type": "string",
+                "description": "Public HTTPS URL of the source image. Mutually exclusive with image_base64."
+              },
+              "image_size": {
+                "enum": [
+                  "1K",
+                  "2K",
+                  "4K"
+                ],
+                "type": "string",
+                "description": "Optional output resolution tier. Defaults to backend choice."
+              },
+              "description": {
+                "type": "string",
+                "description": "Natural-language description of what the image shows and what should be highlighted or emphasized."
+              },
+              "template_id": {
+                "type": "string",
+                "description": "Template ID controlling visual style. Standard options: glassmorphic, clean_minimal, bold_marketing, dark_professional, documentation."
+              },
+              "aspect_ratio": {
+                "type": "string",
+                "description": "Optional. One of: 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9."
+              },
+              "image_base64": {
+                "type": "string",
+                "description": "Base64-encoded image bytes (no data: prefix). Mutually exclusive with image_url."
+              },
+              "image_mime_type": {
+                "type": "string",
+                "default": "image/png",
+                "description": "MIME type when supplying image_base64. Defaults to image/png."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e9b02d4cd6f4f2163fece12e06cc610bb6e7cfee0d22613fc2d922dcd2e3370c",
+          "parameters": [
+            {
+              "name": "aspect_ratio",
+              "type": "string",
+              "description": "Optional. One of: 1:1, 3:2, 2:3, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Natural-language description of what the image shows and what should be highlighted or emphasized.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_base64",
+              "type": "string",
+              "description": "Base64-encoded image bytes (no data: prefix). Mutually exclusive with image_url.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_mime_type",
+              "type": "string",
+              "description": "MIME type when supplying image_base64. Defaults to image/png.",
+              "required": false,
+              "default": "image/png",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_size",
+              "type": "string",
+              "description": "Optional output resolution tier. Defaults to backend choice.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "1K",
+                "2K",
+                "4K"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_url",
+              "type": "string",
+              "description": "Public HTTPS URL of the source image. Mutually exclusive with image_base64.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "template_id",
+              "type": "string",
+              "description": "Template ID controlling visual style. Standard options: glassmorphic, clean_minimal, bold_marketing, dark_professional, documentation.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "markitup_regen",
+          "canonical_hash": "sha256:57001f7fcb6e01c934a2af9b4508775e9a2f59399562b0f5c4a48d97abb57cba",
+          "description": "Regenerate a single variation from a previous markitup_generate call with the same source image and template. Costs 1 credit if charge_credit=true. Pass back the source image (as URL or base64) AND the text analysis object returned in the previous generate's structuredContent.text — the regen uses the same headline/copy so visuals stay consistent. Use variation_index to choose which slot (0–2) to regenerate.",
+          "is_mutating": false,
+          "property_keys": [
+            "aspect_ratio",
+            "charge_credit",
+            "image_size",
+            "source_image_base64",
+            "source_image_mime_type",
+            "source_image_url",
+            "template_id",
+            "text_analysis",
+            "variation_index"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image_size": "string",
+            "template_id": "string",
+            "aspect_ratio": "string",
+            "charge_credit": "boolean",
+            "text_analysis": "object",
+            "variation_index": "number",
+            "source_image_url": "string",
+            "source_image_base64": "string",
+            "source_image_mime_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image_size": {
+                "enum": [
+                  "1K",
+                  "2K",
+                  "4K"
+                ],
+                "type": "string"
+              },
+              "template_id": {
+                "type": "string",
+                "description": "Same template_id used in the original generate."
+              },
+              "aspect_ratio": {
+                "type": "string"
+              },
+              "charge_credit": {
+                "type": "boolean",
+                "default": true,
+                "description": "If true, deduct 1 credit. Defaults to true."
+              },
+              "text_analysis": {
+                "type": "object",
+                "properties": {
+                  "headline": {
+                    "type": "string"
+                  },
+                  "subHeadline": {
+                    "type": "string"
+                  },
+                  "marketingCopy": {
+                    "type": "string"
+                  }
+                },
+                "description": "The 'text' object from the previous generate's structuredContent — includes headline, subHeadline, marketingCopy."
+              },
+              "variation_index": {
+                "type": "number",
+                "default": 0,
+                "description": "Which slot (0, 1, or 2) to regenerate. Default 0."
+              },
+              "source_image_url": {
+                "type": "string",
+                "description": "Public HTTPS URL of the same source image used in the original markitup_generate."
+              },
+              "source_image_base64": {
+                "type": "string",
+                "description": "Base64-encoded source image (no data: prefix). Mutually exclusive with source_image_url."
+              },
+              "source_image_mime_type": {
+                "type": "string",
+                "default": "image/png",
+                "description": "MIME type when supplying source_image_base64. Defaults to image/png."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c12b3ed5d8ed286bbb13899cae9e4823c1c8fca4c1502684bb9451b55a577c4f",
+          "parameters": [
+            {
+              "name": "aspect_ratio",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "charge_credit",
+              "type": "boolean",
+              "description": "If true, deduct 1 credit. Defaults to true.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_size",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "1K",
+                "2K",
+                "4K"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "source_image_base64",
+              "type": "string",
+              "description": "Base64-encoded source image (no data: prefix). Mutually exclusive with source_image_url.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "source_image_mime_type",
+              "type": "string",
+              "description": "MIME type when supplying source_image_base64. Defaults to image/png.",
+              "required": false,
+              "default": "image/png",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "source_image_url",
+              "type": "string",
+              "description": "Public HTTPS URL of the same source image used in the original markitup_generate.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "template_id",
+              "type": "string",
+              "description": "Same template_id used in the original generate.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "text_analysis",
+              "type": "object",
+              "description": "The 'text' object from the previous generate's structuredContent — includes headline, subHeadline, marketingCopy.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "headline": {
+                  "type": "string"
+                },
+                "subHeadline": {
+                  "type": "string"
+                },
+                "marketingCopy": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "name": "variation_index",
+              "type": "number",
+              "description": "Which slot (0, 1, or 2) to regenerate. Default 0.",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "markitup_remove_background",
+          "canonical_hash": "sha256:50c4cfd420729deb8bcfe284af0977365dd5bc6d7f28b5e9c580c0fba8cac641",
+          "description": "Remove the background from an image using Photoroom's HD AI background-removal service. Returns a transparent PNG. Costs 1 credit (free for active Pro/Power subscribers). Provide the source image as URL or base64.",
+          "is_mutating": false,
+          "property_keys": [
+            "image_base64",
+            "image_mime_type",
+            "image_url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image_url": "string",
+            "image_base64": "string",
+            "image_mime_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image_url": {
+                "type": "string",
+                "description": "Public HTTPS URL of the source image."
+              },
+              "image_base64": {
+                "type": "string",
+                "description": "Base64-encoded source image (no data: prefix). Mutually exclusive with image_url."
+              },
+              "image_mime_type": {
+                "type": "string",
+                "default": "image/png"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:40cb24c2f530009ae669300fcad22edbda91ffb7b0203e07f034c1bebf6a297b",
+          "parameters": [
+            {
+              "name": "image_base64",
+              "type": "string",
+              "description": "Base64-encoded source image (no data: prefix). Mutually exclusive with image_url.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_mime_type",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": "image/png",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_url",
+              "type": "string",
+              "description": "Public HTTPS URL of the source image.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

@@ -4,8 +4,9 @@
   "purl": "pkg:generic/smythmyke%2Fgovtoolspro-mcp-server",
   "ecosystem": "generic",
   "display_name": "smythmyke/govtoolspro-mcp-server",
-  "description": "Workflow tools for federal contractors: go/no-go scoring, incumbent intel, recompete, NECO.",
-  "repository_url": "https://github.com/smythmyke/govtoolspro-mcp-server",
+  "description": " Workflow tools for US federal contractors over MCP — decisions, not raw data. 7 tools: go/no-go scoring (CMMC/geo/set-aside blocker detection), incumbent intelligence (USAspending + FPDS), teaming-partner search, recompete prediction, Navy NECO lookup, and SAM.gov solicitation retrieval. Works in Claude Code, Claude Desktop, Cursor, and Cline.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/smythmyke/govtoolspro-mcp-server",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "smythmyke/govtoolspro-mcp-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,1602 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:c36164d4014b0be3998627b2cb3665921092ccd5d7c0245f4e9d06705bb9f9b2",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "3de2af25-9326-433b-acd4-b6ba06395da9/bd7707fb-75d6-4c0a-a443-9cbc48d5fafc/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "GOVTOOLSPRO_API_KEY"
+            ],
+            "properties": {
+              "GOVTOOLSPRO_API_KEY": {
+                "type": "string",
+                "title": "GovToolsPro API Key",
+                "x-order": 0,
+                "description": "API key minted from the GovToolsPro Chrome extension → Profile → API Keys tab. Format: gtp_live_... or gtp_test_..."
+              },
+              "GOVTOOLSPRO_API_BASE": {
+                "type": "string",
+                "title": "API Base URL (optional)",
+                "default": "https://mcp.govtoolspro.com/api/v1/workflows",
+                "x-order": 1,
+                "description": "Override the API base URL. Default: https://mcp.govtoolspro.com/api/v1/workflows"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "analyze_award_patterns",
+          "canonical_hash": "sha256:e4927560b0f04a98b9dc5ab3e78fa72b71b9ce79e8bc4fd898ada03b0ae43eb2",
+          "description": "Analyze how contracts in a NAICS are typically awarded: award-size distribution, competition mix (full & open / limited / sole-source), bid intensity (single-bid rate, expected bidders), contract vehicles, and pricing types. From public USAspending + FPDS data. Costs 3 credits.",
+          "is_mutating": false,
+          "property_keys": [
+            "naicsCode",
+            "pscCode",
+            "state",
+            "years"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "state": "string",
+            "years": "number",
+            "pscCode": "string",
+            "naicsCode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "description": "Optional 2-letter place-of-performance state filter."
+              },
+              "years": {
+                "type": "number",
+                "description": "Lookback in years (default ~3)."
+              },
+              "pscCode": {
+                "type": "string",
+                "description": "Optional PSC code to narrow the analysis."
+              },
+              "naicsCode": {
+                "type": "string",
+                "description": "NAICS code (required)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "competition": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true
+              },
+              "pricingTypes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "bidStatistics": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true
+              },
+              "contractVehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "awardSizeDistribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "description_hash": "sha256:555cf3467d044352d20a2cc7402a159c7f19e325752e66deb07300151868d14d",
+          "parameters": [
+            {
+              "name": "naicsCode",
+              "type": "string",
+              "description": "NAICS code (required).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pscCode",
+              "type": "string",
+              "description": "Optional PSC code to narrow the analysis.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "Optional 2-letter place-of-performance state filter.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "years",
+              "type": "number",
+              "description": "Lookback in years (default ~3).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "analyze_market",
+          "canonical_hash": "sha256:6133e7a110f5a1974c7c536676a2c619c03eadd9377ad9454282d5dc9f05ba10",
+          "description": "Full market-intelligence snapshot for a NAICS: 5-year federal spending trend, industry size (Census), top contractors with market share + HHI concentration, set-aside distribution, geographic distribution, and contract-vehicle usage. From public USAspending + Census data. Costs 5 credits.",
+          "is_mutating": false,
+          "property_keys": [
+            "naicsCode",
+            "pscCode",
+            "setAside"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pscCode": "string",
+            "setAside": "string",
+            "naicsCode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pscCode": {
+                "type": "string",
+                "description": "Optional PSC code for sharper competitor filtering."
+              },
+              "setAside": {
+                "type": "string",
+                "description": "Optional set-aside context."
+              },
+              "naicsCode": {
+                "type": "string",
+                "description": "NAICS code (required)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "concentration": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true
+              },
+              "spendingTrend": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "topContractors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "federalSharePct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "industryContext": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true
+              },
+              "contractVehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "recentLargeAwards": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "setAsideDistribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "geographicDistribution": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "description_hash": "sha256:d61003373233759cd1de858b6b5d69285575fe267dc98fa80710da603bea7525",
+          "parameters": [
+            {
+              "name": "naicsCode",
+              "type": "string",
+              "description": "NAICS code (required).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pscCode",
+              "type": "string",
+              "description": "Optional PSC code for sharper competitor filtering.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "setAside",
+              "type": "string",
+              "description": "Optional set-aside context.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "balance",
+          "canonical_hash": "sha256:52a55f1e0357f993a6c693fa612e7733b1a9d5591c9224856b661f2459d834de",
+          "description": "Return the current GovToolsPro credit balance and subscription status for the authenticated account. Free — exercises auth end-to-end. The extension and the API draw from the same shared credit pool.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "balance": {
+                "type": "number",
+                "description": "Current total credit balance."
+              },
+              "totalUsed": {
+                "type": "number",
+                "description": "Lifetime credits consumed."
+              },
+              "subscription": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "planId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "description": "Active subscription, or null if none."
+              },
+              "topupCredits": {
+                "type": "number",
+                "description": "Credits purchased as one-off top-ups."
+              },
+              "totalPurchased": {
+                "type": "number",
+                "description": "Lifetime credits purchased."
+              },
+              "subscriptionCredits": {
+                "type": "number",
+                "description": "Credits from the active subscription."
+              }
+            },
+            "required": [
+              "balance"
+            ]
+          },
+          "description_hash": "sha256:72ab10340817d12d89ec72ee5e51ecc84b1ee0f3ed9832a11b1859f82a25832b",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "find_incumbents",
+          "canonical_hash": "sha256:749550b80f107fa01963c80fd5403154868af6a9d8486c77d566c9af3acf1ded",
+          "description": "Identify the likely current incumbent(s) for a solicitation using public USAspending + FPDS award data. Returns the primary incumbent (name, award value, period of performance), FPDS competition signals (offers received, set-aside, sole-source flags), and an anticipated next-award start date. Deterministic, free. FPDS failures degrade gracefully (USAspending half stays intact).",
+          "is_mutating": false,
+          "property_keys": [
+            "anticipatedStartDate",
+            "fpdsMaxResults",
+            "limit",
+            "solicitation",
+            "years"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "years": "number",
+            "solicitation": "object",
+            "fpdsMaxResults": "number",
+            "anticipatedStartDate": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max USAspending contracts (default 50, max 100)."
+              },
+              "years": {
+                "type": "number",
+                "description": "USAspending lookback in fiscal years (default 5, max 10)."
+              },
+              "solicitation": {
+                "type": "object",
+                "required": [
+                  "naicsCode"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "agency": {
+                    "type": "string"
+                  },
+                  "office": {
+                    "type": "string"
+                  },
+                  "pscCode": {
+                    "type": "string"
+                  },
+                  "naicsCode": {
+                    "type": "string",
+                    "description": "NAICS code (required)."
+                  },
+                  "subAgency": {
+                    "type": "string"
+                  },
+                  "responseDeadline": {
+                    "type": "string"
+                  },
+                  "placeOfPerformance": {
+                    "type": "string"
+                  }
+                },
+                "description": "Solicitation context. naicsCode is REQUIRED. Optional: pscCode, agency, subAgency, office, placeOfPerformance, title, responseDeadline."
+              },
+              "fpdsMaxResults": {
+                "type": "number",
+                "description": "Max FPDS contracts (default 50, max 100)."
+              },
+              "anticipatedStartDate": {
+                "type": "string",
+                "description": "ISO date overriding the responseDeadline-based anticipated-start calculation."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "fpdsError": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fpdsResults": {
+                "type": "number"
+              },
+              "otherIncumbents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "totalValue": {
+                      "type": "number"
+                    },
+                    "companyName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "primaryIncumbent": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "fpdsData": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "typeOfSetAside": {
+                        "type": "string"
+                      },
+                      "numberOfOffersReceived": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "totalValue": {
+                    "type": "number"
+                  },
+                  "companyName": {
+                    "type": "string"
+                  },
+                  "contractCount": {
+                    "type": "number"
+                  }
+                }
+              },
+              "usaspendingResults": {
+                "type": "number"
+              },
+              "anticipatedStartDate": {
+                "type": "string"
+              }
+            }
+          },
+          "description_hash": "sha256:259765729e2c8a8d3035d5226d2436702c95362538e3d276f8d13a74c87c9c7f",
+          "parameters": [
+            {
+              "name": "anticipatedStartDate",
+              "type": "string",
+              "description": "ISO date overriding the responseDeadline-based anticipated-start calculation.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "fpdsMaxResults",
+              "type": "number",
+              "description": "Max FPDS contracts (default 50, max 100).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Max USAspending contracts (default 50, max 100).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "solicitation",
+              "type": "object",
+              "description": "Solicitation context. naicsCode is REQUIRED. Optional: pscCode, agency, subAgency, office, placeOfPerformance, title, responseDeadline.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "title": {
+                  "type": "string"
+                },
+                "agency": {
+                  "type": "string"
+                },
+                "office": {
+                  "type": "string"
+                },
+                "pscCode": {
+                  "type": "string"
+                },
+                "naicsCode": {
+                  "type": "string",
+                  "description": "NAICS code (required)."
+                },
+                "subAgency": {
+                  "type": "string"
+                },
+                "responseDeadline": {
+                  "type": "string"
+                },
+                "placeOfPerformance": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "name": "years",
+              "type": "number",
+              "description": "USAspending lookback in fiscal years (default 5, max 10).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "find_partners_near",
+          "canonical_hash": "sha256:ef605543d4dec17aef23b35ec0b0a69f0e2d91f1a9d8ecbb147525f27d3cffb9",
+          "description": "Find potential teaming partners / subcontractors near a solicitation's place of performance via Google Places. Given a capability keyword and a geocodable address, returns nearby businesses ranked by proximity, enriched (top results) with phone and website. Deterministic, free. Verify capabilities, certifications, and eligibility independently before relying on results.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "keyword",
+            "radius"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "radius": "number",
+            "address": "string",
+            "keyword": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "radius": {
+                "type": "number",
+                "default": 25,
+                "description": "Search radius in miles (default 25, max 100)."
+              },
+              "address": {
+                "type": "string",
+                "description": "Place of performance — any geocodable string, e.g. 'Arlington, VA' or a full street address."
+              },
+              "keyword": {
+                "type": "string",
+                "description": "Industry/capability term, e.g. 'IT support', 'electrical contractor', 'janitorial services'."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "businesses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "rating": {
+                      "type": "number"
+                    },
+                    "website": {
+                      "type": "string"
+                    },
+                    "distanceMiles": {
+                      "type": "number"
+                    },
+                    "formattedAddress": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "totalResults": {
+                "type": "number"
+              },
+              "placeOfPerformance": {
+                "type": "object",
+                "properties": {
+                  "address": {
+                    "type": "string"
+                  },
+                  "coordinates": {
+                    "type": "object",
+                    "properties": {
+                      "lat": {
+                        "type": "number"
+                      },
+                      "lng": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "businesses",
+              "totalResults"
+            ]
+          },
+          "description_hash": "sha256:192543815277a7e16c69c018a98719b924220812a54705f2e7f192e8574c9ac0",
+          "parameters": [
+            {
+              "name": "address",
+              "type": "string",
+              "description": "Place of performance — any geocodable string, e.g. 'Arlington, VA' or a full street address.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "keyword",
+              "type": "string",
+              "description": "Industry/capability term, e.g. 'IT support', 'electrical contractor', 'janitorial services'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "radius",
+              "type": "number",
+              "description": "Search radius in miles (default 25, max 100).",
+              "required": false,
+              "default": 25,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_solicitation",
+          "canonical_hash": "sha256:646f24c0c52884ba1316493a7d8414f9bd9d9385e87eba2bed06bd52c4f95a97",
+          "description": "Retrieve a single SAM.gov solicitation's structured fields by notice ID (or, best-effort, by solicitation number). Returns title, solicitation number, type, NAICS, PSC, set-aside, place of performance, response deadline (with timezone), points of contact, description, and attachment download links. Deterministic, free — pulls from SAM.gov's public opportunity records. This is the entry point for a workflow: feed the returned fields into score_go_no_go, find_incumbents, or find_partners_near.",
+          "is_mutating": false,
+          "property_keys": [
+            "includeAttachments",
+            "noticeId",
+            "solicitationNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "noticeId": "string",
+            "includeAttachments": "boolean",
+            "solicitationNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "noticeId": {
+                "type": "string",
+                "description": "32-character hex SAM.gov notice ID (the ID in a sam.gov/opp/<id>/view URL). Primary, most reliable input."
+              },
+              "includeAttachments": {
+                "type": "boolean",
+                "default": true,
+                "description": "Include attachment download links (default true). Set false to skip the extra lookup."
+              },
+              "solicitationNumber": {
+                "type": "string",
+                "description": "Solicitation number (e.g. '140P6026Q0003'). Best-effort fallback — resolved via SAM.gov search; provide noticeId when you have it."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "link": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "pscCode": {
+                "type": "string"
+              },
+              "archived": {
+                "type": "boolean"
+              },
+              "noticeId": {
+                "type": "string"
+              },
+              "setAside": {
+                "type": "string"
+              },
+              "cancelled": {
+                "type": "boolean"
+              },
+              "naicsCode": {
+                "type": "string"
+              },
+              "typeLabel": {
+                "type": "string"
+              },
+              "naicsCodes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "postedDate": {
+                "type": "string"
+              },
+              "archiveDate": {
+                "type": "string"
+              },
+              "attachments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "mimeType": {
+                      "type": "string"
+                    },
+                    "sizeBytes": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              },
+              "description": {
+                "type": "string"
+              },
+              "modifiedDate": {
+                "type": "string"
+              },
+              "pointOfContact": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "fullName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "responseDeadline": {
+                "type": "string"
+              },
+              "responseTimeZone": {
+                "type": "string"
+              },
+              "placeOfPerformance": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "zip": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "streetAddress": {
+                    "type": "string"
+                  }
+                }
+              },
+              "solicitationNumber": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "noticeId",
+              "title"
+            ]
+          },
+          "description_hash": "sha256:79c08183bb0f62bfefa39ffa1d5009d4fcaa15ffead4fa14f829fed32c223474",
+          "parameters": [
+            {
+              "name": "includeAttachments",
+              "type": "boolean",
+              "description": "Include attachment download links (default true). Set false to skip the extra lookup.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "noticeId",
+              "type": "string",
+              "description": "32-character hex SAM.gov notice ID (the ID in a sam.gov/opp/<id>/view URL). Primary, most reliable input.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "solicitationNumber",
+              "type": "string",
+              "description": "Solicitation number (e.g. '140P6026Q0003'). Best-effort fallback — resolved via SAM.gov search; provide noticeId when you have it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "lookup_labor_rates",
+          "canonical_hash": "sha256:7b56614e27f01b54702dab44033a8eb32e15226546250607df416d783e24f3f8",
+          "description": "Benchmark federal labor rates for a NAICS code and/or a specific labor category. Returns GSA CALC awarded ceiling rates (min/median/max by category) plus BLS OEWS wage data with a +55% government wrap (loaded hourly) estimate. Free. Public GSA + BLS data — verify allowable rates against the RFP.",
+          "is_mutating": false,
+          "property_keys": [
+            "laborCategory",
+            "naicsCode"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "naicsCode": "string",
+            "laborCategory": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "naicsCode": {
+                "type": "string",
+                "description": "NAICS code — maps to GSA labor categories + BLS SOC occupations."
+              },
+              "laborCategory": {
+                "type": "string",
+                "description": "Specific labor category for a direct GSA search, e.g. 'program manager', 'software engineer'."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "summary": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "blsWages": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "socCode": {
+                      "type": "string"
+                    },
+                    "meanAnnual": {
+                      "type": "number"
+                    },
+                    "meanHourly": {
+                      "type": "number"
+                    },
+                    "occupation": {
+                      "type": "string"
+                    },
+                    "loadedHourly": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              "gsaRates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "avgRate": {
+                      "type": "number"
+                    },
+                    "maxRate": {
+                      "type": "number"
+                    },
+                    "minRate": {
+                      "type": "number"
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "medianRate": {
+                      "type": "number"
+                    },
+                    "sampleCount": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "gsaRates",
+              "blsWages"
+            ]
+          },
+          "description_hash": "sha256:fa562f75ab6f0ffb700f504c10cfc8e6d2308b229e048da5a49d62c2a4171d74",
+          "parameters": [
+            {
+              "name": "laborCategory",
+              "type": "string",
+              "description": "Specific labor category for a direct GSA search, e.g. 'program manager', 'software engineer'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "naicsCode",
+              "type": "string",
+              "description": "NAICS code — maps to GSA labor categories + BLS SOC occupations.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "lookup_neco_data",
+          "canonical_hash": "sha256:ff545f18e1e7c96ddf1f8f8dcfa705e2a977c12a15e1910a452a46514721d772",
+          "description": "Fetch and parse a Navy NECO (Navy Electronic Commerce Online) solicitation page into structured data — solicitation number, title, response deadline, NSN/line items, buyer contact, set-aside, and document links. Deterministic scrape of the public neco.navy.mil site, free. No other govcon MCP exposes NECO data. Pass the full NECO URL when you have it (most reliable); solicitationNumber alone is best-effort.",
+          "is_mutating": false,
+          "property_keys": [
+            "hkey",
+            "necoUrl",
+            "solicitationNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "hkey": "string",
+            "necoUrl": "string",
+            "solicitationNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "hkey": {
+                "type": "string",
+                "description": "Optional NECO hkey — improves solicitationNumber resolution."
+              },
+              "necoUrl": {
+                "type": "string",
+                "description": "Full NECO solicitation URL (https://www.neco.navy.mil/...). Primary, most robust input."
+              },
+              "solicitationNumber": {
+                "type": "string",
+                "description": "Navy solicitation number. Best-effort — the main NECO page may require an hkey to resolve."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "summary": {
+                "type": "object",
+                "properties": {
+                  "nsn": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "type": "number"
+                  },
+                  "setAside": {
+                    "type": "string"
+                  },
+                  "buyerName": {
+                    "type": "string"
+                  },
+                  "issueDate": {
+                    "type": "string"
+                  },
+                  "buyerEmail": {
+                    "type": "string"
+                  },
+                  "buyerPhone": {
+                    "type": "string"
+                  },
+                  "buyingOffice": {
+                    "type": "string"
+                  },
+                  "contractType": {
+                    "type": "string"
+                  },
+                  "documentsUrl": {
+                    "type": "string"
+                  },
+                  "responseDeadline": {
+                    "type": "string"
+                  },
+                  "solicitationNumber": {
+                    "type": "string"
+                  }
+                }
+              },
+              "requestedUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "requestedUrl",
+              "summary"
+            ]
+          },
+          "description_hash": "sha256:55a0ed343583bfa9f4090d16690153e3186f2e06ef099bee5651e78ee3b65106",
+          "parameters": [
+            {
+              "name": "hkey",
+              "type": "string",
+              "description": "Optional NECO hkey — improves solicitationNumber resolution.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "necoUrl",
+              "type": "string",
+              "description": "Full NECO solicitation URL (https://www.neco.navy.mil/...). Primary, most robust input.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "solicitationNumber",
+              "type": "string",
+              "description": "Navy solicitation number. Best-effort — the main NECO page may require an hkey to resolve.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "predict_recompete",
+          "canonical_hash": "sha256:4fd97080d6ac8f93135e8f74d26e3e53aac57cc245efa6c0e1142ee1ce15dc2e",
+          "description": "Discover federal contracts expiring within a window (recompete opportunities) via public USAspending data, optionally enriched with procurement-history signals (all-options-exercised, offers received, set-aside, competition type). Filter by NAICS, PSC, state, value, and keywords. Returns contracts with days-until-expiration and urgency. Deterministic, free. Expiration/option signals reflect reported data and may lag.",
+          "is_mutating": false,
+          "property_keys": [
+            "enrich",
+            "enrichCount",
+            "filters",
+            "limit",
+            "page",
+            "sortOrder"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "number",
+            "limit": "number",
+            "enrich": "boolean",
+            "filters": "object",
+            "sortOrder": "string",
+            "enrichCount": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "description": "Page number (default 1)."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Results per page (default 25, max 100)."
+              },
+              "enrich": {
+                "type": "boolean",
+                "description": "Enrich top results with procurement history (default true)."
+              },
+              "filters": {
+                "type": "object",
+                "properties": {
+                  "states": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "2-letter place-of-performance state codes."
+                  },
+                  "keywords": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "pscCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "PSC codes."
+                  },
+                  "naicsCodes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "NAICS codes (2/4/6 digit)."
+                  },
+                  "maxContractValue": {
+                    "type": "number"
+                  },
+                  "minContractValue": {
+                    "type": "number",
+                    "description": "Default 500000."
+                  },
+                  "expirationWindowDays": {
+                    "type": "number",
+                    "description": "Default 365 (max 1095)."
+                  }
+                },
+                "description": "All optional. Narrow the recompete search."
+              },
+              "sortOrder": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ],
+                "type": "string",
+                "description": "Sort by End Date (default 'desc')."
+              },
+              "enrichCount": {
+                "type": "number",
+                "description": "How many to enrich (default 10, max 25)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hasMore": {
+                "type": "boolean"
+              },
+              "contracts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "awardId": {
+                      "type": "string"
+                    },
+                    "endDate": {
+                      "type": "string"
+                    },
+                    "urgency": {
+                      "type": "string"
+                    },
+                    "naicsCode": {
+                      "type": "string"
+                    },
+                    "awardAmount": {
+                      "type": "number"
+                    },
+                    "recipientName": {
+                      "type": "string"
+                    },
+                    "procurementHistory": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "offersReceived": {
+                          "type": "string"
+                        },
+                        "allOptionsExercised": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "daysUntilExpiration": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "contracts",
+              "totalCount"
+            ]
+          },
+          "description_hash": "sha256:a675499db37744448464158954390efabf0a36c1354f894820888a92c6b1783e",
+          "parameters": [
+            {
+              "name": "enrich",
+              "type": "boolean",
+              "description": "Enrich top results with procurement history (default true).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "enrichCount",
+              "type": "number",
+              "description": "How many to enrich (default 10, max 25).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "filters",
+              "type": "object",
+              "description": "All optional. Narrow the recompete search.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "states": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "2-letter place-of-performance state codes."
+                },
+                "keywords": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "pscCodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "PSC codes."
+                },
+                "naicsCodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "NAICS codes (2/4/6 digit)."
+                },
+                "maxContractValue": {
+                  "type": "number"
+                },
+                "minContractValue": {
+                  "type": "number",
+                  "description": "Default 500000."
+                },
+                "expirationWindowDays": {
+                  "type": "number",
+                  "description": "Default 365 (max 1095)."
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Results per page (default 25, max 100).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page",
+              "type": "number",
+              "description": "Page number (default 1).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sortOrder",
+              "type": "string",
+              "description": "Sort by End Date (default 'desc').",
+              "required": false,
+              "default": null,
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "score_go_no_go",
+          "canonical_hash": "sha256:8fd4d3b41bc1931e80d51dab768b915f6c01f4c3c0e2737aa6bf5030cc1484e4",
+          "description": "Score a federal solicitation as GO / NO-GO (0-100) against a company profile. Detects hard blockers (CMMC certification gaps, geographic/OEM constraints, set-aside ineligibility), scores NAICS match, past performance, and capability fit, and returns a recommendation with red flags and reasons. Deterministic decision-support — no AI, free. Pass the analyzed solicitation documents (from your extension or an analyze-solicitation step) plus your company profile.",
+          "is_mutating": false,
+          "property_keys": [
+            "documentAnalyses",
+            "incumbentData",
+            "profile",
+            "solicitationData"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "profile": "object",
+            "incumbentData": "object",
+            "documentAnalyses": "array",
+            "solicitationData": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "type": "object",
+                "description": "Company profile to score against: company (legalName, address.state), industryCodes.primaryNaics, businessTypes (smallBusiness, sdvosb, ...), capabilities (coreCompetencies, cmmcStatus.level)."
+              },
+              "incumbentData": {
+                "type": "object",
+                "description": "Optional incumbent context, e.g. { primaryIncumbent } from find_incumbents."
+              },
+              "documentAnalyses": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "description": "Analyzed solicitation documents (required, at least one). Each item is the structured analysis of a solicitation document (summary, classification with naicsCode/setAside, valueAndScope with placeOfPerformance, etc.)."
+              },
+              "solicitationData": {
+                "type": "object",
+                "description": "Optional extra solicitation context, e.g. { responseDeadline }."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "score": {
+                "type": "number",
+                "description": "0-100 fit score."
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "blockers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "categoryScores": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "recommendation": {
+                "type": "string",
+                "description": "GO / NO-GO / REVIEW."
+              }
+            },
+            "required": [
+              "score",
+              "recommendation"
+            ]
+          },
+          "description_hash": "sha256:411d0b30f963a53470b4301627511954af698e5fbb2314d6c9f5d6d0d5adfb00",
+          "parameters": [
+            {
+              "name": "documentAnalyses",
+              "type": "array",
+              "description": "Analyzed solicitation documents (required, at least one). Each item is the structured analysis of a solicitation document (summary, classification with naicsCode/setAside, valueAndScope with placeOfPerformance, etc.).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "incumbentData",
+              "type": "object",
+              "description": "Optional incumbent context, e.g. { primaryIncumbent } from find_incumbents.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "profile",
+              "type": "object",
+              "description": "Company profile to score against: company (legalName, address.state), industryCodes.primaryNaics, businessTypes (smallBusiness, sdvosb, ...), capabilities (coreCompetencies, cmmcStatus.level).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "solicitationData",
+              "type": "object",
+              "description": "Optional extra solicitation context, e.g. { responseDeadline }.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

@@ -4,16 +4,17 @@
   "purl": "pkg:generic/shkyyy18%2Fmi_fitness_data_bridge",
   "ecosystem": "generic",
   "display_name": "shkyyy18/mi_fitness_data_bridge",
-  "description": "Export your own Mi Fitness and related Xiaomi-device health data to SQLite/JSON/CSV for local and AI-assisted analysis.",
-  "repository_url": "https://github.com/shkyyy18/mi_fitness_data_bridge",
+  "description": "",
+  "author": null,
+  "repository_url": null,
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "Mi Fitness Data Bridge",
     "shkyyy18/mi_fitness_data_bridge"
   ],
   "sources_merged": [
+    "github_ast",
     "official_registry"
   ],
   "dist_tags": {},
@@ -29,9 +30,1322 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:8e448c6f84730a1346e7fa1e2d1d1e809a99dd274bbce9e1f93370fec598b712",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "cancel_sync",
+          "canonical_hash": "sha256:d5c257712528e209015b7a12a2544a733b79fa0aeeda981a9e94fd7da061beba",
+          "description": "Cancel a queued/running background MCP sync by its exact sync_id. Returns the terminal job status after cancellation completes; already-finished jobs are returned unchanged. Stops future requests without deleting or rolling back records already committed to SQLite; counts may be incomplete. Unknown IDs or foreground jobs return status=error. No new cloud request. Use get_sync_status to inspect progress and sync_data with user consent to resume via a new job.",
+          "is_mutating": false,
+          "property_keys": [
+            "sync_id"
+          ],
+          "required_keys": [
+            "sync_id"
+          ],
+          "parameter_types": {
+            "sync_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sync_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "sync_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e6599a0fb237842611820b2e68c3f66241545c73f82bb084c578c1f438b3a662",
+          "parameters": [
+            {
+              "name": "sync_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_connection_status",
+          "canonical_hash": "sha256:2af4c1a36a8e16060a0f310706d350bd5104616f633c0b9763a2918e73fcfe09",
+          "description": "Check whether the configured Mi Fitness account can connect before requesting a sync. May contact Xiaomi, authenticate and rotate credentials in the local keyring; does not sync health records. Requires local interactive CLI setup, never credentials in tool arguments. Returns connected, mode, last_sync_at and available_data_types; configured responses also include connection_state, region, last_connection_error and sync_in_progress. While syncing, reports existing connection state instead of probing. For cached date coverage use get_data_coverage.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5d83ef156f7605cebb2451e7feb69d6e279390c08b19f9e3c3514a3bd2277297",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_data_coverage",
+          "canonical_hash": "sha256:116e805f566a78228996489b9a8d99ef6b467044655d63a51f950b173d3a9e88",
+          "description": "Inspect which date ranges already exist in the local cache before choosing query dates or requesting sync_data. Returns data.coverage [{data_type, first_date, last_date, days_with_data}] for nonempty datasets; omitted/empty data_types means all datasets. Empty datasets are omitted, and first/last dates do not guarantee uninterrupted coverage between them. This does not test cloud connectivity or report a background job; use get_connection_status or get_sync_status respectively. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "data_types"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "data_types": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "data_types": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8d202bd42adfc609f9a10b706fe89e4664754592b83329ed3e7e108e45602868",
+          "parameters": [
+            {
+              "name": "data_types",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_profile",
+          "canonical_hash": "sha256:f939478ed46f14495ced1c12bfc99b0180a289f6949f17a52804647c9fea38b2",
+          "description": "Read minimal metadata for the already-connected local account, not a medical or demographic profile. No cloud request or cache write; returns JSON text with status, source and data.profile containing account_id_masked, configured timezone and devices (currently an empty placeholder). Never returns credentials or plaintext account IDs. Returns status=error if disconnected; get_connection_status can establish/check the connection first. Use query_daily_activity for activity totals.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:71dde8799c07f83659874076750c3846def839fecc1b74d98fc06c6b3ebdfc83",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_sync_status",
+          "canonical_hash": "sha256:2e189f735b35f190c20cb8d9e22d1352a989adb1571294896a6bcd5e51254c71",
+          "description": "Read one MCP sync job by sync_id, including after a server restart. Returns sync_id, status, timestamps and available result counts. States are queued, running, ok, partial, error, cancelled or interrupted (previous process stopped). Read-only local lookup; no cloud request. History retains the latest 500 completed jobs per account; unknown/expired IDs return status=error. Use query_sync_history to discover IDs, cancel_sync to stop a live background job, or get_connection_status for cloud connectivity. Restarted lookups omit raw error text for privacy.",
+          "is_mutating": false,
+          "property_keys": [
+            "sync_id"
+          ],
+          "required_keys": [
+            "sync_id"
+          ],
+          "parameter_types": {
+            "sync_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sync_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "sync_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45415357ddb90cc9f6341a99fc98bc10be6e3218fdda6164f4d964c068345cda",
+          "parameters": [
+            {
+              "name": "sync_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_abnormal_heart_beat",
+          "canonical_hash": "sha256:76fc59473a5d56044fae1d9d08e175fe99f3ef507f01d35ca4d49a461fab2bcf",
+          "description": "Read device-reported abnormal-heartbeat events starting within an inclusive YYYY-MM-DD range. Returns data.events [{event_id, start_at, end_at, duration_seconds}] and data.count, earliest first. limit defaults to 5000; use offset for subsequent pages. Events are upstream flags, not a diagnosis; an empty list is not evidence of a healthy heart. Use query_heart_rate for ordinary bpm samples, not this event list. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "limit",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "start_date"
+          ],
+          "parameter_types": {
+            "start_date": "string",
+            "end_date": "string",
+            "limit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:55229d6dc31c77cbba84704575cabe4fa964fada348495641241af5c7329dbe7",
+          "parameters": [
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_body_measurements",
+          "canonical_hash": "sha256:2ad2f53a3a7b7a4cb4baacaf99ea18a2354877a45cb7942d33367a5a83b47e87",
+          "description": "Read timestamped body measurements over an inclusive YYYY-MM-DD range. Returns data.measurements and data.count in timestamp order; latest_only=true returns only the last matching record, not the latest value of each field. Omitted/empty metrics returns all available fields; otherwise timestamp plus selected fields, with absent optional measurements omitted. Units are kg for mass, percent for body fat/water, dimensionless for BMI. Use query_metric_series(metric=weight_kg) for a daily or aggregated weight trend. latest_only selects before pagination. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "latest_only",
+            "metrics",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "start_date"
+          ],
+          "parameter_types": {
+            "start_date": "string",
+            "end_date": "string",
+            "metrics": "string",
+            "latest_only": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "metrics": {
+                "type": "string"
+              },
+              "latest_only": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1ec8eef8db2f34ecab158609ac88e42e86a553eda8481c30377012db1beca456",
+          "parameters": [
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "latest_only",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "metrics",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_daily_activity",
+          "canonical_hash": "sha256:a0e95ae61cae94ef2667ba9338fbb093dadd270561361d25654b14a6e5cac6c8",
+          "description": "Choose this for a multi-column daily activity table, not a single-metric trend. Read daily activity totals: steps, distance_m, active_kcal, total_kcal, floors and active_minutes, plus data_quality. Supply date for one day or both start_date/end_date for an inclusive YYYY-MM-DD range; date takes precedence if both forms are given. Returns data.summaries and data.data_quality. Missing optional upstream metrics may appear as zero with quality warnings; do not treat them as confirmed measurements. For one metric across days/weeks/months use query_metric_series; sleep and workouts have separate tools. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "date",
+            "end_date",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "date": "string",
+            "start_date": "string",
+            "end_date": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:f69307a1d9dfa8d883c7cccf8c710926b05332198269026a5df9761999f7be1f",
+          "parameters": [
+            {
+              "name": "date",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_heart_rate",
+          "canonical_hash": "sha256:4a40959d6e89475e0ddc09ea6d21fa3fa5f1450fccbc7fbbc51d1bb3a7685993",
+          "description": "Read timestamped heart-rate samples in bpm over an inclusive YYYY-MM-DD range, optionally filtering sample_type. Returns data.samples [{timestamp, bpm, sample_type}] and data.count, earliest first. limit defaults to 5000; use a smaller page/date window for large datasets. The cloud adapter normally stores resting/active/passive, so sample_type=workout may be empty; use query_workout_series with a workout_id to analyze all samples in that activity window. Not a diagnosis. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "limit",
+            "sample_type",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "start_date"
+          ],
+          "parameter_types": {
+            "start_date": "string",
+            "end_date": "string",
+            "sample_type": "string",
+            "limit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "sample_type": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8109b01b2e9184f9cd6f14af98d65ff46ef7b30db82f4ececf66b596c1d5fe03",
+          "parameters": [
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sample_type",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_metric_series",
+          "canonical_hash": "sha256:eea8cc7f37e5174dfeae1f05418f8c4afdc5d7023f10ea71dc0f8af3ab3c0022",
+          "description": "Build a dated trend for steps (count), distance_m (meters), active_kcal (kcal), or weight_kg (kg) over an inclusive YYYY-MM-DD range. Returns data.metric and data.series [{date, value}], sorted ascending, without filling missing dates. Activity uses daily totals; weight uses the latest stored measurement per day. granularity=day returns these daily values; week groups from Monday, month from the first day. aggregation (default sum) applies only to week/month daily values; latest selects the last available day. Prefer avg or latest for weight. For raw body readings use query_body_measurements; heart-rate samples use query_heart_rate; one workout uses query_workout_series. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "aggregation",
+            "end_date",
+            "granularity",
+            "metric",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "metric",
+            "start_date"
+          ],
+          "parameter_types": {
+            "metric": "string",
+            "start_date": "string",
+            "end_date": "string",
+            "granularity": "string",
+            "aggregation": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "metric": {
+                "type": "string"
+              },
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "granularity": {
+                "type": "string"
+              },
+              "aggregation": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "metric",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b39c13c6d7dc1a4755ca5d8a53f5af8cb80ac024837d38f1303e3ead290fc0fc",
+          "parameters": [
+            {
+              "name": "aggregation",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "granularity",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "metric",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_sleep",
+          "canonical_hash": "sha256:5cf38ad1378a9917b5202da4cf69f3f940191887195c56a9517c5a7d6d424d54",
+          "description": "Read sleep sessions (start-date filtered) and a main-sleep summary (local wake-date filtered) over an inclusive YYYY-MM-DD range. Returns data.sessions, count, main_sessions, metrics and data_quality; main sleep is the longest valid non-nap per wake date. include_naps defaults true and affects the raw list only, not main-sleep selection. Times include start_at/end_at; durations are minutes; sleep_score/source can be null and missing scores are not zero. Expand dates around midnight if needed; raw counts can differ from wake-date summary counts. Use this instead of query_daily_activity for sleep. Pagination affects sessions/count only; main_sessions, metrics and quality still describe the full date range, so keep ranges narrow. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "include_naps",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "start_date"
+          ],
+          "parameter_types": {
+            "start_date": "string",
+            "end_date": "string",
+            "include_naps": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "include_naps": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dbd9815101dc68931fc217d961c071c1e8ca0ea97fa1469aed23daab539c7a0d",
+          "parameters": [
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "include_naps",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_spo2",
+          "canonical_hash": "sha256:bfc9154ed340e5e5c7f5a26a309b6c375c14876d15edcdab2a5071d6f262c39e",
+          "description": "Read stored blood oxygen saturation samples (spo2_pct, percent) over an inclusive YYYY-MM-DD range. Returns data.samples [{timestamp, spo2_pct}] and data.count, earliest first. limit defaults to 5000; use offset for subsequent pages. These are device measurements, not a diagnosis; missing records do not indicate normal oxygen levels. Use query_heart_rate for bpm rather than oxygen saturation. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "limit",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "start_date"
+          ],
+          "parameter_types": {
+            "start_date": "string",
+            "end_date": "string",
+            "limit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:309a1f079a7bb8584ce8273949a1b8a00269fd63f9ed841fd546fa92b27ba6f6",
+          "parameters": [
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_stress",
+          "canonical_hash": "sha256:3be1ddfe907fb739fc77872fdb86b2600955e538dbd2578ba027f43e2c83fd94",
+          "description": "Read device stress samples over an inclusive YYYY-MM-DD range, optionally filtered by level (low/medium/high). Returns data.samples [{timestamp, stress_score, level}] and data.count, earliest first. stress_score is the upstream device score, not a clinical assessment. limit defaults to 5000; use offset for subsequent pages. Use query_sleep for sleep quality rather than inferring it from stress. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "end_date",
+            "level",
+            "limit",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "start_date"
+          ],
+          "parameter_types": {
+            "start_date": "string",
+            "end_date": "string",
+            "level": "string",
+            "limit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7daeeb1d5988a402b2a454b564aeaaf90b92805a00001d1bd3366e3f6a2c7218",
+          "parameters": [
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "level",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_sync_history",
+          "canonical_hash": "sha256:597c23a1ace8abfd7529c237fe9aed3fef5150bbe7ca7330170812adb2c2f275",
+          "description": "List this account's MCP sync jobs, newest first, from persistent local SQLite. Returns data.jobs and data.pagination with timestamps, statuses, available counts and safe error codes, never credentials, raw errors or health records. Includes foreground/background jobs started since this feature was installed, not CLI syncs; retains the latest 500 completed jobs plus active jobs. Read-only, no cloud calls. Use get_sync_status for one ID and cancel_sync for a live background job. Empty jobs means no retained history.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8fc50b184c3823e03a662bc1fdab79b45e7defb4999531e9ebfbfc072e44a59a",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "query_workout_series",
+          "canonical_hash": "sha256:f453be1b6e3fccb5b8f887c03f55b2a344abf1c300c40d1ea970bc1f57ce25b3",
+          "description": "Read an auto-downsampled heart-rate curve for one workout_id obtained from query_workouts (contract agent-safe-series/v1). Uses all cached heart-rate sample types inside the workout window. Returns data with numeric t offsets in seconds from start_time, bpm values, downsampled/source_points/returned_points/method and full-resolution summary statistics. resolution defaults to 60 seconds and increases to respect max_points (default 400, hard cap 500). Pass the same reference_max_hr in bpm for comparable time_in_zone across activities; otherwise each workout uses its own maximum, so zones are not comparable. Unknown workout IDs or unsupported metrics return status=error. For raw date-range samples use query_heart_rate. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_points",
+            "metric",
+            "reference_max_hr",
+            "resolution",
+            "workout_id"
+          ],
+          "required_keys": [
+            "workout_id"
+          ],
+          "parameter_types": {
+            "workout_id": "string",
+            "metric": "string",
+            "resolution": "string",
+            "max_points": "string",
+            "reference_max_hr": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "workout_id": {
+                "type": "string"
+              },
+              "metric": {
+                "type": "string"
+              },
+              "resolution": {
+                "type": "string"
+              },
+              "max_points": {
+                "type": "string"
+              },
+              "reference_max_hr": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "workout_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:52e7c063c47db6cae01d2a2c8fa6eb4a6d98ec3c32e6cae0b4b3e0ca76e07417",
+          "parameters": [
+            {
+              "name": "max_points",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "metric",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "reference_max_hr",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resolution",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "workout_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query_workouts",
+          "canonical_hash": "sha256:6faed2bb369cd81ee668dce34a1f60683215747cfb6e89cc28b605143cd6c4fd",
+          "description": "List recorded workouts starting within an inclusive YYYY-MM-DD range. Returns data.workouts, count and data_quality; rows include workout_id, activity_type, start_at/end_at, duration_minutes, distance_m, calories_kcal and available heart-rate/pace/cadence/altitude/training-metric fields (missing fields may be null, depending on device and upstream data). activity_types matches case-insensitively; min_duration is minutes and min_distance_km is kilometers (unlike output distance_m). Filters combine with AND before pagination. Use a returned workout_id with query_workout_series for a heart-rate curve; this tool returns session summaries, not samples. Read-only local SQLite query; no cloud request or automatic sync. Requires a configured local account/cache. Returns JSON text with status, source=cache, generated_at and data; empty lists mean no cached matches, not zero measurements. Use get_data_coverage to inspect availability or sync_data to refresh with user consent.",
+          "is_mutating": false,
+          "property_keys": [
+            "activity_types",
+            "end_date",
+            "min_distance_km",
+            "min_duration",
+            "start_date"
+          ],
+          "required_keys": [
+            "end_date",
+            "start_date"
+          ],
+          "parameter_types": {
+            "start_date": "string",
+            "end_date": "string",
+            "activity_types": "string",
+            "min_duration": "string",
+            "min_distance_km": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "activity_types": {
+                "type": "string"
+              },
+              "min_duration": {
+                "type": "string"
+              },
+              "min_distance_km": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "end_date",
+              "start_date"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:99ea90c0fe24d8d09d8574da33e95f32cf9c7c4627820110a7cacf1753601f5b",
+          "parameters": [
+            {
+              "name": "activity_types",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_distance_km",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_duration",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "sync_data",
+          "canonical_hash": "sha256:dd38132a335eac832184baeae3522e12211ba06f43ad0279cfb369ea2126925a",
+          "description": "Download selected Mi Fitness datasets from Xiaomi into local SQLite; writes records and sync watermarks, may authenticate/rotate local credentials, and does not modify cloud health records. Requires local CLI setup and user authorization to access the account. Omitted data_types selects all adapter-supported types; an empty list is invalid. Dates are inclusive YYYY-MM-DD; start_date must not exceed end_date. Omitted end_date uses today; omitted start_date resumes the watermark or uses configured lookback (default 30 days). force_full_sync ignores the watermark, not the requested date range, and does not erase the database. Only one sync runs at a time. background=false waits for status ok/partial/error, sync_id, record counts and per-type results; background=true returns accepted plus sync_id to poll with get_sync_status. Partial results may already be stored; inspect results before retrying. Use cached query tools instead when no refresh is needed.",
+          "is_mutating": false,
+          "property_keys": [
+            "background",
+            "data_types",
+            "end_date",
+            "force_full_sync",
+            "start_date"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "data_types": "string",
+            "start_date": "string",
+            "end_date": "string",
+            "force_full_sync": "string",
+            "background": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "data_types": {
+                "type": "string"
+              },
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "force_full_sync": {
+                "type": "string"
+              },
+              "background": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:53615b094c39558b2464cb7093580ca8db557d97f110685dbc5cb9fbfa9c0391",
+          "parameters": [
+            {
+              "name": "background",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "data_types",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end_date",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "force_full_sync",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start_date",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "workout_detail_series",
+          "canonical_hash": "sha256:48f1dc3f415cba8d946b4c8893b7ec955a9567595a75b7fe748be33ec28431e4",
+          "description": "Read an agent-safe per-second detail series (heart rate, cadence, pace or speed) for one workout_id obtained from query_workouts (contract agent-safe-series/v1). Data comes from the FDS detail cache (workout_detail_samples), populated by syncing workout_detail; workouts without synced detail return an empty series, not an error. Sensor zero values at activity start are excluded as missing and counted in data_quality. Points carry numeric t offsets in seconds from start; stats and time_in_zone are computed on full-resolution samples; downsampling is always disclosed (default 400 points, hard cap 500). time_in_zone is only produced for heart_rate. Read-only local SQLite query; no cloud request or automatic sync. Returns JSON text with status, source=cache, generated_at and data; use get_data_coverage with data_types=[\"workout_detail\"] to check availability.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_points",
+            "metric",
+            "reference_max_hr",
+            "resolution",
+            "workout_id"
+          ],
+          "required_keys": [
+            "workout_id"
+          ],
+          "parameter_types": {
+            "workout_id": "string",
+            "metric": "string",
+            "resolution": "string",
+            "max_points": "string",
+            "reference_max_hr": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "workout_id": {
+                "type": "string"
+              },
+              "metric": {
+                "type": "string"
+              },
+              "resolution": {
+                "type": "string"
+              },
+              "max_points": {
+                "type": "string"
+              },
+              "reference_max_hr": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "workout_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d3d01beb285575fb5650ae33da60ee18a6065de977398c596d96e7883fb43a4b",
+          "parameters": [
+            {
+              "name": "max_points",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "metric",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "reference_max_hr",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resolution",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "workout_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

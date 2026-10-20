@@ -4,8 +4,9 @@
   "purl": "pkg:generic/smeet666%2Fmcp-marmiton",
   "ecosystem": "generic",
   "display_name": "smeet666/mcp-marmiton",
-  "description": "Search Marmiton recipes, read ingredients and steps, and scale quantities to any servings.",
-  "repository_url": "https://github.com/smeet666/mcp-marmiton",
+  "description": "MCP server for Marmiton. Search recipes, read ingredients and steps, and scale quantities to any number of servings. No API key required.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/smeet666/mcp-marmiton",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,10 +14,276 @@
     "smeet666/mcp-marmiton"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:4e95b8cbab76994233638350f32d7957de49a7f620637303159e0ce43b4369b1",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "4d34adca-e5e5-4a57-a2f3-6c4524aed76e/ae018966-e671-42f9-9e04-e25d9b5fc6b4/server.mcpb",
+          "runtime": "node",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "get_recipe",
+          "canonical_hash": "sha256:82c1445a7b05292682c23e206fa9fbbe8999bb645cb3acb689827a4f4a63cbcf",
+          "description": "Read one recipe, optionally rescaled to a number of servings.",
+          "is_mutating": false,
+          "property_keys": [
+            "id",
+            "servings",
+            "url"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "url": "string",
+            "servings": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^\\d+$",
+                "description": "Marmiton recipe id, as returned by search_recipes. Preferred over 'url'."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Full marmiton.org recipe URL. Only marmiton.org is accepted. Ignored when 'id' is given."
+              },
+              "servings": {
+                "type": "number",
+                "maximum": 500,
+                "description": "Rescale the ingredients to this many servings. Omit to get the recipe exactly as published.",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:45709a49b40d6d35c031fbc7196342a9758f9418a4434dc92491790e75fc1c8c",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Marmiton recipe id, as returned by search_recipes. Preferred over 'url'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "servings",
+              "type": "number",
+              "description": "Rescale the ingredients to this many servings. Omit to get the recipe exactly as published.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "url",
+              "type": "string",
+              "description": "Full marmiton.org recipe URL. Only marmiton.org is accepted. Ignored when 'id' is given.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "scale_ingredients",
+          "canonical_hash": "sha256:c2a8081d5bf5e1bd47a6f77c8147085efa163e4af783a479c2602c6c69791fa9",
+          "description": "Rescale any ingredient list, without contacting any website.",
+          "is_mutating": false,
+          "property_keys": [
+            "factor",
+            "from_servings",
+            "ingredients",
+            "to_servings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "factor": "number",
+            "ingredients": "array",
+            "to_servings": "number",
+            "from_servings": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "factor": {
+                "type": "number",
+                "maximum": 100,
+                "description": "Multiplier to apply. Use this or the from/to pair.",
+                "exclusiveMinimum": 0
+              },
+              "ingredients": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Ingredient lines, for example ['200 g de farine', '3 oeufs', 'sel']."
+              },
+              "to_servings": {
+                "type": "number",
+                "maximum": 500,
+                "description": "How many servings are wanted.",
+                "exclusiveMinimum": 0
+              },
+              "from_servings": {
+                "type": "number",
+                "maximum": 500,
+                "description": "How many servings the list is written for.",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3ccce953069119ac1ca3a4791c317b3f843ec976c3e944f1cdb20583367de893",
+          "parameters": [
+            {
+              "name": "factor",
+              "type": "number",
+              "description": "Multiplier to apply. Use this or the from/to pair.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "from_servings",
+              "type": "number",
+              "description": "How many servings the list is written for.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "ingredients",
+              "type": "array",
+              "description": "Ingredient lines, for example ['200 g de farine', '3 oeufs', 'sel'].",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "to_servings",
+              "type": "number",
+              "description": "How many servings are wanted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_recipes",
+          "canonical_hash": "sha256:9b8871b2723298bd9de8cd3e5b242941456ff965a98e25f8db5a3c4b2d5fc172",
+          "description": "Find recipes by dish or ingredient.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 30,
+                "minimum": 1,
+                "description": "Maximum recipes to return from this page of results."
+              },
+              "query": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "What to search for, in French, for example 'tarte aux pommes'."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:096051250942f8c7c57310bc83760081e792f22d7d32856948ee2801adee8934",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum recipes to return from this page of results.",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "What to search for, in French, for example 'tarte aux pommes'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "2.0.1",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -28,9 +295,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

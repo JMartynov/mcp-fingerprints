@@ -4,8 +4,9 @@
   "purl": "pkg:generic/smythmyke%2Fpatent-search-mcp-server",
   "ecosystem": "generic",
   "display_name": "smythmyke/patent-search-mcp-server",
-  "description": "Patent dossiers, prosecution, claims + a legal layer (PTAB, litigation, term) + AI risk. USPTO.",
-  "repository_url": "https://github.com/smythmyke/patent-search-mcp-server",
+  "description": " MCP server for the AI Patent Search Generator — patent dossiers, prosecution history, Office Action AI analysis, citation/family/CPC lookups, and Google Patents search.\n\n  Works in Claude Code, Claude Desktop, Cursor, ChatGPT-with-MCP, and any other MCP-compatible client.\n\n  ## Tools (11)\n\n  - **dossier** — full patent intelligence: bibliographic, claims, citations, family, classifications, examiner stats. 3 credits fresh; free on 24h cache hit.\n  - **prosecution** — USPTO file-wrapper documents (Office Actions, responses, amendments). Free.\n  - **oa_analyze** — AI analysis of USPTO Office Actions (rejection grounds, cited prior art, suggested response arguments). First 5/application free; 1 credit each thereafter.\n  - **search** — multi-strategy patent search against Google Patents (telescoping / onion-ring / faceted). 1 credit.\n  - **query** — Boolean query generator (manual paste into Google Patents). 1 credit.\n  - **similar** — Google Patents similar-documents ranking. Free.\n  - **citations** — backward + forward citation graph, examiner-cited flagged. Free.\n  - **family** — patent family (continuations, divisionals, foreign counterparts). Free.\n  - **examiner** — name, art unit, allowance rate, average pendency. Free.\n  - **cpc** — CPC classification code lookup. Free.\n  - **balance** — credit + subscription status. Free.\n\n  Requires an API key minted from the AI Patent Search Generator Chrome extension's Admin tab.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/smythmyke/patent-search-mcp-server",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "smythmyke/patent-search-mcp-server"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -28,9 +30,1974 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:1d62ab0910dc7d539077da403a5957f8abdd9f9c3925d34cbadfb3f326e404d8",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "18f2081d-9fc2-43da-8abb-5656fb952bce/7263ebe3-feaf-4295-a53a-5a223809795d/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "PATENT_SEARCH_API_KEY"
+            ],
+            "properties": {
+              "PATENT_SEARCH_API_KEY": {
+                "type": "string",
+                "title": "Patent Search API Key",
+                "x-order": 0,
+                "description": "API key minted from the AI Patent Search Generator Chrome extension's Admin tab. Format: psg_live_... or psg_test_..."
+              },
+              "PATENT_SEARCH_API_BASE": {
+                "type": "string",
+                "title": "API Base URL (optional)",
+                "default": "https://us-central1-solicitation-matcher-extension.cloudfunctions.net/ai/v1",
+                "x-order": 1,
+                "description": "Override the API base URL. Default: https://us-central1-solicitation-matcher-extension.cloudfunctions.net/ai/v1"
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "assignments",
+          "canonical_hash": "sha256:d6b7866d066168bf823eb70335dee572465c611c6c0e09497ec6f34b2597c8b7",
+          "description": "Chain of title for a US patent: who owns it now and the recorded assignment history (conveyances, reel/frame, assignor → assignee, dates). Useful for ownership/licensing and M&A due diligence. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US10000000B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "assignments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Recorded assignment records (reel/frame, conveyance, dates, assignors, assignees)."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "assignmentCount": {
+                "type": "number",
+                "description": "Number of recorded assignments."
+              },
+              "currentAssignee": {
+                "type": "string",
+                "description": "Current owner of the patent."
+              }
+            }
+          },
+          "description_hash": "sha256:afac9efe0f568d35e4a635e82ad1538bec1e7558578d8edfdeb3081560dd40c5",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US10000000B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "attorney",
+          "canonical_hash": "sha256:ddd5776c225d193049635d9e303f1e768f23620397162bea0df720d757f7f2c8",
+          "description": "Attorneys/agents of record for a US patent (name + USPTO registration number), plus the docket number and customer number. Useful for competitive intel — who prosecutes for this assignee. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US10000000B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "attorneys": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Attorneys/agents with name, registration number, and active flag."
+              },
+              "docketNumber": {
+                "type": "string",
+                "description": "Attorney docket number."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "attorneyCount": {
+                "type": "number",
+                "description": "Number of attorneys/agents of record."
+              },
+              "customerNumber": {
+                "type": "string",
+                "description": "USPTO customer number associated with the application."
+              }
+            }
+          },
+          "description_hash": "sha256:2bb53e516075d24921d9bf9cf9191928255bb577e05588fc2529ae28a6eb1f17",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US10000000B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "balance",
+          "canonical_hash": "sha256:2e5d5b04119b31d102f9edee570fcb3479e191ffa2b2ff16affcf582c5f1798f",
+          "description": "Return the current credit balance and subscription status for the authenticated AI Patent Search Generator account. Use this before calling paid tools (dossier, oa_analyze, query, search) to verify credits are available.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "balance": {
+                "type": "number",
+                "description": "Current total credit balance."
+              },
+              "totalUsed": {
+                "type": "number",
+                "description": "Lifetime credits consumed."
+              },
+              "subscription": {
+                "type": "object",
+                "description": "Active subscription plan and status, or null.",
+                "additionalProperties": true
+              },
+              "topupCredits": {
+                "type": "number",
+                "description": "Credits purchased as one-off top-ups."
+              },
+              "totalPurchased": {
+                "type": "number",
+                "description": "Lifetime credits purchased."
+              },
+              "subscriptionCredits": {
+                "type": "number",
+                "description": "Credits granted by the active subscription."
+              }
+            }
+          },
+          "description_hash": "sha256:d303d2ff2eb6144c5c1db8dbcf2cd77e40ed7aa6bbbc53e2098e4fa1cf970264",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "challenges",
+          "canonical_hash": "sha256:48495590524956819414ca69b58f3f0d5fe50378f3badc0b54d2f1cad0a223f0",
+          "description": "Get the PTAB validity-challenge history for a US patent: who challenged it (petitioner), the patent owner, challenge type (IPR/PGR/CBM), filing/institution dates, and outcome (patent_survived / final_written_decision / terminated). Answers 'was this patent attacked at the PTAB, by whom, and did it survive?'. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US8724622B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "challenges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "PTAB challenges (trial number, type, petitioner, owner, dates, status, outcome)."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "challengeCount": {
+                "type": "number",
+                "description": "Number of PTAB challenges found."
+              }
+            }
+          },
+          "description_hash": "sha256:c558620453c95c365fc118d5b5107253f089eb89e3bfdfe12707d059bdbcaf5e",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US8724622B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "citations",
+          "canonical_hash": "sha256:c251c780799014108203507f93849ffcd3bef7d460b05a7dbc3b94965417ef70",
+          "description": "Return backward and/or forward citations for a patent. Backward = patents this one cites (its prior art). Forward = patents that cite this one (downstream impact). Each citation includes whether it was examiner-cited (load-bearing on patentability) vs applicant-cited. Free. Lighter payload than `dossier` when you only need citation lists.",
+          "is_mutating": false,
+          "property_keys": [
+            "direction",
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "direction": "string",
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "direction": {
+                "enum": [
+                  "backward",
+                  "forward",
+                  "both"
+                ],
+                "type": "string",
+                "default": "both",
+                "description": "Which citation set to return. Defaults to 'both'."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "Patent publication number (e.g. US10867416B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cached": {
+                "type": "boolean",
+                "description": "Whether the result was served from cache."
+              },
+              "forward": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Forward citations with title, assignee, date, and examiner-cited flag."
+              },
+              "backward": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Backward citations with title, assignee, date, and examiner-cited flag."
+              },
+              "direction": {
+                "type": "string",
+                "description": "Citation direction returned (backward, forward, or both)."
+              },
+              "forwardCount": {
+                "type": "number",
+                "description": "Number of forward citations (downstream patents)."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "backwardCount": {
+                "type": "number",
+                "description": "Number of backward citations (prior art cited)."
+              }
+            }
+          },
+          "description_hash": "sha256:1ba2c67c49f79a939291a9e091795fd86bd5fc8bcdfc81687e7c66e0de945eb4",
+          "parameters": [
+            {
+              "name": "direction",
+              "type": "string",
+              "description": "Which citation set to return. Defaults to 'both'.",
+              "required": false,
+              "default": "both",
+              "enum": [
+                "backward",
+                "forward",
+                "both"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Patent publication number (e.g. US10867416B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "claim_chart",
+          "canonical_hash": "sha256:9075dd241738b0f830439596fafd79239524277ed305879c6480936f2aff4ac3",
+          "description": "Build a per-claim element chart for a granted US patent. Decomposes each independent claim into discrete elements (preamble, body parts) and maps each element to examiner-cited prior art from cached Office Action analyses. Free when the patent's dossier is already in the 24h cache. Cold dossier fetch costs 3 credits (same as the `dossier` tool). If you also need bibliographic data, citations, or family, prefer `dossier` first — its result is also cached and makes a subsequent `claim_chart` call free. Uses only cached Office Action analyses; to add fresh OA data, call `oa_analyze` first.",
+          "is_mutating": false,
+          "property_keys": [
+            "oaDocumentIds",
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string",
+            "oaDocumentIds": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "Publication number in canonical form (e.g. US10867416B2). Loose input like '10,867,416' is normalized."
+              },
+              "oaDocumentIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional. Restrict the chart to specific Office Action document IDs. If omitted, all cached OAs for this application are used."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cached": {
+                "type": "boolean",
+                "description": "Whether the result was served from cache (free)."
+              },
+              "claimCharts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Per-claim charts mapping decomposed claim elements to cited prior art."
+              },
+              "generatedAt": {
+                "type": "string",
+                "description": "Timestamp the chart was generated."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "analyzedOaCount": {
+                "type": "number",
+                "description": "Number of cached Office Actions analyzed for this chart."
+              }
+            }
+          },
+          "description_hash": "sha256:deb06e6cb03c3ab4afcaf86d715f5c81a79de4db4e81e40b49862134d90f9e11",
+          "parameters": [
+            {
+              "name": "oaDocumentIds",
+              "type": "array",
+              "description": "Optional. Restrict the chart to specific Office Action document IDs. If omitted, all cached OAs for this application are used.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Publication number in canonical form (e.g. US10867416B2). Loose input like '10,867,416' is normalized.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "claims",
+          "canonical_hash": "sha256:c9e91df457749e83139e4b5e30d53c86a3233c783575eaf0b2111d73a67e2d9b",
+          "description": "Fetch just the claims of a patent — the legal scope of the invention, formatted as a numbered list of independent and dependent claims. Much cheaper than `dossier` for LLM token budgets when you only need claim text. Free when the patent's dossier is already in the 24h cache. Cold fetch costs 1 credit (no AI work, just a Google Patents fetch). Prefer this over `dossier` when you don't also need bibliographic data, citations, or family.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "Publication number in canonical form (e.g. US10867416B2). Loose input like '10,867,416' is normalized."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cached": {
+                "type": "boolean",
+                "description": "Whether the result was served from cache (free)."
+              },
+              "claims": {
+                "type": "object",
+                "description": "Claims block: total count, independent claim numbers, and the list of claim items.",
+                "additionalProperties": true
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              }
+            }
+          },
+          "description_hash": "sha256:8b7e643fbaf877817f1607854e5f8c27d35957fd4c829cc36568093a9dfb0b64",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Publication number in canonical form (e.g. US10867416B2). Loose input like '10,867,416' is normalized.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "company_litigation",
+          "canonical_hash": "sha256:0391dfbee01e117ebb14d13b049303b73173912374be36cc618b4ee366f80e06",
+          "description": "Reverse lookup: given a COMPANY name, return all US district-court patent suits it was involved in (as plaintiff or defendant), with the patents, opposing parties, court, and cause. Great for competitive intel / M&A due diligence ('is this company a patent troll or heavily sued?'). If no exact match, returns name suggestions. Coverage 2003-2020.",
+          "is_mutating": false,
+          "property_keys": [
+            "company",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "company": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max cases to return (default 100)."
+              },
+              "company": {
+                "type": "string",
+                "description": "Company name (e.g. 'Apple', 'Samsung Electronics')."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cases": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "District-court cases with role, court, date, cause, patents, and opposing parties."
+              },
+              "query": {
+                "type": "string",
+                "description": "The company name queried."
+              },
+              "related": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Related entities with case counts."
+              },
+              "caseCount": {
+                "type": "number",
+                "description": "Total number of suits involving the company."
+              },
+              "matchedName": {
+                "type": "string",
+                "description": "Canonical name matched in the litigant index."
+              },
+              "suggestions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Name suggestions when no exact match is found."
+              },
+              "displayNames": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Alternate display names for the matched entity."
+              },
+              "asDefendantCount": {
+                "type": "number",
+                "description": "Number of suits where the company was defendant."
+              },
+              "asPlaintiffCount": {
+                "type": "number",
+                "description": "Number of suits where the company was plaintiff."
+              }
+            }
+          },
+          "description_hash": "sha256:856e8dfd1319b9d1660c6aae87b1351f42de01e487c7ecc7705eb743ef3658d8",
+          "parameters": [
+            {
+              "name": "company",
+              "type": "string",
+              "description": "Company name (e.g. 'Apple', 'Samsung Electronics').",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Max cases to return (default 100).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "cpc",
+          "canonical_hash": "sha256:cc43191a52fc84d36b52b7d8da2fb581b6c64f829b19246b47fe52d064d0ae89",
+          "description": "Look up a Cooperative Patent Classification (CPC) code and return its section, class, subclass, and group context. Accepts any level of code — section letter (e.g. 'H'), class ('H01'), subclass ('H01M'), main group ('H01M10/00'), or subgroup ('H01M10/0525'). Free. v1.0 dataset covers all sections + ~80 common subclasses; subgroup-level descriptions land in v1.1.",
+          "is_mutating": false,
+          "property_keys": [
+            "code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "CPC code at any level (section, class, subclass, main group, or subgroup)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "The CPC code queried."
+              },
+              "notes": {
+                "type": "string",
+                "description": "Optional coverage notes."
+              },
+              "section": {
+                "type": "object",
+                "description": "Section-level code and title, or null.",
+                "additionalProperties": true
+              },
+              "subclass": {
+                "type": "object",
+                "description": "Subclass-level code and title, or null.",
+                "additionalProperties": true
+              },
+              "subgroup": {
+                "type": "string",
+                "description": "Subgroup code, or null."
+              },
+              "mainGroup": {
+                "type": "object",
+                "description": "Main-group-level code and title, or null.",
+                "additionalProperties": true
+              },
+              "classification": {
+                "type": "object",
+                "description": "Class-level code and title, or null.",
+                "additionalProperties": true
+              },
+              "uspoBrowserUrl": {
+                "type": "string",
+                "description": "USPTO CPC browser URL for this code."
+              }
+            }
+          },
+          "description_hash": "sha256:697e3a98f2f5d25930456fde1b9ceb898439e9468eeb99582b84bfb24eb0b724",
+          "parameters": [
+            {
+              "name": "code",
+              "type": "string",
+              "description": "CPC code at any level (section, class, subclass, main group, or subgroup).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "cpc_suggest",
+          "canonical_hash": "sha256:c4322ba8e7b331aaf60bd47c10aa852e4092bfa578b71ec965a4423f6860eb4a",
+          "description": "Suggest CPC (Cooperative Patent Classification) codes from a plain-English description of a technology or invention. Returns 3-5 candidate codes ranked by confidence with reasoning. Use this when you have a product or invention description and want to know which CPC codes to use in patent searches. Costs 1 credit; repeated calls on the same description are cached for 30 days. Coverage note: the curated dataset (~80 common subclasses) covers most software, hardware, and mechanical tech well but may miss niche chemistry/biotech. For looking UP a known code's meaning, use the `cpc` tool instead.",
+          "is_mutating": false,
+          "property_keys": [
+            "description"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "Plain-English description of the technology or invention. 5-2000 characters. More technical detail yields better suggestions. Examples: 'lithium-ion battery thermal management system', 'machine learning model for fraud detection in payments', 'foldable smartphone hinge mechanism'."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "notes": {
+                "type": "string",
+                "description": "Optional coverage notes."
+              },
+              "cached": {
+                "type": "boolean",
+                "description": "Whether the result was served from cache (free)."
+              },
+              "description": {
+                "type": "string",
+                "description": "The technology description provided."
+              },
+              "suggestions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Candidate CPC codes with title, confidence, and reasoning."
+              }
+            }
+          },
+          "description_hash": "sha256:b7b8e066cd2869bfb17677d288a7e72e1803f3daf526e11e213b4fefa04e2f8a",
+          "parameters": [
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Plain-English description of the technology or invention. 5-2000 characters. More technical detail yields better suggestions. Examples: 'lithium-ion battery thermal management system', 'machine learning model for fraud detection in payments', 'foldable smartphone hinge mechanism'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "dossier",
+          "canonical_hash": "sha256:2b2f30d7e8354f59e081687d4233da29a4bb30616851254de8821d79b4398f25",
+          "description": "Fetch a comprehensive intelligence dossier for a patent by publication number. Returns bibliographic data (title, assignees, inventors, dates, legal status), independent claims, backward + forward citations, patent family, CPC classifications, examiner info, and similar documents. Costs 3 credits on a fresh fetch; subsequent calls within 24 hours read from cache and are free. The headline tool — most patent-analysis workflows start here.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "Publication number in canonical form (e.g. US10867416B2, EP3500001B1). Accepts loose input like '10,867,416' or 'us10867416' — the server normalizes."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cached": {
+                "type": "boolean",
+                "description": "Whether the result was served from the 24h cache (free)."
+              },
+              "claims": {
+                "type": "object",
+                "description": "Independent claims and claim counts.",
+                "additionalProperties": true
+              },
+              "family": {
+                "type": "object",
+                "description": "Patent family members.",
+                "additionalProperties": true
+              },
+              "header": {
+                "type": "object",
+                "description": "Bibliographic data: title, assignees, inventors, dates, legal status.",
+                "additionalProperties": true
+              },
+              "similar": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Similar documents."
+              },
+              "citations": {
+                "type": "object",
+                "description": "Backward and forward citation summary.",
+                "additionalProperties": true
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "Normalized publication number."
+              },
+              "classification": {
+                "type": "object",
+                "description": "CPC classifications.",
+                "additionalProperties": true
+              }
+            }
+          },
+          "description_hash": "sha256:0a9d86697f072936cf16ed7f1353a7602f9de76b2661283c7f6fb1cff53aafa1",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Publication number in canonical form (e.g. US10867416B2, EP3500001B1). Accepts loose input like '10,867,416' or 'us10867416' — the server normalizes.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "entity_status",
+          "canonical_hash": "sha256:5e64439d6940b1d5f1acb468640392f65e3d07716f47678408db37a090a91df7",
+          "description": "USPTO entity status for a US patent (small / micro / large entity) — a signal of the applicant's size and fee tier. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US10000000B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string",
+                "description": "Entity category (small, micro, or large)."
+              },
+              "smallEntity": {
+                "type": "boolean",
+                "description": "Whether the applicant claimed small-entity status."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              }
+            }
+          },
+          "description_hash": "sha256:16a7b2f67eec9954a31dbcad9d6d1098d4acf9894734ddca76e98b6a7a1599b6",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US10000000B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "examiner",
+          "canonical_hash": "sha256:563968148492c000cfe12d719c103e25ca87b1d454d66ce63e65e71754ba5739",
+          "description": "Get the assigned examiner's name, art unit, total applications handled, allowance rate, and average pendency for a US patent. Free. Useful for prosecution strategy and risk assessment.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "Patent publication number (e.g. US10867416B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Assigned examiner's name."
+              },
+              "artUnit": {
+                "type": "string",
+                "description": "USPTO art unit."
+              },
+              "avgPendency": {
+                "type": "number",
+                "description": "Average pendency in months."
+              },
+              "allowanceRate": {
+                "type": "number",
+                "description": "Examiner's allowance rate (0-1)."
+              },
+              "totalApplications": {
+                "type": "number",
+                "description": "Total applications handled by the examiner."
+              }
+            }
+          },
+          "description_hash": "sha256:b4e591b4c6df5e0bbcb7a49ce16b0cc5865eb2798ddb5a131168a4f88e0b4297",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Patent publication number (e.g. US10867416B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "family",
+          "canonical_hash": "sha256:e713aae6b9c9c08fb82b0b8ca57152c23f2ed2a7e177731c743d49ac6d6f7133",
+          "description": "Return the patent family for a given patent — continuations, divisionals, and national counterparts (foreign equivalents). Useful for confirming worldwide IP coverage and identifying related applications still pending. Free.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "Patent publication number (e.g. US10867416B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cached": {
+                "type": "boolean",
+                "description": "Whether the result was served from cache."
+              },
+              "family": {
+                "type": "object",
+                "description": "Family ID and member list (jurisdiction, publication number, type, status, date).",
+                "additionalProperties": true
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              }
+            }
+          },
+          "description_hash": "sha256:83223199b1d3d7000fbbf6aa70e0a9f0bd0259be4385338e1286768df205d51f",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Patent publication number (e.g. US10867416B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "legal_bundle",
+          "canonical_hash": "sha256:87f48832021baa4d98fbd5408e3121cd616eedd69b66e57aa2a48a4622e5a9d2",
+          "description": "Assemble the full legal-intelligence layer for a US patent in one call: PTAB validity challenges, district-court litigation, in-force/maintenance status, chain of title, term/expiration, prosecution timeline, attorneys of record, entity status, and the pre-grant publication. Costs 10 credits on a fresh fetch; subsequent calls within 24 hours read from cache and are free. Prefer this over calling the nine endpoints (challenges, litigation, legal_status, assignments, term, etc.) separately. US patents only.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US8724622B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "term": {
+                "type": "object",
+                "description": "Term/PTA and adjusted expiration date.",
+                "additionalProperties": true
+              },
+              "cached": {
+                "type": "boolean",
+                "description": "True if served from the 24h cache (free)."
+              },
+              "attorney": {
+                "type": "object",
+                "description": "Attorneys of record.",
+                "additionalProperties": true
+              },
+              "pregrant": {
+                "type": "object",
+                "description": "As-filed pre-grant publication.",
+                "additionalProperties": true
+              },
+              "challenges": {
+                "type": "object",
+                "description": "PTAB validity challenges.",
+                "additionalProperties": true
+              },
+              "litigation": {
+                "type": "object",
+                "description": "District-court infringement suits.",
+                "additionalProperties": true
+              },
+              "assignments": {
+                "type": "object",
+                "description": "Chain of title.",
+                "additionalProperties": true
+              },
+              "legalStatus": {
+                "type": "object",
+                "description": "In-force vs lapsed + maintenance history.",
+                "additionalProperties": true
+              },
+              "entityStatus": {
+                "type": "object",
+                "description": "Small/micro/large entity.",
+                "additionalProperties": true
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "prosecutionTimeline": {
+                "type": "object",
+                "description": "USPTO event log.",
+                "additionalProperties": true
+              }
+            }
+          },
+          "description_hash": "sha256:8fa84249b427abb3e34d5f36b3337667d0b0c2f1b7638db20fde89a758c6d2cc",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US8724622B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "legal_status",
+          "canonical_hash": "sha256:68b0bea2db8e87edf15bdf7d81e49de618b1be538d50bdfc56bdc9ec7fde8d8e",
+          "description": "Is this US patent still in force? Returns in-force vs lapsed/expired, the anticipated 20-year expiration, and the maintenance-fee payment history (derived from USPTO events). Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US10000000B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "inForce": {
+                "type": "boolean",
+                "description": "Whether the patent is in force (true/false/null if unknown)."
+              },
+              "statusLabel": {
+                "type": "string",
+                "description": "Human-readable status label."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "anticipatedExpiration": {
+                "type": "string",
+                "description": "Anticipated 20-year expiration date."
+              },
+              "lapseOrExpirationEvent": {
+                "type": "object",
+                "description": "Lapse/expiration event with date and description, or null.",
+                "additionalProperties": true
+              },
+              "lastMaintenancePayment": {
+                "type": "string",
+                "description": "Date of the last maintenance-fee payment."
+              }
+            }
+          },
+          "description_hash": "sha256:feb6393c7435c6bd00da11c4fa982d9dd2477302e1fb869ecbd738798916217b",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US10000000B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "litigation",
+          "canonical_hash": "sha256:175b6673ff6a41879f61bc23b537b30b8b1032655340e1eb3dfa436919369c8a",
+          "description": "Get the US district-court infringement litigation history for a patent: who sued whom, in which court, over what (cause of action), with filing dates. Backed by the USPTO Patent Litigation Dataset. Coverage: comprehensive 2003-2016, partial to 2020 (no cases after 2020). Empty result = not litigated on record. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Max cases to return (default: all stored)."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US8724622B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cases": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "District-court cases (case number, court, date, name, plaintiffs, defendants, cause)."
+              },
+              "caseCount": {
+                "type": "number",
+                "description": "Number of district-court suits found."
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "Whether the case list was truncated by the limit."
+              },
+              "coverageNote": {
+                "type": "string",
+                "description": "Note on dataset coverage."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              }
+            }
+          },
+          "description_hash": "sha256:e95a9e37d751356f8a849944ff5a378a48f7a7f970ff07a70267b083ffc045e8",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Max cases to return (default: all stored).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US8724622B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "oa_analyze",
+          "canonical_hash": "sha256:4f03f2c13cff13cca13ebcf7384871e6ad74611c4fa44ea0f8418e5023b69932",
+          "description": "AI-analyze a USPTO Office Action document to extract rejection grounds (102, 103, 112, etc.), cited prior art, and suggested response arguments. Two invocation forms: (1) pass only `patentNumber` and the server auto-picks the most recent Office Action for the patent; (2) pass both `applicationNumber` and `documentId` (from `prosecution` output) for explicit selection. First 5 analyses per application are free; subsequent analyses cost 1 credit each.",
+          "is_mutating": false,
+          "property_keys": [
+            "applicationNumber",
+            "documentId",
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "documentId": "string",
+            "patentNumber": "string",
+            "applicationNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "documentId": {
+                "type": "string",
+                "description": "Office Action document ID from prosecution-history output (used with applicationNumber)."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "Patent publication number — auto-picks the most recent OA for this patent."
+              },
+              "applicationNumber": {
+                "type": "string",
+                "description": "Application number for explicit selection (used with documentId)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "quota": {
+                "type": "object",
+                "description": "Free-analysis quota usage (used, limit, billed).",
+                "additionalProperties": true
+              },
+              "analysis": {
+                "type": "object",
+                "description": "Extracted rejection grounds, cited prior art, and suggested response arguments.",
+                "additionalProperties": true
+              }
+            }
+          },
+          "description_hash": "sha256:a8be447fe879d413bfb7243cd65e6057ccb1bbf3257d272e218b4f253a66ec48",
+          "parameters": [
+            {
+              "name": "applicationNumber",
+              "type": "string",
+              "description": "Application number for explicit selection (used with documentId).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "documentId",
+              "type": "string",
+              "description": "Office Action document ID from prosecution-history output (used with applicationNumber).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Patent publication number — auto-picks the most recent OA for this patent.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "pregrant_pub",
+          "canonical_hash": "sha256:a92ce9c015b7d6a37ca526e0512b790814a9d14b657996ac2df39e7bf9c709b9",
+          "description": "The pre-grant publication (as-filed) for a US patent: publication number/date plus the as-filed abstract and claims parsed from the application XML. Useful for comparing as-filed vs as-granted claim scope. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US10000000B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "asFiledClaims": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "As-filed claims (number, text, independence flag)."
+              },
+              "asFiledAbstract": {
+                "type": "string",
+                "description": "As-filed abstract text."
+              },
+              "publicationDate": {
+                "type": "string",
+                "description": "Pre-grant publication date."
+              },
+              "asFiledClaimCount": {
+                "type": "number",
+                "description": "Number of as-filed claims."
+              },
+              "publicationNumber": {
+                "type": "string",
+                "description": "Pre-grant publication number."
+              }
+            }
+          },
+          "description_hash": "sha256:026bcb99d6b088f1c856d0a2b00c1f955f073065a77d0a2dc22ffa06aa443486",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US10000000B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "prosecution",
+          "canonical_hash": "sha256:8e3e114d632e1f73400a9bd4300269aca7d33571291ef6a03d5e959fbfc082f8",
+          "description": "Retrieve the USPTO file-wrapper documents (office actions, responses, amendments, IDS, notices) for a US patent or application. Free. Returns each document's ID, mail date, category, and short description — IDs can be passed to `oa_analyze` for AI analysis.",
+          "is_mutating": false,
+          "property_keys": [
+            "applicationNumber",
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string",
+            "applicationNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "Patent publication number (e.g. US10867416B2). One of patentNumber or applicationNumber required."
+              },
+              "applicationNumber": {
+                "type": "string",
+                "description": "USPTO application number (e.g. 15912345). One of patentNumber or applicationNumber required."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "documents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "File-wrapper documents (document ID, mail date, category, description)."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "Patent publication number."
+              },
+              "applicationNumber": {
+                "type": "string",
+                "description": "USPTO application number."
+              }
+            }
+          },
+          "description_hash": "sha256:addd78b903cecf447214d00903a86eb224570d57f8c8585c94b89d59067ce963",
+          "parameters": [
+            {
+              "name": "applicationNumber",
+              "type": "string",
+              "description": "USPTO application number (e.g. 15912345). One of patentNumber or applicationNumber required.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Patent publication number (e.g. US10867416B2). One of patentNumber or applicationNumber required.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "prosecution_timeline",
+          "canonical_hash": "sha256:1a253546471ab17c0f55db6eb89e3b49974a31d5bf4f4a36a307e6a1c7a5f151",
+          "description": "Full chronological USPTO event log for a US patent's application (filings, office actions, notices, maintenance fees, etc.) — distinct from the 'prosecution' tool which lists file-wrapper documents. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US10000000B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Chronological prosecution events (date, code, description)."
+              },
+              "eventCount": {
+                "type": "number",
+                "description": "Number of prosecution events."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              }
+            }
+          },
+          "description_hash": "sha256:8c85135c3a5e6c43da5cacb4025b7104f5d1ea8b0995027f79a5a6cadaad6c05",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US10000000B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "query",
+          "canonical_hash": "sha256:9f30e94459c017cabb2645220245b6b214519a38ffd1549767d5d85e747a98c7",
+          "description": "Generate a single optimized Boolean search query for Google Patents from a natural-language description of an invention or technology. Returns one Boolean string only. Use `search` for a multi-strategy set of queries (broad/moderate/narrow) instead. Costs 1 credit.",
+          "is_mutating": false,
+          "property_keys": [
+            "description"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "Natural-language description of the invention or technology area (e.g. 'foldable smartphone display with ultrasonic fingerprint sensor'). Minimum 10 characters."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "reasoning": {
+                "type": "string",
+                "description": "Explanation of the query strategy."
+              },
+              "optimizedQuery": {
+                "type": "string",
+                "description": "The generated Boolean search query for Google Patents."
+              }
+            }
+          },
+          "description_hash": "sha256:749b093c7e9c60edb8effb3353682972a7ab366d8eb778ba9463412779a0fd2a",
+          "parameters": [
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Natural-language description of the invention or technology area (e.g. 'foldable smartphone display with ultrasonic fingerprint sensor'). Minimum 10 characters.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "risk_profile",
+          "canonical_hash": "sha256:b8d8e41e9f55db29ce8242e84a3021334d2bdce6acaed0501b3ffce3bc0b1156",
+          "description": "One-shot patent due-diligence: assemble the legal bundle and return a risk verdict (Low / Moderate / High) with an AI-written rationale — is this US patent in force, battle-tested (survived PTAB), heavily asserted (district-court litigation), and when does it expire? Costs 40 credits on a fresh fetch; 24h cache is free. Risk is framed for a party considering making/selling a product that might read on the patent. Not legal advice.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US8724622B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "legal": {
+                "type": "object",
+                "description": "The full underlying legal bundle.",
+                "additionalProperties": true
+              },
+              "cached": {
+                "type": "boolean",
+                "description": "True if served from the 24h cache (free)."
+              },
+              "verdict": {
+                "type": "object",
+                "description": "riskLabel (Low/Moderate/High), rationale, and the derived signals (inForce, challengeCount, litigationCount, expiration, owner).",
+                "additionalProperties": true
+              },
+              "disclaimer": {
+                "type": "string",
+                "description": "Not-legal-advice notice."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              }
+            }
+          },
+          "description_hash": "sha256:b5eed9f77b053f1c03ff6e5438ade08a456ed0e9240441c7dff1f6da9df5e416",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US8724622B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search",
+          "canonical_hash": "sha256:65f6f3b749249cf77c30819fae29026245a6b893bd3d29e8760c9f035e0a7b4f",
+          "description": "Generate expert multi-strategy Boolean patent-search queries from a natural-language description. The server (1) extracts technical concepts with synonyms and (2) builds Boolean queries per the chosen strategy, returning them for you to run against your full-text patent engine (e.g. Google Patents). Results are not executed server-side on this API tier (clean USPTO-only surface, no scraping) — run the returned `queries`, or use the `query` tool for a single optimized query. Strategies: 'telescoping' (3 queries: broad/moderate/narrow — recommended default), 'onion-ring' (layered queries adding one concept at a time), 'faceted' (multiple two-concept pair queries). Costs 1 credit.",
+          "is_mutating": false,
+          "property_keys": [
+            "description",
+            "limit",
+            "strategy"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "strategy": "string",
+            "description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "description": "Maximum number of deduplicated hits to return (default 20, max 100)."
+              },
+              "strategy": {
+                "enum": [
+                  "telescoping",
+                  "onion-ring",
+                  "faceted"
+                ],
+                "type": "string",
+                "default": "telescoping",
+                "description": "Search strategy. Defaults to 'telescoping'."
+              },
+              "description": {
+                "type": "string",
+                "description": "Natural-language description of the invention or technology area (minimum 10 characters)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "hits": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Ranked patent hits (only when executed server-side; empty on the client_side API tier)."
+              },
+              "note": {
+                "type": "string",
+                "description": "Guidance on how to use the returned queries."
+              },
+              "queries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Boolean queries run with labels and hit counts."
+              },
+              "concepts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Extracted technical concepts with synonyms."
+              },
+              "strategy": {
+                "type": "string",
+                "description": "Search strategy applied."
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional warnings from the search run."
+              },
+              "totalHits": {
+                "type": "number",
+                "description": "Total number of deduplicated hits."
+              },
+              "description": {
+                "type": "string",
+                "description": "The description searched."
+              },
+              "executionMode": {
+                "type": "string",
+                "description": "'client_side' = run the returned queries yourself (API tier); 'server_side' = hits included."
+              }
+            }
+          },
+          "description_hash": "sha256:9a9c8133d00cbfe2018920d95ce1b17d86bc5a9d9343f577b7fc6ce5528320d0",
+          "parameters": [
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Natural-language description of the invention or technology area (minimum 10 characters).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of deduplicated hits to return (default 20, max 100).",
+              "required": false,
+              "default": 20,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "strategy",
+              "type": "string",
+              "description": "Search strategy. Defaults to 'telescoping'.",
+              "required": false,
+              "default": "telescoping",
+              "enum": [
+                "telescoping",
+                "onion-ring",
+                "faceted"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "similar",
+          "canonical_hash": "sha256:1e7a5b6e24d33fae5dc62b460dbfa19c0891e930eb1c985d2fd3fc756cb8a5c9",
+          "description": "Return Google Patents' 'similar documents' ranking for a given patent — a list of patents that Google considers technically related based on its own semantic models. Free. Distinct from `search` (which generates new queries from a description); this tool finds patents related to an existing one.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "default": 20,
+                "description": "Maximum number of similar patents to return (default 20)."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "Patent publication number (e.g. US10867416B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "cached": {
+                "type": "boolean",
+                "description": "Whether the result was served from cache."
+              },
+              "similar": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Similar patents with publication number, title, and assignee."
+              },
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              }
+            }
+          },
+          "description_hash": "sha256:52540d5e313e43e77aed4ec79458a46db9a7ea477a2578ae1deee87010dfd2de",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Maximum number of similar patents to return (default 20).",
+              "required": false,
+              "default": 20,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "Patent publication number (e.g. US10867416B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "term",
+          "canonical_hash": "sha256:50673584bc963ac9af5110df8bea26abbb27839b664bcd98ec478398c597ea3f",
+          "description": "Patent Term Adjustment (PTA) and the resulting adjusted expiration for a US patent: base 20-year expiration, total PTA days, the adjusted expiration, and the A/B/C delay breakdown. Free, public-record.",
+          "is_mutating": false,
+          "property_keys": [
+            "patentNumber"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "patentNumber": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "US patent number (e.g. US8000000B2)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "patentNumber": {
+                "type": "string",
+                "description": "The patent number queried."
+              },
+              "baseExpiration": {
+                "type": "string",
+                "description": "Base 20-year expiration date."
+              },
+              "delayBreakdown": {
+                "type": "object",
+                "description": "A/B/C USPTO delay and applicant delay breakdown.",
+                "additionalProperties": true
+              },
+              "ptaAdjustmentDays": {
+                "type": "number",
+                "description": "Total Patent Term Adjustment days."
+              },
+              "adjustedExpiration": {
+                "type": "string",
+                "description": "Adjusted expiration date after PTA."
+              }
+            }
+          },
+          "description_hash": "sha256:b02abf987e942ddf3271ad07cb7537eea2ec8876d96f67c71eb48302a1f272b2",
+          "parameters": [
+            {
+              "name": "patentNumber",
+              "type": "string",
+              "description": "US patent number (e.g. US8000000B2).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

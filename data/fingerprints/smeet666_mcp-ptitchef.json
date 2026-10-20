@@ -4,8 +4,9 @@
   "purl": "pkg:generic/smeet666%2Fmcp-ptitchef",
   "ecosystem": "generic",
   "display_name": "smeet666/mcp-ptitchef",
-  "description": "Search Ptitchef recipes, read one, and rescale it to any servings. No API key.",
-  "repository_url": "https://github.com/smeet666/mcp-ptitchef",
+  "description": "MCP server for Ptitchef. Search recipes, browse the category tree, read one with its ingredients and method, rescale it, and cook from what is in the fridge. No API key required.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/smeet666/mcp-ptitchef",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,10 +14,526 @@
     "smeet666/mcp-ptitchef"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:1a87a2de315773306d395ec60b3dafc77641ea43b44e283c7ecdacfdbf52416a",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "0fd78927-5bf6-41a9-840d-cc1e99a17cca/34b5e079-84f1-4387-8066-4018efdb66c1/server.mcpb",
+          "runtime": "node",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "browse_recipes",
+          "canonical_hash": "sha256:08fc14b8c00c4419ca5e008367ab2a7179884fd68a7377123cf3d32d1b5b948a",
+          "description": "Read the recipes under one category page by page, or one of the lists the site keeps standing.",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "limit",
+            "listing",
+            "page"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "page": "integer",
+            "limit": "integer",
+            "listing": "string",
+            "category": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer",
+                "maximum": 1000,
+                "minimum": 1,
+                "description": "The page of a category to read. A standing list has one page only."
+              },
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Rows to render, 20 by default."
+              },
+              "listing": {
+                "enum": [
+                  "latest",
+                  "top_rated",
+                  "most_viewed"
+                ],
+                "type": "string",
+                "description": "One of the site's standing lists, read instead of a category."
+              },
+              "category": {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1,
+                "description": "A category slug: one from list_categories whose 'is_family' is false, or the 'topic_slug' a search answered with. A family's slug belongs to list_categories instead."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a2e4375f3b684b79da501e69a0f4a75b3ee3ea63271266eed5f5f707282efec9",
+          "parameters": [
+            {
+              "name": "category",
+              "type": "string",
+              "description": "A category slug: one from list_categories whose 'is_family' is false, or the 'topic_slug' a search answered with. A family's slug belongs to list_categories instead.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Rows to render, 20 by default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "listing",
+              "type": "string",
+              "description": "One of the site's standing lists, read instead of a category.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "latest",
+                "top_rated",
+                "most_viewed"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "page",
+              "type": "integer",
+              "description": "The page of a category to read. A standing list has one page only.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_recipe",
+          "canonical_hash": "sha256:19c551404f14a55babd011ebde20d31686f0b49274b65c563e978b0366862998",
+          "description": "Read one recipe: ingredients, method, times, rating, nutrition and the cost the site estimates, rescaled to a number of servings on request.",
+          "is_mutating": false,
+          "property_keys": [
+            "id",
+            "servings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string",
+            "servings": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1,
+                "description": "The 'id' of a row from a search or a listing, which is the recipe's own page path."
+              },
+              "servings": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Rescale the ingredients to this many servings. Left out, the ingredients come back as published."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:899aae496c8d5ce5e644c5f3ddd10ccae06272e2a9433c6cb3afe6a82faa6618",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "The 'id' of a row from a search or a listing, which is the recipe's own page path.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "servings",
+              "type": "integer",
+              "description": "Rescale the ingredients to this many servings. Left out, the ingredients come back as published.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_recipe_translations",
+          "canonical_hash": "sha256:a830484135763e8a84ae3fb801252be9d9a2c135d282e8733a2cf6fd5fc3644d",
+          "description": "List the other languages a recipe was published in, using the pairing the site itself publishes between its editions.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 1,
+                "description": "The 'id' of a row from a search or a listing, which is the recipe's own page path."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2e324a673556f369ece7d23c18ba9f30b971eb490ac9d2992e227e23707ff951",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "The 'id' of a row from a search or a listing, which is the recipe's own page path.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_categories",
+          "canonical_hash": "sha256:75f1a0b26e4359ff9687e3f4bf0a6f54f09f9c19636508e53d0e5f79bdff76a7",
+          "description": "List the categories recipes are browsed by: the families of ingredients, or what one family holds, each with the slug that opens it.",
+          "is_mutating": false,
+          "property_keys": [
+            "family",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "family": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 200,
+                "minimum": 1,
+                "description": "Entries to render, 20 by default and 200 at most. A level holding more than this says so, and 'categories_published' always states what the page listed."
+              },
+              "family": {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1,
+                "description": "The slug of a family to open, taken from a previous call. Leave it out to read the families themselves, which is where the tree starts."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:25534e0975ce14cbe6c60a139e991895f5d6c11cb9eed141d9208ecffaa09d98",
+          "parameters": [
+            {
+              "name": "family",
+              "type": "string",
+              "description": "The slug of a family to open, taken from a previous call. Leave it out to read the families themselves, which is where the tree starts.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Entries to render, 20 by default and 200 at most. A level holding more than this says so, and 'categories_published' always states what the page listed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "scale_ingredients",
+          "canonical_hash": "sha256:c2a8081d5bf5e1bd47a6f77c8147085efa163e4af783a479c2602c6c69791fa9",
+          "description": "Rescale any French ingredient list offline, saying of each line whether the result is exact, rounded to stay usable, or nothing that could be multiplied.",
+          "is_mutating": false,
+          "property_keys": [
+            "factor",
+            "from_servings",
+            "ingredients",
+            "to_servings"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "factor": "number",
+            "ingredients": "array",
+            "to_servings": "number",
+            "from_servings": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "factor": {
+                "type": "number",
+                "maximum": 100,
+                "description": "Multiplier to apply. Use this or the from/to pair.",
+                "exclusiveMinimum": 0
+              },
+              "ingredients": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "description": "Ingredient lines, for example ['200 g de farine', '3 oeufs', 'sel']."
+              },
+              "to_servings": {
+                "type": "number",
+                "maximum": 500,
+                "description": "How many servings are wanted.",
+                "exclusiveMinimum": 0
+              },
+              "from_servings": {
+                "type": "number",
+                "maximum": 500,
+                "description": "How many servings the list is written for.",
+                "exclusiveMinimum": 0
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ff5e0eff468e885281d2dbe73616905f99add5597c55270185fc3dd62a27228f",
+          "parameters": [
+            {
+              "name": "factor",
+              "type": "number",
+              "description": "Multiplier to apply. Use this or the from/to pair.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "from_servings",
+              "type": "number",
+              "description": "How many servings the list is written for.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "ingredients",
+              "type": "array",
+              "description": "Ingredient lines, for example ['200 g de farine', '3 oeufs', 'sel'].",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "to_servings",
+              "type": "number",
+              "description": "How many servings are wanted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_by_ingredients",
+          "canonical_hash": "sha256:4229c5c977e505d908a92074547041028298220721c1f1cb92e9e612453a008d",
+          "description": "Find recipes from one to five ingredients a cook already has, through the site's own fridge search.",
+          "is_mutating": false,
+          "property_keys": [
+            "ingredients",
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "ingredients": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Rows to render, 20 by default."
+              },
+              "ingredients": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 60,
+                  "minLength": 1
+                },
+                "maxItems": 5,
+                "minItems": 1,
+                "description": "One to 5 ingredients, in French. The site reads no more than that."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6b8723893f38eb7a95715c6224f6dfb70297dede5a70cfa6c45cef8984cbfc11",
+          "parameters": [
+            {
+              "name": "ingredients",
+              "type": "array",
+              "description": "One to 5 ingredients, in French. The site reads no more than that.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Rows to render, 20 by default.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_recipes",
+          "canonical_hash": "sha256:ad654cdd67b47c936d611d09756a1684358e0994bf4ede23d91f40ff914e6be0",
+          "description": "Search recipes by dish or ingredient, and say whether the site answered from a category page of its own or on its own terms.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Rows to render, 20 by default. 'rows_seen' states what the page served."
+              },
+              "query": {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1,
+                "description": "A dish or an ingredient, in French, as a reader of the site would type it."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7f29ffaa750e6d19e10ecbfdcabbc32f74ef8505851d5fa04ccd84eecd15c9fd",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Rows to render, 20 by default. 'rows_seen' states what the page served.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "A dish or an ingredient, in French, as a reader of the site would type it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.0.1",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -28,9 +545,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

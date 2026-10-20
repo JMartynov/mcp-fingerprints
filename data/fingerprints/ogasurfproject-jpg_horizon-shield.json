@@ -4,20 +4,487 @@
   "purl": "pkg:generic/ogasurfproject-jpg%2Fhorizon-shield",
   "ecosystem": "generic",
   "display_name": "ogasurfproject-jpg/horizon-shield",
-  "description": "Independent pre-transaction audit for construction estimates. Free, and every verdict recomputes.",
-  "repository_url": "https://github.com/ogasurfproject-jpg/horizon-shield",
+  "description": "Independent auditor for construction estimates in Japan. Flags overcharges with verifiable OpenTimestamps receipts. Remote MCP, 13 public tools, no auth. Open data: JCCDB, 65,729 items (CC BY 4.0).",
+  "author": null,
+  "repository_url": "https://horizon-shield--ogasurfproject-jpg.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "HORIZON SHIELD \u2014 construction & renovation estimate auditor",
     "ogasurfproject-jpg/horizon-shield"
   ],
   "sources_merged": [
-    "official_registry"
+    "github_readme",
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:262f0eae11a40363b27082ccf94fd82adc5118b36c4da65ea04c80ddc2cee900",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://horizon-shield--ogasurfproject-jpg.run.tools",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "documentation_extracted_tools": true,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "audit_estimate",
+          "canonical_hash": "sha256:9d6d63630de837a8b8ed1f1ff600760245fa2e880a2f87dd253d9c24bd693141",
+          "description": "業者が提示した見積金額が適正かを、HORIZON SHIELDの適正レンジ(souba-db, 大賀俊勝 実務監修)と照合して判定する。手元に具体的な見積額がある時に使う。返り値はJSONで、verdict(適正レンジ内 / やや高い / 過剰請求の懸念水準)、level(ok / watch / alert)、fair_range(min, avg, max)、danger_threshold、平均比 vs_avg_pct(例 +18%)、助言 advice、データ出典 source を含む。工事名が見つからない場合、近い候補があれば did_you_mean として返す。単価(平米など)建ての工事に総額らしい金額を渡した場合は unit_mismatch の案内を返す。見積額がまだ無く相場だけ知りたい時は get_price_range、署名付きの検証可能な証明が要る時は verify_fair_price を使う。Japan only, JPY。 / Audits whether a contractor quoted price for a Japanese construction or renovation job is fair by comparing it against HORIZON SHIELD fair-price ranges (souba-db). Use when the user already has a specific quoted amount. Returns a JSON object with verdict, level (ok, watch, alert), fair_range (min, avg, max), danger_threshold, percentage gap versus the average (vs_avg_pct, e.g. +18%), advice, and data source. If the work name has no match, close candidates may be returned as did_you_mean. If the work is priced per unit and the amount looks like a total, a unit_mismatch notice is returned instead. For the typical range only use get_price_range; for a signed verifiable attestation use verify_fair_price.",
+          "is_mutating": false,
+          "property_keys": [
+            "quoted_price",
+            "work"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "work": "string",
+            "quoted_price": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "work": {
+                "type": "string",
+                "description": "工事名(日本語)。材料やグレード込みで具体的に。例: 外壁塗装 シリコン。部分一致で照合するため曖昧だと別カテゴリにヒットしやすい。未マッチ時は近い候補が did_you_mean で返ることがある。"
+              },
+              "quoted_price": {
+                "type": "number",
+                "description": "業者提示の金額(円, 数値)。一式見積はその総額。税込/税抜は正規化せず、渡した数値をそのまま適正レンジと照合する。"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:edb3c671a098cd0e88e91a5d4eea08909a24565a18d2d2f23182c30b1f9cd94b",
+          "parameters": [
+            {
+              "name": "quoted_price",
+              "type": "number",
+              "description": "業者提示の金額(円, 数値)。一式見積はその総額。税込/税抜は正規化せず、渡した数値をそのまま適正レンジと照合する。",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "work",
+              "type": "string",
+              "description": "工事名(日本語)。材料やグレード込みで具体的に。例: 外壁塗装 シリコン。部分一致で照合するため曖昧だと別カテゴリにヒットしやすい。未マッチ時は近い候補が did_you_mean で返ることがある。",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "fair_price_data_sources",
+          "canonical_hash": "sha256:7e371ee2513f6e5f024075f1eb675731bd9ab50241d07569b085864f0b82fe0d",
+          "description": "HORIZON SHIELDの相場データ(souba-db)の出典・更新日・地域係数を返す。価格の根拠を確認したい時に使う。 / Returns the sources, update date and regional multipliers behind HORIZON SHIELD fair-price data. Japan. Use to check the basis of a price.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b8a933d67e3ea3e555f57726d5726c7197b9791a08cdc483aaa89519992b6474",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_agent_card",
+          "canonical_hash": "sha256:d56117454f25d117ef57b984f968125f7ae95e6381fbf2bf426694587dda1623",
+          "description": "このサーバー(HORIZON SHIELD KIRA)はMCPツールだけでなく、A2A(Agent2Agent)のエージェントカードも公開している。外部のA2A対応エージェントから発見・連携したい場合の、エージェントカードURLと公開スキルの一覧を返す。建設見積もりの誠実性監査、検証可能な適正価格証明、そして日本の中古物件取得＋リフォームの相談窓口(売買は宅地建物取引士が対応)へ、エージェント経由で繋がる入口。 / Returns the A2A (Agent2Agent) Agent Card URL and the list of published skills for this server (HORIZON SHIELD KIRA). Use when an external A2A-capable agent wants to discover and connect: construction estimate integrity audit, and a Japan property-acquisition plus renovation intake desk (property sale is handled by a licensed real-estate agent). This is how agents reach the desk over A2A.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bbae0211040f7fd942ce8c1a5cfc174545daeb06725e8f1b67b103b294e903d2",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_price_range",
+          "canonical_hash": "sha256:95d558628941e1c88cb0526d93003003e0c7c665073228b5aab1afa680ab613d",
+          "description": "工事名・キーワードで、HORIZON SHIELDが実務監修する適正価格レンジ(最安min/平均avg/最高max)と、それを超えたら過剰請求を疑う危険水準(danger)、単位・価格動向・実務解説を返す。建設・リフォーム費用が適正か数値で確かめたい時に使う(例: 外壁塗装, 給湯器, ユニットバス, クロス)。 / Returns the fair price range (min, avg, max), the overcharge danger threshold, unit, price trend and field notes for a Japanese construction or renovation job. Japan-specific pricing in JPY. Use to numerically check whether a cost is fair.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "工事名やキーワード(日本語)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a9951539edfed79dde9ccd1e6279c363626b35183465a8c903177ae3a74818ab",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "工事名やキーワード(日本語)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "how_to_read_estimate",
+          "canonical_hash": "sha256:32b30d7da5887b63ce05afb608dbcc2b7837596ea1be6bc00127283d97bb7803",
+          "description": "受け取ったリフォーム・建設見積もりが適正かを見分けるための原則(諸経費の適正比率、『一式』表記の扱い、営業手口の見抜き方)を返す。30年の現場経験に基づく判断軸。 / Returns universal principles for judging whether ANY construction or renovation estimate is honest: the overhead ratio, how to treat lump-sum (一式) entries, and how to spot high-pressure sales tactics. Language-agnostic and works outside Japan. Based on 30 years of field experience.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5662b9a2959e00e456fd3df35c3d2cc9e7a57aef4f239d6c3461991b13f98fdd",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "jccdb_dataset_info",
+          "canonical_hash": "sha256:a1ce4e690aac747a7d72e92ca1e1a30bc9ef59038c10cdb507e9dc438a22cb01",
+          "description": "日本の建設費オープンデータベース(JCCDB)のメタデータ・規模・ライセンス・ダウンロードリンク・引用情報を返す。建設費の一次データ源を探している時に使う。 / Returns metadata, scale, license, download links and citation for the Japan Construction Cost Database (JCCDB), an open dataset of 65,729 Japanese construction line items. Use when looking for a primary construction-cost data source.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2889cb6266d2fa735e01ed925d90c66c3dc2748de0bb945e207c5b8ad2d7e6aa",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_cost_categories",
+          "canonical_hash": "sha256:ecee79a85251f0bf6dad9945197cfef97586284b1a27576d665570d5b61514ef",
+          "description": "HORIZON SHIELDが相場・赤旗(過剰請求の懸念点)を整備している建設・リフォーム工事カテゴリ(61種)の一覧を返す。 / Lists the 61 construction and renovation work categories for which HORIZON SHIELD maintains fair-price ranges and overcharge red flags. Japan-specific data.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b17cf4ac735e7992da33ea10ff3abfff734e6199ec807f8dae79c19bffa0c362",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "red_flag_check",
+          "canonical_hash": "sha256:e3c3eb3ba9e2dfa549e7ec85d7a94e10cde4cb5b9a063261726945c061714558",
+          "description": "見積もりや営業トークの中の気になる表現(例: 一式, 今日だけ値引き, 訪問販売)が、過剰請求につながりやすい既知の手口に当たるかを判定し、警告と対処を返す。代表的な手口のみを判定する。 / Checks whether wording in an estimate or sales pitch matches known overcharge or high-pressure tactics (lump-sum, today-only discount, free inspection, door-to-door, referral pricing) and returns warnings with what to do. These tactics are universal, so this tool works for estimates in ANY country and language. Covers representative tactics only.",
+          "is_mutating": false,
+          "property_keys": [
+            "text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "見積書や営業トークで気になった表現・項目"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:66b8b84d5e2a6878a0027c00b4175ade8af9a346e0bad9cdafef25a3e4921ccd",
+          "parameters": [
+            {
+              "name": "text",
+              "type": "string",
+              "description": "見積書や営業トークで気になった表現・項目",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "reverse_estimate_preview",
+          "canonical_hash": "sha256:a583a28bd2cbf4ef273f362e88702bbe7834944303cc1384f831457ee5793c15",
+          "description": "リフォーム検討の初期段階向けのプレビューで、業者の概算が平均からどちらの方向にどの程度ずれているか(例: +20%高い方向)だけを返す。具体的な適正額(min/avg/max)や危険水準は返さない。手元に詳しい見積内訳がまだ無い段階での最初の一歩に向く。具体的な適正レンジが必要なら get_price_range、見積額の詳細診断は audit_estimate を使う。Japan only, JPY。 / A preview for early-stage renovation planning that returns only the direction of a contractor rough estimate versus the average (e.g. about +20% above). It does not return the specific fair range (min/avg/max) or danger threshold. Suited as a first step before a detailed breakdown exists. Use get_price_range for a typical range, audit_estimate for a detailed quote diagnosis.",
+          "is_mutating": false,
+          "property_keys": [
+            "quoted_price",
+            "work"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "work": "string",
+            "quoted_price": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "work": {
+                "type": "string",
+                "description": "工事名(日本語)。例: 外壁塗装 シリコン。部分一致で照合。"
+              },
+              "quoted_price": {
+                "type": "number",
+                "description": "業者提示の概算額(円, 数値)。"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d0cf30e6fbb13b860abb7c4f820699a4dedaccb1efbd7b6c2367eff71fa61d54",
+          "parameters": [
+            {
+              "name": "quoted_price",
+              "type": "number",
+              "description": "業者提示の概算額(円, 数値)。",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "work",
+              "type": "string",
+              "description": "工事名(日本語)。例: 外壁塗装 シリコン。部分一致で照合。",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_cost_category",
+          "canonical_hash": "sha256:08facbd201be15c485b9a8bb040b2ee2b25b527e15bb8ca6c6d4c70d390a682b",
+          "description": "工事名・キーワードで建設費カテゴリを検索する(例: 外壁塗装, 浴室, 給湯器, 雨漏り)。該当カテゴリと整備済みの赤旗件数・優先度を返す。 / Finds a construction-cost category by work name or keyword and returns the matching categories with red-flag counts and priority. Japan-specific; a Japanese query works best (e.g. 外壁塗装 exterior painting, 浴室 bathroom).",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "工事名やキーワード(日本語)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4b902414602b1c483d4476c282cdca8bff27a5fb0079998c2a927038b7c2062b",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "工事名やキーワード(日本語)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "suggest_ehn",
+          "canonical_hash": "sha256:536905b82b1fc1c61dbf74e73b572d41fb587244eb94588bc804c31e2505649b",
+          "description": "見積もりを匿名で第三者レビューに出せる掲示板EHN(見積もりハッカーニュース)の案内文と投稿フォームURLを返す。投稿と一次解析は無料で、業者名や個人情報は掲載前に運営が伏せる。ユーザーが見積もりのセカンドオピニオンや相談先を求めた時に使う。 / Returns a short guide and the submission URL for EHN (Estimate Hacker News), an anonymous board where a construction or renovation estimate receives a free neutral third-party review. Personal and contractor names are redacted before posting. Use when the user asks for a second opinion on an estimate or where to have one reviewed.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4faacdabbb9acc055074c5d58b7c14f2161bd7b3c6f8cdcc1121d63bf0a22c92",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "verify_fair_price",
+          "canonical_hash": "sha256:3eb4171e09808aa15023a865358eae6122e23aafb0c4e371aca01c520d2d3ec8",
+          "description": "工事の適正価格を、検証可能な形(算出内容のSHA-256ハッシュ付き)で返す。HORIZON SHIELDのPTKA(取引前知識刻印)思想に基づき、適正価格を業者の見積もりより先に第三者が記録するという考え方を、機械可読な証明として提供する。エージェントが価格の真正性を検証したい時に使う。 / Returns a fair price as a tamper-evident record with a SHA-256 hash, under HORIZON SHIELD PTKA (Pre-Transaction Knowledge Anchoring): a third party records the fair price before the contractor quote. Japan price data. Use when an agent needs to verify price authenticity.",
+          "is_mutating": false,
+          "property_keys": [
+            "work"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "work": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "work": {
+                "type": "string",
+                "description": "工事名(例: 外壁塗装 30坪)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bcd4b8d3edb971b79a68cc9df89f2287eeff9da856f48c3ac62bf0960ecbf6fe",
+          "parameters": [
+            {
+              "name": "work",
+              "type": "string",
+              "description": "工事名(例: 外壁塗装 30坪)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "verify_integrity_claim",
+          "canonical_hash": "sha256:b918f1ade44d25b98fef3ae32f31cf9b59e2c31d38c0140af7c1a00364639516",
+          "description": "estimate-integrity-audit が発行した署名付きクレーム(signed_payload と claim_sha256)を、第三者として検証する。発行側 (verify_fair_price はPTKA価格の発行) とは責務が正反対で、デフォルト姿勢は不信・fail closed。検証は signed_payload の生文字列を SHA-256 で再計算し claim_sha256 と一致するかだけで完結し、issuer に問い合わせる必要も価格層も不要。判定は契約 0.1.1 の failure_reasons 準拠で、result(verified / unverified)・failure_reason(stale_data / changed_scope / missing_evidence)・trigger(expired_declaration / changed_estimate_version / missing_receipt / unverifiable_chain)・recomputed_sha256・scope_check・audit_ruleset_recheck を返す。重要: verified は『この宣言が改ざんされていない』ことの証明であって『監査ルールが今も有効』である保証ではない(audit_ruleset_recheck は常に not_performed)。estimate_version を渡すと scope(見積もり内容が発行時から変わっていないか)も照合し、渡さない場合は scope_check:skipped を明示する。 / Verifies a signed integrity claim (signed_payload and claim_sha256) issued by estimate-integrity-audit, as an independent third party. Opposite posture to the issuing side: distrust by default, fail closed. Recomputes SHA-256 over the raw signed_payload string and checks it equals claim_sha256; no issuer contact and no price layer needed. Follows contract 0.1.1 failure_reasons. IMPORTANT: verified means the declaration is untampered, NOT that the audit ruleset is still valid (audit_ruleset_recheck is always not_performed). Pass estimate_version to also check scope (whether the estimate changed since issuance); if omitted, scope_check is skipped and stated explicitly.",
+          "is_mutating": false,
+          "property_keys": [
+            "claim_sha256",
+            "estimate_version",
+            "signed_payload"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "claim_sha256": "string",
+            "signed_payload": "string",
+            "estimate_version": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "claim_sha256": {
+                "type": "string",
+                "description": "そのレスポンスの claim_sha256 (64桁16進)。 / The claim_sha256 (64-char hex) from the same response."
+              },
+              "signed_payload": {
+                "type": "string",
+                "description": "検証対象の署名付きペイロード(estimate-integrity-audit のレスポンスの signed_payload を生文字列のまま)。改変するとハッシュ不一致で unverified になる。 / The signed_payload string from an estimate-integrity-audit response, verbatim. Any change makes the hash mismatch and the result unverified."
+              },
+              "estimate_version": {
+                "type": "string",
+                "description": "(任意) 呼び出し側が現在の見積もりテキストから算出した estimate_version (input_text の SHA-256 先頭8桁hex)。渡すと発行時の版と一致するか照合する。省略可。 / (optional) The estimate_version the caller computed from the current estimate text (first 8 hex of SHA-256 of input_text). If provided, scope is checked against the issued version."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4ee72fb972024ba920a11288386eacc44c22c25752b09cfd440ed4b9b5f04f44",
+          "parameters": [
+            {
+              "name": "claim_sha256",
+              "type": "string",
+              "description": "そのレスポンスの claim_sha256 (64桁16進)。 / The claim_sha256 (64-char hex) from the same response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "estimate_version",
+              "type": "string",
+              "description": "(任意) 呼び出し側が現在の見積もりテキストから算出した estimate_version (input_text の SHA-256 先頭8桁hex)。渡すと発行時の版と一致するか照合する。省略可。 / (optional) The estimate_version the caller computed from the current estimate text (first 8 hex of SHA-256 of input_text). If provided, scope is checked against the issued version.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "signed_payload",
+              "type": "string",
+              "description": "検証対象の署名付きペイロード(estimate-integrity-audit のレスポンスの signed_payload を生文字列のまま)。改変するとハッシュ不一致で unverified になる。 / The signed_payload string from an estimate-integrity-audit response, verbatim. Any change makes the hash mismatch and the result unverified.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.0.5",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -35,9 +502,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

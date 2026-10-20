@@ -4,17 +4,18 @@
   "purl": "pkg:generic/openfate-ai%2Fbazi-mcp",
   "ecosystem": "generic",
   "display_name": "openfate-ai/bazi-mcp",
-  "description": "OpenFate Bazi MCP with True Solar Time, Four Pillars, Da Yun, and branch interactions.",
-  "repository_url": "https://github.com/openfate-ai/bazi-mcp",
+  "description": "Deterministic Bazi and Four Pillars charts with True Solar Time, Da Yun cycles, enriched pillars, and branch interactions.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/openfate-ai/bazi-mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
-    "OpenFate Bazi MCP",
     "openfate-ai/bazi-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -29,9 +30,941 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:28ab8529932376e60451adc9eec30f1c60db9fe9981d146efa4dcd6f23ed56b9",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "65b4fd43-59ad-41bd-b279-ba03c198bafc/04e67b0b-b1e7-4665-a755-66a91e57d3a9/server.mcpb",
+          "runtime": "node",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "calculate_bazi_chart",
+          "canonical_hash": "sha256:47ef67b32e5484992890947cc53f18a2a2720b6138604b1045c37658c1e6516d",
+          "description": "Calculate a deterministic OpenFate Bazi/Four Pillars chart with True Solar Time correction, Day Master, DAYUN_SECOND_V2 onset receipts, Da Yun cycles, and branch interactions. Pass an exact birth time plus timezone or timezoneId for a calculated V2 onset; otherwise inspect the explicit unavailable/fallback receipt.",
+          "is_mutating": false,
+          "property_keys": [
+            "calendarType",
+            "day",
+            "dayBoundaryMode",
+            "dstOffset",
+            "enableTrueSolarTime",
+            "gender",
+            "hour",
+            "isLeapMonth",
+            "longitude",
+            "minute",
+            "month",
+            "second",
+            "timezone",
+            "timezoneId",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "day": "integer",
+            "hour": "integer",
+            "year": "integer",
+            "month": "integer",
+            "gender": "string",
+            "minute": "integer",
+            "second": "integer",
+            "timezone": "number",
+            "dstOffset": "number",
+            "longitude": "number",
+            "timezoneId": "string",
+            "isLeapMonth": "boolean",
+            "calendarType": "string",
+            "dayBoundaryMode": "string",
+            "enableTrueSolarTime": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "day": {
+                "type": "integer",
+                "maximum": 31,
+                "minimum": 1,
+                "description": "Birth day, 1-31."
+              },
+              "hour": {
+                "type": "integer",
+                "maximum": 23,
+                "minimum": 0,
+                "description": "Birth hour in local civil time, 0-23. Omit when birth time is unknown."
+              },
+              "year": {
+                "type": "integer",
+                "maximum": 2100,
+                "minimum": 1800,
+                "description": "Birth year. Use the lunar year when calendarType is lunar."
+              },
+              "month": {
+                "type": "integer",
+                "maximum": 12,
+                "minimum": 1,
+                "description": "Birth month, 1-12."
+              },
+              "gender": {
+                "enum": [
+                  "male",
+                  "female"
+                ],
+                "type": "string",
+                "description": "Birth gender used for Da Yun direction."
+              },
+              "minute": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 59,
+                "minimum": 0,
+                "description": "Birth minute in local civil time."
+              },
+              "second": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 59,
+                "minimum": 0,
+                "description": "Birth second in local civil time."
+              },
+              "timezone": {
+                "type": "number",
+                "maximum": 14,
+                "minimum": -14,
+                "description": "UTC offset in hours for the birth clock time, such as 8 for China or -5 for US Eastern Standard Time."
+              },
+              "dstOffset": {
+                "type": "number",
+                "default": 0,
+                "maximum": 2,
+                "minimum": -2,
+                "description": "Daylight saving offset in hours to remove from civil clock time. Use 1 for one-hour DST."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Birthplace longitude in decimal degrees. Enables true solar time correction."
+              },
+              "timezoneId": {
+                "type": "string",
+                "description": "Optional IANA timezone ID, such as Asia/Shanghai or America/New_York."
+              },
+              "isLeapMonth": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether the lunar input month is a leap month. Used only when calendarType is lunar."
+              },
+              "calendarType": {
+                "enum": [
+                  "solar",
+                  "lunar"
+                ],
+                "type": "string",
+                "default": "solar",
+                "description": "Input calendar type."
+              },
+              "dayBoundaryMode": {
+                "enum": [
+                  "MIDNIGHT_00",
+                  "ZI_HOUR_23"
+                ],
+                "type": "string",
+                "default": "ZI_HOUR_23",
+                "description": "Day-change rule. ZI_HOUR_23 means 23:00 starts the next day pillar."
+              },
+              "enableTrueSolarTime": {
+                "type": "boolean",
+                "default": true,
+                "description": "Apply true solar time when longitude and timezone data are available."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8e3841af1525f539cc526d1690627f4001e6d12c44749b71bcb7cec0280f0bf6",
+          "parameters": [
+            {
+              "name": "calendarType",
+              "type": "string",
+              "description": "Input calendar type.",
+              "required": false,
+              "default": "solar",
+              "enum": [
+                "solar",
+                "lunar"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "day",
+              "type": "integer",
+              "description": "Birth day, 1-31.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dayBoundaryMode",
+              "type": "string",
+              "description": "Day-change rule. ZI_HOUR_23 means 23:00 starts the next day pillar.",
+              "required": false,
+              "default": "ZI_HOUR_23",
+              "enum": [
+                "MIDNIGHT_00",
+                "ZI_HOUR_23"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dstOffset",
+              "type": "number",
+              "description": "Daylight saving offset in hours to remove from civil clock time. Use 1 for one-hour DST.",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "enableTrueSolarTime",
+              "type": "boolean",
+              "description": "Apply true solar time when longitude and timezone data are available.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "gender",
+              "type": "string",
+              "description": "Birth gender used for Da Yun direction.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "male",
+                "female"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hour",
+              "type": "integer",
+              "description": "Birth hour in local civil time, 0-23. Omit when birth time is unknown.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "isLeapMonth",
+              "type": "boolean",
+              "description": "Whether the lunar input month is a leap month. Used only when calendarType is lunar.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "longitude",
+              "type": "number",
+              "description": "Birthplace longitude in decimal degrees. Enables true solar time correction.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "minute",
+              "type": "integer",
+              "description": "Birth minute in local civil time.",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "month",
+              "type": "integer",
+              "description": "Birth month, 1-12.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "second",
+              "type": "integer",
+              "description": "Birth second in local civil time.",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "number",
+              "description": "UTC offset in hours for the birth clock time, such as 8 for China or -5 for US Eastern Standard Time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezoneId",
+              "type": "string",
+              "description": "Optional IANA timezone ID, such as Asia/Shanghai or America/New_York.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "year",
+              "type": "integer",
+              "description": "Birth year. Use the lunar year when calendarType is lunar.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "calculate_true_solar_time",
+          "canonical_hash": "sha256:eb07cbb090228468316e486286e7dbbf33d16fc2f60450850e2efe926a9c7951",
+          "description": "Calculate OpenFate True Solar Time from civil birth time, longitude, timezone, and optional DST offset. Use this when explaining why the hour pillar may differ from ordinary clock-time tools.",
+          "is_mutating": false,
+          "property_keys": [
+            "day",
+            "dstOffset",
+            "hour",
+            "longitude",
+            "minute",
+            "month",
+            "timezone",
+            "timezoneId",
+            "year"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "day": "integer",
+            "hour": "integer",
+            "year": "integer",
+            "month": "integer",
+            "minute": "integer",
+            "timezone": "number",
+            "dstOffset": "number",
+            "longitude": "number",
+            "timezoneId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "day": {
+                "type": "integer",
+                "maximum": 31,
+                "minimum": 1
+              },
+              "hour": {
+                "type": "integer",
+                "maximum": 23,
+                "minimum": 0
+              },
+              "year": {
+                "type": "integer",
+                "maximum": 2100,
+                "minimum": 1800
+              },
+              "month": {
+                "type": "integer",
+                "maximum": 12,
+                "minimum": 1
+              },
+              "minute": {
+                "type": "integer",
+                "default": 0,
+                "maximum": 59,
+                "minimum": 0
+              },
+              "timezone": {
+                "type": "number",
+                "maximum": 14,
+                "minimum": -14,
+                "description": "UTC offset in hours for the clock time."
+              },
+              "dstOffset": {
+                "type": "number",
+                "default": 0,
+                "maximum": 2,
+                "minimum": -2,
+                "description": "Daylight saving offset in hours."
+              },
+              "longitude": {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180,
+                "description": "Birthplace longitude in decimal degrees."
+              },
+              "timezoneId": {
+                "type": "string",
+                "description": "IANA timezone ID, such as Asia/Shanghai."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e13464b08e1b4396fd9e8ffe73b9f3d69041f50744e84087b8fc0cf8682e3455",
+          "parameters": [
+            {
+              "name": "day",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dstOffset",
+              "type": "number",
+              "description": "Daylight saving offset in hours.",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hour",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "longitude",
+              "type": "number",
+              "description": "Birthplace longitude in decimal degrees.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "minute",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "month",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezone",
+              "type": "number",
+              "description": "UTC offset in hours for the clock time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timezoneId",
+              "type": "string",
+              "description": "IANA timezone ID, such as Asia/Shanghai.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "year",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "detect_bazi_interactions",
+          "canonical_hash": "sha256:0f8f9340939b4dc472b784cd078061e5392903049d2333bd27664c26b407bc43",
+          "description": "Detect raw Earthly Branch relationship occurrences for a natal chart and optional annual and Da Yun branches. Preserves every matching pillar position, including repeated branches. Covers clashes, six-combinations, the eight central-branch half-trines (COMBINATION_HALF), full trines, directionals, punishments, destructions, and harms. Results establish relationship presence, not weights, cancellation, or automatic transformation; targetElement is an affinity, not transformed energy.",
+          "is_mutating": false,
+          "property_keys": [
+            "annualBranch",
+            "dayBranch",
+            "dayunBranch",
+            "hourBranch",
+            "monthBranch",
+            "yearBranch"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "dayBranch": "string",
+            "hourBranch": "string",
+            "yearBranch": "string",
+            "monthBranch": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "dayBranch": {
+                "enum": [
+                  "子",
+                  "丑",
+                  "寅",
+                  "卯",
+                  "辰",
+                  "巳",
+                  "午",
+                  "未",
+                  "申",
+                  "酉",
+                  "戌",
+                  "亥"
+                ],
+                "type": "string",
+                "description": "Natal day branch."
+              },
+              "hourBranch": {
+                "enum": [
+                  "子",
+                  "丑",
+                  "寅",
+                  "卯",
+                  "辰",
+                  "巳",
+                  "午",
+                  "未",
+                  "申",
+                  "酉",
+                  "戌",
+                  "亥"
+                ],
+                "type": "string",
+                "description": "Natal hour branch. Omit when birth time is unknown."
+              },
+              "yearBranch": {
+                "enum": [
+                  "子",
+                  "丑",
+                  "寅",
+                  "卯",
+                  "辰",
+                  "巳",
+                  "午",
+                  "未",
+                  "申",
+                  "酉",
+                  "戌",
+                  "亥"
+                ],
+                "type": "string",
+                "description": "Natal year branch."
+              },
+              "dayunBranch": {
+                "$ref": "#/properties/hourBranch",
+                "description": "Optional Da Yun branch. Preserved as the dayun pillar role, independently of the annual and natal branches."
+              },
+              "monthBranch": {
+                "enum": [
+                  "子",
+                  "丑",
+                  "寅",
+                  "卯",
+                  "辰",
+                  "巳",
+                  "午",
+                  "未",
+                  "申",
+                  "酉",
+                  "戌",
+                  "亥"
+                ],
+                "type": "string",
+                "description": "Natal month branch."
+              },
+              "annualBranch": {
+                "$ref": "#/properties/hourBranch",
+                "description": "Optional annual or target branch. Preserved as the annual pillar role, independently of repeated natal branches."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:33794b1556e597c1f8b834e9c0d8a6b1bdfa6ce9aace55a8f2729a3d66d84024",
+          "parameters": [
+            {
+              "name": "annualBranch",
+              "type": "string",
+              "description": "Optional annual or target branch. Preserved as the annual pillar role, independently of repeated natal branches.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dayBranch",
+              "type": "string",
+              "description": "Natal day branch.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "子",
+                "丑",
+                "寅",
+                "卯",
+                "辰",
+                "巳",
+                "午",
+                "未",
+                "申",
+                "酉",
+                "戌",
+                "亥"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dayunBranch",
+              "type": "string",
+              "description": "Optional Da Yun branch. Preserved as the dayun pillar role, independently of the annual and natal branches.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hourBranch",
+              "type": "string",
+              "description": "Natal hour branch. Omit when birth time is unknown.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "子",
+                "丑",
+                "寅",
+                "卯",
+                "辰",
+                "巳",
+                "午",
+                "未",
+                "申",
+                "酉",
+                "戌",
+                "亥"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "monthBranch",
+              "type": "string",
+              "description": "Natal month branch.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "子",
+                "丑",
+                "寅",
+                "卯",
+                "辰",
+                "巳",
+                "午",
+                "未",
+                "申",
+                "酉",
+                "戌",
+                "亥"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "yearBranch",
+              "type": "string",
+              "description": "Natal year branch.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "子",
+                "丑",
+                "寅",
+                "卯",
+                "辰",
+                "巳",
+                "午",
+                "未",
+                "申",
+                "酉",
+                "戌",
+                "亥"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_openfate_bazi_policy",
+          "canonical_hash": "sha256:d8c067904f4b478c502787b9843d4b97b477c3ba6843e4baed1e1ed66c3ab66d",
+          "description": "Return OpenFate calculation policy and LLM guidance for Bazi chart calls.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8b751f2561a4e9e7745075a3352eb4505f304e00d2368085657626f0ddbd763c",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_openfate_bazi_resources",
+          "canonical_hash": "sha256:f3e14586eddcf05c742d900622619eb607149c6a77d651373a3d756150cbc7d8",
+          "description": "Return canonical OpenFate URLs for charting, readings, compatibility, wealth, true solar time, and AI crawler metadata.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a248fc4063ae43c1093673eeb77b3548ba242670cac77893334f89600fce2fdb",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "reverse_bazi_to_solar_times",
+          "canonical_hash": "sha256:ea75e2cbf591241e35bebd7324b62ad06f924cdaac2788d01b53b6a37186ca17",
+          "description": "Find possible Gregorian datetimes that produce a given four-pillar Bazi string. This is useful when a user only has a Bazi chart or screenshot. This lookup uses clock-time pillars without location-based true solar correction.",
+          "is_mutating": false,
+          "property_keys": [
+            "bazi",
+            "dayBoundaryMode",
+            "endYear",
+            "limit",
+            "startYear"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "bazi": "string",
+            "limit": "integer",
+            "endYear": "integer",
+            "startYear": "integer",
+            "dayBoundaryMode": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bazi": {
+                "type": "string",
+                "description": "Four pillars separated by spaces, for example: 戊寅 己未 己卯 辛未."
+              },
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Maximum number of matching datetimes to return."
+              },
+              "endYear": {
+                "type": "integer",
+                "maximum": 2100,
+                "minimum": 1700,
+                "description": "End year for brute-force lookup. Defaults to the current year."
+              },
+              "startYear": {
+                "type": "integer",
+                "default": 1900,
+                "maximum": 2100,
+                "minimum": 1700,
+                "description": "Start year for brute-force lookup."
+              },
+              "dayBoundaryMode": {
+                "enum": [
+                  "MIDNIGHT_00",
+                  "ZI_HOUR_23"
+                ],
+                "type": "string",
+                "default": "ZI_HOUR_23",
+                "description": "Day-change rule used during lookup."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:04eb5818788221d76fdf3e8cc9a81a814e65134a88bb14cefb495a3b6447595a",
+          "parameters": [
+            {
+              "name": "bazi",
+              "type": "string",
+              "description": "Four pillars separated by spaces, for example: 戊寅 己未 己卯 辛未.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dayBoundaryMode",
+              "type": "string",
+              "description": "Day-change rule used during lookup.",
+              "required": false,
+              "default": "ZI_HOUR_23",
+              "enum": [
+                "MIDNIGHT_00",
+                "ZI_HOUR_23"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "endYear",
+              "type": "integer",
+              "description": "End year for brute-force lookup. Defaults to the current year.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum number of matching datetimes to return.",
+              "required": false,
+              "default": 20,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "startYear",
+              "type": "integer",
+              "description": "Start year for brute-force lookup.",
+              "required": false,
+              "default": 1900,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }
