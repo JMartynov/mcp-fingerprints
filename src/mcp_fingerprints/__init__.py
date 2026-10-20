@@ -26,6 +26,7 @@ from mcp_fingerprints.models import (
     VersionFingerprint,
 )
 from mcp_fingerprints.snapshot_diff import compare_snapshots, InventorySnapshot
+from mcp_fingerprints.sanitizer import sanitize_unicode_text, sanitize_metadata, sanitize_tool_definition
 
 
 __version__ = "1.0.7"
@@ -95,4 +96,7 @@ __all__ = [
     "LocalInventoryReport",
     "scan_local_configs",
     "scan_config_file",
+    "sanitize_unicode_text",
+    "sanitize_metadata",
+    "sanitize_tool_definition",
 ]
