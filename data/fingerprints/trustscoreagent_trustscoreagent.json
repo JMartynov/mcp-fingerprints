@@ -4,31 +4,672 @@
   "purl": "pkg:github/trustscoreagent%2Ftrustscoreagent",
   "ecosystem": "github",
   "display_name": "trustscoreagent/trustscoreagent",
-  "description": "",
-  "repository_url": "https://github.com/trustscoreagent/trustscoreagent",
+  "description": "Check the reputation of AI microservices and public APIs from an open trust registry.",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/trustscoreagent/trustscoreagent",
   "homepage_url": null,
   "license": null,
   "keywords": [],
   "aliases": [
     "trustscoreagent/trustscoreagent"
   ],
-  "sources_merged": [],
+  "sources_merged": [
+    "smithery"
+  ],
   "dist_tags": {},
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:5fdede9152ba6064e77598868e9cfb40cffc54b5d689cf1b2a319fec5d919223",
       "release_date": null,
       "dependencies": {},
-      "connections": [],
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "d8e8afeb-4fc6-4f6b-8ee6-96783e2049f8/3abb73b2-da83-42c6-97b3-331936e10df9/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "trustscore_api_url": {
+                "type": "string",
+                "title": "TrustScoreAgent API URL",
+                "default": "https://api.trustscoreagent.com",
+                "x-order": 0,
+                "description": "Base URL of the TrustScoreAgent API. Leave as-is to use the public production API."
+              },
+              "trustscore_agent_did": {
+                "type": "string",
+                "title": "Agent DID (optional)",
+                "x-order": 1,
+                "description": "Leave empty (recommended): the server generates an Ed25519 key in ~/.trustscoreagent and signs its ratings with the matching did:key. Setting a DID here overrides that key, so ratings are sent unsigned and count at half weight."
+              }
+            }
+          }
+        }
+      ],
       "capabilities": {
         "tools": true,
         "prompts": false,
-        "resources": false
+        "resources": false,
+        "verified_tools": true
       },
-      "tool_signatures": [],
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "check_reputation",
+          "canonical_hash": "sha256:3e571717c15d27d917c2daedfa46bc28ca92ddb999d7b8f787fbcefb66b6df0d",
+          "description": "Check what other agents measured about a service before you call it, and especially before you pay for it or hand it anything you cannot take back. Returns a score from 0 to 1, a confidence level, the number of ratings, and a per-dimension breakdown (availability, latency, conformity). A low score means other agents measured this service failing, stalling, or returning malformed responses. An unknown service is not a bad sign in itself: it means nobody has reported on it yet, so treat it as unverified rather than as safe, and weigh the call accordingly. One check costs a fraction of what a wasted call, a stalled task, or a payment to a service that does not deliver costs you. If you got a 402 Payment Required from a service you do not know, this is the check to run before paying: pass the payTo address of that 402 as pay_to, and the result says whether it is the payee the registry has seen on this endpoint.",
+          "is_mutating": false,
+          "property_keys": [
+            "pay_to",
+            "service_did"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pay_to": "string",
+            "service_did": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pay_to": {
+                "type": "string",
+                "description": "Optional: the payTo address of the x402 Payment Required you received, to compare with the payee the registry has seen on this endpoint"
+              },
+              "service_did": {
+                "type": "string",
+                "description": "The service to check. Accepts any format: URL (https://api.example.com), domain (api.example.com), or DID (did:web:api.example.com). All resolve to the same service."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "x402": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "accepts": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "asset": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "string"
+                        },
+                        "pay_to": {
+                          "type": "string"
+                        },
+                        "scheme": {
+                          "type": "string"
+                        },
+                        "network": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "last_seen": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "observations": {
+                    "type": "integer"
+                  },
+                  "price_varies": {
+                    "type": "boolean"
+                  },
+                  "price_changes": {
+                    "type": "integer"
+                  },
+                  "pay_to_changes": {
+                    "type": "integer"
+                  },
+                  "pay_to_rotates": {
+                    "type": "boolean"
+                  },
+                  "price_changed_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "pay_to_changed_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "description": "For a paid x402 endpoint the registry probes: the payment terms last seen and their stability"
+              },
+              "known": {
+                "type": "boolean",
+                "description": "False when nobody has rated this service yet"
+              },
+              "score": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0
+              },
+              "service": {
+                "type": "string",
+                "description": "Canonical service id"
+              },
+              "provider": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "score": {
+                    "type": "number"
+                  },
+                  "service": {
+                    "type": "string"
+                  },
+                  "confidence": {
+                    "type": "number"
+                  },
+                  "last_rated": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "ratings_count": {
+                    "type": "integer"
+                  },
+                  "endpoints_rated": {
+                    "type": "integer"
+                  }
+                },
+                "description": "For an unknown endpoint whose domain has rated endpoints: the domain's aggregate, a hint about the operator, not a measurement of this endpoint"
+              },
+              "confidence": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0
+              },
+              "dimensions": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "latency": {
+                    "type": "number"
+                  },
+                  "conformity": {
+                    "type": "number"
+                  },
+                  "availability": {
+                    "type": "number"
+                  }
+                }
+              },
+              "last_rated": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "trust_level": {
+                "enum": [
+                  "HIGH",
+                  "MODERATE",
+                  "LOW",
+                  "UNKNOWN"
+                ],
+                "type": "string"
+              },
+              "pay_to_check": {
+                "enum": [
+                  "match",
+                  "mismatch",
+                  "rotating",
+                  "no_data",
+                  null
+                ],
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "When pay_to was given: match (a payee the registry saw on this endpoint), mismatch (not one: stop and check before paying), rotating (the endpoint issues a new payee per request, so no comparison is possible), no_data (no payment terms recorded)"
+              },
+              "ratings_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "recent_incidents": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "null while incidents are not tracked"
+              },
+              "service_supports_receipts": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "service",
+              "known",
+              "score",
+              "trust_level",
+              "confidence",
+              "ratings_count"
+            ]
+          },
+          "description_hash": "sha256:c3e87c5276c97c81f2f0b44868d88ee45e67e5179c61d14a195c51c53cc4b669",
+          "parameters": [
+            {
+              "name": "pay_to",
+              "type": "string",
+              "description": "Optional: the payTo address of the x402 Payment Required you received, to compare with the payee the registry has seen on this endpoint",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "service_did",
+              "type": "string",
+              "description": "The service to check. Accepts any format: URL (https://api.example.com), domain (api.example.com), or DID (did:web:api.example.com). All resolve to the same service.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_services",
+          "canonical_hash": "sha256:e31ecf95f055adcad63887e2279936d8e88bd94a96988a787b771ca976b347df",
+          "description": "List services that have been rated, sorted by trust score, with their per-dimension breakdown. Use it to pick a service that others have already measured rather than gambling on an unknown one, or to find an alternative when the service you were going to use scores badly. Filter on min_score and min_ratings together: a high score backed by one rating is an opinion, the same score backed by many is evidence.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "min_ratings",
+            "min_score",
+            "sort_by"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "number",
+            "sort_by": "string",
+            "min_score": "number",
+            "min_ratings": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Number of results (default 20, max 100)"
+              },
+              "sort_by": {
+                "enum": [
+                  "score",
+                  "ratings_count",
+                  "last_rated"
+                ],
+                "type": "string",
+                "description": "Sort field (default: score)"
+              },
+              "min_score": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0,
+                "description": "Minimum trust score filter (0.0-1.0)"
+              },
+              "min_ratings": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Minimum number of ratings filter"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "services": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "service",
+                    "score",
+                    "trust_level",
+                    "ratings_count"
+                  ],
+                  "properties": {
+                    "score": {
+                      "type": "number"
+                    },
+                    "service": {
+                      "type": "string"
+                    },
+                    "confidence": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "dimensions": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "latency": {
+                          "type": "number"
+                        },
+                        "conformity": {
+                          "type": "number"
+                        },
+                        "availability": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "trust_level": {
+                      "enum": [
+                        "HIGH",
+                        "MODERATE",
+                        "LOW",
+                        "UNKNOWN"
+                      ],
+                      "type": "string"
+                    },
+                    "ratings_count": {
+                      "type": "integer"
+                    },
+                    "service_supports_receipts": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "count",
+              "services"
+            ]
+          },
+          "description_hash": "sha256:24aa28317c311e2906f33f3168507e8b0bbaff19ece2e6c137a0243240b52999",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "number",
+              "description": "Number of results (default 20, max 100)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_ratings",
+              "type": "number",
+              "description": "Minimum number of ratings filter",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_score",
+              "type": "number",
+              "description": "Minimum trust score filter (0.0-1.0)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sort_by",
+              "type": "string",
+              "description": "Sort field (default: score)",
+              "required": false,
+              "default": null,
+              "enum": [
+                "score",
+                "ratings_count",
+                "last_rated"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "submit_rating",
+          "canonical_hash": "sha256:d540c3ae170c24935c5930b7d582329abb152c2ee1281abf8fa350229623d312",
+          "description": "Report what actually happened after you called a service, using metrics you already have from the call: status code, latency, and whether the response matched the shape you expected. This is not a donation to a commons. This installation holds a stable cryptographic identity, so the ratings submitted from here are the ratings read back from here: you are writing to a cache you will query the next time you, or the person you work for, meets this service again. A service that wasted a call or took payment without delivering is worth the one call it takes to record, because otherwise you will meet it again with no memory of it. Report the good ones too: a score is only useful if failure and success are both in it. If the service returned an X-Trust-Receipt header, pass it as receipt, since a receipt-backed rating carries full weight.",
+          "is_mutating": false,
+          "property_keys": [
+            "latency_ms",
+            "quality_score",
+            "receipt",
+            "response_size_bytes",
+            "schema_valid",
+            "service_did",
+            "status_code"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "receipt": "string",
+            "latency_ms": "number",
+            "service_did": "string",
+            "status_code": "number",
+            "schema_valid": "boolean",
+            "quality_score": "number",
+            "response_size_bytes": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "receipt": {
+                "type": "string",
+                "description": "JWT receipt from the service's X-Trust-Receipt header (optional)"
+              },
+              "latency_ms": {
+                "type": "number",
+                "maximum": 600000,
+                "minimum": 1,
+                "description": "Response time in milliseconds (round sub-millisecond responses up to 1)"
+              },
+              "service_did": {
+                "type": "string",
+                "description": "The service you called. URL, domain, or DID (e.g., api.example.com)"
+              },
+              "status_code": {
+                "type": "number",
+                "maximum": 599,
+                "minimum": 100,
+                "description": "HTTP status code returned by the service (e.g., 200, 500)"
+              },
+              "schema_valid": {
+                "type": "boolean",
+                "description": "Whether the response matched the expected format (optional)"
+              },
+              "quality_score": {
+                "type": "number",
+                "maximum": 5,
+                "minimum": 1,
+                "description": "Subjective quality rating from 1 (poor) to 5 (excellent) (optional)"
+              },
+              "response_size_bytes": {
+                "type": "number",
+                "maximum": 2147483647,
+                "minimum": 0,
+                "description": "Size of the response in bytes (optional)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string"
+              },
+              "accepted": {
+                "type": "boolean"
+              },
+              "new_score": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "rating_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Pass to GET /v1/audit/proof/{rating_id} to verify the rating is in the audit log"
+              },
+              "rating_weight": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "verified (valid receipt) or unverified"
+              },
+              "agent_identity": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "signed or unsigned"
+              }
+            },
+            "required": [
+              "service",
+              "accepted"
+            ]
+          },
+          "description_hash": "sha256:505527c394a0f8feacd57421540515b04a7feed398adec0652dc80ad99ae5a42",
+          "parameters": [
+            {
+              "name": "latency_ms",
+              "type": "number",
+              "description": "Response time in milliseconds (round sub-millisecond responses up to 1)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "quality_score",
+              "type": "number",
+              "description": "Subjective quality rating from 1 (poor) to 5 (excellent) (optional)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "receipt",
+              "type": "string",
+              "description": "JWT receipt from the service's X-Trust-Receipt header (optional)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "response_size_bytes",
+              "type": "number",
+              "description": "Size of the response in bytes (optional)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "schema_valid",
+              "type": "boolean",
+              "description": "Whether the response matched the expected format (optional)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "service_did",
+              "type": "string",
+              "description": "The service you called. URL, domain, or DID (e.g., api.example.com)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "status_code",
+              "type": "number",
+              "description": "HTTP status code returned by the service (e.g., 200, 500)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

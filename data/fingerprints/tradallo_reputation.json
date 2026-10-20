@@ -4,8 +4,9 @@
   "purl": "pkg:generic/tradallo%2Freputation",
   "ecosystem": "generic",
   "display_name": "tradallo/reputation",
-  "description": "Query cryptographically-verified trading reputations (humans + AI agents). ed25519-signed.",
-  "repository_url": "https://github.com/tradallo/reputation",
+  "description": "**Tradallo Verified Record Protocol** — query cryptographically-verified human and AI-agent trading reputations from any LLM-based agent.\n\nFive tools, all signature-verified locally before returning:\n\n  - `get_track_record(handle, principal_type?)` — Sharpe, Sortino, max drawdown, win rate, PnL, expectancy across all-time + rolling windows\n  - `search_records(filters)` — discovery by stat thresholds\n  - `verify_utr(utr_hash)` — Solana memo notarization lookup for any Universal Trade Receipt\n  - `get_versions(agent_handle)` — agent semver + version_hash + policy_hash history\n  - `get_utrs(agent_handle, since?, limit?)` — paginated raw UTRs\n\nEvery response is JCS-canonicalized and ed25519-signed. Anonymous calls share a 60 req/min IP bucket. Issue an API key (`dallo_live_…`) at [tradallo.com/settings/api-keys](https://www.tradallo.com/settings/api-keys) for per-tier budgets (Active 600/min, Elite 6,000/min).\n\nUse this MCP when an agent needs to vet a counterparty before delegating capital, copy-trading, subscribing to signals, or evaluating an autonomous trading bot.",
+  "author": null,
+  "repository_url": "https://reputation--tradallo.run.tools",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,7 +14,8 @@
     "tradallo/reputation"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
@@ -34,9 +36,689 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
+    },
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:12cc633daed3d1f14e236b2724a12b3beddf8ad1f68f6c860bf6b9d39fafc107",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://reputation--tradallo.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "tradallo-api-key": {
+                "type": "string",
+                "x-from": {
+                  "query": "tradallo-api-key"
+                },
+                "x-order": 0,
+                "description": "Tradallo API key (dallo_live_…) — unlocks per-tier rate limits. Optional; anonymous works."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "get_track_record",
+          "canonical_hash": "sha256:5c226f434ac982808682292c6db52aa61f9790014cdcb365484c69393ef476e6",
+          "description": "Fetch a verified trading track record for a Tradallo profile (human) or agent. Returns cryptographically-verified statistics (Sharpe, Sortino, win rate, max drawdown, PnL, trade count, expectancy, profit factor) across all-time and rolling 30/90/365-day windows. Response is a JCS-canonicalized + ed25519-signed envelope.\n\nExamples:\n  - get_track_record({ handle: \"alpha-momentum-v3\" })  // agent (default)\n  - get_track_record({ handle: \"aaronjordan\", principal_type: \"human\" })",
+          "is_mutating": false,
+          "property_keys": [
+            "handle",
+            "principal_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "handle": "string",
+            "principal_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "pattern": "^[a-z0-9_-]{1,40}$",
+                "description": "Tradallo handle (lowercase letters, digits, hyphens, underscores; 1-40 chars)"
+              },
+              "principal_type": {
+                "enum": [
+                  "human",
+                  "agent"
+                ],
+                "type": "string",
+                "description": "'agent' (default) or 'human' — which namespace to look up the handle in"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "Set to false on protocol-level errors. Successful envelopes do not include this."
+              },
+              "data": {
+                "description": "The signed payload. Shape depends on the tool — see each tool's description."
+              },
+              "served_at": {
+                "type": "string",
+                "description": "ISO-8601 timestamp at which the envelope was signed."
+              },
+              "signature": {
+                "type": "object",
+                "required": [
+                  "alg",
+                  "key_id",
+                  "sig"
+                ],
+                "properties": {
+                  "alg": {
+                    "type": "string",
+                    "description": "Signature algorithm. Always 'ed25519' today."
+                  },
+                  "sig": {
+                    "type": "string",
+                    "description": "Base64-encoded ed25519 signature over the JCS-canonicalized envelope."
+                  },
+                  "key_id": {
+                    "type": "string",
+                    "description": "Tradallo signing-key ID. Resolve via /.well-known/tradallo-pubkeys.json."
+                  }
+                },
+                "description": "ed25519 signature over the JCS-canonicalized envelope minus this field.",
+                "additionalProperties": false
+              },
+              "schema_version": {
+                "type": "string",
+                "description": "Envelope schema version. Always '1' today."
+              },
+              "max_age_seconds": {
+                "type": "number",
+                "description": "Replay window — clients reject envelopes past served_at + this many seconds."
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          "description_hash": "sha256:377dcc224bf5cdefb983dffee7db9c0303cc3dc7fb196583573c98e5cc2c0605",
+          "parameters": [
+            {
+              "name": "handle",
+              "type": "string",
+              "description": "Tradallo handle (lowercase letters, digits, hyphens, underscores; 1-40 chars)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "principal_type",
+              "type": "string",
+              "description": "'agent' (default) or 'human' — which namespace to look up the handle in",
+              "required": false,
+              "default": null,
+              "enum": [
+                "human",
+                "agent"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_utrs",
+          "canonical_hash": "sha256:b7b3b7af2d464d1cda6fa32066b36c606ce79fe02fa85793394ee0a34ff3d391",
+          "description": "Fetch raw Universal Trade Receipts for an agent. Each UTR is a v2 canonical receipt with its SHA-256 hash recomputed by Tradallo so consumers can spot-check individual receipts against verify_utr. Paginated cursor-style on closed_at — pass the prior response's next_since to advance.\n\nExample:\n  - get_utrs({ agent_handle: \"alpha-momentum-v3\", limit: 50 })",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_handle",
+            "limit",
+            "since"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "since": "string",
+            "agent_handle": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 500,
+                "minimum": 1,
+                "description": "Page size (1-500, default 100)"
+              },
+              "since": {
+                "type": "string",
+                "description": "ISO-8601 timestamp; only return UTRs closed at or after this. Defaults to the agent's registration anchor."
+              },
+              "agent_handle": {
+                "type": "string",
+                "pattern": "^[a-z0-9_-]{1,40}$",
+                "description": "Agent's Tradallo handle"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "Set to false on protocol-level errors. Successful envelopes do not include this."
+              },
+              "data": {
+                "description": "The signed payload. Shape depends on the tool — see each tool's description."
+              },
+              "served_at": {
+                "type": "string",
+                "description": "ISO-8601 timestamp at which the envelope was signed."
+              },
+              "signature": {
+                "type": "object",
+                "required": [
+                  "alg",
+                  "key_id",
+                  "sig"
+                ],
+                "properties": {
+                  "alg": {
+                    "type": "string",
+                    "description": "Signature algorithm. Always 'ed25519' today."
+                  },
+                  "sig": {
+                    "type": "string",
+                    "description": "Base64-encoded ed25519 signature over the JCS-canonicalized envelope."
+                  },
+                  "key_id": {
+                    "type": "string",
+                    "description": "Tradallo signing-key ID. Resolve via /.well-known/tradallo-pubkeys.json."
+                  }
+                },
+                "description": "ed25519 signature over the JCS-canonicalized envelope minus this field.",
+                "additionalProperties": false
+              },
+              "schema_version": {
+                "type": "string",
+                "description": "Envelope schema version. Always '1' today."
+              },
+              "max_age_seconds": {
+                "type": "number",
+                "description": "Replay window — clients reject envelopes past served_at + this many seconds."
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          "description_hash": "sha256:f358b112f3300624702fbdc878034c4e21cc10a8ee476094aee1c171dba472fe",
+          "parameters": [
+            {
+              "name": "agent_handle",
+              "type": "string",
+              "description": "Agent's Tradallo handle",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Page size (1-500, default 100)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "since",
+              "type": "string",
+              "description": "ISO-8601 timestamp; only return UTRs closed at or after this. Defaults to the agent's registration anchor.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_versions",
+          "canonical_hash": "sha256:ad3c89bb0bb9aacf36a2db48b90ad96bd24004840fe802cf83f49c5e6566d161",
+          "description": "Fetch the full version history of an agent: semver tags, version_hash, policy_hash, when each version was deployed and superseded. Use to understand which version of an agent's policy produced a given track record before delegating capital.\n\nExample:\n  - get_versions({ agent_handle: \"alpha-momentum-v3\" })",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_handle"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "agent_handle": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_handle": {
+                "type": "string",
+                "pattern": "^[a-z0-9_-]{1,40}$",
+                "description": "Agent's Tradallo handle (lowercase letters, digits, hyphens, underscores)"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "Set to false on protocol-level errors. Successful envelopes do not include this."
+              },
+              "data": {
+                "description": "The signed payload. Shape depends on the tool — see each tool's description."
+              },
+              "served_at": {
+                "type": "string",
+                "description": "ISO-8601 timestamp at which the envelope was signed."
+              },
+              "signature": {
+                "type": "object",
+                "required": [
+                  "alg",
+                  "key_id",
+                  "sig"
+                ],
+                "properties": {
+                  "alg": {
+                    "type": "string",
+                    "description": "Signature algorithm. Always 'ed25519' today."
+                  },
+                  "sig": {
+                    "type": "string",
+                    "description": "Base64-encoded ed25519 signature over the JCS-canonicalized envelope."
+                  },
+                  "key_id": {
+                    "type": "string",
+                    "description": "Tradallo signing-key ID. Resolve via /.well-known/tradallo-pubkeys.json."
+                  }
+                },
+                "description": "ed25519 signature over the JCS-canonicalized envelope minus this field.",
+                "additionalProperties": false
+              },
+              "schema_version": {
+                "type": "string",
+                "description": "Envelope schema version. Always '1' today."
+              },
+              "max_age_seconds": {
+                "type": "number",
+                "description": "Replay window — clients reject envelopes past served_at + this many seconds."
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          "description_hash": "sha256:a324ff743b45105e9bbb4bbe65f6e35e1244b4aaa5ef013d652a9ff3d1b987b5",
+          "parameters": [
+            {
+              "name": "agent_handle",
+              "type": "string",
+              "description": "Agent's Tradallo handle (lowercase letters, digits, hyphens, underscores)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_records",
+          "canonical_hash": "sha256:501455718271f02415c00750f8acc262b8cfb657e1a95349e6d3a3b33f6ee7c1",
+          "description": "Discover verified trading records by performance filters. Returns a list of summary records sorted by the chosen metric. Useful when an agent is shopping for strategies meeting specific risk/return criteria.\n\nExample:\n  - search_records({ min_sharpe: 1.5, min_trades: 100, max_drawdown: 0.15, sort_by: \"sharpe\", limit: 10 })",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "max_drawdown",
+            "min_sharpe",
+            "min_trades",
+            "principal_type",
+            "sort_by",
+            "venue"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "venue": "string",
+            "sort_by": "string",
+            "min_sharpe": "number",
+            "min_trades": "integer",
+            "max_drawdown": "number",
+            "principal_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Max results (1-100, default 25)"
+              },
+              "venue": {
+                "type": "string",
+                "description": "Restrict to a specific venue (e.g. 'hyperliquid', 'dydx')"
+              },
+              "sort_by": {
+                "enum": [
+                  "sharpe",
+                  "net_pnl",
+                  "trade_count",
+                  "win_rate"
+                ],
+                "type": "string",
+                "description": "Sort field (descending). Default 'net_pnl'"
+              },
+              "min_sharpe": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Minimum annualized Sharpe ratio"
+              },
+              "min_trades": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "description": "Minimum trade count"
+              },
+              "max_drawdown": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0,
+                "description": "Max drawdown as a fraction (0.25 = 25%)"
+              },
+              "principal_type": {
+                "enum": [
+                  "human",
+                  "agent"
+                ],
+                "type": "string",
+                "description": "Restrict to humans or agents only"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "Set to false on protocol-level errors. Successful envelopes do not include this."
+              },
+              "data": {
+                "description": "The signed payload. Shape depends on the tool — see each tool's description."
+              },
+              "served_at": {
+                "type": "string",
+                "description": "ISO-8601 timestamp at which the envelope was signed."
+              },
+              "signature": {
+                "type": "object",
+                "required": [
+                  "alg",
+                  "key_id",
+                  "sig"
+                ],
+                "properties": {
+                  "alg": {
+                    "type": "string",
+                    "description": "Signature algorithm. Always 'ed25519' today."
+                  },
+                  "sig": {
+                    "type": "string",
+                    "description": "Base64-encoded ed25519 signature over the JCS-canonicalized envelope."
+                  },
+                  "key_id": {
+                    "type": "string",
+                    "description": "Tradallo signing-key ID. Resolve via /.well-known/tradallo-pubkeys.json."
+                  }
+                },
+                "description": "ed25519 signature over the JCS-canonicalized envelope minus this field.",
+                "additionalProperties": false
+              },
+              "schema_version": {
+                "type": "string",
+                "description": "Envelope schema version. Always '1' today."
+              },
+              "max_age_seconds": {
+                "type": "number",
+                "description": "Replay window — clients reject envelopes past served_at + this many seconds."
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          "description_hash": "sha256:a12eac55ebf658e604a8288ceb4a1a560b84952927e9c316d1d4fc68a43795c7",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Max results (1-100, default 25)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_drawdown",
+              "type": "number",
+              "description": "Max drawdown as a fraction (0.25 = 25%)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_sharpe",
+              "type": "number",
+              "description": "Minimum annualized Sharpe ratio",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_trades",
+              "type": "integer",
+              "description": "Minimum trade count",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "principal_type",
+              "type": "string",
+              "description": "Restrict to humans or agents only",
+              "required": false,
+              "default": null,
+              "enum": [
+                "human",
+                "agent"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "sort_by",
+              "type": "string",
+              "description": "Sort field (descending). Default 'net_pnl'",
+              "required": false,
+              "default": null,
+              "enum": [
+                "sharpe",
+                "net_pnl",
+                "trade_count",
+                "win_rate"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "venue",
+              "type": "string",
+              "description": "Restrict to a specific venue (e.g. 'hyperliquid', 'dydx')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "verify_utr",
+          "canonical_hash": "sha256:28c7bf0a79b2cc937c5674928374661a49cb473facebf63c0594d13806496548",
+          "description": "Look up a Universal Trade Receipt by SHA-256 hash. Returns whether Tradallo has anchored that hash on-chain via a Solana memo transaction, and if so the chain, signature, slot, posted_at, Solana Explorer URL, and notarizer pubkey for independent verification.\n\nExample:\n  - verify_utr({ utr_hash: \"b81f2c7e9a4d5e6f8a3b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f\" })",
+          "is_mutating": false,
+          "property_keys": [
+            "utr_hash"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "utr_hash": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "utr_hash": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{64}$",
+                "description": "64-char hex SHA-256 hash of the UTR to look up"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "description": "Set to false on protocol-level errors. Successful envelopes do not include this."
+              },
+              "data": {
+                "description": "The signed payload. Shape depends on the tool — see each tool's description."
+              },
+              "served_at": {
+                "type": "string",
+                "description": "ISO-8601 timestamp at which the envelope was signed."
+              },
+              "signature": {
+                "type": "object",
+                "required": [
+                  "alg",
+                  "key_id",
+                  "sig"
+                ],
+                "properties": {
+                  "alg": {
+                    "type": "string",
+                    "description": "Signature algorithm. Always 'ed25519' today."
+                  },
+                  "sig": {
+                    "type": "string",
+                    "description": "Base64-encoded ed25519 signature over the JCS-canonicalized envelope."
+                  },
+                  "key_id": {
+                    "type": "string",
+                    "description": "Tradallo signing-key ID. Resolve via /.well-known/tradallo-pubkeys.json."
+                  }
+                },
+                "description": "ed25519 signature over the JCS-canonicalized envelope minus this field.",
+                "additionalProperties": false
+              },
+              "schema_version": {
+                "type": "string",
+                "description": "Envelope schema version. Always '1' today."
+              },
+              "max_age_seconds": {
+                "type": "number",
+                "description": "Replay window — clients reject envelopes past served_at + this many seconds."
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          "description_hash": "sha256:b4aa16eeff1f072cfa06e89cec3859fca3adf1b3ddd7295b78113fe943df2ad4",
+          "parameters": [
+            {
+              "name": "utr_hash",
+              "type": "string",
+              "description": "64-char hex SHA-256 hash of the UTR to look up",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }

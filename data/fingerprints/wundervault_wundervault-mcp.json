@@ -4,8 +4,9 @@
   "purl": "pkg:generic/wundervault%2Fwundervault-mcp",
   "ecosystem": "generic",
   "display_name": "wundervault/wundervault-mcp",
-  "description": "Zero-knowledge MCP secrets vault for AI agents: secrets injected at runtime, never seen by the model",
-  "repository_url": "https://github.com/wundervault/wundervault-mcp",
+  "description": "Wundervault gives AI agents scoped access to secrets (API keys, SSH keys, tokens) without the agent, the transcript, or the Wundervault server ever seeing plaintext. Secrets are encrypted client-side; the MCP server talks to a local wundervault-agent daemon that holds credentials, so nothing sensitive transits this server's host. Includes vault_exec (run commands with secrets injected, output-scrubbed) and vault_rsync. Verify the zero-knowledge claim yourself: https://wundervault.com/verify",
+  "author": null,
+  "repository_url": "https://smithery.ai/servers/wundervault/wundervault-mcp",
   "homepage_url": null,
   "license": null,
   "keywords": [],
@@ -13,10 +14,574 @@
     "wundervault/wundervault-mcp"
   ],
   "sources_merged": [
-    "official_registry"
+    "official_registry",
+    "smithery"
   ],
   "dist_tags": {},
   "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:54c822b25b7c135b018ecddc50777b7cae47336e8cbdcdd70bab38eedb9bedeb",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "dd7b7650-2826-44b0-8192-497f1cddf881/59891326-8dbd-4b67-bcaa-6cf75f6332d6/server.mcpb",
+          "runtime": "node",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "vault_entries_list",
+          "canonical_hash": "sha256:d609379bd8869595194caeb3514011615032dc19aa6361423dd456ed0c4b9a09",
+          "description": "List all vault entries available to this agent. Returns entry IDs and secret names only — no secret values. Store the entry ID to reference secrets in vault_entry_get.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0c300e2106f1b61fff7e05cfba6ce88a1704d3dc9568500a2906c9d95df41930",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "vault_entry_forget",
+          "canonical_hash": "sha256:e84a3e61df820e10eb1f8cabd4a35cc1c02598ba44fcb774ea2f6d7bfd1233cf",
+          "description": "Discard a stored vault entry reference from the agent's local context. This is a no-op on the server — the vault entry is completely unaffected. Use to clean up stale references when a secret has been rotated or revoked.",
+          "is_mutating": false,
+          "property_keys": [
+            "entry_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "entry_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "entry_id": {
+                "type": "string",
+                "description": "The vault entry ID to discard."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d308a634484ad5414f3ccf4af3f047febf42c0c77fd2f077b781902ca415395b",
+          "parameters": [
+            {
+              "name": "entry_id",
+              "type": "string",
+              "description": "The vault entry ID to discard.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "vault_entry_get",
+          "canonical_hash": "sha256:d839142143f4237ec05b7881b7732ff920f20635ff4497056f8e6559076efece",
+          "description": "Retrieve a vault secret, enforce the burn directive, and optionally execute a command with it. The plaintext secret is processed entirely server-side and is NEVER returned to the agent. Directive: This secret has been burned after reading and must not be stored, displayed, or referenced anywhere. Use it for the stated task only, then confirm completion with: Secret retrieved and burned.",
+          "is_mutating": false,
+          "property_keys": [
+            "entry_id",
+            "purpose"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "purpose": "string",
+            "entry_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "type": "string",
+                "description": "The task/purpose for retrieving this secret (for audit log). Be specific."
+              },
+              "entry_id": {
+                "type": "string",
+                "description": "The vault entry ID (from vault_entries_list)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9d56e3157440f6797ada58cbdf9530d0cc88fdf2d4364c44e4a8a0519de85aaa",
+          "parameters": [
+            {
+              "name": "entry_id",
+              "type": "string",
+              "description": "The vault entry ID (from vault_entries_list).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "purpose",
+              "type": "string",
+              "description": "The task/purpose for retrieving this secret (for audit log). Be specific.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "vault_entry_inject_env",
+          "canonical_hash": "sha256:dc2aaf79a7fb20c9b167e1f08c037fdf3020cf3cbb4d32696fccdee789ea3948",
+          "description": "Write a vault secret directly into an environment variable file (.env). The secret is decrypted server-side and written to the file; the plaintext is NEVER returned to the agent. Use this instead of exec file-writing commands.",
+          "is_mutating": false,
+          "property_keys": [
+            "entry_id",
+            "env_key",
+            "file_path",
+            "purpose"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "env_key": "string",
+            "purpose": "string",
+            "entry_id": "string",
+            "file_path": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "env_key": {
+                "type": "string",
+                "description": "The environment variable name to set, e.g. LISTMONK_ADMIN_PASSWORD."
+              },
+              "purpose": {
+                "type": "string",
+                "description": "The task/purpose for retrieving this secret (for audit log)."
+              },
+              "entry_id": {
+                "type": "string",
+                "description": "The vault entry ID (from vault_entries_list)."
+              },
+              "file_path": {
+                "type": "string",
+                "description": "Absolute path to the .env file to update."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:969d15182a033a347a45bcf232d92956803a6c7c624546153b03f5b42331078e",
+          "parameters": [
+            {
+              "name": "entry_id",
+              "type": "string",
+              "description": "The vault entry ID (from vault_entries_list).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "env_key",
+              "type": "string",
+              "description": "The environment variable name to set, e.g. LISTMONK_ADMIN_PASSWORD.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "file_path",
+              "type": "string",
+              "description": "Absolute path to the .env file to update.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "purpose",
+              "type": "string",
+              "description": "The task/purpose for retrieving this secret (for audit log).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "vault_exec",
+          "canonical_hash": "sha256:036ba1e2a1b52d7a516fcce822916bbbb026903dd8393c0b2d59ea720f9449d8",
+          "description": "Execute a shell command with a vault secret injected as an env var. The secret is never returned to the agent — it is injected into the subprocess and the Buffer is zeroed immediately after spawn.\n\nTier 1 and Tier 2 secrets execute automatically based on server-side access policy.\n\nThe vault entry's exec_config (set in dashboard) provides the injection recipe (env_key, pre_command, post_command). You may override it with inject_as if needed. For LOCAL exec an injection recipe is required; for REMOTE exec it is optional.\n\nTo run a remote command using only a vaulted SSH key (no secret injected), omit entry_id and pass remote_host with ssh_key_entry_id.\n\nNEVER use shell escape patterns in command ($(), backticks, bash -c, sh -c, eval) — these are rejected before the secret is decrypted.",
+          "is_mutating": false,
+          "property_keys": [
+            "command",
+            "entry_id",
+            "inject_as",
+            "purpose",
+            "remote_host",
+            "working_dir"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "command": "string",
+            "purpose": "string",
+            "entry_id": "string",
+            "inject_as": "object",
+            "remote_host": "object",
+            "working_dir": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Full shell command to run (no escape patterns)."
+              },
+              "purpose": {
+                "type": "string",
+                "description": "Why this secret is needed (audit log)."
+              },
+              "entry_id": {
+                "type": "string",
+                "description": "Vault entry ID (from vault_entries_list) of the secret to inject. Optional: omit it to run a remote command using only a vaulted SSH key (remote_host.ssh_key_entry_id) with no secret injected."
+              },
+              "inject_as": {
+                "type": "object",
+                "required": [
+                  "env_key"
+                ],
+                "properties": {
+                  "env_key": {
+                    "type": "string",
+                    "description": "Env var name to inject secret as."
+                  },
+                  "pre_command": {
+                    "type": "string",
+                    "description": "Setup command (runs before main command)."
+                  },
+                  "post_command": {
+                    "type": "string",
+                    "description": "Teardown command (always runs after main command)."
+                  }
+                },
+                "description": "Override exec_config injection recipe. Omit to use vault entry's exec_config."
+              },
+              "remote_host": {
+                "type": "object",
+                "required": [
+                  "host",
+                  "user"
+                ],
+                "properties": {
+                  "host": {
+                    "type": "string",
+                    "description": "Remote hostname or IP address."
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "SSH username on the remote host."
+                  },
+                  "ssh_key": {
+                    "type": "string",
+                    "description": "Path to SSH private key on disk (e.g. ~/.ssh/id_ed25519). Prefer ssh_key_entry_id."
+                  },
+                  "ssh_key_entry_id": {
+                    "type": "string",
+                    "description": "Vault entry ID containing the SSH private key. The key is fetched, used, and never written to disk."
+                  }
+                },
+                "description": "Run the command on a remote machine via SSH. The secret is injected inside the remote shell via SSH stdin — no AcceptEnv/SendEnv configuration required on the remote host. Use ssh_key_entry_id (preferred) to load the SSH key from the vault so it is never exposed on the filesystem. Use ssh_key as a fallback path if the key is already on disk."
+              },
+              "working_dir": {
+                "type": "string",
+                "description": "Optional working directory for the command."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:467683f6f5a47c8f5e9ffb7ec12eb253447e1ffde226158f2673692ad3707030",
+          "parameters": [
+            {
+              "name": "command",
+              "type": "string",
+              "description": "Full shell command to run (no escape patterns).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "entry_id",
+              "type": "string",
+              "description": "Vault entry ID (from vault_entries_list) of the secret to inject. Optional: omit it to run a remote command using only a vaulted SSH key (remote_host.ssh_key_entry_id) with no secret injected.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "inject_as",
+              "type": "object",
+              "description": "Override exec_config injection recipe. Omit to use vault entry's exec_config.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "env_key": {
+                  "type": "string",
+                  "description": "Env var name to inject secret as."
+                },
+                "pre_command": {
+                  "type": "string",
+                  "description": "Setup command (runs before main command)."
+                },
+                "post_command": {
+                  "type": "string",
+                  "description": "Teardown command (always runs after main command)."
+                }
+              }
+            },
+            {
+              "name": "purpose",
+              "type": "string",
+              "description": "Why this secret is needed (audit log).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "remote_host",
+              "type": "object",
+              "description": "Run the command on a remote machine via SSH. The secret is injected inside the remote shell via SSH stdin — no AcceptEnv/SendEnv configuration required on the remote host. Use ssh_key_entry_id (preferred) to load the SSH key from the vault so it is never exposed on the filesystem. Use ssh_key as a fallback path if the key is already on disk.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "host": {
+                  "type": "string",
+                  "description": "Remote hostname or IP address."
+                },
+                "user": {
+                  "type": "string",
+                  "description": "SSH username on the remote host."
+                },
+                "ssh_key": {
+                  "type": "string",
+                  "description": "Path to SSH private key on disk (e.g. ~/.ssh/id_ed25519). Prefer ssh_key_entry_id."
+                },
+                "ssh_key_entry_id": {
+                  "type": "string",
+                  "description": "Vault entry ID containing the SSH private key. The key is fetched, used, and never written to disk."
+                }
+              }
+            },
+            {
+              "name": "working_dir",
+              "type": "string",
+              "description": "Optional working directory for the command.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "vault_rsync",
+          "canonical_hash": "sha256:b1c288ad8661302f0a476a5dd6741c4d2821e0ff633bad013b5ab628ed64a7a0",
+          "description": "Sync a local directory to a remote host using rsync over SSH, with the SSH key fetched from the vault. The key is written to a temp file for the duration of the transfer and deleted immediately after. Use this instead of vault_exec + python hex-encoding for deploying files to remote servers.",
+          "is_mutating": false,
+          "property_keys": [
+            "extra_args",
+            "local_path",
+            "purpose",
+            "remote_host",
+            "remote_path",
+            "remote_user",
+            "ssh_key_entry_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "purpose": "string",
+            "extra_args": "array",
+            "local_path": "string",
+            "remote_host": "string",
+            "remote_path": "string",
+            "remote_user": "string",
+            "ssh_key_entry_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "purpose": {
+                "type": "string",
+                "description": "Why this transfer is happening (audit log)."
+              },
+              "extra_args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Additional rsync flags, e.g. [\"--delete\", \"--exclude=*.pyc\"]. Optional."
+              },
+              "local_path": {
+                "type": "string",
+                "description": "Local source path. Trailing slash syncs contents; no trailing slash syncs the directory itself."
+              },
+              "remote_host": {
+                "type": "string",
+                "description": "Remote hostname or IP address."
+              },
+              "remote_path": {
+                "type": "string",
+                "description": "Destination path on the remote host."
+              },
+              "remote_user": {
+                "type": "string",
+                "description": "SSH username on the remote host."
+              },
+              "ssh_key_entry_id": {
+                "type": "string",
+                "description": "Vault entry ID containing the SSH private key."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:437a40ccaa9650da3ec139294b34f3ebd32fe408a98cf7f6b46fe0203b0fabd1",
+          "parameters": [
+            {
+              "name": "extra_args",
+              "type": "array",
+              "description": "Additional rsync flags, e.g. [\"--delete\", \"--exclude=*.pyc\"]. Optional.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "local_path",
+              "type": "string",
+              "description": "Local source path. Trailing slash syncs contents; no trailing slash syncs the directory itself.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "purpose",
+              "type": "string",
+              "description": "Why this transfer is happening (audit log).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "remote_host",
+              "type": "string",
+              "description": "Remote hostname or IP address.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "remote_path",
+              "type": "string",
+              "description": "Destination path on the remote host.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "remote_user",
+              "type": "string",
+              "description": "SSH username on the remote host.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "ssh_key_entry_id",
+              "type": "string",
+              "description": "Vault entry ID containing the SSH private key.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
     {
       "version": "1.6.9",
       "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -28,9 +593,18 @@
         "prompts": false,
         "resources": false
       },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
       "tool_signatures": [],
       "prompt_signatures": [],
       "resource_signatures": []
     }
-  ]
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
 }
