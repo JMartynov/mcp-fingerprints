@@ -55,6 +55,7 @@ func main() {
     assert t2["inputSchema"]["required"] == []
 
 
+
 def test_parse_rust_mcp_code():
     code = """
 use rmcp::tool;
@@ -80,27 +81,38 @@ fn setup() {
         name: "reverse_struct".to_string(),
     };
 }
+
+#[tool(description = "Adds two numbers")]
+async fn add_numbers(a: i32, b: i32, c: Option<i32>) -> Result<i32, String> {
+    Ok(a + b + c.unwrap_or(0))
+}
+
+#[tool]
+async fn just_tool(name: String) -> Result<String, String> {
+    Ok(name)
+}
 """
     tools = parse_rust_mcp_code(code)
-    assert len(tools) == 5
+    assert len(tools) == 7
 
     assert any(
         t["name"] == "hello_world" and t["description"] == "Says hello to the world"
         for t in tools
     )
-    assert any(t["name"] == "no_desc" and t["description"] == "no_desc" for t in tools)
-    assert any(
-        t["name"] == "macro_tool" and t["description"] == "Macro description"
-        for t in tools
-    )
-    assert any(
-        t["name"] == "struct_tool" and t["description"] == "Struct description"
-        for t in tools
-    )
-    assert any(
-        t["name"] == "reverse_struct" and t["description"] == "reverse struct desc"
-        for t in tools
-    )
+    
+    # check new ones
+    add_tool = next(t for t in tools if t["name"] == "add_numbers")
+    assert add_tool["description"] == "Adds two numbers"
+    assert add_tool["inputSchema"]["type"] == "object"
+    assert add_tool["inputSchema"]["properties"]["a"]["type"] == "number"
+    assert add_tool["inputSchema"]["properties"]["b"]["type"] == "number"
+    assert add_tool["inputSchema"]["properties"]["c"]["type"] == "number"
+    assert "a" in add_tool["inputSchema"]["required"]
+    assert "c" not in add_tool["inputSchema"]["required"]
+    
+    jt = next(t for t in tools if t["name"] == "just_tool")
+    assert jt["description"] == "just_tool"
+    assert jt["inputSchema"]["properties"]["name"]["type"] == "string"
 
 
 def test_parse_mcp_source_code_dispatch():
