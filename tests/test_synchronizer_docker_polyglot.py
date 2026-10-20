@@ -10,7 +10,8 @@ class TestDockerPolyglotSync(unittest.TestCase):
     def test_docker_hub_discovery(self, mock_urlopen):
         mock_resp = MagicMock()
         mock_resp.status = 200
-        mock_resp.read.return_value = b""
+        mock_resp.__enter__.return_value = mock_resp
+        mock_resp.read.return_value = b"{\"crates\": []}"
         mock_urlopen.return_value = mock_resp
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -75,11 +76,22 @@ class TestDockerPolyglotSync(unittest.TestCase):
                 mock_resp = MagicMock()
                 mock_resp.__enter__.return_value = mock_resp
                 mock_resp.status = 200
-                url = req.full_url
-                if "README.md" in url:
-                    mock_resp.read.return_value = b"# Tools\n\n| Tool | Description |\n|---|---|\n| rust_tool | Rust test tool |"
+                
+                # Default empty JSON byte string
+                mock_resp.read.return_value = b"{}"
+                
+                try:
+                    url = req.full_url
+                except AttributeError:
+                    url = str(req)
+                
+                if "crates.io" in url:
+                    mock_resp.read.return_value = b'{"crates": []}'
                 elif "smithery" in url or "awesome" in url:
-                    mock_resp.read.return_value = b""
+                    mock_resp.read.return_value = b"{}"
+                elif "README.md" in url:
+                    mock_resp.read.return_value = b"# Tools\n\n| Tool | Description |\n|---|---|\n| rust_tool | Rust test tool |"
+                    
                 return mock_resp
 
             mock_urlopen.side_effect = urlopen_side_effect

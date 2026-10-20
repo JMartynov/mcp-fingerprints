@@ -2154,6 +2154,45 @@ class PassportSynchronizer:
                             discovered_count += 1
                             logger.info("Discovered NEW polyglot passport from GitHub: %s", pkg_name)
 
+
+        # 4. Query Crates.io for Rust MCP packages
+        if not start_substage or start_substage in ("smithery", "pypi", "npm", "crates"):
+            logger.info("Crawling Crates.io Registry for Rust MCP packages...")
+            try:
+                from mcp_fingerprints.crawler.crates_io import get_mcp_crates
+                rust_crates = get_mcp_crates()
+                for crate in rust_crates:
+                    pkg_name = crate.get("name")
+                    if not pkg_name:
+                        continue
+                    self._check_budget("stage_discover_new", substage="crates", cursor=pkg_name)
+                    clean_name = f"{pkg_name}.json"
+                    if (self.output_dir / clean_name).is_file():
+                        continue
+                        
+                    # Build dummy spec for now, or fetch github repo to extract tools
+                    repo = crate.get("repository")
+                    if repo and "github.com" in repo:
+                        owner_repo = repo.replace("https://github.com/", "").replace("http://github.com/", "")
+                        tools, _, _ = self._extract_ast_tools_from_github(owner_repo)
+                        if tools:
+                            ver = crate.get("max_version") or "0.1.0"
+                            spec = FingerprintGenerator.generate_server_spec(
+                                package_name=pkg_name,
+                                ecosystem="crates.io",
+                                purl=f"pkg:cargo/{pkg_name}",
+                                version=ver,
+                                tools=tools,
+                                repository_url=repo,
+                                description=crate.get("description")
+                            )
+                            target_file = self.output_dir / clean_name
+                            FingerprintGenerator.save_spec_to_file(spec, target_file)
+                            discovered_count += 1
+                            logger.info("Discovered and created NEW passport from Crates.io: %s", pkg_name)
+            except ImportError:
+                logger.warning("Crates.io crawler not available.")
+
         return discovered_count
 
     def probe_runtime_passports(
