@@ -2335,8 +2335,11 @@ class PassportSynchronizer:
                     # Build dummy spec for now, or fetch github repo to extract tools
                     repo = crate.get("repository")
                     if repo and "github.com" in repo:
-                        owner_repo = repo.replace("https://github.com/", "").replace("http://github.com/", "")
-                        tools, _, _ = self._extract_ast_tools_from_github(owner_repo)
+                        try:
+                            tools = self._extract_ast_tools_from_github(pkg_name, repo_url=repo)
+                        except Exception as err:
+                            logger.warning("Failed to extract AST tools from %s for crate %s: %s", repo, pkg_name, err)
+                            tools = []
                         if tools:
                             ver = crate.get("max_version") or "0.1.0"
                             spec = FingerprintGenerator.generate_server_spec(

@@ -115,5 +115,51 @@ class TestDockerPolyglotSync(unittest.TestCase):
             self.assertEqual(tools[0]["name"], "rust_tool")
             self.assertEqual(tools[0]["description"], "Rust test tool")
 
+    @patch("urllib.request.urlopen")
+    @patch("mcp_fingerprints.crawler.crates_io.get_mcp_crates")
+    def test_crates_io_discovery_and_unpacking(self, mock_get_crates, mock_urlopen):
+        mock_resp = MagicMock()
+        mock_resp.status = 200
+        mock_resp.__enter__.return_value = mock_resp
+        mock_resp.read.return_value = b"{}"
+        mock_urlopen.return_value = mock_resp
+
+        mock_get_crates.return_value = [
+            {
+                "name": "mcp-test-empty-tools",
+                "max_version": "0.1.0",
+                "description": "Empty tools crate",
+                "repository": "https://github.com/testowner/mcp-test-empty-tools",
+            },
+            {
+                "name": "mcp-test-with-tools",
+                "max_version": "0.2.0",
+                "description": "With tools crate",
+                "repository": "https://github.com/testowner/mcp-test-with-tools",
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            sync = PassportSynchronizer(output_dir=tmpdir)
+
+            def mock_extract(pkg_name, repo_url=None):
+                if pkg_name == "mcp-test-with-tools":
+                    return [{"name": "test_rust_tool", "description": "tool desc", "inputSchema": {"type": "object"}}]
+                return []
+
+            with patch.object(sync, "_extract_ast_tools_from_github", side_effect=mock_extract), \
+                 patch("mcp_fingerprints.synchronizer.fetch_json", return_value=(None, None)):
+                count = sync.discover_new_mcps(limit=10, docker=False, polyglot=False)
+
+            self.assertEqual(count, 1)
+            out_file = Path(tmpdir) / "mcp-test-with-tools.json"
+            self.assertTrue(out_file.exists())
+            with open(out_file, "r") as f:
+                data = json.load(f)
+            self.assertEqual(data["package_name"], "mcp-test-with-tools")
+            self.assertEqual(data["ecosystem"], "crates.io")
+            self.assertEqual(len(data["versions"][0]["tool_signatures"]), 1)
+            self.assertEqual(data["versions"][0]["tool_signatures"][0]["name"], "test_rust_tool")
+
 if __name__ == '__main__':
     unittest.main()
