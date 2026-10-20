@@ -90,3 +90,5 @@ class FingerprintGenerator:
         data = spec.to_dict()
         target.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 from .docker_hub import *
+from .maven_central import EnterpriseIndexer
+

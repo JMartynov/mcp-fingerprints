@@ -29,6 +29,7 @@ from mcp_fingerprints.canonicalizer import (
 )
 from mcp_fingerprints.go_crawler import search_pkg_go_dev
 from mcp_fingerprints.crawler import FingerprintGenerator
+from mcp_fingerprints.crawler.maven_central import EnterpriseIndexer
 from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
 from mcp_fingerprints.monorepo_prober import match_monorepo_subpackage_dir
@@ -1937,6 +1938,86 @@ class PassportSynchronizer:
                         FingerprintGenerator.save_spec_to_file(spec, target_file)
                         discovered_count += 1
                         logger.info("Discovered NEW passport from Docker Hub: %s", pkg_name)
+
+        # Enterprise JVM and .NET Packages (Maven Central & NuGet)
+        if not start_substage or start_substage in (
+            "smithery",
+            "pypi",
+            "npm",
+            "official_registry",
+            "docker_hub",
+            "polyglot",
+            "enterprise",
+            "awesome_mcp",
+        ):
+            self._check_budget("stage_discover_new", substage="enterprise")
+            logger.info("Discovering Enterprise JVM and .NET packages...")
+            indexer = EnterpriseIndexer()
+
+            # Maven
+            for pkg in indexer.discover_maven():
+                pkg_name = pkg["name"]
+                clean_name = f"{pkg['ecosystem']}/{pkg_name[0].lower()}/{pkg_name}.json"
+                if not (self.output_dir / clean_name).exists():
+                    try:
+                        spec = FingerprintGenerator.generate_server_spec(
+                            package_name=pkg_name,
+                            ecosystem=pkg["ecosystem"],
+                            purl=pkg["purl"],
+                            version=pkg["version"],
+                            tools=[
+                                {
+                                    "name": "unknown",
+                                    "description": pkg["description"],
+                                    "inputSchema": {"type": "object", "properties": {}},
+                                }
+                            ],
+                            description=pkg["description"],
+                        )
+                        target_file = self.output_dir / clean_name
+                        FingerprintGenerator.save_spec_to_file(spec, target_file)
+                        discovered_count += 1
+                        logger.info(
+                            "Discovered NEW enterprise passport from Maven: %s",
+                            pkg_name,
+                        )
+                    except Exception as exc:
+                        logger.debug(
+                            "Error creating Maven passport for %s: %s", pkg_name, exc
+                        )
+
+            # NuGet
+            for pkg in indexer.discover_nuget():
+                pkg_name = pkg["name"]
+                clean_name = f"{pkg['ecosystem']}/{pkg_name[0].lower()}/{pkg_name}.json"
+                if not (self.output_dir / clean_name).exists():
+                    try:
+                        spec = FingerprintGenerator.generate_server_spec(
+                            package_name=pkg_name,
+                            ecosystem=pkg["ecosystem"],
+                            purl=pkg["purl"],
+                            version=pkg["version"],
+                            tools=[
+                                {
+                                    "name": "unknown",
+                                    "description": pkg["description"],
+                                    "inputSchema": {"type": "object", "properties": {}},
+                                }
+                            ],
+                            description=pkg["description"],
+                            repository_url=pkg.get("repository_url"),
+                        )
+                        target_file = self.output_dir / clean_name
+                        FingerprintGenerator.save_spec_to_file(spec, target_file)
+                        discovered_count += 1
+                        logger.info(
+                            "Discovered NEW enterprise passport from NuGet: %s",
+                            pkg_name,
+                        )
+                    except Exception as exc:
+                        logger.debug(
+                            "Error creating NuGet passport for %s: %s", pkg_name, exc
+                        )
 
         # 5. Query community curated awesome-mcp-servers stream with multi-manifest extraction
         if not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub", "polyglot", "awesome_mcp"):
