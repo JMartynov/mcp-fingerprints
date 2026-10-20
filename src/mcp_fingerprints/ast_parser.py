@@ -295,12 +295,21 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
     def __init__(self, pydantic_models: dict[str, dict[str, Any]] | None = None) -> None:
         self.extracted_tools: list[dict[str, Any]] = []
+        self.constants: dict[str, Any] = {}
         self.extracted_prompts: list[dict[str, Any]] = []
         self.extracted_resources: list[dict[str, Any]] = []
         self.extracted_env_vars: set[str] = set()
         self.pydantic_models: dict[str, dict[str, Any]] = dict(pydantic_models or {})
 
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        for target in node.targets:
+            if isinstance(target, ast.Name) and isinstance(node.value, ast.Constant):
+                self.constants[target.id] = node.value.value
+        self.generic_visit(node)
+
     def visit_Subscript(self, node: ast.Subscript) -> None:
+
         """Capture os.environ['VAR']."""
         val = node.value
         if (isinstance(val, ast.Attribute) and val.attr == "environ") or (isinstance(val, ast.Name) and val.id == "environ"):
@@ -323,9 +332,9 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
         # Handle low-level Tool(name="...", description="...", inputSchema={...})
         is_tool_call = False
-        if isinstance(func, ast.Name) and func.id in ("Tool", "types_Tool"):
+        if isinstance(func, ast.Name) and func.id in ("Tool", "types_Tool", "MCPToolDefinition", "ToolDefinition", "MCPTool"):
             is_tool_call = True
-        elif isinstance(func, ast.Attribute) and func.attr == "Tool":
+        elif isinstance(func, ast.Attribute) and func.attr in ("Tool", "MCPToolDefinition", "ToolDefinition", "MCPTool"):
             is_tool_call = True
 
         if is_tool_call:
@@ -335,20 +344,49 @@ class FastMcpAstVisitor(ast.NodeVisitor):
             required: list[str] = []
 
             for kw in node.keywords:
-                if kw.arg == "name" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
-                    name = kw.value.value
+                if kw.arg == "name":
+                    if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                        name = kw.value.value
+                    elif isinstance(kw.value, ast.Name) and kw.value.id in self.constants:
+                        name = self.constants[kw.value.id]
                 elif kw.arg == "description" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
                     desc = kw.value.value
                 elif kw.arg == "inputSchema" and isinstance(kw.value, ast.Dict):
                     for k, v in zip(kw.value.keys, kw.value.values):
                         if isinstance(k, ast.Constant) and k.value == "properties" and isinstance(v, ast.Dict):
-                            for pk in v.keys:
+                            for pk, pv in zip(v.keys, v.values):
                                 if isinstance(pk, ast.Constant) and isinstance(pk.value, str):
                                     properties[pk.value] = {"type": "string"}
                         elif isinstance(k, ast.Constant) and k.value == "required" and isinstance(v, ast.List):
                             for item in v.elts:
                                 if isinstance(item, ast.Constant) and isinstance(item.value, str):
                                     required.append(item.value)
+                elif kw.arg == "parameters" and isinstance(kw.value, (ast.List, ast.Tuple)):
+                    for elt in kw.value.elts:
+                        if isinstance(elt, ast.Call) and isinstance(elt.func, ast.Name) and elt.func.id == "MCPToolParameter":
+                            p_name = None
+                            p_desc = ""
+                            p_req = False
+                            p_type = "string"
+                            for pkw in elt.keywords:
+                                if pkw.arg == "name" and isinstance(pkw.value, ast.Constant):
+                                    p_name = pkw.value.value
+                                elif pkw.arg == "description" and isinstance(pkw.value, ast.Constant):
+                                    p_desc = pkw.value.value
+                                elif pkw.arg == "required" and isinstance(pkw.value, ast.Constant):
+                                    p_req = bool(pkw.value.value)
+                                elif pkw.arg == "type" and isinstance(pkw.value, ast.Attribute):
+                                    if pkw.value.attr == "STRING": p_type = "string"
+                                    elif pkw.value.attr == "NUMBER": p_type = "number"
+                                    elif pkw.value.attr == "BOOLEAN": p_type = "boolean"
+                                    elif pkw.value.attr == "OBJECT": p_type = "object"
+                                    elif pkw.value.attr == "ARRAY": p_type = "array"
+                            if p_name:
+                                properties[p_name] = {"type": p_type}
+                                if p_desc:
+                                    properties[p_name]["description"] = p_desc
+                                if p_req:
+                                    required.append(p_name)
 
             if name and not any(t["name"] == name for t in self.extracted_tools):
                 self.extracted_tools.append({
@@ -362,7 +400,6 @@ class FastMcpAstVisitor(ast.NodeVisitor):
                     "property_keys": sorted(properties.keys()),
                     "required_keys": sorted(required),
                 })
-
         self.generic_visit(node)
 
     def visit_Module(self, node: ast.Module) -> None:
@@ -413,7 +450,7 @@ class FastMcpAstVisitor(ast.NodeVisitor):
         is_tool_class = False
         for base in node.bases:
             base_name = getattr(base, "id", getattr(base, "attr", None))
-            if base_name in ("BaseTool", "Tool"):
+            if base_name in ("BaseTool", "Tool", "MCPToolDefinition", "ToolDefinition", "MCPTool"):
                 is_tool_class = True
                 break
 
@@ -428,15 +465,47 @@ class FastMcpAstVisitor(ast.NodeVisitor):
                 if isinstance(item, ast.Assign):
                     for target in item.targets:
                         if isinstance(target, ast.Name):
-                            if target.id == "name" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
-                                name = item.value.value
+                            if target.id == "name":
+                                if isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                                    name = item.value.value
+                                elif isinstance(item.value, ast.Name) and item.value.id in self.constants:
+                                    name = self.constants[item.value.id]
                             elif target.id == "description" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
                                 desc = item.value.value
                             elif target.id == "args_schema" and isinstance(item.value, ast.Name):
                                 args_schema_name = item.value.id
+                            elif target.id == "parameters" and isinstance(item.value, (ast.List, ast.Tuple)):
+                                for elt in item.value.elts:
+                                    if isinstance(elt, ast.Call) and isinstance(elt.func, ast.Name) and elt.func.id == "MCPToolParameter":
+                                        p_name = None
+                                        p_desc = ""
+                                        p_req = False
+                                        p_type = "string"
+                                        for pkw in elt.keywords:
+                                            if pkw.arg == "name" and isinstance(pkw.value, ast.Constant):
+                                                p_name = pkw.value.value
+                                            elif pkw.arg == "description" and isinstance(pkw.value, ast.Constant):
+                                                p_desc = pkw.value.value
+                                            elif pkw.arg == "required" and isinstance(pkw.value, ast.Constant):
+                                                p_req = bool(pkw.value.value)
+                                            elif pkw.arg == "type" and isinstance(pkw.value, ast.Attribute):
+                                                if pkw.value.attr == "STRING": p_type = "string"
+                                                elif pkw.value.attr == "NUMBER": p_type = "number"
+                                                elif pkw.value.attr == "BOOLEAN": p_type = "boolean"
+                                                elif pkw.value.attr == "OBJECT": p_type = "object"
+                                                elif pkw.value.attr == "ARRAY": p_type = "array"
+                                        if p_name:
+                                            properties[p_name] = {"type": p_type}
+                                            if p_desc:
+                                                properties[p_name]["description"] = p_desc
+                                            if p_req:
+                                                required.append(p_name)
                 elif isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
-                    if item.target.id == "name" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
-                        name = item.value.value
+                    if item.target.id == "name":
+                        if isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
+                            name = item.value.value
+                        elif isinstance(item.value, ast.Name) and item.value.id in self.constants:
+                            name = self.constants[item.value.id]
                     elif item.target.id == "description" and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str):
                         desc = item.value.value
                     elif item.target.id == "args_schema" and isinstance(item.value, ast.Name):
@@ -447,20 +516,21 @@ class FastMcpAstVisitor(ast.NodeVisitor):
 
             if args_schema_name and args_schema_name in self.pydantic_models:
                 model_info = self.pydantic_models[args_schema_name]
-                properties = dict(model_info.get("properties", {}))
-                required = list(model_info.get("required", []))
+                properties.update(model_info.get("properties", {}))
+                required.extend(model_info.get("required", []))
 
-            self.extracted_tools.append({
-                "name": name,
-                "description": desc or name,
-                "inputSchema": {
-                    "type": "object",
-                    "properties": properties,
-                    "required": sorted(required),
-                },
-                "property_keys": sorted(properties.keys()),
-                "required_keys": sorted(required),
-            })
+            if name and not any(t["name"] == name for t in self.extracted_tools):
+                self.extracted_tools.append({
+                    "name": name,
+                    "description": desc or name,
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": properties,
+                        "required": sorted(list(set(required))),
+                    },
+                    "property_keys": sorted(properties.keys()),
+                    "required_keys": sorted(list(set(required))),
+                })
 
         self.generic_visit(node)
 
