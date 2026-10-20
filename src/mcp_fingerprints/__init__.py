@@ -59,10 +59,10 @@ def identify_http(url: str, headers: dict[str, str] | None = None, timeout: floa
     identifier = McpIdentifier(passports_dir)
     return identifier.prober.probe(target=url, headers=headers, timeout=timeout, **kwargs)
 
-def scan_local_configs(probe_live: bool = True) -> LocalInventoryReport:
+def scan_local_configs(probe_live: bool = True, scan_global: bool = True, custom_clients_path: str | None = None) -> LocalInventoryReport:
     """Scans all standard system paths for known MCP client configurations."""
     scanner = ConfigScanner()
-    return scanner.scan(probe_live=probe_live)
+    return scanner.scan(probe_live=probe_live, scan_global=scan_global, custom_clients_path=custom_clients_path)
 
 def scan_config_file(path, probe_live: bool = True) -> LocalInventoryReport:
     """Scans a single configuration file."""
