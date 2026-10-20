@@ -458,6 +458,12 @@ def main() -> None:
     scan_configs_p.add_argument(
         "--fail-on-drift", action="store_true", help="Exit with non-zero status code (exit 2) if schema drift or unexpected additions are detected"
     )
+    scan_configs_p.add_argument(
+        "--scan-global", action="store_true", default=True, help="Scan globally installed npm and npx packages for MCP servers (default: True)"
+    )
+    scan_configs_p.add_argument(
+        "--no-scan-global", dest="scan_global", action="store_false", help="Disable scanning of global npm/npx packages"
+    )
 
     args = parser.parse_args()
 
@@ -495,7 +501,7 @@ def main() -> None:
         else:
             from mcp_fingerprints import scan_local_configs
 
-            report = scan_local_configs(probe_live=args.probe_live)
+            report = scan_local_configs(probe_live=args.probe_live, scan_global=args.scan_global, custom_clients_path=args.custom_clients)
 
         if isinstance(report, snapshot_diff.InventorySnapshot):
             inventory = report

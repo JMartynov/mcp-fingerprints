@@ -284,6 +284,172 @@ class ClientConfigLocator:
 
 
 
+
+import subprocess
+
+class NpmGlobalScanner:
+    """Scanner for globally installed npm and npx MCP servers."""
+
+    def _is_mcp_package(self, package_json: dict) -> bool:
+        deps = package_json.get("dependencies", {})
+        dev_deps = package_json.get("devDependencies", {})
+        all_deps = {**deps, **dev_deps}
+        
+        mcp_deps = ["@modelcontextprotocol/sdk", "rmcp"]
+        for dep in mcp_deps:
+            if dep in all_deps:
+                return True
+        for dep in all_deps:
+            if dep.startswith("@modelcontextprotocol/server-"):
+                return True
+
+        keywords = package_json.get("keywords", [])
+        if isinstance(keywords, list):
+            mcp_keywords = ["mcp", "mcp-server", "modelcontextprotocol"]
+            if any(kw in keywords for kw in mcp_keywords):
+                return True
+
+        bins = package_json.get("bin", {})
+        if isinstance(bins, dict):
+            for bin_name in bins:
+                if "mcp" in bin_name.lower():
+                    return True
+        elif isinstance(bins, str):
+            if "mcp" in bins.lower():
+                return True
+
+        return False
+
+    def scan_global_npm(self) -> list[dict[str, Any]]:
+        servers = []
+        node_modules_dirs = []
+        try:
+            res = subprocess.run(["npm", "root", "-g"], capture_output=True, text=True, check=True)
+            if res.stdout.strip():
+                node_modules_dirs.append(Path(res.stdout.strip()))
+        except Exception:
+            pass
+        
+        # Fallbacks if npm root -g returned nothing
+        if not node_modules_dirs:
+            home = Path.home()
+            fallbacks = [
+                Path("/usr/local/lib/node_modules"),
+                Path("/opt/homebrew/lib/node_modules"),
+            ]
+            
+            # Add NVM fallback
+            nvm_dir = home / ".nvm" / "versions" / "node"
+            if nvm_dir.exists():
+                for v_dir in nvm_dir.glob("*"):
+                    fallbacks.append(v_dir / "lib" / "node_modules")
+                    
+            if sys.platform == "win32":
+                appdata = os.environ.get("APPDATA", "")
+                if appdata:
+                    fallbacks.append(Path(appdata) / "npm" / "node_modules")
+                    
+            for fb in fallbacks:
+                if fb not in node_modules_dirs and fb.exists():
+                    node_modules_dirs.append(fb)
+                
+        for nm_dir in node_modules_dirs:
+            if not nm_dir.exists() or not nm_dir.is_dir():
+                continue
+                
+            for package_dir in nm_dir.iterdir():
+                if package_dir.name.startswith("@"):
+                    for sub_pkg in package_dir.iterdir():
+                        pkg_json_path = sub_pkg / "package.json"
+                        if pkg_json_path.exists():
+                            server = self._process_package(pkg_json_path, sub_pkg.name if not package_dir.name else f"{package_dir.name}/{sub_pkg.name}", "npm-global")
+                            if server:
+                                servers.append(server)
+                else:
+                    pkg_json_path = package_dir / "package.json"
+                    if pkg_json_path.exists():
+                        server = self._process_package(pkg_json_path, package_dir.name, "npm-global")
+                        if server:
+                            servers.append(server)
+                            
+        return servers
+        
+    def scan_npx_cache(self) -> list[dict[str, Any]]:
+        servers = []
+        home = Path.home()
+        npx_cache_dirs = []
+        
+        if sys.platform == "win32":
+            localappdata = os.environ.get("LOCALAPPDATA", "")
+            if localappdata:
+                npx_cache_dirs.append(Path(localappdata) / "npm-cache" / "_npx")
+        else:
+            npx_cache_dirs.append(home / ".npm" / "_npx")
+            
+        for cache_dir in npx_cache_dirs:
+            if not cache_dir.exists() or not cache_dir.is_dir():
+                continue
+                
+            for h_dir in cache_dir.iterdir():
+                nm_dir = h_dir / "node_modules"
+                if not nm_dir.exists() or not nm_dir.is_dir():
+                    continue
+                    
+                for package_dir in nm_dir.iterdir():
+                    if package_dir.name.startswith("@"):
+                        for sub_pkg in package_dir.iterdir():
+                            pkg_json_path = sub_pkg / "package.json"
+                            if pkg_json_path.exists():
+                                server = self._process_package(pkg_json_path, sub_pkg.name if not package_dir.name else f"{package_dir.name}/{sub_pkg.name}", "npx-cache")
+                                if server:
+                                    servers.append(server)
+                    else:
+                        pkg_json_path = package_dir / "package.json"
+                        if pkg_json_path.exists():
+                            server = self._process_package(pkg_json_path, package_dir.name, "npx-cache")
+                            if server:
+                                servers.append(server)
+                                
+        return servers
+        
+    def _process_package(self, pkg_json_path: Path, dir_name: str, client_name: str) -> dict | None:
+        try:
+            with open(pkg_json_path, "r", encoding="utf-8") as f:
+                pkg_data = json.load(f)
+                
+            if self._is_mcp_package(pkg_data):
+                pkg_name = pkg_data.get("name", dir_name)
+                # Try to find a bin executable
+                command = "npx"
+                args = ["-y", pkg_name]
+                
+                # Check for bin explicitly if it's npm-global, though npx works too
+                if client_name == "npm-global":
+                    bins = pkg_data.get("bin", {})
+                    if isinstance(bins, dict) and bins:
+                        bin_name = list(bins.keys())[0]
+                        command = bin_name
+                        args = []
+                    elif isinstance(bins, str):
+                        command = pkg_name.split("/")[-1] if "/" in pkg_name else pkg_name
+                        args = []
+
+                return {
+                    "client": client_name,
+                    "name": pkg_name,
+                    "command": command,
+                    "args": args,
+                    "source": str(pkg_json_path),
+                    "version": pkg_data.get("version", "unknown")
+                }
+        except Exception as e:
+            logger.debug(f"Failed to process {pkg_json_path}: {e}")
+        return None
+        
+    def scan_all(self) -> list[dict[str, Any]]:
+        return self.scan_global_npm() + self.scan_npx_cache()
+
+
 class ConfigScanner:
     """Parses JSON configurations and extracts mcpServers dictionary."""
 
@@ -363,7 +529,7 @@ class ConfigScanner:
             
         return report
 
-    def scan(self, paths: Iterable[Path] | None = None, probe_live: bool = True, client: str | None = None, custom_clients_path: str | Path | None = None) -> LocalInventoryReport:
+    def scan(self, paths: Iterable[Path] | None = None, probe_live: bool = True, client: str | None = None, custom_clients_path: str | Path | None = None, scan_global: bool = False) -> LocalInventoryReport:
         """Scans multiple paths for servers and optionally probes them."""
         report = LocalInventoryReport()
         
@@ -387,4 +553,32 @@ class ConfigScanner:
                 report.servers.extend(sub_report.servers)
                 report.errors.extend(sub_report.errors)
                 
+        
+        if scan_global:
+            try:
+                npm_scanner = NpmGlobalScanner()
+                global_servers = npm_scanner.scan_all()
+                for server in global_servers:
+                    server_info = {
+                        "name": server["name"],
+                        "config_source": server["source"],
+                        "command": server["command"],
+                        "args": server["args"],
+                        "env": {},
+                        "client": server["client"],
+                        "version": server["version"]
+                    }
+                    if probe_live:
+                        try:
+                            cmd_list = [server_info["command"]] + server_info["args"]
+                            probe_report = self.prober_stdio.probe_stdio(cmd_list, env=server_info["env"])
+                            server_info["live_probe"] = probe_report.to_dict()
+                        except Exception as e:
+                            logger.warning(f"Failed to probe stdio server {server_info['name']}: {e}")
+                            server_info["live_probe"] = {"error": str(e), "connection_successful": False}
+                    report.servers.append(server_info)
+            except Exception as e:
+                logger.error(f"Failed to scan global NPM/npx: {e}")
+                report.errors.append(f"Failed to scan global NPM/npx: {e}")
+
         return report

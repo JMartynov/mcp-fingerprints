@@ -123,6 +123,14 @@ mcp-fingerprints scan-configs --output workstation_inventory.json
 - **Antigravity / Gemini CLI** (`~/.gemini/config/mcp_config.json`)
 - **OpenHands & Trae** (`mcp.json`)
 
+### Scenario 2b: Global npm & npx Server Discovery
+* **Use Case Description**: Developers often install MCP tools globally via `npm install -g` or run them ephemerally via `npx` (which caches them). These tools may not be manually registered in any client config, yet they are active on the machine.
+* **How It Works**: `mcp-fingerprints scan-configs` natively scans the global npm `node_modules` directory and `npx` caches to surface these servers:
+```bash
+# Discover unconfigured global npm & npx MCP servers
+mcp-fingerprints scan-configs --scan-global
+```
+
 ### Scenario 3: Auto-Passport Generation for Unknown Local Servers (e.g. CodeScene)
 * **Use Case Description**: An organization uses a proprietary, closed-source, or containerized MCP server (such as `codescene/codescene-mcp` or an internal Docker tool) that is not indexed in public registries.
 * **How It Works**: Use `--auto-passport` during a workstation scan to probe the server's tools over stdio/HTTP, construct a valid `ServerPackageSpec` passport, and save it directly into `data/fingerprints/<server_name>.json`:
