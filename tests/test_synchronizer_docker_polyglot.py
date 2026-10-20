@@ -57,7 +57,8 @@ class TestDockerPolyglotSync(unittest.TestCase):
             sync = PassportSynchronizer(output_dir=tmpdir)
             
             def mock_fetch_json(url):
-                if "topic:mcp-server" in url and "language:rust" in url:
+                import urllib.parse
+                if urllib.parse.quote("topic:mcp-server language:rust") in url:
                     return {
                         "items": [
                             {
@@ -67,7 +68,7 @@ class TestDockerPolyglotSync(unittest.TestCase):
                             }
                         ]
                     }, {}
-                elif "topic:mcp-server" in url and "language:go" in url:
+                elif urllib.parse.quote("topic:mcp-server language:go") in url:
                     return {"items": []}, {}
                 # Avoid smithery and pypi
                 return None, None

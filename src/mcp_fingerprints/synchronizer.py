@@ -1698,6 +1698,7 @@ class PassportSynchronizer:
                         logger.info("Discovered and created NEW passport from Smithery: %s", q_name)
 
         # 2. Query PyPI for Official & Community Python MCP Servers
+        pypi_candidates = []
         if not start_substage or start_substage in ("smithery", "pypi"):
             logger.info("Crawling PyPI Registry for Python MCP packages...")
             start_cursor = self.checkpoint_data.get("cursor") if self.checkpoint_data.get("substage") == "pypi" else None
@@ -2123,7 +2124,6 @@ class PassportSynchronizer:
 
         self._save_state()
 
-        
         # Go modules discovery
         if polyglot and (not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub", "polyglot", "go_modules")):
             logger.info("Crawling Go Modules for cloud-native MCP servers...")
@@ -2158,13 +2158,25 @@ class PassportSynchronizer:
                 discovered_count += 1
                 logger.info("Discovered NEW passport from Go Modules: %s", pkg_name)
 
-        # Polyglot GitHub Discovery (Rust, Go)
+        # Polyglot and Regional/Multilingual GitHub Discovery
         if polyglot and (not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub", "polyglot")):
-            logger.info("Crawling GitHub for Polyglot (Rust, Go) MCP servers...")
+            logger.info("Crawling GitHub for Polyglot and Regional MCP servers...")
             self._check_budget("stage_discover_new", substage="polyglot")
-            # We search for mcp-server topic and language rust or go
-            for lang in ["rust", "go"]:
-                github_search_url = f"https://api.github.com/search/repositories?q=topic:mcp-server+language:{lang}&per_page=10"
+            
+            queries = [
+                "topic:mcp-server language:rust",
+                "topic:mcp-server language:go",
+                "Dify MCP",
+                "WeCom MCP",
+                "WeChat MCP",
+                "Bilibili MCP",
+                "模型上下文协议",
+            ]
+            
+            for query in queries:
+                # Add URL encoding for query
+                encoded_query = urllib.parse.quote(query)
+                github_search_url = f"https://api.github.com/search/repositories?q={encoded_query}&per_page=10"
                 github_data, _ = fetch_json(github_search_url)
                 if github_data and "items" in github_data:
                     for repo in github_data["items"]:
@@ -2200,7 +2212,14 @@ class PassportSynchronizer:
                             
                         if tools:
                             purl = f"pkg:github/{full_name}"
-                            ecosystem = "cargo" if lang == "rust" else "go"
+                            # Determine ecosystem based on language hint, or default to github
+                            if "rust" in query.lower():
+                                ecosystem = "cargo"
+                            elif "go" in query.lower():
+                                ecosystem = "go"
+                            else:
+                                ecosystem = "github"
+                                
                             spec = FingerprintGenerator.generate_server_spec(
                                 package_name=pkg_name,
                                 ecosystem=ecosystem,
