@@ -1057,13 +1057,13 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
         required: list[str] = []
         
         param_regex = re.compile(
-            r'mcp\.With(String|Number|Boolean|Object|Array|Float|Int)\s*\(\s*["\']([^"\']+)["\']\s*(.*?)\)',
+            r'mcp\.With(String|Number|Boolean|Object|Array|Float|Int)\s*\(\s*["\']([^"\']+)["\'](?:[,\s]*(.*?))?\)',
             re.DOTALL
         )
         for p_match in param_regex.finditer(body):
             ptype_raw = p_match.group(1).lower()
             pname = p_match.group(2)
-            p_args = p_match.group(3)
+            p_args = p_match.group(3) or ""
             
             schema_type = "string"
             if ptype_raw in ("number", "int", "float"):
@@ -1076,7 +1076,7 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
                 schema_type = "array"
                 
             properties[pname] = {"type": schema_type}
-            if "mcp.Required" in p_args or "Required:" in p_args:
+            if "mcp.Required" in p_args or "Required:" in p_args or "Required()" in p_args:
                 required.append(pname)
                 
         extracted.append({

@@ -29,7 +29,7 @@ def match_monorepo_subpackage_dir(package_name: str, tree_paths: list[str]) -> s
     if clean_name.endswith("-server"):
         variants.append(clean_name[:-len("-server")])
 
-    bases = ["packages", "servers", "src", "crates", "pkg"]
+    bases = ["packages", "servers", "src", "crates", "pkg", "cmd"]
     
     # Build candidate prefixes
     candidate_prefixes = []

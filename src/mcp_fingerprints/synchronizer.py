@@ -27,6 +27,7 @@ from mcp_fingerprints.ast_parser import (
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
 )
+from mcp_fingerprints.go_crawler import search_pkg_go_dev
 from mcp_fingerprints.crawler import FingerprintGenerator
 from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
@@ -2059,6 +2060,41 @@ class PassportSynchronizer:
             logger.debug("Failed crawling awesome-mcp-servers: %s", exc)
 
         self._save_state()
+
+        
+        # Go modules discovery
+        if polyglot and (not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub", "polyglot", "go_modules")):
+            logger.info("Crawling Go Modules for cloud-native MCP servers...")
+            self._check_budget("stage_discover_new", substage="go_modules")
+            go_repos = search_pkg_go_dev("mcp-go mcp-golang cloud-native")
+            for repo_info in go_repos:
+                full_name = repo_info["full_name"]
+                owner, repo_name = full_name.split("/")
+                pkg_name = f"go_{owner}_{repo_name}"
+                clean_name = f"{pkg_name}.json"
+                
+                if (self.output_dir / clean_name).is_file():
+                    continue
+                    
+                description = repo_info.get("description", "")
+                
+                tools = [{"name": "unknown", "description": description, "inputSchema": {"type": "object", "properties": {}}}]
+                purl = f"pkg:golang/{full_name}"
+                
+                spec = FingerprintGenerator.generate_server_spec(
+                    package_name=pkg_name,
+                    ecosystem="go",
+                    purl=purl,
+                    version="0.1.0",
+                    tools=tools,
+                    description=description,
+                    repository_url=f"https://github.com/{full_name}"
+                )
+                
+                target_file = self.output_dir / clean_name
+                FingerprintGenerator.save_spec_to_file(spec, target_file)
+                discovered_count += 1
+                logger.info("Discovered NEW passport from Go Modules: %s", pkg_name)
 
         # Polyglot GitHub Discovery (Rust, Go)
         if polyglot and (not start_substage or start_substage in ("smithery", "pypi", "npm", "official_registry", "docker_hub", "polyglot")):
