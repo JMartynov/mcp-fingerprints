@@ -61,8 +61,8 @@ def test_codescene_mcp_passport_validation():
     
     v0 = next((ver for ver in data["versions"] if ver.get("version") == "1.0.0"), None)
     assert v0 is not None, "Version 1.0.0 should be present in passport"
-    assert len(v0["tool_signatures"]) == 28
+    assert len(v0["tool_signatures"]) == 30
     assert len(v0["prompt_signatures"]) == 5
     assert len(v0["resource_signatures"]) == 19
-    assert v0["toolset_canonical_hash"] == "sha256:a5d60a5fd438dfd82ed72b1b7c2fa25bd879f4f3473665bc038872bdaf1fc2af"
+    assert v0["toolset_canonical_hash"] == "sha256:f9b8acb9488ce64b5744f0c5b7d3169f5d8d97c2e2df4029d33a14e2776472e0"
 

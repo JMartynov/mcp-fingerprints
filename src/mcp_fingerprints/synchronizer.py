@@ -18,6 +18,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
+from packaging.version import parse as parse_version
+from packaging.version import InvalidVersion
 
 from mcp_fingerprints.ast_parser import (
     parse_mcp_source_code,
@@ -1026,9 +1028,20 @@ class PassportSynchronizer:
             author_obj = npm_data.get("author")
             if not author and author_obj:
                 author = author_obj.get("name") if isinstance(author_obj, dict) else str(author_obj or "")
-            repo_raw = npm_data.get("homepage") or npm_data.get("bugs", {}).get("url")
+            repo_field = npm_data.get("repository")
+            repo_raw = None
+            if isinstance(repo_field, dict):
+                repo_raw = repo_field.get("url")
+            elif isinstance(repo_field, str):
+                repo_raw = repo_field
+            if not repo_raw:
+                repo_raw = npm_data.get("homepage") or npm_data.get("bugs", {}).get("url")
             if repo_raw:
-                repo_url = repo_raw
+                clean_repo = re.sub(r"^git\+", "", repo_raw)
+                clean_repo = re.sub(r"\.git$", "", clean_repo)
+                clean_repo = re.sub(r"^git://", "https://", clean_repo)
+                clean_repo = re.sub(r"^ssh://git@", "https://", clean_repo)
+                repo_url = clean_repo
             keywords.extend(npm_data.get("keywords", []))
 
             # Build versions from npm
@@ -1310,6 +1323,13 @@ class PassportSynchronizer:
                 break
 
         clean_pkg_name = package_name.strip()
+        
+        def _semver_key(v_obj):
+            try:
+                return (1, parse_version(v_obj.version))
+            except InvalidVersion:
+                return (0, v_obj.version)
+                
         is_valid, reason = McpServerValidator.is_valid_mcp_server(
             package_name=clean_pkg_name,
             ecosystem=ecosystem,
@@ -1337,7 +1357,7 @@ class PassportSynchronizer:
             aliases=tuple(sorted(set(aliases))),
             sources_merged=tuple(sorted(set(sources))),
             dist_tags=dist_tags,
-            versions=tuple(sorted(sanitized_versions, key=lambda x: x.version)),
+            versions=tuple(sorted(sanitized_versions, key=_semver_key)),
             transport=transport,
             remote_endpoint=remote_endpoint,
         )
