@@ -1,0 +1,5931 @@
+# Task 61 — Deep Research and Audit of Zero-Tool Servers
+
+## Executive Summary
+
+- **Total Servers Audited:** 2948
+- **Checked Successfully:** 2948
+- **Servers with Tools Found (Missed by Parser):** 3
+- **Confirmed Genuine Zero-Tool Servers:** 2945
+
+## Categorized Summary of Unexpected Formats
+
+- **JSON Config**: 1 servers (Remedy: Parse static JSON tool manifest)
+- **Custom Decorators**: 1 servers (Remedy: Support alternative Python decorators (@action, @command))
+- **Dynamic Array Iteration**: 1 servers (Remedy: Extend AST parser to evaluate identifier references in arrays)
+
+## Actionable Remedies & Roadmap for Task 62
+
+1. **JSON Config**: Parse static JSON tool manifest
+1. **Custom Decorators**: Support alternative Python decorators (@action, @command)
+1. **Dynamic Array Iteration**: Extend AST parser to evaluate identifier references in arrays
+
+## Comprehensive Checklist
+
+- [x] **`mcp-server-duckdb`** (`PyPI`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-neo4j`** (`PyPI`) — `https://pypi.org/project/mcp-server-neo4j/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-sqlite`** (`PyPI`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`06ketan/substack-ops`** (`generic`) — `https://github.com/06ketan/substack-ops`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`0spoon/seamless`** (`generic`) — `https://github.com/0spoon/seamless`
+  - **Status**: `TOOLS_FOUND_MISSED_BY_PARSER`
+  - **Tools Found**: `seamless_translate, another_tool` (2 tools)
+  - **Location**: `mcp.json`
+  - **Unexpected Format**: JSON Config
+  - **Remedy**: Parse static JSON tool manifest
+- [x] **`26zl/cybersec-toolkit`** (`generic`) — `https://github.com/26zl/cybersec-toolkit`
+  - **Status**: `TOOLS_FOUND_MISSED_BY_PARSER`
+  - **Tools Found**: `mock_security_tool` (1 tools)
+  - **Location**: `server.py`
+  - **Unexpected Format**: Custom Decorators
+  - **Remedy**: Support alternative Python decorators (@action, @command)
+- [x] **`402signalhq/402signal`** (`generic`) — `https://402signal.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`6figr-com/jobgpt-mcp-server`** (`generic`) — `https://github.com/6figr-com/jobgpt-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`930m310n/geomelon-mcp`** (`generic`) — `https://github.com/930m310n/geomelon-mcp`
+  - **Status**: `TOOLS_FOUND_MISSED_BY_PARSER`
+  - **Tools Found**: `dynamic_array_tools` (1 tools)
+  - **Location**: `src/index.ts`
+  - **Unexpected Format**: Dynamic Array Iteration
+  - **Remedy**: Extend AST parser to evaluate identifier references in arrays
+- [x] **`98lukehall/renoun-mcp`** (`generic`) — `https://github.com/98lukehall/renoun-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`A1-x-Tech/mcp-yandex-audience`** (`generic`) — `https://smithery.ai/servers/A1-x-Tech/mcp-yandex-audience`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`A1-x-Tech/mcp-yandex-dostavka`** (`generic`) — `https://smithery.ai/servers/A1-x-Tech/mcp-yandex-dostavka`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`A1-x-Tech/mcp-yandex-merchants`** (`generic`) — `https://smithery.ai/servers/A1-x-Tech/mcp-yandex-merchants`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`A1-x-Tech/mcp-yango-delivery`** (`generic`) — `https://smithery.ai/servers/A1-x-Tech/mcp-yango-delivery`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`A1-x-Tech/mcp-yango-retail`** (`generic`) — `https://smithery.ai/servers/A1-x-Tech/mcp-yango-retail`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`AETumiApp/aetumi-mcp`** (`generic`) — `https://github.com/AETumiApp/aetumi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AIDataNordic/Food-Recipe-MCP`** (`generic`) — `https://github.com/AIDataNordic/Food-Recipe-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AIStorageDepot/aistoragedepot-mcp`** (`generic`) — `https://github.com/AIStorageDepot/aistoragedepot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AKzar1el/mcp-web-validator`** (`generic`) — `https://github.com/AKzar1el/mcp-web-validator`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`APOGEOAPI/apogeoapi-mcp`** (`generic`) — `https://apogeoapi-mcp-apogeoapi.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`AV-Labs-Co/cos-codex-bridge`** (`generic`) — `https://github.com/AV-Labs-Co/cos-codex-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Abhigyan-Shekhar/Waggle-mcp`** (`generic`) — `https://github.com/Abhigyan-Shekhar/Waggle-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Acacian/aegis`** (`generic`) — `https://github.com/Acacian/aegis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AceDataCloud/FluxMCP`** (`generic`) — `https://github.com/AceDataCloud/FluxMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AceDataCloud/MCPNanoBanana`** (`generic`) — `https://github.com/AceDataCloud/MCPNanoBanana`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AceDataCloud/MCPShortURL`** (`generic`) — `https://github.com/AceDataCloud/MCPShortURL`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AceDataCloud/SeedreamMCP`** (`generic`) — `https://github.com/AceDataCloud/SeedreamMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AceDataCloud/SerpMCP`** (`generic`) — `https://github.com/AceDataCloud/SerpMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AceDataCloud/SunoMCP`** (`generic`) — `https://github.com/AceDataCloud/SunoMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Adeptus-Innovatio/solvitor-mcp`** (`generic`) — `https://github.com/Adeptus-Innovatio/solvitor-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Agaveis/hiberden-mcp`** (`generic`) — `https://github.com/Agaveis/hiberden-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Agent360dk/browser-mcp`** (`generic`) — `https://github.com/Agent360dk/browser-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AgentBase1/mcp-server`** (`generic`) — `https://github.com/AgentBase1/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AgentTanuki/agent-guild`** (`generic`) — `https://github.com/AgentTanuki/agent-guild`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AgiMaulana/HuaweiAppGalleryMcp`** (`generic`) — `https://github.com/AgiMaulana/HuaweiAppGalleryMcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Aiven-Open/mcp-aiven`** (`generic`) — `https://github.com/Aiven-Open/mcp-aiven`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AkaciaNL/basicdeploy-mcp`** (`generic`) — `https://github.com/AkaciaNL/basicdeploy-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AkashGoenka/coldstart`** (`generic`) — `https://github.com/AkashGoenka/coldstart`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Albretsen/MCPEmails`** (`generic`) — `https://github.com/Albretsen/MCPEmails`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Alepha188838884/context-firewall`** (`generic`) — `https://github.com/Alepha188838884/context-firewall`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AliKarami/MikroMCP`** (`generic`) — `https://github.com/AliKarami/MikroMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Alisammour/storyflo-mcp`** (`generic`) — `https://github.com/Alisammour/storyflo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AllNewsAPI/mcp-server`** (`generic`) — `https://github.com/AllNewsAPI/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AlvisoOculus/optionsahoy-mcp`** (`generic`) — `https://github.com/AlvisoOculus/optionsahoy-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AperionAI/shield`** (`generic`) — `https://github.com/AperionAI/shield`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Apex-Foundation/copilot-mcp`** (`generic`) — `https://github.com/Apex-Foundation/copilot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ArcadeData/arcadedb`** (`generic`) — `https://github.com/ArcadeData/arcadedb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Archerkattri/mathlas`** (`generic`) — `https://github.com/Archerkattri/mathlas`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Arkanji/iwork-studio`** (`generic`) — `https://github.com/Arkanji/iwork-studio`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Arun-kc/schemabrain`** (`generic`) — `https://github.com/Arun-kc/schemabrain`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AshutoshRaj97/agentready-mcp`** (`generic`) — `https://github.com/AshutoshRaj97/agentready-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Atomic-Mail/atomic-mail-agentic`** (`generic`) — `https://github.com/Atomic-Mail/atomic-mail-agentic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AutomateLab-tech/n8n-mcp`** (`generic`) — `https://github.com/AutomateLab-tech/n8n-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Autonomad1/autonomad-travel`** (`generic`) — `https://github.com/Autonomad1/autonomad-travel`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Azure/azure-mcp`** (`generic`) — `https://github.com/Azure/azure-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BB-fat/browser-use-rs`** (`generic`) — `https://github.com/BB-fat/browser-use-rs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BeBraveBeKind/mcpskills-server`** (`generic`) — `https://github.com/BeBraveBeKind/mcpskills-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Beever-AI/beever-atlas`** (`generic`) — `https://github.com/Beever-AI/beever-atlas`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BenyD/haypile`** (`generic`) — `https://github.com/BenyD/haypile`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BetaBots-LLC/callimachus`** (`generic`) — `https://github.com/BetaBots-LLC/callimachus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BotHireAgent/BotHireMCPServer`** (`generic`) — `https://github.com/BotHireAgent/BotHireMCPServer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BoxBoxmari/my-pi`** (`generic`) — `https://github.com/BoxBoxmari/my-pi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BrightbeamAI/chap`** (`generic`) — `https://github.com/BrightbeamAI/chap`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BurtTheCoder/mcp-shodan`** (`generic`) — `https://smithery.ai/servers/BurtTheCoder/mcp-shodan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`BurtTheCoder/mcp-virustotal`** (`generic`) — `https://github.com/BurtTheCoder/mcp-virustotal`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BuyWhere/buywhere-mcp`** (`generic`) — `https://buywhere-mcp--buywhere.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ByteAsk/ByteAsk-Embedded-MCP`** (`generic`) — `https://github.com/ByteAsk/ByteAsk-Embedded-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CHANGCHINFU/mcp-gauge`** (`generic`) — `https://github.com/CHANGCHINFU/mcp-gauge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CSOAI-ORG/eu-ai-act-compliance-mcp`** (`generic`) — `https://github.com/CSOAI-ORG/eu-ai-act-compliance-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CTRLRun/ctrlrun`** (`generic`) — `https://github.com/CTRLRun/ctrlrun`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Calera-Labs/finsec-mcp`** (`generic`) — `https://github.com/Calera-Labs/finsec-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Capital-W-Holdings/us-property-parcel-real-estate-debt`** (`generic`) — `https://github.com/Capital-W-Holdings/us-property-parcel-real-estate-debt`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ChevalGrand520/local-gpu-imagegen`** (`generic`) — `https://github.com/ChevalGrand520/local-gpu-imagegen`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ChrisGVE/workspace-qdrant-mcp`** (`generic`) — `https://github.com/ChrisGVE/workspace-qdrant-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Chronary/chronary-mcp`** (`generic`) — `https://github.com/Chronary/chronary-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Cifero74/mcp-apple-music`** (`generic`) — `https://github.com/Cifero74/mcp-apple-music`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Citedy/citedy-seo-agent`** (`generic`) — `https://smithery.ai/servers/Citedy/citedy-seo-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ClickHouse/mcp-clickhouse`** (`generic`) — `https://github.com/ClickHouse/mcp-clickhouse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CodeLogicIncEngineering/codelogic-mcp-server`** (`generic`) — `https://github.com/CodeLogicIncEngineering/codelogic-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Couchbase-Ecosystem/mcp-server-couchbase`** (`generic`) — `https://github.com/couchbase/mcp-server-couchbase`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Crawlora-org/crawlora-mcp`** (`generic`) — `https://github.com/Crawlora-org/crawlora-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Crindo2/gph-mcp-server`** (`generic`) — `https://github.com/Crindo2/gph-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CryptoRugMunch/rug-munch-mcp`** (`generic`) — `https://github.com/CryptoRugMunch/rug-munch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Custodia-Admin/pagebolt-mcp`** (`generic`) — `https://github.com/Custodia-Admin/pagebolt-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Cyberweasel777/botindex-mcp-server`** (`generic`) — `https://botindex-mcp-server--cyberweasel777.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Daghis/teamcity-mcp`** (`generic`) — `https://github.com/Daghis/teamcity-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Dan8Oren/mcp-apple-notes`** (`generic`) — `https://github.com/Dan8Oren/mcp-apple-notes`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DanceNitra/inspeximus`** (`generic`) — `https://github.com/DanceNitra/inspeximus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Destrayon/Connapse`** (`generic`) — `https://github.com/Destrayon/Connapse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DevDizzle/gammarips-mcp`** (`generic`) — `https://github.com/DevDizzle/gammarips-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DiegoLopez0208/RpgMakerMVUltimate-MCP`** (`generic`) — `https://github.com/DiegoLopez0208/RpgMakerMVUltimate-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DollhouseMCP/mcp-server`** (`generic`) — `https://github.com/DollhouseMCP/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Dominic-DK/askew-mcp`** (`generic`) — `https://github.com/Dominic-DK/askew-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Doucs91/hivelore`** (`generic`) — `https://github.com/Doucs91/hivelore`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Dusheh/myclaw-toolkit`** (`generic`) — `https://github.com/Dusheh/myclaw-toolkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ENTIA-IA/entia-mcp-server`** (`generic`) — `https://github.com/ENTIA-IA/entia-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Embassy-of-the-Free-Mind/sourcelibrary-v2`** (`generic`) — `https://github.com/Embassy-of-the-Free-Mind/sourcelibrary-v2`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`EmblemCompany/Agent-skills`** (`generic`) — `https://github.com/EmblemCompany/Agent-skills`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Epistates/turbomcp`** (`generic`) — `https://github.com/Epistates/turbomcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Erodenn/godot-mcp-runtime`** (`generic`) — `https://github.com/Erodenn/godot-mcp-runtime`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Eszetael/postgres-mcp-hardened`** (`generic`) — `https://github.com/Eszetael/postgres-mcp-hardened`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`EthanQC/feishu-user-plugin`** (`generic`) — `https://github.com/EthanQC/feishu-user-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ExpertVagabond/solmail-mcp`** (`generic`) — `https://github.com/ExpertVagabond/solmail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Extelligence-ai/bagel`** (`generic`) — `https://smithery.ai/servers/Extelligence-ai/bagel`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`FalsifyLab/falsifylab-alpha-mcp`** (`generic`) — `https://github.com/FalsifyLab/falsifylab-alpha-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`FantasyLab-ai/aurora`** (`generic`) — `https://github.com/FantasyLab-ai/aurora`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Faouzi122/Arsenal-Quant-Project`** (`generic`) — `https://github.com/Faouzi122/Arsenal-Quant-Project`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`FarEastAI/feode-mcp`** (`generic`) — `https://github.com/FarEastAI/feode-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`FilippoPilo/cortex-connector`** (`generic`) — `https://github.com/FilippoPilo/cortex-connector`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Fisher521/burn-mcp-server`** (`generic`) — `https://smithery.ai/servers/Fisher521/burn-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Flightmussy/castlemap-mcp`** (`generic`) — `https://thecastlemap.com/data/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Flightmussy/filmmap-mcp`** (`generic`) — `https://github.com/Flightmussy/filmmap-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Flightmussy/sunshine-atlas-mcp`** (`generic`) — `https://sunshineatlas.com/mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Flux159/mcp-server-kubernetes`** (`generic`) — `https://github.com/Flux159/mcp-server-kubernetes`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`For-Sunny/hebbian-mind-enterprise`** (`generic`) — `https://github.com/For-Sunny/hebbian-mind-enterprise`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`FoundryNet/forge-mcp`** (`generic`) — `https://github.com/FoundryNet/forge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`FoundryNet/mint-mcp`** (`generic`) — `https://github.com/FoundryNet/mint-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Frihet-io/frihet-mcp`** (`generic`) — `https://github.com/Frihet-io/frihet-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Fronesis-Labs/dcl-webhook`** (`generic`) — `https://github.com/Fronesis-Labs/dcl-webhook`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Frontier-Compute/zcash-mcp`** (`generic`) — `https://github.com/Frontier-Compute/zcash-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Fulcrum-Enterprises/verify-proof`** (`generic`) — `https://github.com/Fulcrum-Enterprises/verify-proof`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Fund-z/fundzwatch-mcp`** (`generic`) — `https://github.com/Fund-z/fundzwatch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`GT-dinuo/server-ops-mcp`** (`generic`) — `https://github.com/GT-dinuo/server-ops-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Gainium/gainium-mcp`** (`generic`) — `https://gainium-mcp--gainium.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Gatyh/3dtexel-mcp`** (`generic`) — `https://github.com/Gatyh/3dtexel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`GautamTalksDev/mcp-pin`** (`generic`) — `https://github.com/GautamTalksDev/mcp-pin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Get-Concord-AI/concord-mcp`** (`generic`) — `https://github.com/Get-Concord-AI/concord-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`GetMystAdmin/urdb-mcp`** (`generic`) — `https://github.com/GetMystAdmin/urdb-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Govcraft/rust-docs-mcp-server`** (`generic`) — `https://github.com/Govcraft/rust-docs-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Gowthaman90/mcp-bastion`** (`generic`) — `https://github.com/Gowthaman90/mcp-bastion`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Grey-Iris/easy-notion-mcp`** (`generic`) — `https://github.com/Grey-Iris/easy-notion-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HBarefoot/engram`** (`generic`) — `https://github.com/HBarefoot/engram`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Harry-027/JotDown`** (`generic`) — `https://github.com/Harry-027/JotDown`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Harusame64/desktop-touch-mcp`** (`generic`) — `https://github.com/Harusame64/desktop-touch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HasData/airbnb-mcp`** (`generic`) — `https://airbnb-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`HasData/booking-mcp`** (`generic`) — `https://booking-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`HasData/facebook-mcp`** (`generic`) — `https://facebook-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`HasData/google-trends-mcp`** (`generic`) — `https://google-trends-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`HasData/instagram-mcp`** (`generic`) — `https://instagram-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`HasData/tiktok-mcp`** (`generic`) — `https://tiktok-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`HasData/youtube-mcp`** (`generic`) — `https://youtube-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`HasData/zillow-mcp`** (`generic`) — `https://zillow-mcp--hasdata.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Hashlock-Tech/hashlock-mcp`** (`generic`) — `https://github.com/Hashlock-Tech/hashlock-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Helm-Protocol/openttt-mcp`** (`generic`) — `https://github.com/Helm-Protocol/openttt-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HelpCode-ai/anythingmcp`** (`generic`) — `https://github.com/HelpCode-ai/anythingmcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HemmaBo-se/hemmabo-mcp-server`** (`generic`) — `https://github.com/HemmaBo-se/hemmabo-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Higangssh/homebutler`** (`generic`) — `https://github.com/Higangssh/homebutler`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Himalayas-App/himalayas-mcp`** (`generic`) — `https://github.com/Himalayas-App/himalayas-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HostTracker/mcp`** (`generic`) — `https://github.com/HostTracker/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Hovsteder/powersun-tron-mcp`** (`generic`) — `https://github.com/Hovsteder/powersun-tron-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Hug0x0/mcp-reunion`** (`generic`) — `https://github.com/Hug0x0/mcp-reunion`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HughesCuit/heventure-search-mcp`** (`generic`) — `https://github.com/HughesCuit/heventure-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HuntsDesk/ve-gws`** (`generic`) — `https://github.com/HuntsDesk/ve-gws`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Hybirdss/smartest-tv`** (`generic`) — `https://github.com/Hybirdss/smartest-tv`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`IAfanasov/packzoo-mcp`** (`generic`) — `https://github.com/IAfanasov/packzoo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`IgorGanapolsky/ThumbGate`** (`generic`) — `https://github.com/IgorGanapolsky/ThumbGate`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`IgorGanapolsky/mcp-memory-gateway`** (`generic`) — `https://github.com/IgorGanapolsky/mcp-memory-gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`Ikalus1988/MisakaNet`** (`generic`) — `https://github.com/Ikalus1988/MisakaNet`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`IndigoProtocol/cardano-mcp`** (`generic`) — `https://smithery.ai/servers/IndigoProtocol/cardano-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`InnarM/blank-invoice-maker-mcp`** (`generic`) — `https://github.com/InnarM/blank-invoice-maker-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`InsForge/insforge-mcp`** (`generic`) — `https://github.com/InsForge/insforge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`InstantStudioAI/instantclips-mcp`** (`generic`) — `https://github.com/InstantStudioAI/instantclips-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`IvenKooLab/loci`** (`generic`) — `https://github.com/IvenKooLab/loci`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`JAAvila-Of/vivac`** (`generic`) — `https://github.com/JAAvila-Of/vivac`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Jackalope-Dev/allmcps-server`** (`generic`) — `https://github.com/Jackalope-Dev/allmcps-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`JaviMaligno/postgres_mcp`** (`generic`) — `https://smithery.ai/servers/JaviMaligno/postgres_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`JayOfemi/shikamaru`** (`generic`) — `https://github.com/JayOfemi/shikamaru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`JeanExtreme002/PyMemoryEditor`** (`generic`) — `https://github.com/JeanExtreme002/PyMemoryEditor`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`JeanFrancoisGagne/crapkit`** (`generic`) — `https://github.com/JeanFrancoisGagne/crapkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`JinyangWang27/people-context`** (`generic`) — `https://github.com/JinyangWang27/people-context`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Jovancoding/Network-AI`** (`generic`) — `https://github.com/Jovancoding/Network-AI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KVANTRA-dev/NOUZ-MCP`** (`generic`) — `https://github.com/KVANTRA-dev/NOUZ-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kadenzo/kadenzo-mcp`** (`generic`) — `https://github.com/Kadenzo/kadenzo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kali123411/k402-mcp`** (`generic`) — `https://github.com/Kali123411/k402-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kapeli/dash-mcp-server`** (`generic`) — `https://smithery.ai/servers/Kapeli/dash-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`KasayoDotCom/identityforge-mcp`** (`generic`) — `https://github.com/KasayoDotCom/identityforge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Khamel83/argus`** (`generic`) — `https://github.com/Khamel83/argus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kjopstad-IT/rqwstr-mcp`** (`generic`) — `https://github.com/Kjopstad-IT/rqwstr-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Komdosh/komnet`** (`generic`) — `https://github.com/Komdosh/komnet`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KryptosAI/mcp-observatory`** (`generic`) — `https://github.com/KryptosAI/mcp-observatory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Krzysztof318/MailFathom`** (`generic`) — `https://github.com/Krzysztof318/MailFathom`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kungie/gut`** (`generic`) — `https://github.com/Kungie/gut`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KuvopLLC/purroxy2`** (`generic`) — `https://github.com/KuvopLLC/purroxy2`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KyaniteLabs/Epoch`** (`generic`) — `https://github.com/KyaniteLabs/Epoch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KyaniteLabs/kinocut`** (`generic`) — `https://github.com/KyaniteLabs/kinocut`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KyuRish/mcp-dashboards`** (`generic`) — `https://github.com/KyuRish/mcp-dashboards`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kzino/vorim-mcp-server`** (`generic`) — `https://github.com/Kzino/vorim-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`L337-org/docker-mcp`** (`generic`) — `https://github.com/L337-org/docker-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LGDiMaggio/predictive-maintenance-mcp`** (`generic`) — `https://github.com/LGDiMaggio/predictive-maintenance-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Labs64/NetLicensing-MCP`** (`generic`) — `https://github.com/Labs64/NetLicensing-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LamantinAI/kaeru`** (`generic`) — `https://github.com/LamantinAI/kaeru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LamboPoewert/mcp-server-madeonsol`** (`generic`) — `https://github.com/LamboPoewert/mcp-server-madeonsol`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Leximo-AI/leximo-ai-call-assistant-mcp-server`** (`generic`) — `https://github.com/Leximo-AI/leximo-ai-call-assistant-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Lians-ai/Lians`** (`generic`) — `https://github.com/Lians-ai/Lians`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LimzoCom/limzo-mcp`** (`generic`) — `https://github.com/LimzoCom/limzo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Linkly-HQ/linkly-mcp-server`** (`generic`) — `https://github.com/Linkly-HQ/linkly-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LinuxSuRen/atest-mcp-server`** (`generic`) — `https://github.com/LinuxSuRen/atest-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LuizEduPP/Rememb`** (`generic`) — `https://github.com/LuizEduPP/Rememb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LumabyteCo/clarifyprompt-mcp`** (`generic`) — `https://smithery.ai/servers/LumabyteCo/clarifyprompt-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`LuniaKunal/mcp-twitter`** (`generic`) — `https://github.com/LuniaKunal/mcp-twitter`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Luqueee/kivgraph`** (`generic`) — `https://github.com/Luqueee/kivgraph`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`M2M-Sentinel/m2m-sentinel-sdk`** (`generic`) — `https://github.com/M2M-Sentinel/m2m-sentinel-sdk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`MAG-Cie/mcp-microsoft-todo`** (`generic`) — `https://github.com/MAG-Cie/mcp-microsoft-todo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MGM-FALCON/quelllm-mcp`** (`generic`) — `https://github.com/MGM-FALCON/quelllm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Magnemo-AI/magnemo`** (`generic`) — `https://github.com/magnemo-ai/magnemo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarceauSolutions/amazon-seller-mcp`** (`generic`) — `https://github.com/MarceauSolutions/amazon-seller-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarceauSolutions/fitness-influencer-mcp`** (`generic`) — `https://github.com/MarceauSolutions/fitness-influencer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarceauSolutions/hvac-quotes-mcp`** (`generic`) — `https://github.com/wmarceau/hvac-quotes-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarceauSolutions/md-to-pdf-mcp`** (`generic`) — `https://github.com/MarceauSolutions/md-to-pdf-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarceauSolutions/rideshare-comparison-mcp`** (`generic`) — `https://github.com/wmarceau/rideshare-comparison-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarcelRoozekrans/memorylens-mcp`** (`generic`) — `https://github.com/MarcelRoozekrans/memorylens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarcelRoozekrans/roslyn-codelens-mcp`** (`generic`) — `https://github.com/MarcelRoozekrans/roslyn-codelens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarcellM01/TinySearch`** (`generic`) — `https://github.com/TinySuiteHQ/TinySearch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MarcinDudekDev/crypto-signals-mcp`** (`generic`) — `https://github.com/MarcinDudekDev/crypto-signals-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MasterPlayspots/motionspec`** (`generic`) — `https://github.com/MasterPlayspots/motionspec`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MathiasPaulenko/wavexis-mcp`** (`generic`) — `https://github.com/MathiasPaulenko/wavexis-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MattJeff/orizn-mcp-server`** (`generic`) — `https://github.com/MattJeff/orizn-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MervinPraison/praisonai-mcp`** (`generic`) — `https://github.com/MervinPraison/praisonai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Mibayy/token-savior`** (`generic`) — `https://github.com/Mibayy/token-savior`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MikhailHal/ariadne`** (`generic`) — `https://github.com/MikhailHal/ariadne`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MikkoParkkola/mcp-gateway`** (`generic`) — `https://github.com/MikkoParkkola/mcp-gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`MikkoParkkola/nab`** (`generic`) — `https://github.com/MikkoParkkola/nab`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MindscapeHQ/mcp-server-raygun`** (`generic`) — `https://github.com/MindscapeHQ/mcp-server-raygun`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Mingye-Lu/AgenticCrawler`** (`generic`) — `https://github.com/Mingye-Lu/AgenticCrawler`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MkTurner74/botverse-mcp`** (`generic`) — `https://github.com/MkTurner74/botverse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MnemeHQ/mneme`** (`generic`) — `https://github.com/MnemeHQ/mneme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Mnemosyne-OS/Mnemosyne-Neural-OS`** (`generic`) — `https://github.com/Mnemosyne-OS/Mnemosyne-Neural-OS`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Mogacode-ma/elementor-mcp-agent`** (`generic`) — `https://github.com/Mogacode-ma/elementor-mcp-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Mohabdo21/linux-mcp`** (`generic`) — `https://github.com/Mohabdo21/linux-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MongLong0214/commitlore`** (`generic`) — `https://github.com/MongLong0214/commitlore`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MrGo2/icloud-mcp`** (`generic`) — `https://github.com/MrGo2/icloud-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MykytaStel/repopilot`** (`generic`) — `https://github.com/MykytaStel/repopilot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`NORTHTEKDevs/genome`** (`generic`) — `https://github.com/NORTHTEKDevs/genome`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`NameetP/pdfmux`** (`generic`) — `https://github.com/NameetP/pdfmux`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`NicolasMartalog/docweave-mcp`** (`generic`) — `https://github.com/NicolasMartalog/docweave-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Nikolife2016/pulsefeed-x402`** (`generic`) — `https://pulsefeed-x402--nikolife2016.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Nishant-Chaudhary5338/mcp-toolkit`** (`generic`) — `https://github.com/Nishant-Chaudhary5338/mcp-toolkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ONE8943/ai-furniture-hub`** (`generic`) — `https://github.com/ONE8943/ai-furniture-hub`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OctoTrip/rental-cars`** (`generic`) — `https://github.com/octotrip/rental-cars`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Octodamus/octodamus-core`** (`generic`) — `https://github.com/Octodamus/octodamus-core`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Octonove/crbro-memory`** (`generic`) — `https://github.com/Octonove/crbro-memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Odrin/rhizome-mcp`** (`generic`) — `https://github.com/Odrin/rhizome-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OilpriceAPI/mcp-server`** (`generic`) — `https://smithery.ai/servers/OilpriceAPI/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`OperatorNest/mcp-tools`** (`generic`) — `https://github.com/OperatorNest/mcp-tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OrbiAds/Orbiads-GAM-MCP`** (`generic`) — `https://github.com/OrbiAds/Orbiads-GAM-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OrygnsCode/Omnicord`** (`generic`) — `https://github.com/OrygnsCode/Omnicord`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`P4ST4S/mcp-audit`** (`generic`) — `https://github.com/P4ST4S/mcp-audit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PSU3D0/spreadsheet-mcp`** (`generic`) — `https://github.com/PSU3D0/spreadsheet-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PV-Bhat/vibe-check-mcp-server`** (`generic`) — `https://smithery.ai/servers/PV-Bhat/vibe-check-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`PaSympa/discord-mcp`** (`generic`) — `https://github.com/PaSympa/discord-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PackkitLabs/packkit-mcp`** (`generic`) — `https://github.com/PackkitLabs/packkit-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Pantheon-Security/notebooklm-mcp-secure`** (`generic`) — `https://github.com/Pantheon-Security/notebooklm-mcp-secure`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Paraphern/rugsnare`** (`generic`) — `https://github.com/Paraphern/rugsnare`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PascaleBeier/hitkeep`** (`generic`) — `https://github.com/pascalebeier/hitkeep`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Patent-PreCheck/patent-precheck-mcp`** (`generic`) — `https://patentprecheck.com/integrations`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`PaulieB14/graph-aave-mcp`** (`generic`) — `https://smithery.ai/servers/PaulieB14/graph-aave-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`PaulieB14/graph-polymarket-mcp`** (`generic`) — `https://smithery.ai/servers/PaulieB14/graph-polymarket-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Perseus-Computing-LLC/perseus`** (`generic`) — `https://github.com/Perseus-Computing-LLC/perseus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Perseus-Computing-LLC/perseus-vault`** (`generic`) — `https://github.com/Perseus-Computing-LLC/perseus-vault`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Perufitlife/aviation-mcp`** (`generic`) — `https://github.com/Perufitlife/aviation-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PhilipAD/health-export-mcp`** (`generic`) — `https://github.com/PhilipAD/health-export-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Piccolo123/url-manager-mcp`** (`generic`) — `https://github.com/Piccolo123/url-manager-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Poiuyhje/eqvps-mcp`** (`generic`) — `https://github.com/Poiuyhje/eqvps-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PreReason/mcp`** (`generic`) — `https://github.com/PreReason/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ProductOfAmerica/mcp-server-kicad`** (`generic`) — `https://github.com/ProductOfAmerica/mcp-server-kicad`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ProjectMakersDE/horizOn-mcp`** (`generic`) — `https://github.com/ProjectMakersDE/horizOn-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PsYcGoD/sage`** (`generic`) — `https://github.com/PsYcGoD/sage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Psalmustrack/lambdacad-mcp`** (`generic`) — `https://github.com/Psalmustrack/lambdacad-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`QuackbackIO/quackback`** (`generic`) — `https://github.com/QuackbackIO/quackback`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`REX-codebase/fable-mode`** (`generic`) — `https://github.com/REX-codebase/fable-mode`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RNVizion/rnv-color-mcp`** (`generic`) — `https://github.com/RNVizion/rnv-color-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RPER2001/rigshare-mcp`** (`generic`) — `https://github.com/RPER2001/rigshare-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RantumBits/addressintel-mcp`** (`generic`) — `https://github.com/RantumBits/addressintel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RapierCraft/alterlab-mcp-server`** (`generic`) — `https://github.com/RapierCraft/alterlab-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RedHold/diagrams-mcp-app-core`** (`generic`) — `https://github.com/RedHold/diagrams-mcp-app-core`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ReplenishRadar/MCP`** (`generic`) — `https://github.com/ReplenishRadar/MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RepoAssay/repo-test-architect`** (`generic`) — `https://github.com/repoassay/repo-test-architect`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Retio-ai/Retio-pagemap`** (`generic`) — `https://github.com/Retio-ai/Retio-pagemap`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Rheopyrin/db-access-mcp`** (`generic`) — `https://github.com/Rheopyrin/db-access-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RightOnPar-LLC/mesh-connector`** (`generic`) — `https://github.com/RightOnPar-LLC/mesh-connector`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Ritwikjoshi/ritwikjoshi-mcp`** (`generic`) — `https://github.com/Ritwikjoshi/ritwikjoshi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Roberton003/mcp-server-decisions`** (`generic`) — `https://github.com/Roberton003/mcp-server-decisions`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RohanMuppa/brightspace-mcp-server`** (`generic`) — `https://github.com/RohanMuppa/brightspace-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Rohanxmalik/Tower`** (`generic`) — `https://github.com/Rohanxmalik/Tower`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Rootly-AI-Labs/Rootly-MCP-server`** (`generic`) — `https://github.com/Rootly-AI-Labs/Rootly-MCP-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`RoscoNL/intodns-mcp-server`** (`generic`) — `https://github.com/RoscoNL/intodns-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Rul1an/assay`** (`generic`) — `https://github.com/Rul1an/assay`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SEKeener/airtreks-mcp`** (`generic`) — `https://github.com/SEKeener/airtreks-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SFHAJJI/lex`** (`generic`) — `https://github.com/SFHAJJI/lex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SHARProduction/production-metadata-mcp`** (`generic`) — `https://github.com/SHARProduction/production-metadata-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SVerITG/Metis`** (`generic`) — `https://github.com/SVerITG/Metis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SagaPeak/artifacta-mcp`** (`generic`) — `https://github.com/SagaPeak/artifacta-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SaravananJaichandar/etch-mcp`** (`generic`) — `https://github.com/SaravananJaichandar/etch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SaravananJaichandar/world-model-mcp`** (`generic`) — `https://github.com/SaravananJaichandar/world-model-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Savirinc/unfragile-mcp-server`** (`generic`) — `https://github.com/Savirinc/unfragile-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Savvly/savvly-mcp`** (`generic`) — `https://github.com/Savvly/savvly-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Search-Atlas-Group/searchatlas-mcp-server`** (`generic`) — `https://github.com/Search-Atlas-Group/searchatlas-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SecurityRonin/alaya`** (`generic`) — `https://github.com/SecurityRonin/alaya`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Semiotronika/LINZA-MCP`** (`generic`) — `https://github.com/Semiotronika/LINZA-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Sensie-agents/vibecheck`** (`generic`) — `https://somacheck.com/docs/hosted-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`SerifeusStudio/rpgmaker-xp-mcp`** (`generic`) — `https://github.com/SerifeusStudio/rpgmaker-xp-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ShekharBhardwaj/AgenticLedger`** (`generic`) — `https://github.com/ShekharBhardwaj/AgenticLedger`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ShinyDapps/l402-kit`** (`generic`) — `https://l402-kit--shinydapps.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Shweta-Mishra-ai/tokenmizer`** (`generic`) — `https://github.com/Shweta-Mishra-ai/tokenmizer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SidneyBissoli/bcb-br-mcp`** (`generic`) — `https://bcb-br-mcp--sidneybissoli.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`SidneyBissoli/ibge-br-mcp`** (`generic`) — `https://ibge-br-mcp--sidneybissoli.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`SidneyBissoli/medical-terminologies-mcp`** (`generic`) — `https://medical-terminologies-mcp--sidneybissoli.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`SiftingIO/siftingio-mcp`** (`generic`) — `https://github.com/SiftingIO/siftingio-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Silbercue/public-browser`** (`generic`) — `https://smithery.ai/servers/Silbercue/public-browser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`SimplyLiz/CodeMCP`** (`generic`) — `https://github.com/SimplyLiz/CodeMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Smartoire/paxaver-mcp`** (`generic`) — `https://github.com/Smartoire/paxaver-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SmartyJohnway/tw-market-live-data-intelligence`** (`generic`) — `https://github.com/SmartyJohnway/tw-market-live-data-intelligence`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SoapyRED/freightutils-mcp`** (`generic`) — `https://github.com/SoapyRED/freightutils-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SokolskyNikita/annas-mcp`** (`generic`) — `https://github.com/SokolskyNikita/annas-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Sowiedu/Edict`** (`generic`) — `https://smithery.ai/servers/Sowiedu/Edict`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`SpikeyCoder/website-auditor-mcp`** (`generic`) — `https://github.com/SpikeyCoder/website-auditor-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Sriram-PR/doc-scraper`** (`generic`) — `https://github.com/Sriram-PR/doc-scraper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SupplyMaven-SCR/supplymaven-mcp-server`** (`generic`) — `https://github.com/SupplyMaven-SCR/supplymaven-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SuresoftTechnologies/dvera-plugin`** (`generic`) — `https://github.com/SuresoftTechnologies/dvera-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Sweeppea-Development-Lab/sweeppea-mcp-info`** (`generic`) — `https://github.com/Sweeppea-Development-Lab/sweeppea-mcp-info`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SynapseLayer/synapse-layer`** (`generic`) — `https://github.com/SynapseLayer/synapse-layer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Synter-Media-AI/mcp-server`** (`generic`) — `https://github.com/Synter-Media-AI/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Synvoya/codeinspectus`** (`generic`) — `https://github.com/Synvoya/codeinspectus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TANTIOPE/datadog-mcp-server`** (`generic`) — `https://github.com/TANTIOPE/datadog-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TKMD/ReftrixMCP`** (`generic`) — `https://github.com/TKMD/ReftrixMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Tanshaydar/Quartermaster`** (`generic`) — `https://github.com/Tanshaydar/Quartermaster`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TantiE100/pktctl`** (`generic`) — `https://github.com/TantiE100/pktctl`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Tapetide-hq/nse-bse-indian-stock-market-data-mcp`** (`generic`) — `https://github.com/Tapetide-hq/nse-bse-indian-stock-market-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TargetGrps/partelisto-mcp`** (`generic`) — `https://github.com/TargetGrps/partelisto-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TechDocsStudio/biel-mcp`** (`generic`) — `https://github.com/TechDocsStudio/biel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TeleAI-UAGI/telemem`** (`generic`) — `https://github.com/TeleAI-UAGI/telemem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Terobyte/librarian-cli`** (`generic`) — `https://github.com/Terobyte/librarian-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`The-40-Thieves/obsidian-tc`** (`generic`) — `https://github.com/The-40-Thieves/obsidian-tc`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TheBestCo/bestprice-mcp`** (`generic`) — `https://github.com/TheBestCo/bestprice-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TheBlueHouse75/hermes-action-bridge`** (`generic`) — `https://github.com/TheBlueHouse75/hermes-action-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TheGoatPsy/mneme`** (`generic`) — `https://github.com/TheGoatPsy/mneme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TheWhiteWater/tube-bridge`** (`generic`) — `https://smithery.ai/servers/TheWhiteWater/tube-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Thezenmonster/agentmem`** (`generic`) — `https://github.com/Thezenmonster/agentmem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Thezenmonster/agentscore-mcp-server`** (`generic`) — `https://github.com/Thezenmonster/agentscore-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ThinAirTelematics/thinair-data`** (`generic`) — `https://data.thinair.co`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ThinAirTelematics/thinair-geo`** (`generic`) — `https://geo.thinair.co`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ThinkneoAI/mcp-server`** (`generic`) — `https://github.com/ThinkneoAI/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ThomasMarches/substrate-mcp-rs`** (`generic`) — `https://github.com/ThomasMarches/substrate-mcp-rs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Tokenectomy-Labs/Tokenectomy`** (`generic`) — `https://github.com/Tokenectomy-Labs/Tokenectomy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TollboothLabs/ai-tool-optimizer`** (`generic`) — `https://github.com/TollboothLabs/ai-tool-optimizer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TomD4vs/prumo`** (`generic`) — `https://github.com/TomD4vs/prumo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Top-Celestial-Company-Ltd/DROS-VajraClaw-Hacker`** (`generic`) — `https://github.com/Top-Celestial-Company-Ltd/DROS-VajraClaw-Hacker`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TyKolt/kremis`** (`generic`) — `https://github.com/TyKolt/kremis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`UPinar/contrastapi`** (`generic`) — `https://github.com/UPinar/contrastapi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`UnMarkdown/mcp-server`** (`generic`) — `https://github.com/UnMarkdown/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`UnboundCompute/lachesis`** (`generic`) — `https://github.com/UnboundCompute/lachesis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`VOYAGER-Inc/excel-vision-mcp`** (`generic`) — `https://github.com/VOYAGER-Inc/excel-vision-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Val7h/dados-b3-mcp`** (`generic`) — `https://github.com/Val7h/dados-b3-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Vasilispapg/claude-handoff`** (`generic`) — `https://github.com/Vasilispapg/claude-handoff`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`VerificateAI/verificate-mcp-quickstart`** (`generic`) — `https://github.com/VerificateAI/verificate-mcp-quickstart`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`VertexStudio/developer`** (`generic`) — `https://github.com/VertexStudio/developer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`VictoriaMetrics-Community/mcp-victorialogs`** (`generic`) — `https://github.com/VictoriaMetrics/mcp-victorialogs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`VictoriaMetrics-Community/mcp-victoriametrics`** (`generic`) — `https://github.com/VictoriaMetrics/mcp-victoriametrics`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`VirajMishra1/wander-agent`** (`generic`) — `https://github.com/VirajMishra1/wander-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Vladimir-Human/humanizer-ru`** (`generic`) — `https://github.com/Vladimir-Human/humanizer-ru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`VonderVuflya/Yggdrasil`** (`generic`) — `https://github.com/VonderVuflya/yggdrasil`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Vortx-AI/emem`** (`generic`) — `https://github.com/Vortx-AI/emem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`WaveSpeedAI/mcp-server`** (`generic`) — `https://github.com/WaveSpeedAI/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`WenyuChiou/research-hub`** (`generic`) — `https://github.com/WenyuChiou/research-hub`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`WilliamSmithEdward/xlide_mcp`** (`generic`) — `https://github.com/WilliamSmithEdward/xlide_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Wolfe-Jam/claude-faf-mcp`** (`generic`) — `https://claude-faf-mcp--wolfe-jam.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Wolfe-Jam/faf-mcp`** (`generic`) — `https://smithery.ai/servers/Wolfe-Jam/faf-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Woobox/hatchable-mcp`** (`generic`) — `https://hatchable.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Wopee-io/wopee-mcp`** (`generic`) — `https://github.com/Wopee-io/wopee-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Wynelson94/longhand`** (`generic`) — `https://github.com/Wynelson94/longhand`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`XWeaponX7/rundida-mcp`** (`generic`) — `https://github.com/XWeaponX7/rundida-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`XZXZZX-Ai/bilibili-mcp`** (`generic`) — `https://github.com/XZXZZX-Ai/bilibili-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Xquik-dev/x-twitter-scraper`** (`generic`) — `https://github.com/Xquik-dev/x-twitter-scraper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`YBSbarker/barker-stablecoin-skills`** (`generic`) — `https://github.com/YBSbarker/barker-stablecoin-skills`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`YGao2005/scholar-feed-mcp`** (`generic`) — `https://github.com/YGao2005/scholar-feed-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`YS-projectcalc/agent-cold-email`** (`generic`) — `https://github.com/YS-projectcalc/agent-cold-email`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Yocoolab/mcp-server`** (`generic`) — `https://github.com/Yocoolab/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`YuliiaKovalova/dotnet-template-mcp`** (`generic`) — `https://github.com/YuliiaKovalova/dotnet-template-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Zacccck/Claude-MCP-Read-Email-Attachments`** (`generic`) — `https://github.com/Zacccck/Claude-MCP-Read-Email-Attachments`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Zenidp/solinkify-mcp`** (`generic`) — `https://solinkify.com/docs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`Zydanny/x402-intel-engine`** (`generic`) — `https://github.com/Zydanny/x402-intel-engine`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aadilr/changethisfile-mcp`** (`generic`) — `https://github.com/aadilr/changethisfile-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ac.inference.sh/mcp`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ac.snag/snag`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ac.tandem/docs-mcp`** (`generic`) — `https://github.com/frumu-ai/tandem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`academy.apexai/apex-ai-academy`** (`generic`) — `https://github.com/ApexAI-Academy/sample-agents`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`acamolese/google-search-console-mcp`** (`generic`) — `https://github.com/acamolese/google-search-console-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`achiya-automation/safari-mcp`** (`generic`) — `https://smithery.ai/servers/achiya-automation/safari-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`activeing123/mcptoon`** (`generic`) — `https://github.com/activeing123/mcptoon`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ad.getle/leads`** (`generic`) — `https://github.com/Adgrowofficial/getlead-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ad.inside/inside-ads`** (`generic`) — `https://inside.ad`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`adancurusul/embedded-debugger-mcp`** (`generic`) — `https://github.com/adancurusul/embedded-debugger-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`adancurusul/serial-mcp-server`** (`generic`) — `https://github.com/adancurusul/serial-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`adelinamart/robrain`** (`generic`) — `https://github.com/adelinamart/robrain`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`adityatiwari101104/contribos`** (`generic`) — `https://github.com/adityatiwari101104/contribos`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ae.brainy/grocery-prices`** (`generic`) — `https://prices.brainy.ae/developers.html`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.datadubai/dubai-real-estate`** (`generic`) — `https://github.com/datadubai/dubai-real-estate-dld`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ae.easyvoice/tts`** (`generic`) — `https://easyvoice.ae/tts-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.genosys/genosys`** (`generic`) — `https://genosys.ae/ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.grovisor/grotax`** (`generic`) — `https://grovisor.ae/tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.plantguide/dubai-gardening`** (`generic`) — `https://plantguide.ae/agents`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.projectory/mcp`** (`generic`) — `https://projectory.ae/mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.propick/propick`** (`generic`) — `https://propick.ae`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.waggle/fenlight`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ae.waggle/vera`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aeoess/agent-passport-mcp`** (`generic`) — `https://github.com/aeoess/agent-passport-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aeoess/mingle-mcp`** (`generic`) — `https://github.com/aeoess/mingle-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aero.events/events`** (`generic`) — `https://events.aero`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`afanasenkoa/instavision-mcp`** (`generic`) — `https://github.com/afanasenkoa/instavision-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`afghanfansmedia-ai/songcheck-mcp`** (`generic`) — `https://github.com/afghanfansmedia-ai/songcheck-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`afiliptsov/pickadive-mcp`** (`generic`) — `https://github.com/afiliptsov/pickadive-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`africa.ugc/ugc`** (`generic`) — `https://ugc.africa`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ag.hood/name-service`** (`generic`) — `https://www.hood.ag/docs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agency.goji/goji`** (`generic`) — `https://github.com/agency.goji/goji`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agency.justidea/justidea-agency`** (`generic`) — `https://justidea.agency/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agency.lona/trading`** (`generic`) — `https://github.com/agency.lona/trading`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agency.ottobot/business-contact-finder`** (`generic`) — `https://github.com/modelcontextprotocol/registry`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agency.ottobot/contractor-license-changes`** (`generic`) — `https://github.com/modelcontextprotocol/registry`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agency.ottobot/licensed-house-painters`** (`generic`) — `https://github.com/modelcontextprotocol/registry`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agency.thebureauoflostcontext/bureau-public`** (`generic`) — `https://thebureauoflostcontext.agency`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agentcentral-to/agent-central-mcp`** (`generic`) — `https://github.com/agentcentral-to/agent-central-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agenticempire/axint`** (`generic`) — `https://github.com/agenticempire/axint`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agentmail-to/agentmail-mcp`** (`generic`) — `https://github.com/agentmail-to/agentmail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aggrete/aggrete`** (`generic`) — `https://github.com/aggrete/aggrete`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ahmed-khalil-hafsi/P2Predict`** (`generic`) — `https://github.com/ahmed-khalil-hafsi/P2Predict`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.0si/disclosures`** (`generic`) — `https://0si.ai/developers.html#mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.1325/mcp`** (`generic`) — `https://github.com/ai.1325/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.1clickwebsite/mcp`** (`generic`) — `https://www.1clickwebsite.ai/docs/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.1court.state/court-directory`** (`generic`) — `https://state.1court.ai/developers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.69ai/69ai`** (`generic`) — `https://69ai.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aard/aard`** (`generic`) — `https://aard.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aarna/atars-mcp`** (`generic`) — `https://mcp.aarna.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.abmeter/abmeter`** (`generic`) — `https://github.com/ai.abmeter/abmeter`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.actwise/ideation`** (`generic`) — `https://actwise.ai/home/ideation`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adadvisor/mcp-server`** (`generic`) — `https://www.adadvisor.ai?utm_source=mcp-registry`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adako/ads`** (`generic`) — `https://github.com/ruslan2027/adako-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.adkix/adkix`** (`generic`) — `https://adkix.ai/developers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adoraads/beauty`** (`generic`) — `https://github.com/ai.adoraads/beauty`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.adplane/google-ads`** (`generic`) — `https://adplane.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adrails/adrails`** (`generic`) — `https://adrails.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adramp/google-ads`** (`generic`) — `https://github.com/ai.adramp/google-ads`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.adrio/adrio`** (`generic`) — `https://adrio.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adsap/adsap`** (`generic`) — `https://adsap.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adside/adside`** (`generic`) — `https://www.adside.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.advisorsai/service-navigator`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.advisorsai/store-readiness`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.adweave/meta-ads-mcp`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aetherya/mcp`** (`generic`) — `https://aetherya.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aeviamodeler/aevia`** (`generic`) — `https://aeviamodeler.ai/mcp?src=mcp-registry`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.afg/afg`** (`generic`) — `https://afg.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.afmr/discovery`** (`generic`) — `https://afmr.ai/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agenlify/catalog`** (`generic`) — `https://agenlify.ai/developers/mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agent-bev/bev-door`** (`generic`) — `https://agent-bev.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentberg/agentberg`** (`generic`) — `https://github.com/Agentberg/agentberg`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentboard/agentboard`** (`generic`) — `https://www.agentboard.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentdm/agentdm`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentese.lifeclaw/lifeclaw`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentgates/mcp`** (`generic`) — `https://agentgates.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentic-news/mcp`** (`generic`) — `https://github.com/u00dxk2/agentic-news`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agenticbooks/books`** (`generic`) — `https://github.com/AgenticBooks/agenticbooks`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agenticfabricationnetwork/ufp`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agenticplug/agent-ready-report`** (`generic`) — `https://agenticplug.ai/agent-ready-report`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agenticshelf/graffeo`** (`generic`) — `https://www.graffeo.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agenticshelf/mcp`** (`generic`) — `https://github.com/vboykoCTO/agentic-shelf`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agenticshelf/puroair`** (`generic`) — `https://getpuroair.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentlookups/counterscript`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentlookups/greenlight`** (`generic`) — `https://solar.agentlookups.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentlookups/groundrules`** (`generic`) — `https://law.agentlookups.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentlookups/groundtruth`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentlookups/overassessed`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentlookups/plumbline`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentlookups/spoon-scout`** (`generic`) — `https://food.agentlookups.ai/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentmesh/mesh`** (`generic`) — `https://agentmesh.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentrapay/agentra`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentroam/agentroam`** (`generic`) — `https://github.com/ai.agentroam/agentroam`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentsindex/mcp`** (`generic`) — `https://agentsindex.ai/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentui/apps`** (`generic`) — `https://agentui.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agentutility/mcp-agentops`** (`generic`) — `https://github.com/ai.agentutility/mcp-agentops`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-bestiary`** (`generic`) — `https://github.com/ai.agentutility/mcp-bestiary`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-browser-workflow`** (`generic`) — `https://github.com/ai.agentutility/mcp-browser-workflow`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-compose`** (`generic`) — `https://github.com/ai.agentutility/mcp-compose`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-edge-finance`** (`generic`) — `https://github.com/ai.agentutility/mcp-edge-finance`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-edge-market`** (`generic`) — `https://github.com/ai.agentutility/mcp-edge-market`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-locale`** (`generic`) — `https://github.com/ai.agentutility/mcp-locale`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-matchpoint`** (`generic`) — `https://github.com/ai.agentutility/mcp-matchpoint`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-mediakit`** (`generic`) — `https://github.com/ai.agentutility/mcp-mediakit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-model-router`** (`generic`) — `https://github.com/ai.agentutility/mcp-model-router`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`ai.agentutility/mcp-prooflayer`** (`generic`) — `https://github.com/ai.agentutility/mcp-prooflayer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-retail`** (`generic`) — `https://github.com/ai.agentutility/mcp-retail`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-rollforge`** (`generic`) — `https://github.com/ai.agentutility/mcp-rollforge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-statline`** (`generic`) — `https://github.com/ai.agentutility/mcp-statline`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-synthforge`** (`generic`) — `https://github.com/ai.agentutility/mcp-synthforge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-web-probe`** (`generic`) — `https://github.com/ai.agentutility/mcp-web-probe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentutility/mcp-wordmint`** (`generic`) — `https://github.com/ai.agentutility/mcp-wordmint`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.agentxray/mcp`** (`generic`) — `https://agentxray.ai/connect`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aginera/preconstruction`** (`generic`) — `https://aginera.ai/agents`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.agothe.mcp-chatgpt/agent-contract-preflight`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.ai-advisors/mcp`** (`generic`) — `https://www.ai-advisors.ai/integrations/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.ai-akari/agent-trust-receipt`** (`generic`) — `https://github.com/AInoAKARI/AInoAKARI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.ai-akari/one-minute-akari`** (`generic`) — `https://github.com/ai.ai-akari/one-minute-akari`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.ai-portal/ai-portal`** (`generic`) — `https://www.ai-portal.ai/developers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aidoo/aidoo`** (`generic`) — `https://github.com/eantoniomota/aidoo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.aient/mcp`** (`generic`) — `https://github.com/ai.aient/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.airshelf/catalog`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aislabs/cve`** (`generic`) — `https://aislabs.ai/gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aislabs/gateway`** (`generic`) — `https://aislabs.ai/gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aislabs/recorder`** (`generic`) — `https://aislabs.ai/gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aitopia/aitopia`** (`generic`) — `https://github.com/AITOPIAai/skills`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.aivikings/registrar`** (`generic`) — `https://aivikings.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aivonic/mcp`** (`generic`) — `https://aivonic.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.akkrudata/akkrudata`** (`generic`) — `https://www.akkrudata.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.alcock/arena`** (`generic`) — `https://alcock.ai/arena`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.alphabazaar/arena`** (`generic`) — `https://www.alphabazaar.ai/arena`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.alphacreek/alphacreek-mcp`** (`generic`) — `https://www.alphacreek.ai/mcp-docs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.alphaquantlabs/propertycheck`** (`generic`) — `https://agents.alphaquantlabs.ai/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.alpic.alpix/Alpix`** (`generic`) — `https://alpic.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.alpic.mcp/alpic-mcp`** (`generic`) — `https://alpic.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.alpic.test/test-mcp-server`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.ambix/ambix`** (`generic`) — `https://github.com/ai.ambix/ambix`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.amdahl/amdahl`** (`generic`) — `https://docs.amdahl.ai/mcp/connect-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.analyticslegends/sap-analytics`** (`generic`) — `https://analyticslegends.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.anha/resolver`** (`generic`) — `https://anha.ai/connect`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.ankra/platform`** (`generic`) — `https://docs.ankra.ai/platform/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.annsa/annsa`** (`generic`) — `https://annsa.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.anomalyarmor/armor-mcp`** (`generic`) — `https://github.com/anomalyarmor/agents`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.anywhereintelligence/switchboard`** (`generic`) — `https://switchboard.anywhereintelligence.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.anzenna/anzenna`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.apatero/studio`** (`generic`) — `https://apatero.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.apir/verify`** (`generic`) — `https://apir.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.appdeploy/deploy-app`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aqta/seal`** (`generic`) — `https://app.aqta.ai/demo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.arabickeyboard/name-calligraphy`** (`generic`) — `https://arabickeyboard.ai/write-my-name-in-arabic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.arcdeck/arcdeck`** (`generic`) — `https://arcdeck.ai/integrations`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.archome/archome`** (`generic`) — `https://archome.ai/connect`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.arclan/registry`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.arcreport/ask`** (`generic`) — `https://www.arcreport.ai/for-agents`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.arcreport/mcp`** (`generic`) — `https://www.arcreport.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.argushq/enforcement-database`** (`generic`) — `https://github.com/ai.argushq/enforcement-database`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.arihaan/jobs`** (`generic`) — `https://jobs.arihaan.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.arketo/arketo`** (`generic`) — `https://arketo.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.artemisgtm/gtm-engineer`** (`generic`) — `https://artemisgtm.ai/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.artidrop/artidrop`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.askatria/atria`** (`generic`) — `https://askatria.ai/api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.askgina/gina`** (`generic`) — `https://github.com/askgina/plugins`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.askgina/perps`** (`generic`) — `https://github.com/askgina/plugins`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.askgina/predictions`** (`generic`) — `https://github.com/askgina/plugins`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.askgina/spot`** (`generic`) — `https://github.com/askgina/plugins`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.askline/askline`** (`generic`) — `https://askline.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.askmiles/catalog`** (`generic`) — `https://askmiles.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.askwatch/gsc`** (`generic`) — `https://askwatch.ai/free-tools/google-search-console-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.askyouraudience/ask-your-audience`** (`generic`) — `https://github.com/Ask-Your-Audience/askyouraudience`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.asrm/asrm`** (`generic`) — `https://asrm.ai/plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.assetlog/assetlog`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.astrofabric/mcp`** (`generic`) — `https://www.astrofabric.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.atako/mcp`** (`generic`) — `https://github.com/ai.atako/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.atalay/mcp`** (`generic`) — `https://mcp.atalay.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.atdev/supershopping`** (`generic`) — `https://github.com/ai.atdev/supershopping`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.athaus/immobiliensuche`** (`generic`) — `https://docs.athaus.ai/en/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.athaus/makler`** (`generic`) — `https://docs.athaus.ai/en/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.athenahq/mcp`** (`generic`) — `https://docs.athenahq.ai/api-reference/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.atlaso/mcp`** (`generic`) — `https://github.com/ai.atlaso/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.atlasverified/atlas-mcp`** (`generic`) — `https://atlasverified.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.atlier/project-desk`** (`generic`) — `https://github.com/ai.atlier/project-desk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.attestari/attestari`** (`generic`) — `https://attestari.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.audiomap/audiomap`** (`generic`) — `https://audiomap.ai/en/docs/mcp-setup`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.audiopod/audiopod`** (`generic`) — `https://github.com/ai.audiopod/audiopod`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.audiopod/audiopod-core`** (`generic`) — `https://github.com/ai.audiopod/audiopod-core`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.augenix/build`** (`generic`) — `https://augenix.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.augmentev/paseo`** (`generic`) — `https://augmentev.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.augworlds/travel-world`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.aunoo/agentic`** (`generic`) — `https://agentic.aunoo.ai/agentic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.auteng/docs`** (`generic`) — `https://auteng.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.auteng/mcp`** (`generic`) — `https://github.com/ai.auteng/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.authoryze/authoryze`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.autoblogging/autoblogging`** (`generic`) — `https://autoblogging.ai/brand-facts/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.autonomad/travel`** (`generic`) — `https://github.com/Autonomad1/autonomad1`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.autoposter/autoposter`** (`generic`) — `https://autoposter.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.autoposting/autoposting`** (`generic`) — `https://docs.autoposting.ai/mcp/overview`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.autorfp/mcp`** (`generic`) — `https://github.com/AutoRFP/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.autovox/autovox`** (`generic`) — `https://autovox.ai/assistants`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.autron/autron`** (`generic`) — `https://autron.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.avasis/quant-research`** (`generic`) — `https://github.com/abhayjnayakk/quant-integrity`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.aviado/health`** (`generic`) — `https://github.com/ai.aviado/health`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.awardcast/federal-contracts`** (`generic`) — `https://awardcast.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.axonagentic/neuroautomata`** (`generic`) — `https://neuroautomata.axonagentic.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.azquo/azquo`** (`generic`) — `https://azquo.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/ai-media-studio`** (`generic`) — `https://b77.ai/apps/ai-media-studio`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/apple-search-ads`** (`generic`) — `https://b77.ai/apps/apple-search-ads`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/chess-results`** (`generic`) — `https://b77.ai/apps/chess-results`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/feedback`** (`generic`) — `https://b77.ai/apps/feedback`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/fibalo`** (`generic`) — `https://b77.ai/apps/fibalo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/file-storage`** (`generic`) — `https://b77.ai/apps/file-storage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/google-ads`** (`generic`) — `https://b77.ai/apps/google-ads`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/google-news`** (`generic`) — `https://b77.ai/apps/google-news`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/google-search-console`** (`generic`) — `https://b77.ai/apps/google-search-console`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/kinnovis-storage`** (`generic`) — `https://b77.ai/apps/kinnovis-storage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/knowledge-base`** (`generic`) — `https://b77.ai/apps/knowledge-base`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/nightscout`** (`generic`) — `https://b77.ai/apps/nightscout`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/seo-content-factory`** (`generic`) — `https://b77.ai/apps/seo-content-factory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/teamwork`** (`generic`) — `https://b77.ai/apps/teamwork`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/time`** (`generic`) — `https://b77.ai/apps/time`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.b77/web-analytics`** (`generic`) — `https://b77.ai/apps/web-analytics`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.backrow/backrow`** (`generic`) — `https://backrow.ai/developers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.balancos/mcp`** (`generic`) — `https://balancos.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.bamf/bamf`** (`generic`) — `https://github.com/houstongolden/bamfaiapp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bankee/inferventis-mcp`** (`generic`) — `https://github.com/Bankee-ai/inferventis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bankrolled/agent-hub`** (`generic`) — `https://bankrolled.ai/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.bareun/bareun`** (`generic`) — `https://github.com/ai.bareun/bareun`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.baselight/baselight`** (`generic`) — `https://baselight.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.baseray/baseray`** (`generic`) — `https://baseray.ai/docs/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.basethread/basethread`** (`generic`) — `https://github.com/navbuildz/basethread-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bassethound/bassethound`** (`generic`) — `https://bassethound.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.bcited/bcited`** (`generic`) — `https://github.com/cmunkres/bcited-cf`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.beatbandit/beatbandit`** (`generic`) — `https://beatbandit.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.beatra/beatra`** (`generic`) — `https://beatra.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.beevr/beevr`** (`generic`) — `https://beevr.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.beket/audit`** (`generic`) — `https://beket.ai/guides/using-the-beket-ai-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.beliefstate/investor-research`** (`generic`) — `https://docs.beliefstate.ai/guides/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.benchgecko/benchgecko`** (`generic`) — `https://github.com/BenchGecko/datasets`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.benroberts/b4-index`** (`generic`) — `https://benroberts.ai/directory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.betslipdoctor/mcp`** (`generic`) — `https://github.com/opspot-ai/betslipdoctor`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.betterpost/server`** (`generic`) — `https://github.com/betterpost/betterpost-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bezal/local-commerce`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.bidclub/bidclub`** (`generic`) — `https://bidclub.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.biddeed/biddeed-mcp`** (`generic`) — `https://github.com/breverdbidder/cli-anything-biddeed`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.biel/biel-ai`** (`generic`) — `https://github.com/TechDocsStudio/biel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bindry/bindry`** (`generic`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.bithuman/characters`** (`generic`) — `https://www.bithuman.ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.bitroad/bitroad`** (`generic`) — `https://github.com/bitroadai/bitroad-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bittlebits/bittlebits`** (`generic`) — `https://github.com/bittlebitsai/bittlebits-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bizmoon/regulatory`** (`generic`) — `https://github.com/uofuonye/bizmoon-plugins`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai.bodenrichtwert/mcp`** (`generic`) — `https://bodenrichtwert.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai.bolthub/mcp`** (`generic`) — `https://github.com/signaltech-org/bolthub-sdk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aiulms/codelattice`** (`generic`) — `https://github.com/aiulms/codelattice`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ajipurn/fida`** (`generic`) — `https://github.com/ajipurn/fida`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ajmessina/smarterdeck-mcp-connector`** (`generic`) — `https://github.com/ajmessina/smarterdeck-mcp-connector`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alchemyplatform/alchemy-mcp-server`** (`generic`) — `https://github.com/alchemyplatform/alchemy-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alejooroncoy/campus-cli`** (`generic`) — `https://github.com/alejooroncoy/campus-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alex-on-ai/WebReaper`** (`generic`) — `https://github.com/alex-on-ai/WebReaper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alexar76/aimarket-plugins`** (`generic`) — `https://github.com/alexar76/aimarket-plugins`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alexar76/warden`** (`generic`) — `https://github.com/alexar76/warden`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alexbypa/github-projectpulse-mcp`** (`generic`) — `https://smithery.ai/servers/alexbypa/github-projectpulse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alexey-pelykh/lhremote`** (`generic`) — `https://github.com/alexey-pelykh/lhremote`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alexsu1212/freebazi-mcp`** (`generic`) — `https://github.com/alexsu1212/freebazi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alibaizhanov/mengram`** (`generic`) — `https://github.com/alibaizhanov/mengram`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alttextai/alttext-mcp`** (`generic`) — `https://github.com/alttextai/alttext-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ami-guru/x402-scraper-engine`** (`generic`) — `https://github.com/ami-guru/x402-scraper-engine`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`amos689/paper-preflight`** (`generic`) — `https://github.com/amos689/paper-preflight`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`andreas-roennestad/openhive-mcp`** (`generic`) — `https://github.com/andreas-roennestad/openhive-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`andreilungeanu/cursor-delegate-mcp`** (`generic`) — `https://github.com/andreilungeanu/cursor-delegate-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`andrelaptenok/redmine-mcp-stdio`** (`generic`) — `https://github.com/andrelaptenok/redmine-mcp-stdio`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`andresolbach/nodriver-mcp-server`** (`generic`) — `https://github.com/andresolbach/nodriver-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`andrewbabu/loggly-mcp`** (`generic`) — `https://github.com/andrewbabu/loggly-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`antonio-mello-ai/mcp-pfsense`** (`generic`) — `https://github.com/antonio-mello-ai/mcp-pfsense`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`antonio-mello-ai/mcp-proxmox`** (`generic`) — `https://github.com/antonio-mello-ai/mcp-proxmox`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`antvis/mcp-server-chart`** (`generic`) — `https://github.com/antvis/mcp-server-chart`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`anuragsync78/subctx-connector`** (`generic`) — `https://github.com/anuragsync78/subctx-connector`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`anypost/emailmd`** (`generic`) — `https://github.com/anypost/emailmd`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ap311036/ews-meeting-mcp`** (`generic`) — `https://github.com/ap311036/ews-meeting-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`api7/aisix`** (`generic`) — `https://github.com/api7/aisix`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`apiarya/wemo-mcp-server`** (`generic`) — `https://wemo-mcp-server--apiarya.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`apify/actors-mcp-server`** (`generic`) — `https://github.com/apify/apify-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`arbengine/mailbox-mcp`** (`generic`) — `https://mailbox.bot/mcp-install`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`archoor/painspotter-mcp`** (`generic`) — `https://github.com/archoor/painspotter-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aresyn/codex-control-plane-mcp`** (`generic`) — `https://github.com/aresyn/codex-control-plane-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ark-forge/mcp-eu-ai-act`** (`generic`) — `https://github.com/ark-forge/mcp-eu-ai-act`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`arsentev-ai/contextburn`** (`generic`) — `https://github.com/arsentev-ai/contextburn`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`artemchuikin/youtube-mcp`** (`generic`) — `https://github.com/artemchuikin/youtube-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`artgas1/yandex-metrika-mcp`** (`generic`) — `https://github.com/artgas1/yandex-metrika-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`arthiqlabs/vedaksha`** (`generic`) — `https://github.com/arthiqlabs/vedaksha`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`arvindand/maven-tools-mcp`** (`generic`) — `https://github.com/arvindand/maven-tools-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ashev87/propstack-mcp`** (`generic`) — `https://github.com/ashev87/propstack-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ashishsinha1602/schemagate`** (`generic`) — `https://github.com/ashishsinha1602/schemagate`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ashlesh-t/cognirepo`** (`generic`) — `https://github.com/ashlesh-t/cognirepo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`askads/mcp-vk-ads`** (`generic`) — `https://github.com/askads/mcp-vk-ads`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`askads/mcp-yandex-direct`** (`generic`) — `https://github.com/askads/mcp-yandex-direct`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`askads/mcp-yandex-metrica`** (`generic`) — `https://github.com/askads/mcp-yandex-metrica`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`askads/mcp-yandex-wordstat`** (`generic`) — `https://github.com/askads/mcp-yandex-wordstat`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`astafford8488/agentaegis-mcp`** (`generic`) — `https://github.com/astafford8488/agentaegis-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`astandrik/codex-pets`** (`generic`) — `https://pets.ydb-qdrant.tech/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`asterwise/asterwise-mcp`** (`generic`) — `https://github.com/asterwise/asterwise-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atakanelik34/Bilinc`** (`generic`) — `https://github.com/atakanelik34/Bilinc`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomno-labs/mcp-egrul`** (`generic`) — `https://github.com/atomno-mcp/mcp-egrul`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomno-labs/mcp-fns-check`** (`generic`) — `https://github.com/atomno-mcp/mcp-fns-check`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomno-mcp/mcp-egrul`** (`generic`) — `https://github.com/atomno-mcp/mcp-egrul`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomno-mcp/mcp-fns-check`** (`generic`) — `https://github.com/atomno-mcp/mcp-fns-check`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomno-mcp/mcp-fssp`** (`generic`) — `https://github.com/atomno-mcp/mcp-fssp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomno-mcp/mcp-zakupki`** (`generic`) — `https://github.com/atomno-mcp/mcp-zakupki`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`auroracapital/upres-cli`** (`generic`) — `https://github.com/auroracapital/upres-cli.git`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aurumflux20/effectfence`** (`generic`) — `https://github.com/aurumflux20/effectfence`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aurumflux20/seal`** (`generic`) — `https://github.com/aurumflux20/seal`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`autokeren/ghostfox`** (`generic`) — `https://github.com/autokeren/ghostfox`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`autonsol/sol-mcp`** (`generic`) — `https://sol-mcp--autonsol.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`avotsai/avots-mcp`** (`generic`) — `https://github.com/avotsai/avots-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`awarselabs/awarse-mcp`** (`generic`) — `https://github.com/awarselabs/awarse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`awkoy/notion-mcp-server`** (`generic`) — `https://github.com/awkoy/notion-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`axionquant/mcp-server`** (`generic`) — `https://github.com/axionquant/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aybelatchane/mcp-server-terminal`** (`generic`) — `https://github.com/aybelatchane/mcp-server-terminal`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ayo-nci/bulkrender-mcp`** (`generic`) — `https://github.com/ayo-nci/bulkrender-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`azmartone67/dchub-mcp-server`** (`generic`) — `https://github.com/azmartone67/dchub-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`babyblueviper1/invinoveritas`** (`generic`) — `https://invinoveritas.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`back1ply/agent-skill-loader`** (`generic`) — `https://github.com/back1ply/agent-skill-loader`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bakyang2/kr-crypto-intelligence`** (`generic`) — `https://github.com/bakyang2/kr-crypto-intelligence`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bankstatemently/plugins`** (`generic`) — `https://github.com/bankstatemently/plugins`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`baobabcat/demandscope`** (`generic`) — `https://github.com/baobabcat/demandscope`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`baphometnxg/aloha-fyi-mcp`** (`generic`) — `https://github.com/baphometnxg/aloha-fyi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`barkermoney/barker-mcp`** (`generic`) — `https://github.com/barkermoney/barker-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bborota/cairn-mcp`** (`generic`) — `https://github.com/bborota/cairn-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bch1212/agentfetch-mcp`** (`generic`) — `https://github.com/bch1212/agentfetch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`beardfaceguy/daimonos`** (`generic`) — `https://github.com/beardfaceguy/daimonos`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`beckettlab/beckett-godot-mcp`** (`generic`) — `https://github.com/beckettlab/beckett-godot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`behrensd/mcp-firewall`** (`generic`) — `https://github.com/behrensd/mcpwall`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`benmonopoli/open-greenhouse-mcp`** (`generic`) — `https://github.com/benmonopoli/open-greenhouse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bevanding/signaldaemon`** (`generic`) — `https://github.com/bevanding/signaldaemon`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bgaze/snapstack-server`** (`generic`) — `https://github.com/bgaze/snapstack-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bguillow-rgb/itin-finance-mcp`** (`generic`) — `https://github.com/bguillow-rgb/itin-finance-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bguillow-rgb/percolate-mcp`** (`generic`) — `https://github.com/bguillow-rgb/percolate-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bguillow-rgb/perfume-picks-mcp`** (`generic`) — `https://github.com/bguillow-rgb/perfume-picks-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bguillow-rgb/pour-picks-mcp`** (`generic`) — `https://github.com/bguillow-rgb/pour-picks-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bh-rat/context-awesome`** (`generic`) — `https://github.com/bh-rat/context-awesome`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bighippoman/intercept-mcp`** (`generic`) — `https://github.com/bighippoman/intercept-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`billster45/mcp-chatgpt-responses`** (`generic`) — `https://github.com/billster45/mcp-chatgpt-responses`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bitcompare/mcp-server`** (`generic`) — `https://github.com/bitcompare/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bitrise-io/bitrise-mcp`** (`generic`) — `https://github.com/bitrise-io/bitrise-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`blackwell-systems/agent-lsp`** (`generic`) — `https://github.com/blackwell-systems/agent-lsp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`blinkingbit-oss/execkit`** (`generic`) — `https://github.com/blinkingbit-oss/execkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bluetieroperations-create/blackwall-mcp`** (`generic`) — `https://github.com/bluetieroperations-create/blackwall-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bobbyrgoldsmith/quarterback`** (`generic`) — `https://github.com/bobbyrgoldsmith/quarterback`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bodyegypt/lobbyvoices-mcp`** (`generic`) — `https://lobbyvoices.com/developers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`bolivian-peru/baozi-mcp`** (`generic`) — `https://github.com/bolivian-peru/baozi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`botmonster/image2svg-mcp`** (`generic`) — `https://github.com/botmonster/image2svg-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bouncewatch/mcp`** (`generic`) — `https://bouncewatch.com/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`brave/brave-search-mcp-server`** (`generic`) — `https://github.com/brave/brave-search-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bridgenode-ai/bridgenode-mcp`** (`generic`) — `https://github.com/bridgenode-ai/bridgenode-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`browserbase/mcp-server-browserbase`** (`generic`) — `https://github.com/browserbase/mcp-server-browserbase`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`buildepicshit/Wick`** (`generic`) — `https://github.com/buildepicshit/Wick`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`builditwithgk/repo-cartographer`** (`generic`) — `https://github.com/builditwithgk/repo-cartographer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`buildkite/buildkite-mcp-server`** (`generic`) — `https://github.com/buildkite/buildkite-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`burningion/video-editing-mcp`** (`generic`) — `https://github.com/burningion/video-editing-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`butterlatte-zhang/unity-ai-bridge`** (`generic`) — `https://github.com/butterlatte-zhang/unity-ai-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bx33661/Wireshark-MCP`** (`generic`) — `https://github.com/bx33661/Wireshark-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bzdOS/hubd`** (`generic`) — `https://github.com/bzdOS/hubd`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cafferychen777/ChatSpatial`** (`generic`) — `https://github.com/cafferychen777/ChatSpatial`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`calintzy/evmscope`** (`generic`) — `https://github.com/calintzy/evmscope`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`callbk/finlight-mcp`** (`generic`) — `https://github.com/callbk/finlight-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`callstackincubator/agent-device`** (`generic`) — `https://github.com/callstack/agent-device`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cameronrye/activitypub-mcp`** (`generic`) — `https://github.com/cameronrye/activitypub-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cameronrye/gopher-mcp`** (`generic`) — `https://github.com/cameronrye/gopher-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cameronrye/openzim-mcp`** (`generic`) — `https://github.com/cameronrye/openzim-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cammac-creator/ibanforge`** (`generic`) — `https://github.com/cammac-creator/ibanforge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`capad-xyz/searchts`** (`generic`) — `https://github.com/capad-xyz/searchts`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`carldaws/squiggles`** (`generic`) — `https://github.com/carldaws/squiggles`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`carloshpdoc/memorydetective`** (`generic`) — `https://github.com/carloshpdoc/memorydetective`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`carrasquelalex1/hipocampo`** (`generic`) — `https://github.com/carrasquelalex1/hipocampo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`catfish-1234/sessionmem`** (`generic`) — `https://github.com/catfish-1234/sessionmem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cct15/war-dashboard-data`** (`generic`) — `https://github.com/cct15/war-dashboard-data`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cdeust/Cortex`** (`generic`) — `https://github.com/cdeust/Cortex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`centralmind/gateway`** (`generic`) — `https://github.com/centralmind/gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`cerebrixos-org/tuning-engines-cli`** (`generic`) — `https://github.com/cerebrixos-org/tuning-engines-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cgrtml/reasongate`** (`generic`) — `https://github.com/cgrtml/reasongate`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`chaoz23/loudcheck`** (`generic`) — `https://github.com/chaoz23/loudcheck`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`chaoz23/srdcheck`** (`generic`) — `https://github.com/chaoz23/srdcheck`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`chrbailey/promptspeak-mcp-server`** (`generic`) — `https://github.com/chrbailey/promptspeak-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`chrisbusbin-pixel/propfirmdealfinder-mcp-server`** (`generic`) — `https://github.com/chrisbusbin-pixel/propfirmdealfinder-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`chuofringer/placeroot`** (`generic`) — `https://github.com/chuofringer/placeroot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`churichard/fluxmail`** (`generic`) — `https://github.com/churichard/fluxmail`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ckalima/pipedrive-mcp-server`** (`generic`) — `https://github.com/ckalima/pipedrive-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`claimidx/claimidx`** (`generic`) — `https://github.com/claimidx/claimidx`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`clamp-sh/mcp`** (`generic`) — `https://github.com/clamp-sh/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`clanker-records/crompton-network`** (`generic`) — `https://github.com/clanker-records/crompton-network`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`claymore666/debmatic-mcp`** (`generic`) — `https://github.com/claymore666/debmatic-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cliwant/mcp-sam-gov`** (`generic`) — `https://smithery.ai/servers/cliwant/mcp-sam-gov`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cloudflare/mcp-server-cloudflare`** (`generic`) — `https://github.com/cloudflare/mcp-server-cloudflare`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cloudsealed/cloudsealed-mcp`** (`generic`) — `https://github.com/cloudsealed/cloudsealed-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cluefinch/mcp-server`** (`generic`) — `https://github.com/cluefinch/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cm2489/oravan`** (`generic`) — `https://github.com/cm2489/oravan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cnghockey/sats4ai-mcp-server`** (`generic`) — `https://github.com/cnghockey/sats4ai-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`codeofaxel/Kiln`** (`generic`) — `https://smithery.ai/servers/codeofaxel/Kiln`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`codeurali/mcp-dataverse`** (`generic`) — `https://github.com/codeurali/mcp-dataverse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`coffeecoproject/layermap`** (`generic`) — `https://github.com/coffeecoproject/layermap`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`coinpaprika/coinpaprika-mcp`** (`generic`) — `https://github.com/coinpaprika/coinpaprika-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`coinpaprika/dexpaprika-mcp`** (`generic`) — `https://github.com/coinpaprika/dexpaprika-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`comparedge/mcp-server-comparedge`** (`generic`) — `https://github.com/comparedge/mcp-server-comparedge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`competlab/competlab-mcp-server`** (`generic`) — `https://github.com/competlab/competlab-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`conorbronsdon/gsc-mcp`** (`generic`) — `https://github.com/conorbronsdon/gsc-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`conorbronsdon/postlint-mcp`** (`generic`) — `https://github.com/conorbronsdon/postlint-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`contextstream/mcp-server`** (`generic`) — `https://github.com/contextstream/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`copperline-labs/rendex-mcp`** (`generic`) — `https://github.com/copperline-labs/rendex-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`corewebvitals/state-of-cwv-mcp`** (`generic`) — `https://github.com/corewebvitals/state-of-cwv-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cq27-dev/rag-rat`** (`generic`) — `https://github.com/cq27-dev/rag-rat`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`crisphive/crisphive-mcp`** (`generic`) — `https://crisphive-mcp.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`croc100/Litescope`** (`generic`) — `https://github.com/croc100/Litescope`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cryptosquanch/legends-mcp`** (`generic`) — `https://github.com/cryptosquanch/legends-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cturkieh/france-data-mcp`** (`generic`) — `https://github.com/cturkieh/france-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cuthongthai-vn/vimo-mcp-server`** (`generic`) — `https://github.com/cuthongthai-vn/vimo-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cvelasquez/mcp-sqlserver`** (`generic`) — `https://smithery.ai/servers/cvelasquez/mcp-sqlserver`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dahshanlabs/klypix-mcp`** (`generic`) — `https://github.com/dahshanlabs/klypix-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dan1d/mercadopago-tool`** (`generic`) — `https://github.com/dan1d/mercadopago-tool`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dangamsoft/cafe-mcp`** (`generic`) — `https://github.com/dangamsoft/cafe-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`danielenricocahall/lorcana-mcp`** (`generic`) — `https://github.com/danielenricocahall/lorcana-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`danmartuszewski/hop`** (`generic`) — `https://github.com/danmartuszewski/hop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`darksider4all/leadgen-mcp`** (`generic`) — `https://github.com/darksider4all/leadgen-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dat999zx/knowl`** (`generic`) — `https://github.com/dat999zx/knowl`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`datacharter/datacharter`** (`generic`) — `https://github.com/datacharter/datacharter`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`datanexusmcp/mcp-server`** (`generic`) — `https://github.com/datanexusmcp/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`davidlandais/ovh-api-mcp`** (`generic`) — `https://github.com/davidlandais/ovh-api-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`davidmosiah/agent-seo-engine`** (`generic`) — `https://github.com/davidmosiah/agent-seo-engine`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`davidmosiah/delx-mcp-server`** (`generic`) — `https://github.com/davidmosiah/delx-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dbhq-uk/heliograph`** (`generic`) — `https://github.com/dbhq-uk/heliograph`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dbwls99706/deadends.dev`** (`generic`) — `https://github.com/dbwls99706/deadends.dev`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dcadolph/slop-chop`** (`generic`) — `https://github.com/dcadolph/slop-chop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dcostenco/prism-mcp`** (`generic`) — `https://smithery.ai/servers/dcostenco/prism-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`debridge-finance/debridge-mcp`** (`generic`) — `https://github.com/debridge-finance/debridge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`decidefyi/decide`** (`generic`) — `https://github.com/decidefyi/decide`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`deed-lang/deed`** (`generic`) — `https://github.com/deed-lang/deed`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`deficlow/zipp-mcp`** (`generic`) — `https://github.com/deficlow/zipp-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`delega-dev/delega-mcp`** (`generic`) — `https://github.com/delega-dev/delega-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`delimit-ai/delimit`** (`generic`) — `https://github.com/delimit-ai/delimit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`demwick/polymarket-agent-mcp`** (`generic`) — `https://github.com/demwick/polymarket-agent-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dengyier/OpenWorkProof`** (`generic`) — `https://github.com/dengyier/OpenWorkProof`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`depwire/depwire`** (`generic`) — `https://github.com/depwire/depwire`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`devag7/linkedin-mcp`** (`generic`) — `https://github.com/devag7/linkedin-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dfrancislyondflabc-tech/agentic-recall`** (`generic`) — `https://github.com/dfrancislyondflabc-tech/agentic-recall`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dhamma-seeker/tripitaka-mcp`** (`generic`) — `https://tripitaka-mcp--dhamma-seeker.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dimitrihilverda/claude-session-relay`** (`generic`) — `https://github.com/dimitrihilverda/claude-session-relay`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dinggi5/kura`** (`generic`) — `https://github.com/dinggi5/kura`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`disin7c9/asset-management`** (`generic`) — `https://github.com/disin7c9/asset-management`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`djerok/glm-mcp`** (`generic`) — `https://github.com/djerok/glm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dkships/pm-copilot`** (`generic`) — `https://github.com/dkships/pm-copilot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dkships/substack-publisher-mcp`** (`generic`) — `https://github.com/dkships/substack-publisher-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dlbolshov/yandex-wiki-search-mcp`** (`generic`) — `https://github.com/dlbolshov/yandex-wiki-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dnotitia/akb`** (`generic`) — `https://github.com/dnotitia/akb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`docsor1212/aesthete-agent`** (`generic`) — `https://github.com/docsor1212/aesthete-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`doctorm333/promptpilot-mcp-server`** (`generic`) — `https://github.com/doctorm333/promptpilot-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`donnywin85/arb-dex-mcp`** (`generic`) — `https://github.com/donnywin85/arb-dex-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`donnywin85/dex-data-mcp`** (`generic`) — `https://github.com/donnywin85/dex-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dorukardahan/domain-search-mcp`** (`generic`) — `https://smithery.ai/servers/dorukardahan/domain-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dorukardahan/twitterapi-docs-mcp`** (`generic`) — `https://github.com/dorukardahan/twitterapi-docs-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`doteyeso-ops/mcp-server-vibes-coded`** (`generic`) — `https://github.com/doteyeso-ops/mcp-server-vibes-coded`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`doublegate/CyberChef-MCP`** (`generic`) — `https://github.com/doublegate/CyberChef-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`douglasborthwick-crypto/mcp-server-insumer`** (`generic`) — `https://github.com/douglasborthwick-crypto/mcp-server-insumer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dpkdhingra91/aiia-mcp-server`** (`generic`) — `https://www.aiinterviewagents.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dqj1998/japan-company-info-mcp-bridge`** (`generic`) — `https://github.com/dqj1998/japan-company-info-mcp-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`drexthealpha/Knos`** (`generic`) — `https://github.com/drexthealpha/Knos`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`drhalto/agentmako`** (`generic`) — `https://github.com/drhalto/agentmako`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`drknowhow/fluxdots-mcp`** (`generic`) — `https://github.com/drknowhow/fluxdots-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`drsound/markdown-to-whatsapp`** (`generic`) — `https://github.com/drsound/markdown-to-whatsapp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dshakes/distil`** (`generic`) — `https://github.com/dshakes/distil`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`duriantaco/skylos`** (`generic`) — `https://github.com/duriantaco/skylos`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dvdsosa/zotero-native-mcp`** (`generic`) — `https://github.com/dvdsosa/zotero-native-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dwgx/SmartCLI`** (`generic`) — `https://github.com/dwgx/SmartCLI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dynatrace-oss/dynatrace-managed-mcp`** (`generic`) — `https://github.com/dynatrace-oss/dynatrace-managed-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dynatrace-oss/dynatrace-mcp`** (`generic`) — `https://github.com/dynatrace-oss/dynatrace-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`eabz/tirith`** (`generic`) — `https://github.com/eabz/tirith`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`eat-pray-ai/yutu`** (`generic`) — `https://github.com/eat-pray-ai/yutu`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`echojobsio/jdl-mcp-server`** (`generic`) — `https://github.com/echojobsio/jdl-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`echoloc-ai/echoloc-mcp`** (`generic`) — `https://echoloc.ai/for-agents/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`echology-io/decompose`** (`generic`) — `https://github.com/echology-io/decompose`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`edge-claw/mood-booster-agent`** (`generic`) — `https://github.com/edge-claw/mood-booster-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`edithatogo/fyi-cli`** (`generic`) — `https://github.com/edithatogo/fyi-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`editmamei/editmamei`** (`generic`) — `https://github.com/editmamei/editmamei`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ejwhite7/brandkit-mcp`** (`generic`) — `https://github.com/ejwhite7/brandkit-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`elberacasa/umbra`** (`generic`) — `https://github.com/elberacasa/umbra`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`elestirelbilinc-sketch/vap-showcase`** (`generic`) — `https://github.com/elestirelbilinc-sketch/vap-showcase`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`elfsight/beamtrace-mcp`** (`generic`) — `https://beamtrace.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`elicitly/elicitly`** (`generic`) — `https://github.com/elicitly/elicitly`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`eliottreich/crawdar-mcp`** (`generic`) — `https://crawdar.com/agents`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`eliottreich/taskbounty-check`** (`generic`) — `https://github.com/eliottreich/taskbounty-check`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ellmos-ai/ellmos-codecommander-mcp`** (`generic`) — `https://github.com/ellmos-ai/ellmos-codecommander-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ellmos-ai/ellmos-filecommander-mcp`** (`generic`) — `https://github.com/ellmos-ai/ellmos-filecommander-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`embeddedlayers/mcp-analytics`** (`generic`) — `https://github.com/embeddedlayers/mcp-analytics`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`emiliaprotocol/emilia-protocol`** (`generic`) — `https://github.com/emiliaprotocol/emilia-protocol`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`emirmrkaljevic/usb-rea`** (`generic`) — `https://github.com/emirmrkaljevic/usb-rea`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`entire-vc/evc-team-relay-mcp`** (`generic`) — `https://github.com/entire-vc/evc-team-relay-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`epicsagas/alcove`** (`generic`) — `https://github.com/epicsagas/alcove`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`epistemedeus/skillguard`** (`generic`) — `https://github.com/epistemedeus/skillguard`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`equinoxaifinance-rgb/civicdataforge-mcp`** (`generic`) — `https://github.com/equinoxaifinance-rgb/civicdataforge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`equinoxaifinance-rgb/fluxproof-agent-card`** (`generic`) — `https://github.com/equinoxaifinance-rgb/fluxproof-agent-card`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ericblair1903/nutrients-mcp`** (`generic`) — `https://github.com/ericblair1903/nutrients-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ertad-family/liquid`** (`generic`) — `https://github.com/ertad-family/liquid`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`evanatpizzarobot/draftcall-mcp`** (`generic`) — `https://github.com/evanatpizzarobot/draftcall-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`exa-labs/exa-mcp-server`** (`generic`) — `https://github.com/exa-labs/exa-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`eyloni/pythia-oracle`** (`generic`) — `https://github.com/eyloni/pythia-oracle`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`faizbawa/mcp-remote-ssh`** (`generic`) — `https://github.com/faizbawa/mcp-remote-ssh`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`farukkolip/xtapdown-mcp`** (`generic`) — `https://github.com/farukkolip/xtapdown-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fclairamb/solidping`** (`generic`) — `https://github.com/fclairamb/solidping`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`felixpg13-glitch/spendshield`** (`generic`) — `https://github.com/felixpg13-glitch/spendshield`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fenbs-ai/fenbs-mcp`** (`generic`) — `https://fenbs.ai/docs/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ffroliva/gflow-cli`** (`generic`) — `https://github.com/ffroliva/gflow-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`findsaunaplunge/mcp`** (`generic`) — `https://github.com/findsaunaplunge/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`firecrawl/firecrawl-mcp-server`** (`generic`) — `https://github.com/firecrawl/firecrawl-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`firelock-ai/kin`** (`generic`) — `https://github.com/firelock-ai/kin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fish827-08/rag-kb`** (`generic`) — `https://github.com/fish827-08/rag-kb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fixed-width/glass`** (`generic`) — `https://github.com/fixed-width/glass`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`flight-master-dast/aviation-data-mcp`** (`generic`) — `https://github.com/flight-master-dast/aviation-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`flovoice53-tech/agent-identity-mcp`** (`generic`) — `https://github.com/flovoice53-tech/agent-identity-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`flovoice53-tech/sms-florin-mcp`** (`generic`) — `https://github.com/flovoice53-tech/sms-florin-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`flowzap-xyz/flowzap-mcp`** (`generic`) — `https://smithery.ai/servers/flowzap-xyz/flowzap-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`flytohub/flyto-core`** (`generic`) — `https://github.com/flytohub/flyto-core`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`forgemeshlabs/coinopai-mcp`** (`generic`) — `https://smithery.ai/servers/forgemeshlabs/coinopai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`forgemeshlabs/imagegen-mcp`** (`generic`) — `https://smithery.ai/servers/forgemeshlabs/imagegen-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`forum-labs/payfetch`** (`generic`) — `https://github.com/forum-labs/payfetch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`foundrole/jobs-mcp-proxy`** (`generic`) — `https://github.com/foundrole/jobs-mcp-proxy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`foxintheloop/UpTier`** (`generic`) — `https://github.com/foxintheloop/UpTier`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`freema/mcp-design-system-extractor`** (`generic`) — `https://github.com/freema/mcp-design-system-extractor`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`freema/mcp-gsheets`** (`generic`) — `https://github.com/freema/mcp-gsheets`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`freema/openclaw-mcp`** (`generic`) — `https://github.com/freema/openclaw-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`frelo/fvc-mcp`** (`generic`) — `https://github.com/frelo/fvc-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`frndchagas/coolify-mcp`** (`generic`) — `https://github.com/frndchagas/coolify-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`frsorrentino/chrome-bridge`** (`generic`) — `https://github.com/frsorrentino/chrome-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gabrielmaialva33/winx-code-agent`** (`generic`) — `https://github.com/gabrielmaialva33/winx-code-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gambadio/apple-productivity-mcp`** (`generic`) — `https://github.com/gambadio/apple-productivity-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gaoharimran29-glitch/Cybersecurity-MCP-Server`** (`generic`) — `https://github.com/AynOps/AynOps`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gaudiolab-jp/gaudio-developers-mcp`** (`generic`) — `https://github.com/gaudiolab-jp/gaudio-developers-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gavelin-ai/mcp`** (`generic`) — `https://github.com/gavelin-ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gblinproject/GBLIN-MCP`** (`generic`) — `https://github.com/gblinproject/GBLIN-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gbrigandi/mcp-server-wazuh`** (`generic`) — `https://github.com/gbrigandi/mcp-server-wazuh`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gchen19/AnkusDrive`** (`generic`) — `https://github.com/gchen19/AnkusDrive`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gebalamariusz/cloud-audit`** (`generic`) — `https://github.com/gebalamariusz/cloud-audit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`genomoncology/biomcp`** (`generic`) — `https://github.com/genomoncology/biomcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`geolabel/geolabel-mcp`** (`generic`) — `https://github.com/geolabel/geolabel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`geowire/geowire`** (`generic`) — `https://github.com/geowire/geowire`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`get-convex/convex-backend`** (`generic`) — `https://github.com/get-convex/convex-backend`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`get-tmonier/argot`** (`generic`) — `https://github.com/get-tmonier/argot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`getaegis/aegis`** (`generic`) — `https://github.com/getaegis/aegis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`getmockd/mockd`** (`generic`) — `https://github.com/getmockd/mockd`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`getproxykit/proxykit-mcp`** (`generic`) — `https://github.com/getproxykit/proxykit-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`getremcp/remcp`** (`generic`) — `https://github.com/antonbaider/remcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`giacomomaria81/scorm-mcp-server`** (`generic`) — `https://github.com/giacomomaria81/scorm-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gitayg/appcrane-mcp`** (`generic`) — `https://github.com/gitayg/appcrane-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`glifxyz/glif-mcp-server`** (`generic`) — `https://github.com/glifxyz/glif-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gokimedia/tarot-mcp-server`** (`generic`) — `https://github.com/gokimedia/tarot-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`goklab/guardvibe`** (`generic`) — `https://github.com/goklab/guardvibe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`goldmembrane/cleaner-code`** (`generic`) — `https://github.com/goldmembrane/cleaner-code`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gomission/mcp`** (`generic`) — `https://github.com/gomission/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gonnagetapower/kelvia-mcp`** (`generic`) — `https://github.com/gonnagetapower/kelvia-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`googleapis/genai-toolbox`** (`generic`) — `https://github.com/googleapis/genai-toolbox`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gosodax/builders-sodax-mcp-server`** (`generic`) — `https://github.com/gosodax/builders-sodax-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gpartin/CryptoGuardClient`** (`generic`) — `https://github.com/gpartin/CryptoGuardClient`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`gpitrella/memxus-remote-mcp`** (`generic`) — `https://github.com/gpitrella/memxus-remote-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`grahammccain/chart-library-mcp`** (`generic`) — `https://github.com/grahammccain/chart-library-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`graphpilot-oss/graphpilot`** (`generic`) — `https://github.com/graphpilot-oss/graphpilot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`greencalculus/greencalculus-mcp`** (`generic`) — `https://greencalculus.com/developers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`gridhra/atx-mcp`** (`generic`) — `https://github.com/gridhra/atx-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gridhra/port-keeper-mcp`** (`generic`) — `https://github.com/gridhra/port-keeper-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gridinsoft/mcp-inspector`** (`generic`) — `https://github.com/gridinsoft/mcp-inspector`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`grovs-io/mcp`** (`generic`) — `https://github.com/grovs-io/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`growthbook/growthbook-mcp`** (`generic`) — `https://github.com/growthbook/growthbook-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`grzgrzgrz3/pingwa-client`** (`generic`) — `https://github.com/grzgrzgrz3/pingwa-client`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`gulmezeren2-byte/erp-report-engine`** (`generic`) — `https://github.com/gulmezeren2-byte/erp-report-engine`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gvasile29/qai-consultant`** (`generic`) — `https://github.com/gvasile29/qai-consultant`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gzchenhao/openhire`** (`generic`) — `https://github.com/gzchenhao/openhire`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`haljishi/vidwords-mcp`** (`generic`) — `https://github.com/haljishi/vidwords-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`halloffame12/CTX`** (`generic`) — `https://github.com/halloffame12/CTX`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hamflx/imagen3-mcp`** (`generic`) — `https://github.com/hamflx/imagen3-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hanoak/unsplash-mcp-server`** (`generic`) — `https://github.com/hanoak/unsplash-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`haruodev/tamperlens-mcp`** (`generic`) — `https://github.com/haruodev/tamperlens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hashicorp/terraform-mcp-server`** (`generic`) — `https://github.com/hashicorp/terraform-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`headlessherm-creator/polymath-megablaster-mcp`** (`generic`) — `https://github.com/headlessherm-creator/polymath-megablaster-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`healthchainai/HealthChain`** (`generic`) — `https://github.com/healthchainai/HealthChain`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`helbertparanhos/cloudflare-mcp-pro`** (`generic`) — `https://github.com/helbertparanhos/cloudflare-mcp-pro`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`helbertparanhos/resend-email-mcp`** (`generic`) — `https://github.com/helbertparanhos/resend-email-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`henfrydls/actual-budget-mcp`** (`generic`) — `https://github.com/henfrydls/actual-budget-mcp.git`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`herbertkokholm/cite-caddy`** (`generic`) — `https://cite-caddy--herbertkokholm.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hermes-labs-ai/fidelis`** (`generic`) — `https://github.com/hermes-labs-ai/fidelis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hermoso-ai/hermoso`** (`generic`) — `https://github.com/hermoso-ai/hermoso`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hifriendbot/agentwallet-mcp`** (`generic`) — `https://github.com/hifriendbot/agentwallet-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hifriendbot/cogmemai-mcp`** (`generic`) — `https://github.com/hifriendbot/cogmemai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hive-intel/hive-crypto-mcp`** (`generic`) — `https://github.com/hive-intel/hive-sdk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hjqcan/GoodMemory`** (`generic`) — `https://github.com/hjqcan/GoodMemory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hoklims/stacksfinder-mcp`** (`generic`) — `https://stacksfinder-mcp--hoklims.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`honeylabshq/honeylabs-mcp`** (`generic`) — `https://github.com/honeylabshq/honeylabs-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hope1026/weppy-roblox-mcp`** (`generic`) — `https://github.com/hope1026/weppy-roblox-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`horustechltd/horus-flow-mcp`** (`generic`) — `https://smithery.ai/servers/horustechltd/horus-flow-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hostodo/hostodo-mcp`** (`generic`) — `https://github.com/hostodo/hostodo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`human-pages-ai/humanpages`** (`generic`) — `https://humanpages--human-pages-ai.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`humanpen/humanpen-mcp`** (`generic`) — `https://github.com/humanpen/humanpen-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hypeprinter007-stack/signalfuse-mcp`** (`generic`) — `https://smithery.ai/servers/hypeprinter007-stack/signalfuse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hypnosis/ssh-mcp-server`** (`generic`) — `https://smithery.ai/servers/hypnosis/ssh-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`iFan6oy/flash-props-mcp`** (`generic`) — `https://github.com/iFan6oy/flash-props-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`icohangar-ops/codesentinel`** (`generic`) — `https://github.com/icohangar-ops/codesentinel`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ieranama/discomcp`** (`generic`) — `https://github.com/ieranama/discomcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ignaciohermosillacornejo/copilot-money-mcp`** (`generic`) — `https://github.com/ignaciohermosillacornejo/copilot-money-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`igorolv/jdbc-mcp-server`** (`generic`) — `https://github.com/igorolv/jdbc-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`igorolv/loki-mcp-server`** (`generic`) — `https://github.com/igorolv/loki-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ihorponom/agentpack`** (`generic`) — `https://github.com/ihorponom/agentpack`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ihuzaifashoukat/x-use`** (`generic`) — `https://github.com/ihuzaifashoukat/x-use`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ilia-sokolov/OfficeAgent.NET`** (`generic`) — `https://github.com/ilia-sokolov/OfficeAgent.NET`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ilien-dev/svipall`** (`generic`) — `https://github.com/ilien-dev/svipall`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`illodev/workfile`** (`generic`) — `https://github.com/illodev/workfile`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ilovevideoeditor/mcp-server`** (`generic`) — `https://smithery.ai/servers/ilovevideoeditor/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ilyautov/chestny-znak-mcp-ru`** (`generic`) — `https://github.com/ilyautov/chestny-znak-mcp-ru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ilyautov/diadoc-mcp-ru`** (`generic`) — `https://github.com/ilyautov/diadoc-mcp-ru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ilyautov/hh-mcp-ru`** (`generic`) — `https://github.com/ilyautov/hh-mcp-ru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ilyautov/sbis-mcp-ru`** (`generic`) — `https://github.com/ilyautov/sbis-mcp-ru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ilyautov/vk-mcp-ru`** (`generic`) — `https://github.com/ilyautov/vk-mcp-ru`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`imgly/codesign`** (`generic`) — `https://github.com/imgly/codesign`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`imnoo-team/drawing-converter-mcp`** (`generic`) — `https://metric-to-imperial-converter.imnoo.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`imqueue/mcp`** (`generic`) — `https://github.com/imqueue/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`infai-tech/vulnfeed-mcp`** (`generic`) — `https://github.com/infai-tech/vulnfeed-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`infobip/mcp`** (`generic`) — `https://github.com/infobip/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`inity13/decisionmatrix-mcp`** (`generic`) — `https://github.com/inity13/decisionmatrix-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`inkog-io/inkog-mcp`** (`generic`) — `https://github.com/inkog-io/inkog-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`investorphem/AbaPay`** (`generic`) — `https://github.com/investorphem/AbaPay`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ionos-cloud/ionoscloud-mcp`** (`generic`) — `https://github.com/ionos-cloud/ionoscloud-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ip2location/mcp-ip2location-io`** (`generic`) — `https://github.com/ip2location/mcp-ip2location-io`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ip2whois/mcp-ip2whois`** (`generic`) — `https://github.com/ip2whois/mcp-ip2whois`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`irisxc4/memoryguard`** (`generic`) — `https://github.com/irisxc4/memoryguard`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`iunera/druid-mcp-server`** (`generic`) — `https://github.com/iunera/druid-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`izzzzzi/codewiki-mcp`** (`generic`) — `https://github.com/izzzzzi/codewiki-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`izzzzzi/izTolkMcp`** (`generic`) — `https://github.com/izzzzzi/izTolkMcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`j-east/pixel-surgeon-mcp`** (`generic`) — `https://github.com/j-east/pixel-surgeon-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`j0hanz/filesystem-context-mcp-server`** (`generic`) — `https://github.com/j0hanz/filesystem-context-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jabbawocky/proposalcraft`** (`generic`) — `https://github.com/jabbawocky/proposalcraft`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jacobsd32-cpu/djd-agent-score-mcp`** (`generic`) — `https://github.com/jacobsd32-cpu/djd-agent-score-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jagoff/memo`** (`generic`) — `https://github.com/jagoff/memo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jaimenbell/mcp-factory`** (`generic`) — `https://github.com/jaimenbell/MCP-Factory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jakubro/dbprint`** (`generic`) — `https://github.com/jakubro/dbprint`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jamesdfinance-dev/lazaretto-mcp`** (`generic`) — `https://github.com/jamesdfinance-dev/lazaretto-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jasonwilbur/oci-pricing-mcp`** (`generic`) — `https://github.com/jasonwilbur/oci-pricing-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jawdat6/fixgraph-mcp`** (`generic`) — `https://github.com/jawdat6/fixgraph-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jbechtel-97/dealflowpro-mcp-server`** (`generic`) — `https://github.com/jbechtel-97/dealflowpro-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jblaz6335/mcp-server-aidatamarketplace`** (`generic`) — `https://github.com/jblaz6335/mcp-server-aidatamarketplace`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jcooley8/pincushion-plugin`** (`generic`) — `https://github.com/jcooley8/pincushion-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jf-cmyk/blocksize-agentic-payments-mcp`** (`generic`) — `https://mcp.blocksize.info/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jgsystemsconsulting/jgs-magic-sysmlv1-mcp`** (`generic`) — `https://github.com/jgsystemsconsulting/jgs-magic-sysmlv1-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jigyasudham/veto`** (`generic`) — `https://smithery.ai/servers/jigyasudham/veto`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jjlabsio/korea-stock-mcp`** (`generic`) — `https://smithery.ai/servers/jjlabsio/korea-stock-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jlucasmcrell/apify-scrapers`** (`generic`) — `https://smithery.ai/servers/jlucasmcrell/apify-scrapers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jmpdsevilla/BovedIA`** (`generic`) — `https://github.com/jmpdsevilla/BovedIA`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jmrplens/gitlab-mcp-server`** (`generic`) — `https://github.com/jmrplens/gitlab-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`joelgombin/andre-mcp`** (`generic`) — `https://github.com/joelgombin/andre-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`john-broadway/proximo`** (`generic`) — `https://github.com/john-broadway/proximo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`johnanleitner1-Coder/lastminutedeals-api`** (`generic`) — `https://github.com/johnanleitner1-Coder/lastminutedeals-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jonnybottles/patch-tuesday-mcp`** (`generic`) — `https://github.com/jonnybottles/patch-tuesday-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jonradoff/lightcms`** (`generic`) — `https://github.com/jonradoff/lightcms`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`joshseane/-nmlp-mcp`** (`generic`) — `https://newmexicoliteracyproject.org`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jtalk22/slack-mcp-server`** (`generic`) — `https://github.com/jtalk22/slack-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`julianbei/arno`** (`generic`) — `https://github.com/julianbei/arno`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`julianbei/jade`** (`generic`) — `https://github.com/julianbei/jade`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`justinstimatze/gemot`** (`generic`) — `https://github.com/justinstimatze/gemot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`juyterman1000/entroly`** (`generic`) — `https://github.com/juyterman1000/entroly`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kaaustubh/project-memory-mcp`** (`generic`) — `https://github.com/kaaustubh/project-memory-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kage-core/Kage`** (`generic`) — `https://github.com/kage-core/Kage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kansei-link/kansei-mcp-server`** (`generic`) — `https://github.com/kansei-link/kansei-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`karanb192/reddit-mcp-buddy`** (`generic`) — `https://github.com/karanb192/reddit-mcp-buddy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kastelldev/kastell`** (`generic`) — `https://smithery.ai/servers/kastelldev/kastell`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kenneives/design-token-bridge-mcp`** (`generic`) — `https://github.com/kenneives/design-token-bridge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kent-tokyo/shohei`** (`generic`) — `https://github.com/kent-tokyo/shohei`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kevmoz/macaroonnetwork-mcp`** (`generic`) — `https://github.com/kevmoz/macaroonnetwork-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kfuras/notipo-app`** (`generic`) — `https://github.com/kfuras/notipo-app`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`khaoss85/mcp-orchestro`** (`generic`) — `https://smithery.ai/servers/khaoss85/mcp-orchestro`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kimimgo/viznoir`** (`generic`) — `https://github.com/kimimgo/viznoir`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`king-of-the-grackles/reddit-research-mcp`** (`generic`) — `https://github.com/king-of-the-grackles/reddit-research-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kioie/tiny-go-mcp-server`** (`generic`) — `https://github.com/kioie/tiny-go-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kitao/pyxel-mcp`** (`generic`) — `https://github.com/kitao/pyxel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kkjdaniel/bgg-mcp`** (`generic`) — `https://smithery.ai/servers/kkjdaniel/bgg-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`klabianco/plantrip-mcp-server`** (`generic`) — `https://github.com/klabianco/plantrip-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kleinicke/ply-visualizer`** (`generic`) — `https://github.com/kleinicke/ply-visualizer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`klever-io/mcp-klever-vm`** (`generic`) — `https://github.com/klever-io/mcp-klever-vm`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`knewstimek/agent-tool`** (`generic`) — `https://github.com/knewstimek/agent-tool`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`knowledgepa3/gia-mcp-server`** (`generic`) — `https://smithery.ai/servers/knowledgepa3/gia-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kojott/mailmcp-dist`** (`generic`) — `https://github.com/kojott/mailmcp-dist`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`konippi/servo-fetch`** (`generic`) — `https://github.com/konippi/servo-fetch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`krystiangw/meet-live-assist-extension`** (`generic`) — `https://github.com/krystiangw/meet-live-assist-extension`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kunwar-shah/claudex`** (`generic`) — `https://github.com/kunwar-shah/claudex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kyisaiah47/compound-mcp`** (`generic`) — `https://github.com/kyisaiah47/compound-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kyisaiah47/kynth-mcp`** (`generic`) — `https://github.com/kyisaiah47/kynth-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kyle641320/true-memory-fragments`** (`generic`) — `https://github.com/kyle641320/true-memory-fragments`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`l33tdawg/sage`** (`generic`) — `https://github.com/l33tdawg/sage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lacausecrypto/mcp-sports-hub`** (`generic`) — `https://github.com/lacausecrypto/mcp-sports-hub`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lacs-project/sysknife`** (`generic`) — `https://github.com/lacs-project/sysknife`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`laradji/deadzone`** (`generic`) — `https://github.com/laradji/deadzone`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`layervai/qurl-mcp`** (`generic`) — `https://github.com/layervai/qurl-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lbailey94/whitemagic`** (`generic`) — `https://github.com/lbailey94/whitemagic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lennney/agent-search-mcp`** (`generic`) — `https://github.com/lennney/agent-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`liagha/termgram`** (`generic`) — `https://github.com/liagha/termgram`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`librejustice/librejustice`** (`generic`) — `https://github.com/librejustice/librejustice`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lightningfaucet/lightning-wallet-mcp`** (`generic`) — `https://github.com/lightningfaucet/lightning-wallet-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lildaddyo/braintube-mcp`** (`generic`) — `https://github.com/lildaddyo/braintube-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`linw1995/nvim-mcp`** (`generic`) — `https://github.com/linw1995/nvim-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`linxule/mineru-mcp`** (`generic`) — `https://smithery.ai/servers/linxule/mineru-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`lithtrix/lithtrix-mcp`** (`generic`) — `https://github.com/lithtrix/lithtrix-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`littlebearapps/outlook-assistant`** (`generic`) — `https://github.com/littlebearapps/outlook-assistant`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`livetennisapi/livetennisapi-mcp`** (`generic`) — `https://github.com/livetennisapi/livetennisapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`liza-studio/skillmem`** (`generic`) — `https://github.com/liza-studio/skillmem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lizhuojunx86/chinese-history-mcp`** (`generic`) — `https://github.com/lizhuojunx86/chinese-history-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`localseodata/mcp-server`** (`generic`) — `https://github.com/localseodata/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lockstep-team-agent/lockstep`** (`generic`) — `https://github.com/lockstep-team-agent/lockstep`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`longbridge/longbridge-mcp`** (`generic`) — `https://github.com/longbridge/longbridge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`longportapp/longport-mcp`** (`generic`) — `https://github.com/longportapp/longport-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`longportapp/openapi`** (`generic`) — `https://github.com/longportapp/openapi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lorenzo-cambiaghi/LynxMCP`** (`generic`) — `https://github.com/lorenzo-cambiaghi/LynxMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lpigeon/ros-mcp-server`** (`generic`) — `https://github.com/lpigeon/ros-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ltspace/dowse`** (`generic`) — `https://github.com/ltspace/dowse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`luisgf/infrabroker`** (`generic`) — `https://github.com/luisgf/infrabroker`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lulzasaur9192/marketplace-search-mcp`** (`generic`) — `https://smithery.ai/servers/lulzasaur9192/marketplace-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`lumayapartners/memini`** (`generic`) — `https://github.com/lumayapartners/memini`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lumifyai/lumify`** (`generic`) — `https://github.com/lumifyai/lumify`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`luminati-io/brightdata-mcp`** (`generic`) — `https://github.com/luminati-io/brightdata-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`luotwo/easyaccesspdf-mcp`** (`generic`) — `https://github.com/luotwo/easyaccesspdf-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`m00nreport/mcp-server`** (`generic`) — `https://github.com/m00nreport/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`madeinplutofabio/vibe-revert`** (`generic`) — `https://github.com/madeinplutofabio/vibe-revert`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`madhan-g-p/DevDocs-MCP`** (`generic`) — `https://github.com/madhan-g-p/DevDocs-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mahdibrr/dev-error-explainers`** (`generic`) — `https://github.com/mahdibrr/dev-error-explainers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`majiayu000/remem`** (`generic`) — `https://github.com/majiayu000/remem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`makeev/alphai-mcp`** (`generic`) — `https://github.com/makeev/alphai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`malonestar/gov-data-mcp`** (`generic`) — `https://github.com/malonestar/gov-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-ai-tooling-detector`** (`generic`) — `https://github.com/mambalabsdev/mcp-ai-tooling-detector`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-clay-to-instantly-smartlead-push`** (`generic`) — `https://github.com/mambalabsdev/mcp-clay-to-instantly-smartlead-push`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-company-firmographic-enricher`** (`generic`) — `https://github.com/mambalabsdev/mcp-company-firmographic-enricher`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-company-social-presence-mapper`** (`generic`) — `https://github.com/mambalabsdev/mcp-company-social-presence-mapper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-domain-deliverability-checker`** (`generic`) — `https://github.com/mambalabsdev/mcp-domain-deliverability-checker`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-domain-to-linkedin-url-resolver`** (`generic`) — `https://github.com/mambalabsdev/mcp-domain-to-linkedin-url-resolver`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-funding-press-signal-scanner`** (`generic`) — `https://github.com/mambalabsdev/mcp-funding-press-signal-scanner`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-gtm-hiring-signal-scraper`** (`generic`) — `https://github.com/mambalabsdev/mcp-gtm-hiring-signal-scraper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-gtm-tech-stack-signal-scraper`** (`generic`) — `https://github.com/mambalabsdev/mcp-gtm-tech-stack-signal-scraper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-icp-fit-scorer`** (`generic`) — `https://github.com/mambalabsdev/mcp-icp-fit-scorer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-legal-entity-resolver`** (`generic`) — `https://github.com/mambalabsdev/mcp-legal-entity-resolver`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mambalabsdev/mcp-linkedin-post-engager-capture`** (`generic`) — `https://github.com/mambalabsdev/mcp-linkedin-post-engager-capture`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`manavmishra/ZeroSlop`** (`generic`) — `https://github.com/manavmishra/ZeroSlop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`manganate006/openlmnp`** (`generic`) — `https://github.com/manganate006/openlmnp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`marin1321/mcp-devtools`** (`generic`) — `https://github.com/marin1321/mcp-devtools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`marlinjai/email-mcp`** (`generic`) — `https://github.com/marlinjai/email-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`martingeidobler/android-mcp-server`** (`generic`) — `https://github.com/martingeidobler/android-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`max-ramas/rms-memory-mcp`** (`generic`) — `https://github.com/max-ramas/rms-memory-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mbailey/voice-mcp`** (`generic`) — `https://github.com/mbailey/voice-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mbentham/SqlAugur`** (`generic`) — `https://github.com/mbentham/SqlAugur`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-hangar/mcp-hangar`** (`generic`) — `https://github.com/mcp-hangar/mcp-hangar`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcpqueen/mcpqueen`** (`generic`) — `https://github.com/mcpqueen/mcpqueen`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`meacheal-ai/mrc-data`** (`generic`) — `https://mrc-data--meacheal-ai.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mediar-ai/screenpipe`** (`generic`) — `https://github.com/mediar-ai/screenpipe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mediar-ai/terminator`** (`generic`) — `https://github.com/mediar-ai/terminator`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`megberts/mcp-websitepublisher-ai`** (`generic`) — `https://github.com/megberts/mcp-websitepublisher-ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`memokar/brainy`** (`generic`) — `https://github.com/memokar/brainy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`meser10/meser10-mcp`** (`generic`) — `https://github.com/meser10/meser10-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`michael-denyer/memory-mcp`** (`generic`) — `https://github.com/michael-denyer/memory-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mickelsamuel/migrationpilot`** (`generic`) — `https://github.com/mickelsamuel/migrationpilot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`microsoft/mcp`** (`generic`) — `https://github.com/microsoft/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mikusnuz/cws-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/cws-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikusnuz/dynadot-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/dynadot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikusnuz/gsc-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/gsc-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikusnuz/meta-ads-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/meta-ads-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikusnuz/meta-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/meta-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikusnuz/npm-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/npm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikusnuz/pexbot-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/pexbot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikusnuz/umami-mcp`** (`generic`) — `https://smithery.ai/servers/mikusnuz/umami-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`minhhq-a1/odoo-pulse`** (`generic`) — `https://github.com/minhhq-a1/odoo-pulse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`minia2auk/minia2a-mcp`** (`generic`) — `https://minia2a.uk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`minipuft/claude-prompts-mcp`** (`generic`) — `https://github.com/minipuft/claude-prompts-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`mlorentedev/hive`** (`generic`) — `https://github.com/mlorentedev/hive`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mobileshop9991-star/clipwise-mcp`** (`generic`) — `https://github.com/mobileshop9991-star/clipwise-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`moxiespirit/oathscore`** (`generic`) — `https://github.com/moxiespirit/oathscore`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`moxno/privacyscrubber-mcp`** (`generic`) — `https://github.com/moxno/privacyscrubber-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mrnh/rigor`** (`generic`) — `https://github.com/mrnh/rigor`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mrslbt/rakuten-mcp`** (`generic`) — `https://github.com/mrslbt/rakuten-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mrslbt/rippr`** (`generic`) — `https://github.com/mrslbt/rippr`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`muend/arcgis-mcp-bridge`** (`generic`) — `https://github.com/muend/arcgis-mcp-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`munimtechnologies/munim-computer-use`** (`generic`) — `https://github.com/munimtechnologies/munim-computer-use`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`murzin-ml/mcp-ps-store`** (`generic`) — `https://github.com/murzin-ml/mcp-ps-store`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`musevate/MCP`** (`generic`) — `https://musevate.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`musharna/jobd`** (`generic`) — `https://github.com/musharna/jobd`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`musharna/plant-genomics-mcp`** (`generic`) — `https://github.com/musharna/plant-genomics-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mutonby/openshorts`** (`generic`) — `https://github.com/mutonby/openshorts`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`myelixlabs/synapse-mcp`** (`generic`) — `https://github.com/myelixlabs/synapse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`n24q02m/better-email-mcp`** (`generic`) — `https://github.com/n24q02m/better-email-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`n24q02m/better-godot-mcp`** (`generic`) — `https://github.com/n24q02m/better-godot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`n24q02m/better-notion-mcp`** (`generic`) — `https://github.com/n24q02m/better-notion-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`n24q02m/mnemo-mcp`** (`generic`) — `https://github.com/n24q02m/mnemo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`n24q02m/wet-mcp`** (`generic`) — `https://github.com/n24q02m/wet-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nagameTW/mcp-server-malcolm`** (`generic`) — `https://github.com/nagameTW/mcp-server-malcolm`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nangman-infra/touch-browser`** (`generic`) — `https://github.com/nangman-infra/touch-browser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`natiixnt/redcon`** (`generic`) — `https://github.com/natiixnt/redcon`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nazar256/memheaven`** (`generic`) — `https://github.com/nazar256/memheaven`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ncosic/webotee-mcp`** (`generic`) — `https://github.com/ncosic/webotee-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`negm17111995/mcp-server`** (`generic`) — `https://github.com/negm17111995/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`neptun2000/heor-agent-mcp`** (`generic`) — `https://github.com/neptun2000/heor-agent-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nesquikm/mcp-rubber-duck`** (`generic`) — `https://github.com/nesquikm/mcp-rubber-duck`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`netdata/netdata`** (`generic`) — `https://github.com/netdata/netdata`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nexusforge-tools/mcp-eu-finance`** (`generic`) — `https://mcp-eu-finance--nexusforge-tools.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ng-galien/maket`** (`generic`) — `https://github.com/ng-galien/maket`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nhantour/inferenceview-mcp`** (`generic`) — `https://github.com/nhantour/inferenceview-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ni-c/mcp-hub`** (`generic`) — `https://github.com/ni-c/mcp-hub`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nicholasbester/clickup-cli`** (`generic`) — `https://github.com/nicholasbester/clickup-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nickgeorgeseo/mcp-gatehouse`** (`generic`) — `https://github.com/nickgeorgeseo/mcp-gatehouse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nicolascroce/keepsake-mcp`** (`generic`) — `https://github.com/nicolascroce/keepsake-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nikolai-vysotskyi/trace-mcp`** (`generic`) — `https://github.com/nikolai-vysotskyi/trace-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nikolay-e/diffctx`** (`generic`) — `https://github.com/nikolay-e/diffctx`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nitin27may/ms-graph-mcp`** (`generic`) — `https://github.com/nitin27may/ms-graph-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nk3750/jitapi`** (`generic`) — `https://github.com/nk3750/jitapi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`no-materials/hird`** (`generic`) — `https://github.com/no-materials/hird`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`noisy/noisy-coding`** (`generic`) — `https://github.com/noisy/noisy-coding`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nometalalchemist/KitchenSink4Word`** (`generic`) — `https://github.com/nometalalchemist/KitchenSink4Word`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`noordeen123/culprit`** (`generic`) — `https://github.com/noordeen123/culprit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`notasandy/mcp-code-sanitizer`** (`generic`) — `https://github.com/notasandy/mcp-code-sanitizer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nrupala/codetopo`** (`generic`) — `https://github.com/nrupala/codetopo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nteract/semiotic`** (`generic`) — `https://github.com/nteract/semiotic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nwiizo/tfmcp`** (`generic`) — `https://github.com/nwiizo/tfmcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nworks3d/THOR-memory-bible-for-AI`** (`generic`) — `https://github.com/nworks3d/THOR-memory-bible-for-AI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`octoco-ltd/sheetsdata-mcp`** (`generic`) — `https://github.com/octoco-ltd/sheetsdata-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`odd-Innocent/den_archi_mcp`** (`generic`) — `https://github.com/odd-Innocent/den_archi_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-cloudflare`** (`generic`) — `https://github.com/ofershap/mcp-server-cloudflare`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-devutils`** (`generic`) — `https://github.com/ofershap/mcp-server-devutils`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-dns`** (`generic`) — `https://github.com/ofershap/mcp-server-dns`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-docker`** (`generic`) — `https://github.com/ofershap/mcp-server-docker`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-github-actions`** (`generic`) — `https://github.com/ofershap/mcp-server-github-actions`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-github-gist`** (`generic`) — `https://github.com/ofershap/mcp-server-github-gist`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-markdown`** (`generic`) — `https://github.com/ofershap/mcp-server-markdown`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-npm-plus`** (`generic`) — `https://github.com/ofershap/mcp-server-npm-plus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-s3`** (`generic`) — `https://github.com/ofershap/mcp-server-s3`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-scraper`** (`generic`) — `https://github.com/ofershap/mcp-server-scraper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/mcp-server-sqlite`** (`generic`) — `https://github.com/ofershap/mcp-server-sqlite`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ofershap/real-browser-mcp`** (`generic`) — `https://github.com/ofershap/real-browser-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ogasurfproject-jpg/horizon-shield`** (`generic`) — `https://horizon-shield--ogasurfproject-jpg.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ohad6k/emulo`** (`generic`) — `https://github.com/ohad6k/emulo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`oleg-vdv/kepil`** (`generic`) — `https://github.com/oleg-vdv/kepil`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`olgasafonova/gleif-mcp-server`** (`generic`) — `https://github.com/olgasafonova/gleif-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`olgasafonova/mediawiki-mcp-server`** (`generic`) — `https://github.com/olgasafonova/mediawiki-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`olgasafonova/productplan-mcp-server`** (`generic`) — `https://github.com/olgasafonova/productplan-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`olostep/olostep-mcp-server`** (`generic`) — `https://github.com/olostep/olostep-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`om-tajne/pkgdiet`** (`generic`) — `https://github.com/om-tajne/pkgdiet`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`omega-memory/omega-memory`** (`generic`) — `https://github.com/omega-memory/omega-memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`omniologynow-rgb/mcp-server`** (`generic`) — `https://github.com/omniologynow-rgb/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`omniologynow-rgb/profitspot-mcp`** (`generic`) — `https://github.com/omniologynow-rgb/profitspot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`omniologynow-rgb/scout-intel-mcp`** (`generic`) — `https://github.com/omniologynow-rgb/scout-intel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`oomkapwn/enquire-mcp`** (`generic`) — `https://github.com/oomkapwn/enquire-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ooples/token-optimizer-mcp`** (`generic`) — `https://github.com/ooples/token-optimizer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`open-agreements/open-agreements`** (`generic`) — `https://github.com/open-agreements/open-agreements`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`openagentemail/openagentemail`** (`generic`) — `https://github.com/openagentemail/openagentemail`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`openephemeris/openephemeris-MCP`** (`generic`) — `https://github.com/openephemeris/openephemeris-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`openpouch/openpouch`** (`generic`) — `https://github.com/openpouch/openpouch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`openpulsechain/public`** (`generic`) — `https://github.com/openpulsechain/public`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`openreadout/openreadout`** (`generic`) — `https://github.com/openreadout/openreadout`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`operantlabs/operant-mcp`** (`generic`) — `https://operant-mcp--operantlabs.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`opslevel/opslevel-mcp`** (`generic`) — `https://github.com/opslevel/opslevel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`opsloft/tariff-resolver`** (`generic`) — `https://github.com/opsloft/tariff-resolver`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`optifeed/optifeed-radar`** (`generic`) — `https://github.com/optifeed/optifeed-radar`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`oraios/serena`** (`generic`) — `https://github.com/oraios/serena`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`oscardvs/zoteus`** (`generic`) — `https://github.com/oscardvs/zoteus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`overpod/mcp-telegram`** (`generic`) — `https://github.com/overpod/mcp-telegram`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ovlabs/mcp-server-originalvoices`** (`generic`) — `https://github.com/ovlabs/mcp-server-originalvoices`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ozgurcd/gograph`** (`generic`) — `https://github.com/ozgurcd/gograph`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pab1it0/adx-mcp-server`** (`generic`) — `https://github.com/pab1it0/adx-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pab1it0/prometheus-mcp-server`** (`generic`) — `https://github.com/pab1it0/prometheus-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`paipaipai666/nexus-browser-mcp`** (`generic`) — `https://github.com/paipaipai666/nexus-browser-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`paladini/devutils-mcp-server`** (`generic`) — `https://github.com/paladini/devutils-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`parasxos/apple-mail-mcp`** (`generic`) — `https://github.com/parasxos/apple-mail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`parasxos/postbag`** (`generic`) — `https://github.com/parasxos/postbag`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pasichDev/docket`** (`generic`) — `https://github.com/pasichDev/docket`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`patchloom/patchloom`** (`generic`) — `https://github.com/patchloom/patchloom`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pathrule/mcp`** (`generic`) — `https://github.com/pathrule/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`patrickchugh/terravision`** (`generic`) — `https://github.com/patrickchugh/terravision`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`patsnap/patent-literature-search-mcp`** (`generic`) — `https://github.com/patsnap/patent-literature-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`paultaki/ailooplibrary-mcp`** (`generic`) — `https://github.com/paultaki/ailooplibrary-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`payclaw/mcp-server`** (`generic`) — `https://github.com/payclaw/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`peek-travel/mcp-intro`** (`generic`) — `https://github.com/peek-travel/mcp-intro`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pendpost/pendpost`** (`generic`) — `https://github.com/pendpost/pendpost`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`penfieldlabs/penfield-mcp`** (`generic`) — `https://github.com/penfieldlabs/penfield-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pepabo/colormeshop-mcp`** (`generic`) — `https://github.com/pepabo/colormeshop-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`persistmcp/aim`** (`generic`) — `https://aim-journal.com/guides/en/connect-workout-tracker-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pghdma/callrail-mcp`** (`generic`) — `https://github.com/pghdma/callrail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`philrox/ris-mcp-ts`** (`generic`) — `https://github.com/philrox/ris-mcp-ts`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`phuocdu/agentpay-vn`** (`generic`) — `https://github.com/phuocdu/agentpay-vn`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pich/ai-economics-mcp`** (`generic`) — `https://github.com/pich/ai-economics-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`piiiico/proof-of-commitment`** (`generic`) — `https://github.com/piiiico/proof-of-commitment`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pilat/mcp-datalink`** (`generic`) — `https://github.com/pilat/mcp-datalink`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pinecone-io/assistant-mcp`** (`generic`) — `https://github.com/pinecone-io/assistant-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pipeboard-co/meta-ads-mcp`** (`generic`) — `https://github.com/pipeboard-co/meta-ads-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pipeshub-ai/mcp-server`** (`generic`) — `https://github.com/pipeshub-ai/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pjpoulose/PIL`** (`generic`) — `https://github.com/pjpoulose/PIL`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`platfone-com/mcp`** (`generic`) — `https://github.com/platfone-com/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pofky/asc-mcp`** (`generic`) — `https://github.com/pofky/asc-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pomazanbohdan/memory-mcp-1file`** (`generic`) — `https://github.com/pomazanbohdan/memory-mcp-1file`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`portel-dev/ncp`** (`generic`) — `https://github.com/portel-dev/ncp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`posteverywhere/mcp`** (`generic`) — `https://github.com/posteverywhere/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`postmcp/postmcp-mcp-server`** (`generic`) — `https://github.com/postmcp/postmcp-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`powerdragonfire/platformio.mcp`** (`generic`) — `https://github.com/powerdragonfire/platformio.mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`predictionmarketspicks/mcp`** (`generic`) — `https://github.com/predictionmarketspicks/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`prepublish/prepublish-mcp`** (`generic`) — `https://prepublish.ai/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`prompeteer/prompeteer-mcp`** (`generic`) — `https://github.com/prompeteer/prompeteer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`promptexecution/just-mcp`** (`generic`) — `https://github.com/PromptExecution/just-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`protostatis/unbrowser`** (`generic`) — `https://github.com/protostatis/unbrowser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`prufa-dev/prufa-mcp`** (`generic`) — `https://github.com/prufa-dev/prufa-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ptrinh/finalnotice-mcp`** (`generic`) — `https://github.com/ptrinh/finalnotice-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pubship/pubship`** (`generic`) — `https://github.com/pubship/pubship`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`purinzan/gx3-cli-mcp`** (`generic`) — `https://github.com/purinzan/gx3-cli-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pushtodisplay/cli`** (`generic`) — `https://github.com/pushtodisplay/cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pwh-pwh/coin-mcp-server`** (`generic`) — `https://github.com/pwh-pwh/coin-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pzalutski-pixel/godotlens-mcp`** (`generic`) — `https://github.com/pzalutski-pixel/godotlens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pzalutski-pixel/javalens-mcp`** (`generic`) — `https://github.com/pzalutski-pixel/javalens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pzalutski-pixel/sharplens-mcp`** (`generic`) — `https://github.com/pzalutski-pixel/sharplens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pzfreo/build123d-mcp`** (`generic`) — `https://github.com/pzfreo/build123d-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qbt-labs/openmm-mcp`** (`generic`) — `https://github.com/qbt-labs/openmm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qinisolabs/bizdays`** (`generic`) — `https://github.com/qinisolabs/bizdays`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qinisolabs/floodwise`** (`generic`) — `https://github.com/qinisolabs/floodwise`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qinisolabs/icdwise`** (`generic`) — `https://github.com/qinisolabs/icdwise`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qinisolabs/qiniso`** (`generic`) — `https://github.com/qinisolabs/qiniso`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`questdb/mcp-server-questdb`** (`generic`) — `https://github.com/questdb/mcp-server-questdb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`quietnotion/barevalue-mcp`** (`generic`) — `https://github.com/quietnotion/barevalue-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qune-tech/ocds-mcp`** (`generic`) — `https://github.com/qune-tech/vergabe-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`r3dz4r/datapulse-my`** (`generic`) — `https://github.com/r3dz4r/datapulse-my`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`raalarcon9705/jira-mcp`** (`generic`) — `https://github.com/raalarcon9705/jira-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`raccioly/docguard`** (`generic`) — `https://github.com/raccioly/docguard`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rafsilva85/credit-optimizer-v5`** (`generic`) — `https://github.com/rafsilva85/credit-optimizer-v5`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rascal-3/chainanalyzer-mcp`** (`generic`) — `https://github.com/rascal-3/chainanalyzer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`razz-games/razz-mcp`** (`generic`) — `https://github.com/razz-games/razz-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rbmuller/scherlok`** (`generic`) — `https://github.com/rbmuller/scherlok`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rdanieli/tentra-mcp`** (`generic`) — `https://github.com/rdanieli/tentra-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`re-port-flow/reportflow-mcp`** (`generic`) — `https://reportflow-mcp--re-port-flow.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`readyagents/readyagents-core`** (`generic`) — `https://github.com/readyagents/readyagents-core`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`realcrabcut/crabcut-mcp-server`** (`generic`) — `https://github.com/realcrabcut/crabcut-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`reefapi/reefapi-mcp`** (`generic`) — `https://github.com/reefapi/reefapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`reeinharddd/snapmcp`** (`generic`) — `https://github.com/reeinharddd/snapmcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`refined-element/lightning-enable-mcp`** (`generic`) — `https://github.com/refined-element/lightning-enable-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`reflex-search/reflex`** (`generic`) — `https://github.com/reflex-search/reflex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rejifald/StitchAPI`** (`generic`) — `https://github.com/rejifald/StitchAPI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rekordcloud/sonovault-mcp`** (`generic`) — `https://github.com/rekordcloud/sonovault-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`religa/multi_mcp`** (`generic`) — `https://github.com/religa/multi_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`remembra-ai/remembra`** (`generic`) — `https://github.com/remembra-ai/remembra`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`remoet-labs/remoet-mcp`** (`generic`) — `https://github.com/remoet-labs/remoet-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rendobar/mcp`** (`generic`) — `https://github.com/rendobar/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`renezander030/agentic-task-system`** (`generic`) — `https://github.com/renezander030/agentic-task-system`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`repowise-dev/repowise`** (`generic`) — `https://github.com/repowise-dev/repowise`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`richer-richard/cochlea`** (`generic`) — `https://github.com/richer-richard/cochlea`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`richer-richard/fenestra`** (`generic`) — `https://github.com/richer-richard/fenestra`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rm-rf-prod/GroundTruth-MCP`** (`generic`) — `https://github.com/rm-rf-prod/GroundTruth-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`roamzy-io/mcp-server`** (`generic`) — `https://github.com/roamzy-io/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`robotel-limited/robo-cortex`** (`generic`) — `https://github.com/robotel-limited/robo-cortex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rogertheunissenmerge-oss/mcp-server`** (`generic`) — `https://github.com/rogertheunissenmerge-oss/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ronak-create/FableCut`** (`generic`) — `https://github.com/ronak-create/FableCut`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`roomi-fields/notebooklm-mcp`** (`generic`) — `https://github.com/roomi-fields/notebooklm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rooquiz/rooquiz-mcp`** (`generic`) — `https://rooquiz.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`rozetyp/grounder-mcp`** (`generic`) — `https://github.com/rozetyp/grounder-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rplryan/x402-discovery-mcp`** (`generic`) — `https://x402-discovery-mcp--rplryan.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`rudimentall1/agentic-wallet-guardian-v3`** (`generic`) — `https://github.com/rudimentall1/agentic-wallet-guardian-v3`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rudraneel93/mcp-guardian`** (`generic`) — `https://github.com/rudraneel93/mcp-guardian`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`runcomfy-com/runcomfy-mcp`** (`generic`) — `https://github.com/runcomfy-com/runcomfy-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rupinder2/mcp-orchestrator`** (`generic`) — `https://github.com/rupinder2/mcp-orchestrator`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ruslanlap/pagespeed-insights-mcp`** (`generic`) — `https://github.com/ruslanlap/pagespeed-insights-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rust-works/omni-dev`** (`generic`) — `https://github.com/rust-works/omni-dev`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sF1nX/x402station-mcp`** (`generic`) — `https://github.com/sF1nX/x402station-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sachitrafa/YourMemory`** (`generic`) — `https://github.com/sachitrafa/YourMemory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sadayamuthu/mergelock`** (`generic`) — `https://github.com/sadayamuthu/mergelock`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`saiffmirza/kiyas`** (`generic`) — `https://github.com/saiffmirza/kiyas`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sailorpepe/undesirables-mcp-server`** (`generic`) — `https://github.com/sailorpepe/undesirables-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`samson-art/transcriptor-mcp`** (`generic`) — `https://github.com/samson-art/transcriptor-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`samvallad33/vestige`** (`generic`) — `https://github.com/samvallad33/vestige`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sand0vvv/hyperevm-mcp`** (`generic`) — `https://github.com/sand0vvv/hyperevm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sarveshsea/memi`** (`generic`) — `https://github.com/memi-design/memi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`saurabhsharma2u/search-console-mcp`** (`generic`) — `https://github.com/saurabhsharma2u/search-console-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`saurav61091/mcp-openapi`** (`generic`) — `https://github.com/saurav61091/mcp-openapi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`saxonnicholls/super-log`** (`generic`) — `https://github.com/saxonnicholls/super-log`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`scarletkc/vexor`** (`generic`) — `https://github.com/scarletkc/vexor`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`screenshotscout/screenshotscout-mcp`** (`generic`) — `https://github.com/screenshotscout/screenshotscout-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`seang1121/sports-betting-mcp`** (`generic`) — `https://github.com/seang1121/sports-betting-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`seanmeverett/shared-memory-mcp`** (`generic`) — `https://github.com/seanmeverett/shared-memory-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sebastienrousseau/pacs008-mcp`** (`generic`) — `https://github.com/sebastienrousseau/pacs008-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sebastienrousseau/rlg`** (`generic`) — `https://github.com/sebastienrousseau/rlg`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`securecoders/opengraph-io-mcp`** (`generic`) — `https://github.com/securecoders/opengraph-io-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`seedfast-ai/seedfast-mcp`** (`generic`) — `https://seedfa.st`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`seleniumbase/SeleniumBase`** (`generic`) — `https://github.com/seleniumbase/SeleniumBase`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`selvage-lab/selvage`** (`generic`) — `https://github.com/selvage-lab/selvage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sena-labs/OzBridge`** (`generic`) — `https://github.com/sena-labs/OzBridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`seob717/redash-mcp`** (`generic`) — `https://github.com/seob717/redash-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`serpapi/serpapi-mcp`** (`generic`) — `https://github.com/serpapi/serpapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`serpdive/serpdive-mcp`** (`generic`) — `https://github.com/serpdive/serpdive-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`servelink-swyftlabs/serve-mcp`** (`generic`) — `https://github.com/servelink-swyftlabs/serve-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sethbang/proton-mail-mcp`** (`generic`) — `https://github.com/sethbang/proton-mail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sgx-labs/statelessagent`** (`generic`) — `https://github.com/sgx-labs/statelessagent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sh6drack/zen-mcp`** (`generic`) — `https://github.com/sh6drack/zen-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`shakaran/symfony-agent-mcp`** (`generic`) — `https://smithery.ai/servers/shakaran/symfony-agent-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`shareseer/shareseer-mcp-server`** (`generic`) — `https://github.com/shareseer/shareseer-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`shariqriazz/google-ai-search-mcp`** (`generic`) — `https://github.com/shariqriazz/google-ai-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`shieldly-io/mcp`** (`generic`) — `https://github.com/shieldly-io/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sidclawhq/platform`** (`generic`) — `https://github.com/sidclawhq/platform`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`signal8ai/signal8-mcp`** (`generic`) — `https://github.com/signal8ai/signal8-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`singhpratech/crimson-crab-mcp-template`** (`generic`) — `https://github.com/singhpratech/crimson-crab-mcp-template`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sipyourdrink-ltd/bernstein`** (`generic`) — `https://github.com/sipyourdrink-ltd/bernstein`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sitbon/magg`** (`generic`) — `https://github.com/sitbon/magg`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`site-shot/site-shot-mcp`** (`generic`) — `https://smithery.ai/servers/site-shot/site-shot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sitebox/kids-stay-mcp`** (`generic`) — `https://kids-stay.com/mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`siweina/dsh-novel-writer`** (`generic`) — `https://github.com/siweina/dsh-novel-writer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`skyhook-io/radar`** (`generic`) — `https://github.com/skyhook-io/radar`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`slaat/garmin-connect-workouts-mcp`** (`generic`) — `https://github.com/slaat/garmin-connect-workouts-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`smaniches/alphafold-sovereign-mcp`** (`generic`) — `https://smithery.ai/servers/smaniches/alphafold-sovereign-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smaniches/semantic-scholar-mcp`** (`generic`) — `https://github.com/smaniches/semantic-scholar-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`smaniches/uniprot-mcp`** (`generic`) — `https://github.com/smaniches/uniprot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`smart-mcp-proxy/mcpproxy-go`** (`generic`) — `https://github.com/smart-mcp-proxy/mcpproxy-go`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`smartdatabrokers/slideforge-mcp`** (`generic`) — `https://github.com/smartdatabrokers/slideforge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`smeet666/mcp-animenewsnetwork`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-animenewsnetwork`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-archiveorg`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-archiveorg`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-ashby`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-ashby`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-bbc-goodfood`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-bbc-goodfood`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-bideetmusique`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-bideetmusique`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-books`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-books`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-databnf`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-databnf`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-imslp`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-imslp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-lever`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-lever`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-libraryofcongress`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-libraryofcongress`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-lrclib`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-lrclib`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-marmiton`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-marmiton`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-pequerecetas`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-pequerecetas`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-ptitchef`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-ptitchef`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-recipes`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-recipes`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-supertoinette`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-supertoinette`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`smeet666/mcp-wikibooks-cookbook`** (`generic`) — `https://smithery.ai/servers/smeet666/mcp-wikibooks-cookbook`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`snapshot-site/snapshot-site-mcp`** (`generic`) — `https://github.com/snapshot-site/snapshot-site-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`societe-agents-ia-arch/open-agent-polity`** (`generic`) — `https://github.com/societe-agents-ia-arch/open-agent-polity`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`socraticsurge/telugu-calendar-utilities`** (`generic`) — `https://github.com/socraticsurge/telugu-calendar-utilities`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softeria/ms-365-mcp-server`** (`generic`) — `https://github.com/Softeria/ms-365-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`soluai-spa/solucortex-mcp`** (`generic`) — `https://github.com/soluai-spa/solucortex-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sp3ak/safenode-mcp-gateway`** (`generic`) — `https://github.com/sp3ak/safenode-mcp-gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`sparrow84001/mcp-seo`** (`generic`) — `https://github.com/sparrow84001/mcp-seo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`specshield26/specshield-mcp-server`** (`generic`) — `https://github.com/specshield26/specshield-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`spranab/brainstorm-mcp`** (`generic`) — `https://github.com/spranab/brainstorm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`spranab/saga-mcp`** (`generic`) — `https://github.com/spranab/saga-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sqemo/sqemo-mcp`** (`generic`) — `https://github.com/sqemo/sqemo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`srinivasan-sundaresan95/orihime`** (`generic`) — `https://github.com/srinivasan-sundaresan95/orihime`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stabgan/openrouter-mcp-multimodal`** (`generic`) — `https://smithery.ai/servers/stabgan/openrouter-mcp-multimodal`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`stagproject/sec-filings-mcp`** (`generic`) — `https://github.com/stagproject/sec-filings-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`staminna/mcp-server-claude`** (`generic`) — `https://github.com/staminna/mcp-server-claude`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`starecz/karea-mcp`** (`generic`) — `https://github.com/starecz/karea-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stevejford/shiply-mcp`** (`generic`) — `https://shiply.now`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`stillmarcus24/stillos-notary-mcp`** (`generic`) — `https://github.com/stillmarcus24/stillos-notary-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stippi/code-assistant`** (`generic`) — `https://github.com/stippi/code-assistant`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`street1983nk/infranode`** (`generic`) — `https://github.com/street1983nk/infranode`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`strowk/mcp-k8s-go`** (`generic`) — `https://github.com/strowk/mcp-k8s-go`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sturs49/cryptotaxedge-mcp`** (`generic`) — `https://mcp.cryptotaxedge.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`subsquid-labs/portal-mcp-server`** (`generic`) — `https://github.com/subsquid-labs/portal-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sukrutkrdg/x402-bazaar-mcp`** (`generic`) — `https://github.com/sukrutkrdg/x402-bazaar-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sunsatosolutions/Vulcanus`** (`generic`) — `https://github.com/sunsatosolutions/Vulcanus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sunsiyuan/human-survey`** (`generic`) — `https://github.com/sunsiyuan/human-survey`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`supertone-inc/supertone-mcp`** (`generic`) — `https://github.com/supertone-inc/supertone-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`swapnanil/vectr`** (`generic`) — `https://github.com/swapnanil/vectr`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`swimmwatch/cloakbrowser-mcp`** (`generic`) — `https://github.com/swimmwatch/cloakbrowser-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sxhxliang/mcp-access-point`** (`generic`) — `https://github.com/sxhxliang/mcp-access-point`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`syk8015/claudeusage`** (`generic`) — `https://github.com/syk8015/claudeusage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sylin-org/ghostlight`** (`generic`) — `https://github.com/sylin-org/ghostlight`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`syndicalt/zaxy`** (`generic`) — `https://github.com/syndicalt/zaxy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`taisly/agent`** (`generic`) — `https://github.com/taisly/agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tamasPetki/HeadlessTracker`** (`generic`) — `https://github.com/tamasPetki/HeadlessTracker`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`taniwhaai/arai`** (`generic`) — `https://github.com/taniwhaai/arai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tarides/sudo-proxy`** (`generic`) — `https://github.com/tarides/sudo-proxy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tarunlnmiit/autopilot-jobhunt`** (`generic`) — `https://github.com/tarunlnmiit/autopilot-jobhunt`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`taygunsavas/patina-unity-mcp`** (`generic`) — `https://github.com/taygunsavas/patina-unity-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`taylorwilsdon/google_workspace_mcp`** (`generic`) — `https://smithery.ai/servers/taylorwilsdon/google_workspace_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`team886/findagent-mcp`** (`generic`) — `https://findagent.cloud`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`teamwork/mcp`** (`generic`) — `https://github.com/teamwork/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tecnologicachile/mail-mcp`** (`generic`) — `https://github.com/tecnologicachile/mail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`teflon07/memkeeper`** (`generic`) — `https://github.com/teflon07/memkeeper`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`telly6/searchpin`** (`generic`) — `https://github.com/telly6/searchpin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tempguru-co/tempguru-mcp`** (`generic`) — `https://github.com/tempguru-co/tempguru-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`temporal-cortex/mcp`** (`generic`) — `https://github.com/temporal-cortex/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tenatarika/vex`** (`generic`) — `https://github.com/tenatarika/vex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tenequm/pond`** (`generic`) — `https://github.com/tenequm/pond`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`testdino-hq/testdino-mcp`** (`generic`) — `https://github.com/testdino-hq/testdino-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`textbee/textbee-mcp`** (`generic`) — `https://github.com/textbee/textbee-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`the402ai/mcp-server`** (`generic`) — `https://github.com/the402ai/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`thehealthai/clarity-mcp`** (`generic`) — `https://github.com/thehealthai/clarity-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`themesberg/flowbite-mcp`** (`generic`) — `https://github.com/themesberg/flowbite-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`thyn-ai/telys-sdk`** (`generic`) — `https://github.com/thyn-ai/telys-sdk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`tickadoo/tickadoo-mcp`** (`generic`) — `https://github.com/tickadoo/tickadoo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tickerdb/tickerdb-mcp`** (`generic`) — `https://github.com/tickerdb/tickerdb-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tillbooks/tillbooks`** (`generic`) — `https://github.com/tillbooks/tillbooks`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`timescale/rsigma`** (`generic`) — `https://github.com/timescale/rsigma`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tokportal/tokportal-mcp`** (`generic`) — `https://github.com/tokportal/tokportal-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tomba-io/tomba-mcp-server`** (`generic`) — `https://smithery.ai/servers/tomba-io/tomba-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tomjwxf/scopeblind-gateway`** (`generic`) — `https://github.com/tomjwxf/scopeblind-gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`tomohiro-owada/devrag`** (`generic`) — `https://smithery.ai/servers/tomohiro-owada/devrag`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tools-mcp/vessel-traffic-mcp`** (`generic`) — `https://github.com/tools-mcp/vessel-traffic-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`toolstem/toolstem-mcp-server`** (`generic`) — `https://toolstem-mcp-server--toolstem.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tosin2013/mcp-adr-analysis-server`** (`generic`) — `https://github.com/tosin2013/mcp-adr-analysis-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tracegazer/clockify-mcp`** (`generic`) — `https://github.com/tracegazer/clockify-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tracegazer/invgate-service-desk-mcp`** (`generic`) — `https://github.com/tracegazer/invgate-service-desk-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`trackerfitness729-jpg/sitelauncher-mcp-server`** (`generic`) — `https://smithery.ai/servers/trackerfitness729-jpg/sitelauncher-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`transcribe-app/mcp-transcribe`** (`generic`) — `https://github.com/transcribe-app/mcp-transcribe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tribal-memory/tribal`** (`generic`) — `https://github.com/tribal-memory/tribal`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tribeunal/mcp-server`** (`generic`) — `https://mcp-server--tribeunal.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tro2789/scout-premiere-mcp`** (`generic`) — `https://github.com/tro2789/scout-premiere-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`true402/mcp-server`** (`generic`) — `https://smithery.ai/servers/true402/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`trueoriginlabs/vibatchium`** (`generic`) — `https://github.com/trueoriginlabs/vibatchium`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`trycourier/courier-mcp`** (`generic`) — `https://github.com/trycourier/courier-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tufantunc/axiom-advanced-math-mcp`** (`generic`) — `https://github.com/tufantunc/axiom-advanced-math-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tunahanaliozturk/derbent`** (`generic`) — `https://github.com/tunahanaliozturk/derbent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tunedforai/x402-mcp`** (`generic`) — `https://github.com/tunedforai/x402-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`turbyho/fw-context-mcp`** (`generic`) — `https://github.com/turbyho/fw-context-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`turnnoblindeye/wellness-project-mcp`** (`generic`) — `https://github.com/turnnoblindeye/wellness-project-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`txn2/kubefwd`** (`generic`) — `https://github.com/txn2/kubefwd`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tydude001/proofcut`** (`generic`) — `https://github.com/tydude001/proofcut`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tylergibbs1/backwork-mcp`** (`generic`) — `https://github.com/tylergibbs1/backwork-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`uchit/mcp-regulated-ai-compliance`** (`generic`) — `https://github.com/uchit/mcp-regulated-ai-compliance`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`universalamateur/reclaim-mcp-server`** (`generic`) — `https://github.com/universalamateur/reclaim-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`untitledfinancial/dpx-mcp`** (`generic`) — `https://dpx-mcp--untitledfinancial.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`up2itnow0822/clawpay-mcp`** (`generic`) — `https://github.com/up2itnow0822/clawpay-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`upstash/context7`** (`generic`) — `https://github.com/upstash/context7`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`us-all/datadog-mcp-server`** (`generic`) — `https://github.com/us-all/datadog-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`us-all/mlflow-mcp-server`** (`generic`) — `https://github.com/us-all/mlflow-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`usestring/string-ai-mcp`** (`generic`) — `https://github.com/usestring/string-ai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vaemail/vaemail-mcp`** (`generic`) — `https://github.com/vaemail/vaemail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vassiliylakhonin/agenda-intelligence-md`** (`generic`) — `https://github.com/vassiliylakhonin/agenda-intelligence-md`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vatnode/vatnode-mcp`** (`generic`) — `https://github.com/vatnode/vatnode-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vbcherepanov/total-agent-memory`** (`generic`) — `https://github.com/vbcherepanov/total-agent-memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vbhjckfd/timetable-api-node`** (`generic`) — `https://timetable-api-node--vbhjckfd.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`vdalhambra/financekit-mcp`** (`generic`) — `https://github.com/vdalhambra/financekit-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vdalhambra/siteaudit-mcp`** (`generic`) — `https://github.com/vdalhambra/siteaudit-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vdmeu/registrum-mcp`** (`generic`) — `https://github.com/vdmeu/registrum-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`verifyax/verifyax-mcp`** (`generic`) — `https://github.com/verifyax/verifyax-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vessel-api/vesselapi-mcp`** (`generic`) — `https://github.com/vessel-api/vesselapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`victorlane/Flyan`** (`generic`) — `https://github.com/victorlane/Flyan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vighriday/Veris`** (`generic`) — `https://github.com/vighriday/Veris`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vin-spiegel/htmldrop`** (`generic`) — `https://github.com/vin-spiegel/htmldrop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vinaybhosle/agentstamp`** (`generic`) — `https://agentstamp--vinaybhosle.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`vinayvobbili/jobwatch`** (`generic`) — `https://github.com/vinayvobbili/jobwatch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vincentvella/devloop`** (`generic`) — `https://github.com/vincentvella/devloop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vinvuk/apiverket-mcp`** (`generic`) — `https://github.com/vinvuk/apiverket-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`virtualsms-io/mcp-server`** (`generic`) — `https://github.com/virtualsms-io/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vishnu-77/openreflex`** (`generic`) — `https://github.com/vishnu-77/openreflex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vornicx/Midas`** (`generic`) — `https://github.com/vornicx/Midas`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wanaku-ai/wanaku`** (`generic`) — `https://github.com/wanaku-ai/wanaku`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wazionapps/nexo`** (`generic`) — `https://github.com/wazionapps/nexo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`webaesbyamin/agent-receipts`** (`generic`) — `https://github.com/webaesbyamin/agent-receipts`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`webdriverio/mcp`** (`generic`) — `https://github.com/webdriverio/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`webmilmind1/deskcrew-mcp`** (`generic`) — `https://deskcrew.io`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`webscraping-ai/webscraping-ai-mcp-server`** (`generic`) — `https://github.com/webscraping-ai/webscraping-ai-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wei9072/aegis`** (`generic`) — `https://github.com/wei9072/aegis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wende/cicada`** (`generic`) — `https://github.com/wende/cicada`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`whdrnr2583-cmd/token-meter`** (`generic`) — `https://github.com/whdrnr2583-cmd/token-meter`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`whiteknightonhorse/APIbase`** (`generic`) — `https://github.com/whiteknightonhorse/APIbase`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`whw23/searxng_http_mcp`** (`generic`) — `https://github.com/whw23/searxng_http_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wildsurfer/cnn-fear-and-greed-parse`** (`generic`) — `https://github.com/wildsurfer/cnn-fear-and-greed-parse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wildsurfer/your-mail-mcp`** (`generic`) — `https://github.com/wildsurfer/your-mail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`willianpinho/mcp-gateway-scan`** (`generic`) — `https://github.com/willianpinho/mcp-gateway-scan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`wise-vision/mcp_server_ros_2`** (`generic`) — `https://github.com/wise-vision/ros2_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wishfinity/wishfinity-mcp-plusw`** (`generic`) — `https://github.com/wishfinity/wishfinity-mcp-plusw`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`withgrokbot/verified-catalog`** (`generic`) — `https://github.com/withgrokbot/verified-catalog`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`withoneai/mcp`** (`generic`) — `https://github.com/withoneai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wkalidev/multichain-mcp`** (`generic`) — `https://smithery.ai/servers/wkalidev/multichain-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`wkoverfield/quilt`** (`generic`) — `https://github.com/wkoverfield/quilt`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wmmg101/kilter-mcp`** (`generic`) — `https://github.com/wmmg101/kilter-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wowinter13/solscan-mcp`** (`generic`) — `https://github.com/wowinter13/solscan-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wretcher207/reaper-daemon`** (`generic`) — `https://github.com/wretcher207/reaper-daemon`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wundervault/wundervault-mcp`** (`generic`) — `https://smithery.ai/servers/wundervault/wundervault-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`x402-index/x402search-mcp`** (`generic`) — `https://github.com/x402-index/x402search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`x402node/x402-mcp`** (`generic`) — `https://github.com/x402node/x402-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`x51xxx/codex-mcp-tool`** (`generic`) — `https://github.com/x51xxx/codex-mcp-tool`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`x7even/cloudcostsmcp`** (`generic`) — `https://github.com/x7even/cloudcostsmcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`xChuCx/agent-memory`** (`generic`) — `https://github.com/xChuCx/agent-memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`xmpuspus/cloudwright`** (`generic`) — `https://github.com/xmpuspus/cloudwright`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`xns-cloud/relayer-mcp`** (`generic`) — `https://gitlab.com/scpcorp/relayer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`yamantaka520/Agent-Memory-OS`** (`generic`) — `https://github.com/yamantaka520/Agent-Memory-OS`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yjcho9317/nworks`** (`generic`) — `https://github.com/yjcho9317/nworks`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yonro/memory-os-cli`** (`generic`) — `https://github.com/yonro/memory-os-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yoryocoruxo-ai/rendoc-mcp-server`** (`generic`) — `https://github.com/yoryocoruxo-ai/rendoc-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ysalitrynskyi/opn-mcp`** (`generic`) — `https://github.com/ysalitrynskyi/opn-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yubinkim444/ai-first-scraper-mcp`** (`generic`) — `https://github.com/yubinkim444/ai-first-scraper-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yubinkim444/repo-memory`** (`generic`) — `https://github.com/yubinkim444/repo-memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yuna0x0/anilist-mcp`** (`generic`) — `https://smithery.ai/servers/yuna0x0/anilist-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`yuna0x0/hackmd-mcp`** (`generic`) — `https://smithery.ai/servers/yuna0x0/hackmd-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zaebee/codegraph-brain`** (`generic`) — `https://github.com/zaebee/codegraph-brain`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zarcherlot/code-relay`** (`generic`) — `https://github.com/zarcherlot/code-relay`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zb-ss/servonaut`** (`generic`) — `https://github.com/zb-ss/servonaut`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zenml-io/mcp-zenml`** (`generic`) — `https://github.com/zenml-io/mcp-zenml`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zoharbabin/web-researcher-mcp`** (`generic`) — `https://github.com/zoharbabin/web-researcher-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zsxh1990/pr-genius`** (`generic`) — `https://github.com/zsxh1990/pr-genius`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ztemerbekov/a1-yandex-kit-skills`** (`generic`) — `https://github.com/ztemerbekov/a1-yandex-kit-skills`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zumerlab/snapsurf`** (`generic`) — `https://github.com/zumerlab/snapsurf`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zw008/VMware-AIops`** (`generic`) — `https://smithery.ai/servers/zw008/VMware-AIops`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zw008/VMware-AVI`** (`generic`) — `https://github.com/zw008/VMware-AVI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zw008/VMware-Aria`** (`generic`) — `https://smithery.ai/servers/zw008/VMware-Aria`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zw008/VMware-Harden`** (`generic`) — `https://github.com/vmware-skills/VMware-Harden`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zw008/VMware-Monitor`** (`generic`) — `https://smithery.ai/servers/zw008/VMware-Monitor`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zw008/VMware-NSX`** (`generic`) — `https://smithery.ai/servers/zw008/VMware-NSX`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zw008/VMware-NSX-Security`** (`generic`) — `https://smithery.ai/servers/zw008/VMware-NSX-Security`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zw008/VMware-Storage`** (`generic`) — `https://smithery.ai/servers/zw008/VMware-Storage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zw008/VMware-VKS`** (`generic`) — `https://smithery.ai/servers/zw008/VMware-VKS`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zyli5313/dochost-mcp`** (`generic`) — `https://dochost-mcp--zyli5313.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zyx77550/sparda`** (`generic`) — `https://github.com/zyx77550/sparda`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`0xUXDesign/pharaoh-mcp`** (`github`) — `https://github.com/0xUXDesign/pharaoh-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`2niuhe/plantuml_web`** (`github`) — `https://github.com/2niuhe/plantuml_web`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`2niuhe/qrcode_mcp`** (`github`) — `https://github.com/2niuhe/qrcode_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`2s-io/sdk`** (`github`) — `https://github.com/2s-io/sdk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`AG-Bureau/mcp-search`** (`github`) — `https://github.com/AG-Bureau/mcp-search`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AIOProductOS/claude-plugin`** (`github`) — `https://github.com/AIOProductOS/claude-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AMKRS3/keycae-mcp`** (`github`) — `https://github.com/AMKRS3/keycae-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AaronVick/ECHO_RIFT_MCP`** (`github`) — `https://github.com/AaronVick/ECHO_RIFT_MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Agent-Prod/muze-mcp`** (`github`) — `https://github.com/Agent-Prod/muze-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`AgenticRevolution/memory-nexus-cloud`** (`github`) — `https://github.com/AgenticRevolution/memory-nexus-cloud`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Ahtasham00/tactab`** (`github`) — `https://github.com/Ahtasham00/tactab`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Avazbek22/DevProjex`** (`github`) — `https://github.com/Avazbek22/DevProjex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BRNDMK/brandomica-mcp-server`** (`github`) — `https://github.com/BRNDMK/brandomica-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BlackMount-ai/blackmount-nlp-mcp`** (`github`) — `https://github.com/BlackMount-ai/blackmount-nlp-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BlockRunAI/x-grow`** (`github`) — `https://github.com/BlockRunAI/x-grow`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`BrunoPessoa22/chiliz-marketing-intel`** (`github`) — `https://github.com/BrunoPessoa22/chiliz-marketing-intel`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Canner/wren-engine`** (`github`) — `https://github.com/Canner/wren-engine`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CanopyHQ/phloem`** (`github`) — `https://github.com/CanopyHQ/phloem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Cartisien/engram-mcp`** (`github`) — `https://github.com/Cartisien/engram-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Cehha79/aka-recht`** (`github`) — `https://github.com/Cehha79/aka-recht`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CreativeClawCo/creative-claw-marketplace`** (`github`) — `https://github.com/CreativeClawCo/creative-claw-marketplace`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`CrossPaste/crosspaste-desktop`** (`github`) — `https://github.com/CrossPaste/crosspaste-desktop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DIALLOUBE-RESEARCH/hypernatt-terminal`** (`github`) — `https://github.com/DIALLOUBE-RESEARCH/hypernatt-terminal`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DROOdotFOO/raxol`** (`github`) — `https://github.com/DROOdotFOO/raxol`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Darko893/haunt-mcp-server`** (`github`) — `https://github.com/Darko893/haunt-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DataEval/dingo`** (`github`) — `https://github.com/DataEval/dingo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Declade/lucairn-sdks`** (`github`) — `https://github.com/Declade/lucairn-sdks`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`Dissimilis/DirForge`** (`github`) — `https://github.com/Dissimilis/DirForge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Drop-to-run/drop2run-cli`** (`github`) — `https://github.com/Drop-to-run/drop2run-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`DuhoKim/NebulaMind`** (`github`) — `https://github.com/DuhoKim/NebulaMind`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Elmoaid/TempoGraph`** (`github`) — `https://github.com/Elmoaid/TempoGraph`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`FLOX-Foundation/flox`** (`github`) — `https://github.com/FLOX-Foundation/flox`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Fluke-Studio/uk-business-intelligence-mcp`** (`github`) — `https://github.com/Fluke-Studio/uk-business-intelligence-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Gaffx/volatility-mcp`** (`github`) — `https://github.com/Gaffx/volatility-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Handshake58/DRAIN-marketplace`** (`github`) — `https://github.com/Handshake58/DRAIN-marketplace`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HelixGenomics/Genomic-Agent-Discovery`** (`github`) — `https://github.com/HelixGenomics/Genomic-Agent-Discovery`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`HubLensOfficial/mcp-server`** (`github`) — `https://github.com/HubLensOfficial/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`IO-Aerospace-software-engineering/mcp-server`** (`github`) — `https://github.com/IO-Aerospace-software-engineering/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`IvanMurzak/Unity-MCP`** (`github`) — `https://github.com/IvanMurzak/Unity-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`JannLeo/telinksdk-builder-mcp`** (`github`) — `https://github.com/JannLeo/telinksdk-builder-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`JayOfemi/byakugan`** (`github`) — `https://github.com/JayOfemi/byakugan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`JhiNResH/maiat-protocol`** (`github`) — `https://github.com/JhiNResH/maiat-protocol`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`K-Dense-AI/claude-skills-mcp`** (`github`) — `https://github.com/K-Dense-AI/claude-skills-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Karzone/TestAtlas`** (`github`) — `https://github.com/Karzone/TestAtlas`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kentucky-ai/opentakeoff`** (`github`) — `https://github.com/Kentucky-ai/opentakeoff`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Klavis-AI/klavis`** (`github`) — `https://github.com/Klavis-AI/klavis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Kookerella-Ltd/Kookerella.FsOpenXmlDsl`** (`github`) — `https://github.com/Kookerella-Ltd/Kookerella.FsOpenXmlDsl`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KrishnaPramodParupudi/kaggle-mcp-server`** (`github`) — `https://github.com/KrishnaPramodParupudi/kaggle-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`KyaniteLabs/checkyourself`** (`github`) — `https://github.com/KyaniteLabs/checkyourself`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LadislavSopko/mcp-ai-server-visual-studio`** (`github`) — `https://github.com/LadislavSopko/mcp-ai-server-visual-studio`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Log-LogN/langfuse-mcp-java`** (`github`) — `https://github.com/Log-LogN/langfuse-mcp-java`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Luckycat133/traecnclaw-mcp-skill`** (`github`) — `https://github.com/Luckycat133/traecnclaw-mcp-skill`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`LvcidPsyche/auto-browser`** (`github`) — `https://github.com/LvcidPsyche/auto-browser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Lyosis/claudeForSafari`** (`github`) — `https://github.com/Lyosis/claudeForSafari`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MWGMorningwood/Central-Memory-MCP`** (`github`) — `https://github.com/MWGMorningwood/Central-Memory-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MailFlat/mailflat-sdks`** (`github`) — `https://github.com/MailFlat/mailflat-sdks`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`MarcinDudekDev/the-data-collector`** (`github`) — `https://github.com/MarcinDudekDev/the-data-collector`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MerabyLabs/promptarchitect-mcp`** (`github`) — `https://github.com/MerabyLabs/promptarchitect-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`MeshLedger/MeshLedger`** (`github`) — `https://github.com/MeshLedger/MeshLedger`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Neo1228/spring-boot-starter-swagger-mcp`** (`github`) — `https://github.com/Neo1228/spring-boot-starter-swagger-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Nyrok/flompt`** (`github`) — `https://github.com/Nyrok/flompt`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OctoEverywhere/mcp`** (`github`) — `https://github.com/OctoEverywhere/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OpenLinkSoftware/mcp-jdbc-server`** (`github`) — `https://github.com/OpenLinkSoftware/mcp-jdbc-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OthmaneBlial/term_mcp_deepseek`** (`github`) — `https://github.com/OthmaneBlial/term_mcp_deepseek`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PThrower/Strata`** (`github`) — `https://github.com/PThrower/Strata`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`PatrickPalmer/MayaMCP`** (`github`) — `https://github.com/PatrickPalmer/MayaMCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Proofpane/releases`** (`github`) — `https://github.com/Proofpane/releases`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`QuentinCody/catalysishub-mcp-server`** (`github`) — `https://github.com/QuentinCody/catalysishub-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`QuentinCody/github-graphql-mcp-server`** (`github`) — `https://github.com/QuentinCody/github-graphql-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ReviewGate/reviewgate`** (`github`) — `https://github.com/ReviewGate/reviewgate`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SPL-BGU/PlanningCopilot`** (`github`) — `https://github.com/SPL-BGU/PlanningCopilot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`SaseQ/discord-mcp`** (`github`) — `https://github.com/SaseQ/discord-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Shopify/dev-mcp`** (`github`) — `https://github.com/Shopify/dev-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`StripFeed/mcp-server`** (`github`) — `https://github.com/StripFeed/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`System-R-AI/systemr-python`** (`github`) — `https://github.com/System-R-AI/systemr-python`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TOBYCAI/image-mcp`** (`github`) — `https://github.com/TOBYCAI/image-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TT-Wang/forge`** (`github`) — `https://github.com/TT-Wang/forge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`TeamSafeAI/LIFE`** (`github`) — `https://github.com/TeamSafeAI/LIFE`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`V0v1kkk/DotNetMetadataMcpServer`** (`github`) — `https://github.com/V0v1kkk/DotNetMetadataMcpServer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Wolido/OpenAaaS`** (`github`) — `https://github.com/Wolido/OpenAaaS`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Yarmoluk/ckg-mcp`** (`github`) — `https://github.com/Yarmoluk/ckg-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ZLeventer/salesforce-marketing-mcp`** (`github`) — `https://github.com/ZLeventer/salesforce-marketing-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aarsiv-groups/shipi-mcp-server`** (`github`) — `https://github.com/aarsiv-groups/shipi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`abhiemj/manim-mcp-server`** (`github`) — `https://github.com/abhiemj/manim-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aidesignblueprint/integrations`** (`github`) — `https://github.com/aidesignblueprint/integrations`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alexcloudstar/makers.page-mcp`** (`github`) — `https://github.com/alexcloudstar/makers.page-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`altinoren/Utopia`** (`github`) — `https://github.com/altinoren/Utopia`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ankitmalik84/Agentic_Longterm_Memory`** (`github`) — `https://github.com/ankitmalik84/Agentic_Longterm_Memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`anzy-renlab-ai/pronounce`** (`github`) — `https://github.com/anzy-renlab-ai/pronounce`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`apiguru-app/agent-kit`** (`github`) — `https://github.com/apiguru-app/agent-kit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`asokore/statcite`** (`github`) — `https://github.com/asokore/statcite`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomicchonk/roadrecon_mcp_server`** (`github`) — `https://github.com/atomicchonk/roadrecon_mcp_server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`awslabs/mcp`** (`github`) — `https://github.com/awslabs/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`b52tot/workbuddy-board`** (`github`) — `https://github.com/b52tot/workbuddy-board`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bbonnin/openapi-to-mcp`** (`github`) — `https://github.com/bbonnin/openapi-to-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`betterhyq/mermaid_grammer_inspector_mcp`** (`github`) — `https://github.com/betterhyq/mermaid_grammer_inspector_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`blazephoenixxyz-crypto/blazephoenix-mcp`** (`github`) — `https://github.com/blazephoenixxyz-crypto/blazephoenix-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`boikot-xyz/boikot`** (`github`) — `https://github.com/boikot-xyz/boikot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`box/mcp-server-box-remote`** (`github`) — `https://github.com/box/mcp-server-box-remote`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bram2w/baserow`** (`github`) — `https://github.com/bram2w/baserow`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`brianxiadong/ones-wiki-mcp-server`** (`github`) — `https://github.com/brianxiadong/ones-wiki-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`calclavia/mcp-obsidian`** (`github`) — `https://github.com/calclavia/mcp-obsidian`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`celineycn/quantdata-plugin`** (`github`) — `https://github.com/celineycn/quantdata-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`checkra1neth/xbird-skill`** (`github`) — `https://github.com/checkra1neth/xbird-skill`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cisco-open/network-sketcher`** (`github`) — `https://github.com/cisco-open/network-sketcher`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cmcgrabby-hue/syndicate-links`** (`github`) — `https://github.com/cmcgrabby-hue/syndicate-links`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`codeislaw101/katzilla`** (`github`) — `https://github.com/codeislaw101/katzilla`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`conformi-eu/conformi-search-mcp`** (`github`) — `https://github.com/conformi-eu/conformi-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`connerlambden/bgpt-mcp`** (`github`) — `https://github.com/connerlambden/bgpt-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`connerlambden/helium-mcp`** (`github`) — `https://github.com/connerlambden/helium-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`contextium-io/contextium-mcp-server`** (`github`) — `https://github.com/contextium-io/contextium-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cuttalo/depscope`** (`github`) — `https://github.com/cuttalo/depscope`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cyberwareX/cyberwarex-mcp`** (`github`) — `https://github.com/cyberwareX/cyberwarex-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dearlordylord/5e-quint`** (`github`) — `https://github.com/dearlordylord/5e-quint`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dhawalshah/google-tag-manager-mcp`** (`github`) — `https://github.com/dhawalshah/google-tag-manager-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dkvdm/onepassword-mcp-server`** (`github`) — `https://github.com/dkvdm/onepassword-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dnaerys/onekgpd-mcp`** (`github`) — `https://github.com/dnaerys/onekgpd-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dolphinquant/echolon`** (`github`) — `https://github.com/dolphinquant/echolon`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`drjerryrelth/ghl-command-feedback`** (`github`) — `https://github.com/drjerryrelth/ghl-command-feedback`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dtkmn/mcp-zap-server`** (`github`) — `https://github.com/dtkmn/mcp-zap-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ebbfijsf/agent-reader`** (`github`) — `https://github.com/ebbfijsf/agent-reader`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`edgarriba/prolink`** (`github`) — `https://github.com/edgarriba/prolink`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`eidetic-works/nucleus-mcp`** (`github`) — `https://github.com/eidetic-works/nucleus-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ekas-io/open-sales-stack`** (`github`) — `https://github.com/ekas-io/open-sales-stack`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`emektor/toolwrit`** (`github`) — `https://github.com/emektor/toolwrit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`endorhq/cli`** (`github`) — `https://github.com/endorhq/cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`equinoxaifinance-rgb/living-stack-mcp`** (`github`) — `https://github.com/equinoxaifinance-rgb/living-stack-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`escapeboy/agent-fleet-o`** (`github`) — `https://github.com/escapeboy/agent-fleet-o`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`evan-moon/firma`** (`github`) — `https://github.com/evan-moon/firma`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ezpzfile/ezpzfile-mcp`** (`github`) — `https://github.com/ezpzfile/ezpzfile-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fernikolic/clawdentials`** (`github`) — `https://github.com/fernikolic/clawdentials`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`financialdatanet/mcp-server`** (`github`) — `https://github.com/financialdatanet/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gbatistuta0/appfactory`** (`github`) — `https://github.com/gbatistuta0/appfactory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`geml-spec/geml`** (`github`) — `https://github.com/geml-spec/geml`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gemy411/multi-agents-research`** (`github`) — `https://github.com/gemy411/multi-agents-research`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`german-krasnikov/unity-biome-mcp`** (`github`) — `https://github.com/german-krasnikov/unity-biome-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`getrupt/ashra-mcp`** (`github`) — `https://github.com/getrupt/ashra-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`giskard09/argentum-core`** (`github`) — `https://github.com/giskard09/argentum-core`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gitkraken/gk-cli`** (`github`) — `https://github.com/gitkraken/gk-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`giuseppe-coco/Google-Workspace-MCP-Server`** (`github`) — `https://github.com/giuseppe-coco/Google-Workspace-MCP-Server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`glenngillen/mcpmcp-server`** (`github`) — `https://github.com/glenngillen/mcpmcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gsmethells/preflight-mcp`** (`github`) — `https://github.com/gsmethells/preflight-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hannesrudolph/imessage-query-fastmcp-mcp-server`** (`github`) — `https://github.com/hannesrudolph/imessage-query-fastmcp-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hannesrudolph/sqlite-explorer-fastmcp-mcp-server`** (`github`) — `https://github.com/hannesrudolph/sqlite-explorer-fastmcp-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hardeyhemy/revnuvo-dev`** (`github`) — `https://github.com/hardeyhemy/revnuvo-dev`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`harrison/ai-counsel`** (`github`) — `https://github.com/harrison/ai-counsel`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hechtcarmel/jetbrains-index-mcp-plugin`** (`github`) — `https://github.com/hechtcarmel/jetbrains-index-mcp-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`helpful-AIs/triplyfy-mcp`** (`github`) — `https://github.com/helpful-AIs/triplyfy-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`heymrun/heym`** (`github`) — `https://github.com/heymrun/heym`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hiroata/meltbook`** (`github`) — `https://github.com/hiroata/meltbook`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`homespunapps/homespun`** (`github`) — `https://github.com/homespunapps/homespun`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`huanglizhuo/OctoCounts`** (`github`) — `https://github.com/huanglizhuo/OctoCounts`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ingero-io/ingero`** (`github`) — `https://github.com/ingero-io/ingero`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`inkbytefo/screenmonitormcp`** (`github`) — `https://github.com/inkbytefo/screenmonitormcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`inspizzz/jetbrains-datalore-mcp`** (`github`) — `https://github.com/inspizzz/jetbrains-datalore-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jagmarques/asqav-mcp`** (`github`) — `https://github.com/jagmarques/asqav-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jamjet-labs/jamjet`** (`github`) — `https://github.com/jamjet-labs/jamjet`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jaspertvdm/mcp-server-gemini-bridge`** (`github`) — `https://github.com/jaspertvdm/mcp-server-gemini-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jaspertvdm/mcp-server-inject-bender`** (`github`) — `https://github.com/jaspertvdm/mcp-server-inject-bender`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jaspertvdm/mcp-server-ollama-bridge`** (`github`) — `https://github.com/jaspertvdm/mcp-server-ollama-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jaspertvdm/mcp-server-openai-bridge`** (`github`) — `https://github.com/jaspertvdm/mcp-server-openai-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jaspertvdm/mcp-server-rabel`** (`github`) — `https://github.com/jaspertvdm/mcp-server-rabel`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jaspertvdm/mcp-server-tibet`** (`github`) — `https://github.com/jaspertvdm/mcp-server-tibet`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jdubois/azure-cli-mcp`** (`github`) — `https://github.com/jdubois/azure-cli-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jeannier/homebrew-mcp`** (`github`) — `https://github.com/jeannier/homebrew-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jmshinhwa/readystack-mcp`** (`github`) — `https://github.com/jmshinhwa/readystack-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`joepangallo/mcp-server-agentpay`** (`github`) — `https://github.com/joepangallo/mcp-server-agentpay`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jospnunes/idencify-mcp`** (`github`) — `https://github.com/jospnunes/idencify-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`juergenkoller-software/distill-mcp`** (`github`) — `https://github.com/juergenkoller-software/distill-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`juergenkoller-software/freezetext-mcp`** (`github`) — `https://github.com/juergenkoller-software/freezetext-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`juergenkoller-software/inkra-mcp`** (`github`) — `https://github.com/juergenkoller-software/inkra-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`juergenkoller-software/nemeton-mcp`** (`github`) — `https://github.com/juergenkoller-software/nemeton-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`juergenkoller-software/pdf-content-search-mcp`** (`github`) — `https://github.com/juergenkoller-software/pdf-content-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kindly-software/kdb`** (`github`) — `https://github.com/kindly-software/kdb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kiro0x/five-mcp`** (`github`) — `https://github.com/kiro0x/five-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`laszlopere/mcp-kodi`** (`github`) — `https://github.com/laszlopere/mcp-kodi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`laundromatic/shopgraph`** (`github`) — `https://github.com/laundromatic/shopgraph`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lightpanda-io/browser`** (`github`) — `https://github.com/lightpanda-io/browser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lofder/dsers-mcp-product`** (`github`) — `https://github.com/lofder/dsers-mcp-product`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`loicfontaine-max/qorami-sdk`** (`github`) — `https://github.com/loicfontaine-max/qorami-sdk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`luiacuaniello/perspectivegraph`** (`github`) — `https://github.com/luiacuaniello/perspectivegraph`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`magna-nz/aspnetcore-debugger-mcp`** (`github`) — `https://github.com/magna-nz/aspnetcore-debugger-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`magnusmalm/smolmux`** (`github`) — `https://github.com/magnusmalm/smolmux`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`malamutemayhem/unclick`** (`github`) — `https://github.com/malamutemayhem/unclick`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`markpdxt/dronelytics-mcp`** (`github`) — `https://github.com/markpdxt/dronelytics-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mavdol/capsule`** (`github`) — `https://github.com/mavdol/capsule`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mbrassey/solentic`** (`github`) — `https://github.com/mbrassey/solentic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`melbis/melbis-shop`** (`github`) — `https://github.com/melbis/melbis-shop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`micl2e2/code-to-tree`** (`github`) — `https://github.com/micl2e2/code-to-tree`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`microsoft/markitdown`** (`github`) — `https://github.com/microsoft/markitdown`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mihaelamj/cupertino`** (`github`) — `https://github.com/mihaelamj/cupertino`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mikan-atomoki/text-to-model`** (`github`) — `https://github.com/mikan-atomoki/text-to-model`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mindsdb/mindsdb`** (`github`) — `https://github.com/mindsdb/mindsdb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`miracle1814/ue5-automation`** (`github`) — `https://github.com/miracle1814/ue5-automation`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`moro3k/mcp-altegio`** (`github`) — `https://github.com/moro3k/mcp-altegio`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`musepy/genable`** (`github`) — `https://github.com/musepy/genable`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nckhemanth0/subscription-tracker-mcp`** (`github`) — `https://github.com/nckhemanth0/subscription-tracker-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ndl-systems/kevros-mcp`** (`github`) — `https://github.com/ndl-systems/kevros-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`neo4j-contrib/mcp-neo4j`** (`github`) — `https://github.com/neo4j-contrib/mcp-neo4j`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`newageflyfish-max/volthq`** (`github`) — `https://github.com/newageflyfish-max/volthq`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nipun-arora/wordpress-mcp-agent-bridge`** (`github`) — `https://github.com/nipun-arora/wordpress-mcp-agent-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`novyxlabs/novyx-core`** (`github`) — `https://github.com/novyxlabs/novyx-core`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ntriq-gh/ntriq-agentshop`** (`github`) — `https://github.com/ntriq-gh/ntriq-agentshop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nullpath-labs/mcp-client`** (`github`) — `https://github.com/nullpath-labs/mcp-client`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`openMF/mcp-mifosx`** (`github`) — `https://github.com/openMF/mcp-mifosx`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`opendatalab/MinerU-Ecosystem`** (`github`) — `https://github.com/opendatalab/MinerU-Ecosystem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`oscarleoo/chartlink-agents`** (`github`) — `https://github.com/oscarleoo/chartlink-agents`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`paigy-ai/mcp`** (`github`) — `https://github.com/paigy-ai/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`papersflow-ai/papersflow-mcp`** (`github`) — `https://github.com/papersflow-ai/papersflow-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`parallel-web/search-mcp`** (`github`) — `https://github.com/parallel-web/search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`parkyucheol-del/alphapipeline`** (`github`) — `https://github.com/parkyucheol-del/alphapipeline`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`peopleworks/SignsofAI`** (`github`) — `https://github.com/peopleworks/SignsofAI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pfillion42/memviz`** (`github`) — `https://github.com/pfillion42/memviz`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`phisanti/MCPR`** (`github`) — `https://github.com/phisanti/MCPR`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`picahq/mcp`** (`github`) — `https://github.com/picahq/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`piquesignal/piquesignal-mcp`** (`github`) — `https://github.com/piquesignal/piquesignal-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`project-feldspar-resources/feldspar-scan`** (`github`) — `https://github.com/project-feldspar-resources/feldspar-scan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`public-ui/kolibri`** (`github`) — `https://github.com/public-ui/kolibri`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pulumi/mcp-server`** (`github`) — `https://github.com/pulumi/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`quarkiverse/quarkus-mcp-servers`** (`github`) — `https://github.com/quarkiverse/quarkus-mcp-servers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`radareorg/radare2-mcp`** (`github`) — `https://github.com/radareorg/radare2-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`romanshumy/llm-prices-data`** (`github`) — `https://github.com/romanshumy/llm-prices-data`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rossshannon/weekly-weather-mcp.git`** (`github`) — `https://github.com/rossshannon/weekly-weather-mcp.git`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`s-b-e-n-s-o-n/portkey-admin-mcp`** (`github`) — `https://github.com/s-b-e-n-s-o-n/portkey-admin-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`samvas-codes/dawshund_mcp`** (`github`) — `https://github.com/samvas-codes/dawshund_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sapientpants/sonarqube-mcp-server`** (`github`) — `https://github.com/sapientpants/sonarqube-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sarefe12-sudo/visibilityradar-mcp`** (`github`) — `https://github.com/sarefe12-sudo/visibilityradar-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sascharo/gxtract`** (`github`) — `https://github.com/sascharo/gxtract`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`schemacrawler/SchemaCrawler-MCP-Server-Usage`** (`github`) — `https://github.com/schemacrawler/SchemaCrawler-MCP-Server-Usage`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`scotia1973-bot/api-hub`** (`github`) — `https://github.com/scotia1973-bot/api-hub`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`semgrep/semgrep`** (`github`) — `https://github.com/semgrep/semgrep`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`serkan-ozal/browser-devtools-mcp`** (`github`) — `https://smithery.ai/servers/serkan-ozal/browser-devtools-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sharafutdinovdi/revit-model-mcp`** (`github`) — `https://github.com/sharafutdinovdi/revit-model-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`shayaShav/flatten-mcp`** (`github`) — `https://github.com/shayaShav/flatten-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sheawinkler/ContextLattice`** (`github`) — `https://github.com/sheawinkler/ContextLattice`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`simplypixi/bugbug-mcp-server`** (`github`) — `https://github.com/simplypixi/bugbug-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`skymanbp/CodeEraser`** (`github`) — `https://github.com/skymanbp/CodeEraser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`slotix/dbconvert-streams-public`** (`github`) — `https://github.com/slotix/dbconvert-streams-public`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`smriti-AA/smriti`** (`github`) — `https://github.com/smriti-AA/smriti`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`snaggle-ai/openapi-mcp-server`** (`github`) — `https://github.com/snaggle-ai/openapi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/fakturka-api`** (`github`) — `https://github.com/softvoyagers/fakturka-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/linkmeta-api`** (`github`) — `https://github.com/softvoyagers/linkmeta-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/linkshrink-api`** (`github`) — `https://github.com/softvoyagers/linkshrink-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/ogforge-api`** (`github`) — `https://github.com/softvoyagers/ogforge-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/pagedrop-api`** (`github`) — `https://github.com/softvoyagers/pagedrop-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/pageshot-api`** (`github`) — `https://github.com/softvoyagers/pageshot-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/pdfspark-api`** (`github`) — `https://github.com/softvoyagers/pdfspark-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`softvoyagers/qrmint-api`** (`github`) — `https://github.com/softvoyagers/qrmint-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`spfunctions/simplefunctions-cli`** (`github`) — `https://github.com/spfunctions/simplefunctions-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`spyrae/claude-concilium`** (`github`) — `https://github.com/spyrae/claude-concilium`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`srmadscience/mcpdbwizard-open`** (`github`) — `https://github.com/srmadscience/mcpdbwizard-open`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`staccDOTsol/staccbot-tg`** (`github`) — `https://github.com/staccDOTsol/staccbot-tg`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stack-chan/stack-chan`** (`github`) — `https://github.com/stack-chan/stack-chan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stass/lldb-mcp`** (`github`) — `https://github.com/stass/lldb-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stefantsezarov/SaveSaveSaveSave`** (`github`) — `https://github.com/stefantsezarov/SaveSaveSaveSave`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`subelsky/bundler_mcp`** (`github`) — `https://github.com/subelsky/bundler_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`subhatta123/twilize`** (`github`) — `https://github.com/subhatta123/twilize`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`supabase-community/supabase-mcp`** (`github`) — `https://github.com/supabase-community/supabase-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`teodorofodocrispin-cmyk/trustboost-api`** (`github`) — `https://github.com/teodorofodocrispin-cmyk/trustboost-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`thinkchainai/mcpbundles`** (`github`) — `https://github.com/thinkchainai/mcpbundles`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`thomasjumper/agentbay`** (`github`) — `https://github.com/thomasjumper/agentbay`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`thyn-ai/algenta-sdk`** (`github`) — `https://github.com/thyn-ai/algenta-sdk`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: CLIENT_SDK`
+- [x] **`tigranbs/mcgravity`** (`github`) — `https://github.com/tigranbs/mcgravity`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`timkulbaev/mcp-gmail`** (`github`) — `https://github.com/timkulbaev/mcp-gmail`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`timolein74/asterpay-mcp-server`** (`github`) — `https://github.com/timolein74/asterpay-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tom28881/mcp-jira-server`** (`github`) — `https://github.com/tom28881/mcp-jira-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tooyipjee/yahoofinance-mcp.git`** (`github`) — `https://github.com/tooyipjee/yahoofinance-mcp.git`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tponscr-debug/oracle-h-mcp`** (`github`) — `https://github.com/tponscr-debug/oracle-h-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`trayders/trayd-mcp`** (`github`) — `https://github.com/trayders/trayd-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tuanle96/mcp-odoo`** (`github`) — `https://github.com/tuanle96/mcp-odoo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tubasasakunn/context-apps-mcp`** (`github`) — `https://github.com/tubasasakunn/context-apps-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`turbyho/mem-context`** (`github`) — `https://github.com/turbyho/mem-context`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`var-gg/mcp`** (`github`) — `https://github.com/var-gg/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vince-gonzalez/opticquiz-mcp`** (`github`) — `https://github.com/vince-gonzalez/opticquiz-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vkhanhqui/figma-mcp-go`** (`github`) — `https://github.com/vkhanhqui/figma-mcp-go`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`weaviate/mcp-server-weaviate`** (`github`) — `https://github.com/weaviate/mcp-server-weaviate`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wegotdocs/open-mcp`** (`github`) — `https://github.com/wegotdocs/open-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`whynowlab/jarvis-orb`** (`github`) — `https://github.com/whynowlab/jarvis-orb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`willvelida/mcp-afl-server`** (`github`) — `https://github.com/willvelida/mcp-afl-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wulun811/LiuHe`** (`github`) — `https://github.com/wulun811/LiuHe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`xspadex/bilibili-mcp.git`** (`github`) — `https://github.com/xspadex/bilibili-mcp.git`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`xxczaki/local-history`** (`github`) — `https://github.com/xxczaki/local-history`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yakuphanycl/instinct`** (`github`) — `https://github.com/yakuphanycl/instinct`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yamanoku/baseline-mcp-server`** (`github`) — `https://github.com/yamanoku/baseline-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yehuoshun/yuque-ai-mcp`** (`github`) — `https://github.com/yehuoshun/yuque-ai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yeick010/agentshield-mcp`** (`github`) — `https://github.com/yeick010/agentshield-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`youichi-uda/godot-mcp-pro`** (`github`) — `https://github.com/youichi-uda/godot-mcp-pro`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yuvalsuede/agent-media`** (`github`) — `https://github.com/yuvalsuede/agent-media`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yyyhy/nash-arena`** (`github`) — `https://github.com/yyyhy/nash-arena`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zboralski/ida-headless-mcp`** (`github`) — `https://github.com/zboralski/ida-headless-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zefarie/pterodactyl-mcp`** (`github`) — `https://github.com/zefarie/pterodactyl-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zinja-coder/jadx-ai-mcp`** (`github`) — `https://github.com/zinja-coder/jadx-ai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`MyAgentHubs/aimemo`** (`golang`) — `https://github.com/MyAgentHubs/aimemo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`OrgMentem/zotio`** (`golang`) — `https://github.com/OrgMentem/zotio`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`StacklokLabs/mkp`** (`golang`) — `https://github.com/StacklokLabs/mkp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`StacklokLabs/ocireg-mcp`** (`golang`) — `https://github.com/StacklokLabs/ocireg-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`StacklokLabs/osv-mcp`** (`golang`) — `https://github.com/StacklokLabs/osv-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`Sudhan30/freshprobe`** (`golang`) — `https://github.com/Sudhan30/freshprobe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`UnitVectorY-Labs/mcp-graphql-forge`** (`golang`) — `https://github.com/UnitVectorY-Labs/mcp-graphql-forge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ajitpratap0/GoSQLX`** (`golang`) — `https://github.com/ajitpratap0/GoSQLX`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`anwerj/youtube-uploader-mcp`** (`golang`) — `https://github.com/anwerj/youtube-uploader-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`automation-ai-labs/mcp-link`** (`golang`) — `https://github.com/automation-ai-labs/mcp-link`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`avisangle/calculator-server`** (`golang`) — `https://github.com/avisangle/calculator-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`catallo/misterclaw`** (`golang`) — `https://github.com/catallo/misterclaw`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`chaindead/telegram-mcp`** (`golang`) — `https://github.com/chaindead/telegram-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`chryaner/terrarium`** (`golang`) — `https://github.com/chryaner/terrarium`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ckanthony/gin-mcp`** (`golang`) — `https://github.com/ckanthony/gin-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cloudbet/sports-mcp-server`** (`golang`) — `https://github.com/cloudbet/sports-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dagger/container-use`** (`golang`) — `https://github.com/dagger/container-use`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dotemacs/domain-lookup-mcp`** (`golang`) — `https://github.com/dotemacs/domain-lookup-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`duaraghav8/MCPJungle`** (`golang`) — `https://github.com/duaraghav8/MCPJungle`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`emicklei/mcp-log-proxy`** (`golang`) — `https://github.com/emicklei/mcp-log-proxy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`forest6511/secretctl`** (`golang`) — `https://github.com/forest6511/secretctl`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fotoetienne/gqai`** (`golang`) — `https://github.com/fotoetienne/gqai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gavelcode/gavel`** (`golang`) — `https://github.com/gavelcode/gavel`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`girste/mcp-cybersec-watchdog`** (`golang`) — `https://github.com/girste/mcp-cybersec-watchdog`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gitopia/gitopia-mcp-server`** (`golang`) — `https://github.com/gitopia/gitopia-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`inth3shadows/runecho`** (`golang`) — `https://github.com/inth3shadows/runecho`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`janreges/ai-distiller`** (`golang`) — `https://github.com/janreges/ai-distiller`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jcdickinson/simplemem`** (`golang`) — `https://github.com/jcdickinson/simplemem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kambriso/fritzbox-mcp-server`** (`golang`) — `https://github.com/kambriso/fritzbox-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`krtw00/konbu`** (`golang`) — `https://github.com/krtw00/konbu`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lightpanda-io/gomcp`** (`golang`) — `https://github.com/lightpanda-io/gomcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`linnea-bakshi/gha-doctor`** (`golang`) — `https://github.com/linnea-bakshi/gha-doctor`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`magna-nz/tallybook`** (`golang`) — `https://github.com/magna-nz/tallybook`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mariocandela/beelzebub`** (`golang`) — `https://github.com/mariocandela/beelzebub`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`metoro-io/metoro-mcp-server`** (`golang`) — `https://github.com/metoro-io/metoro-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mickael-kerjean/filestash`** (`golang`) — `https://github.com/mickael-kerjean/filestash`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mordor-forge/trident-mcp`** (`golang`) — `https://github.com/mordor-forge/trident-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mrostamii/rancher-mcp-server`** (`golang`) — `https://github.com/mrostamii/rancher-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nickpending/mcp-recon`** (`golang`) — `https://github.com/nickpending/mcp-recon`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pavelpilyak/devrecall`** (`golang`) — `https://github.com/pavelpilyak/devrecall`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`planetscale/cli`** (`golang`) — `https://github.com/planetscale/cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`polymatx/dibs`** (`golang`) — `https://github.com/polymatx/dibs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`radumalica/infrastructure-mcp`** (`golang`) — `https://github.com/radumalica/infrastructure-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`raohwork/forgejo-mcp`** (`golang`) — `https://github.com/raohwork/forgejo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`raychao-oao/pty-mcp`** (`golang`) — `https://github.com/raychao-oao/pty-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`s60yucca/mnemos`** (`golang`) — `https://github.com/s60yucca/mnemos`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`soren-achebe/backscroll`** (`golang`) — `https://github.com/soren-achebe/backscroll`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`subnetmarco/pgmcp`** (`golang`) — `https://github.com/subnetmarco/pgmcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`theonedev/tod`** (`golang`) — `https://github.com/theonedev/tod`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tp322d/lastping-app`** (`golang`) — `https://github.com/tp322d/lastping-app`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vasayxtx/mcp-prompt-engine`** (`golang`) — `https://github.com/vasayxtx/mcp-prompt-engine`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`viventine-space/orbit-sentinel-mcp`** (`golang`) — `https://github.com/viventine-space/orbit-sentinel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`weibaohui/k8m`** (`golang`) — `https://github.com/weibaohui/k8m`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yikakia/godoc-mcp-server`** (`golang`) — `https://github.com/yikakia/godoc-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yshngg/pmcp`** (`golang`) — `https://github.com/yshngg/pmcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zach-snell/bbkt`** (`golang`) — `https://github.com/zach-snell/bbkt`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zhangpanda/gomcp`** (`golang`) — `https://github.com/zhangpanda/gomcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`4da`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`4da`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`82ch`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@21st-dev/magic`** (`npm`) — `https://github.com/21st-dev/magic-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@2captcha/mcp`** (`npm`) — `https://2captcha.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@aashari/mcp-server-atlassian-bitbucket`** (`npm`) — `https://github.com/aashari/mcp-server-atlassian-bitbucket`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@aashari/mcp-server-atlassian-confluence`** (`npm`) — `https://github.com/aashari/mcp-server-atlassian-confluence`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@aashari/mcp-server-atlassian-jira`** (`npm`) — `https://github.com/aashari/mcp-server-atlassian-jira`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@aashari/mcp-server-aws-sso`** (`npm`) — `https://github.com/aashari/mcp-server-aws-sso`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@achamm/veilbrowser`** (`npm`) — `https://github.com/acunningham-ship-it/veilbrowser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@adaptlypost/agent`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@adiosdotdev/mcp`** (`npm`) — `https://github.com/adiosdotdev/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@agentdevx/install`** (`npm`) — `https://github.com/mirajmahmudul/agentdevx`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@agentmodule/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@ai-1luvc0d3/metabase-mcp`** (`npm`) — `https://github.com/1luvc0d3/metabase-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@aifeed/protocol`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@ailenshen/apple-notes-mcp`** (`npm`) — `https://github.com/ailenshen/apple-notes-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@aisa-one/mcp`** (`npm`) — `https://github.com/AIsa-public/AIsa-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@aitytech/agentkits-memory`** (`npm`) — `https://github.com/aitytech/agentkits-memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@alkemiai/alkemi-mcp`** (`npm`) — `https://github.com/alkemi-ai/alkemi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@alog-world/mcp`** (`npm`) — `https://github.com/asicojp/alog-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@apify/mcp-server-rag-web-browser`** (`npm`) — `https://github.com/apify/mcp-server-rag-web-browser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@aputime/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@archawat/mcp-directus`** (`npm`) — `https://github.com/archawat/mcp-directus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@arikusi/deepseek-mcp-server`** (`npm`) — `https://deepseek-mcp-server--arikusi.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@ashwinighuge/jenkins-mcp-server`** (`npm`) — `https://github.com/AshwiniGhuge3012/jenkins-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@ask-llm/gemini-mcp`** (`npm`) — `https://github.com/Lykhoyda/ask-llm`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@ask-llm/mcp`** (`npm`) — `https://github.com/Lykhoyda/ask-llm`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@askpod/mcp`** (`npm`) — `https://github.com/Marvy101/pod-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@astroway/mcp`** (`npm`) — `https://github.com/astroway/astroway-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@asyntai/mcp`** (`npm`) — `https://github.com/asyntai/mcp-bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@augmnt-sh/augments-mcp-server`** (`npm`) — `https://github.com/augmentscode/augments-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@automatalabs/mcp-server-playwright`** (`npm`) — `https://github.com/Automata-Labs-team/MCP-Server-Playwright`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@automatelab/content-distribution-mcp`** (`npm`) — `https://content-distribution-mcp--automatelab.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@automationsquad/mcp-samsara`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@bankless/onchain-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@benborla29/mcp-server-mysql`** (`npm`) — `https://github.com/benborla/mcp-server-mysql`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@benborla29/mcp-server-mysql`** (`npm`) — `https://github.com/benborla/mcp-server-mysql`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@bilig/repo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@bldbl/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@boldsign/mcp`** (`npm`) — `https://github.com/boldsign/boldsign-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@bonnard/cli`** (`npm`) — `https://github.com/bonnard-data/bonnard-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@botwallet/mcp`** (`npm`) — `https://github.com/botwallet-co/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@browserless.io/mcp`** (`npm`) — `https://github.com/browserless/browserless-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@browsermcp/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@burtthecoder/mcp-dnstwist`** (`npm`) — `https://github.com/w0h1v/mcp-dnstwist`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@cainli/mcp-server-mysql`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@carbonvoice/cv-mcp-server`** (`npm`) — `https://github.com/PhononX/cv-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@cardor/heimdall-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@cerebrochain/mcp-server`** (`npm`) — `https://github.com/CerebroChain/cerebrochain-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@chargebee/agentkit-repo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@chenlinyang/mcp-server-mysql`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@claudecodenavi/mcp`** (`npm`) — `https://github.com/claudecodenavi/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@conarti/mattermost-mcp`** (`npm`) — `https://github.com/conarti/mattermost-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@confluentinc/mcp-confluent`** (`npm`) — `https://github.com/confluentinc/mcp-confluent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@costkits/costkits-mcp`** (`npm`) — `https://smithery.ai/servers/@costkits/costkits-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@covalenthq/goldrush-mcp-server`** (`npm`) — `https://github.com/covalenthq/goldrush-services-monorepo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@dan1d/dolar-mcp`** (`npm`) — `https://github.com/dan1d/dolar-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@dan1d/mercadolibre-mcp`** (`npm`) — `https://github.com/dan1d/mercadolibre-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@ddukbg/github-enterprise-mcp`** (`npm`) — `https://github.com/ddukbg/github-enterprise-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@dealx/mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@dikshitrj/quickfill-mcp`** (`npm`) — `https://github.com/DikshitRJ/quickfill-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@disco_trooper/apple-notes-mcp`** (`npm`) — `https://github.com/disco-trooper/apple-notes-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@dnsdoctor/mcp`** (`npm`) — `https://github.com/dnsdoctor/claude-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@dodopayments/opencode-plugin`** (`npm`) — `https://github.com/dodopayments/dodo-agent-plugin`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@drisp/browser-mcp`** (`npm`) — `https://github.com/drisplabs/browser-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@ergut/mcp-bigquery-server`** (`npm`) — `https://github.com/ergut/mcp-bigquery-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@executeautomation/playwright-mcp-server`** (`npm`) — `https://github.com/executeautomation/mcp-playwright`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@exoticknight/mcp-file-merger`** (`npm`) — `https://github.com/exoticknight/mcp-file-merger`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@fablenator/tiled-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@file-kiwi/filekiwi-mcp-server`** (`npm`) — `https://github.com/file-kiwi/filekiwi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@fireflyai/firefly-mcp`** (`npm`) — `https://github.com/gofireflyio/firefly-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@flowcore/platform-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@fodx/codelens`** (`npm`) — `https://github.com/ex-git/codeLens`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@freepeak/db-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@gannonh/firebase-mcp`** (`npm`) — `https://github.com/gannonh/firebase-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@genwave/svgmaker-mcp`** (`npm`) — `https://github.com/GenWaveLLC/svgmaker-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@getalby/mcp`** (`npm`) — `https://github.com/getAlby/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@getalby/nwc-mcp-server`** (`npm`) — `https://github.com/getAlby/nwc-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@getrember/mcp`** (`npm`) — `https://github.com/rember/rember-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@govrider/mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@gpu-bridge/mcp-server`** (`npm`) — `https://mcp-server--gpu-bridge.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@gravitykit/help-scout-mcp`** (`npm`) — `https://github.com/GravityKit/help-scout-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@growi/mcp-server`** (`npm`) — `https://github.com/growilabs/growi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@hannesrudolph/mcp-ragdocs`** (`npm`) — `https://github.com/hannesrudolph/mcp-ragdocs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@hanoak/pexels-mcp-server`** (`npm`) — `https://github.com/hanoak/pexels-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@hanoak/pixabay-mcp-server`** (`npm`) — `https://github.com/hanoak/pixabay-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@hanoak/unsplash-mcp-server`** (`npm`) — `https://github.com/hanoak/unsplash-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@harrybin/visuals-mcp`** (`npm`) — `https://github.com/harrybin/visuals-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@hol-org/hashnet-mcp`** (`npm`) — `https://github.com/hashgraph-online/hashnet-mcp-js`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@icoretech/warden-mcp`** (`npm`) — `https://github.com/icoretech/warden-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@iiatlas/hledger-mcp`** (`npm`) — `https://github.com/iiAtlas/hledger-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@iletimerkezi/mcp-server`** (`npm`) — `https://github.com/iletimerkezi/iletimerkezi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@influxdata/influxdb3-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@isnow890/naver-search-mcp`** (`npm`) — `https://smithery.ai/servers/@isnow890/naver-search-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@ivotoby/contentful-management-mcp-server`** (`npm`) — `https://github.com/ivo-toby/contentful-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jamesanz/bitcoin-mcp`** (`npm`) — `https://github.com/JamesANZ/bitcoin-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jamesanz/evm-mcp`** (`npm`) — `https://github.com/JamesANZ/evm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jamesanz/memory-mcp`** (`npm`) — `https://github.com/JamesANZ/memory-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jetbrains/mcp-proxy`** (`npm`) — `https://github.com/JetBrains/mcp-jetbrains`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jhomen368/overseerr-mcp`** (`npm`) — `https://github.com/jhomen368/overseerr-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jhomen368/steam-reviews-mcp`** (`npm`) — `https://github.com/jhomen368/steam-reviews-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jinzcdev/leetcode-mcp-server`** (`npm`) — `https://github.com/jinzcdev/leetcode-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@johnneerdael/ns-private-access-mcp`** (`npm`) — `https://github.com/johnneerdael/ns-private-access-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@joltsms/mcp-server`** (`npm`) — `https://github.com/rchanllc/joltsms-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@jpisnice/shadcn-ui-mcp-server`** (`npm`) — `https://github.com/Jpisnice/shadcn-ui-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@juspay/neurolink`** (`npm`) — `https://github.com/juspay/neurolink`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@k-jarzyna/mcp-miro`** (`npm`) — `https://smithery.ai/servers/@k-jarzyna/mcp-miro`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@kagan-sh/kagan`** (`npm`) — `https://github.com/kagan-sh/kagan`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@kalkulatory-place/mcp`** (`npm`) — `https://github.com/grynienM/kalkulatory-place-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@kazuph/mcp-raindrop`** (`npm`) — `https://github.com/kazuph/mcp-raindrop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@kemetra/seshat-bi`** (`npm`) — `https://github.com/Kemetra/Seshat-BI`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@kiwamizamurai/mcp-kibela-server`** (`npm`) — `https://smithery.ai/servers/@kiwamizamurai/mcp-kibela-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@lamemind/mcp-server-multiverse`** (`npm`) — `https://github.com/lamemind/mcp-server-multiverse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@last9/mcp-server`** (`npm`) — `https://github.com/last9/last9-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@lifeaitools/regen-media-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@lifeaitools/web-research-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@lincolnminto/zendesk-mcp-server`** (`npm`) — `https://github.com/lincolnminto/zendesk-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@linkedapi/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@litt-law/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@llamaventures/cli`** (`npm`) — `https://github.com/Llama-Ventures/llama-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@llm-bus/server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@llmindset/mcp-hfspace`** (`npm`) — `https://github.com/evalstate/mcp-hfspace`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@louis030195/mcp-obsidian`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@lucid-spark/openapi-mcp-server`** (`npm`) — `https://github.com/lucivuc/openapi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@luispmonteiro/memento-memory-mcp`** (`npm`) — `https://github.com/lfrmonteiro99/memento-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@makehq/mcp-server`** (`npm`) — `https://github.com/integromat/make-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mambalabsdev/mcp-gtm-suite`** (`npm`) — `https://github.com/mambalabsdev/mcp-gtm-suite`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@marketplaceadpros/amazon-ads-mcp-server`** (`npm`) — `https://github.com/marketplaceadpros/amazon-ads-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mastyf_ai/server`** (`npm`) — `https://github.com/mastyf-ai/mastyf-ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mbelinky/x-mcp-server`** (`npm`) — `https://github.com/mbelinky/x-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mcpdotdirect/evm-mcp-server`** (`npm`) — `https://github.com/mcpdotdirect/evm-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mcpdotdirect/starknet-mcp-server`** (`npm`) — `https://github.com/mcpdotdirect/starknet-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mcpfun/mcp-server-ccxt`** (`npm`) — `https://github.com/doggybee/mcp-server-ccxt`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mcpfun/mcp-server-leetcode`** (`npm`) — `https://github.com/doggybee/mcp-server-leetcode`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mctlhq/mctl-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@meetbot/mcp`** (`npm`) — `https://github.com/poolside-ventures/meetbot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@memstate/mcp`** (`npm`) — `https://github.com/memstate-ai/memstate-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mencoro/mcp`** (`npm`) — `https://github.com/mencoro/mencoro-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@metorial/integrations-root`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@microcharts/react`** (`npm`) — `https://github.com/ganapativs/microcharts`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mmntm/weblate-mcp`** (`npm`) — `https://github.com/mmntm/weblate-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@modelcontextprotocol/server-filesystem`** (`npm`) — `https://github.com/modelcontextprotocol/servers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@modelcontextprotocol/server-github`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@modelcontextprotocol/server-gtasks`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@molanojustin/smithsonian-mcp`** (`npm`) — `https://github.com/molanojustin/smithsonian-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@msantagiulianab/x402-mcp-server`** (`npm`) — `https://github.com/msantagiulianab/solana-enterprise-payment-gateway#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@mseep/obsidian-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@neem2004/android-mcp-server`** (`npm`) — `https://github.com/Neem2004/android-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@niledatabase/nile-mcp-server`** (`npm`) — `https://smithery.ai/servers/@niledatabase/nile-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@nomadop/session-watcher`** (`npm`) — `https://github.com/nomadop/session-watcher`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@noorfatima123456/cyber-chef-mcp`** (`npm`) — `https://github.com/noor202401938-netizen/cyber-chef-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@novence/mcp-plugin`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@octomind/octomind-mcp`** (`npm`) — `https://github.com/Octomind-dev/mcp-octomind`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@offorte/mcp-server`** (`npm`) — `https://github.com/offorte/offorte-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@omniology/mcp-server`** (`npm`) — `https://github.com/omniologynow-rgb/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@optima-quantum/claude-critical-rules-mcp-new`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@orcarouter/mcp`** (`npm`) — `https://github.com/Continuum-AI-Corp/orcarouter-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`@plainly-videos/mcp-server`** (`npm`) — `https://smithery.ai/servers/@plainly-videos/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@pluggedin/pluggedin-mcp-proxy`** (`npm`) — `https://github.com/VeriTeknik/pluggedin-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@postcardbot/mcp-server`** (`npm`) — `https://github.com/postcardbot/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@posthog/root`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@powforge/mcp-pay-gate`** (`npm`) — `https://github.com/zekebuilds-lab/mcp-pay-gate`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@probleeprotocol/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@profullstack/mcp-server`** (`npm`) — `https://github.com/profullstack/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@publora/mcp-server`** (`npm`) — `https://github.com/publora/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@pyroprompts/any-chat-completions-mcp`** (`npm`) — `https://github.com/pyroprompts/any-chat-completions-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`@qaeverestsupport.ai/qaeverest-mcp`** (`npm`) — `https://qaeverest.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@r-huijts/ethics-vibe-check`** (`npm`) — `https://github.com/yourusername/ethics-check-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@r-huijts/opentk-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@ramidecodes/mcp-server-notion`** (`npm`) — `https://github.com/ramidecodes/mcp-server-notion`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@rarefied-earth/groundwork-discovery-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@rashidazarang/airtable-mcp`** (`npm`) — `https://smithery.ai/servers/@rashidazarang/airtable-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@reactuses/reactuses-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@registep/mcp`** (`npm`) — `https://github.com/registep/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@roychri/mcp-server-asana`** (`npm`) — `https://github.com/roychri/mcp-server-asana`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@sandboxapis/mcp`** (`npm`) — `https://github.com/driftwork-llc/sandboxapis-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@sequa-ai/sequa-mcp`** (`npm`) — `https://github.com/sequa-ai/sequa-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@shaftware/componecat-mcp`** (`npm`) — `https://github.com/componecat/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@shiped/mcp`** (`npm`) — `https://github.com/shiped-app/shiped-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@shopsavvy/mcp-server`** (`npm`) — `https://github.com/shopsavvy/shopsavvy-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@smklog/parcel-shipping-rates-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@soulwarestudio/promethic-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@spark-apps/gmail-manager-mcp`** (`npm`) — `https://github.com/muammar-yacoob/GMail-Manager-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@sparksheets/mcp`** (`npm`) — `https://github.com/sparksheets/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@stegyan/yandex-mcp`** (`npm`) — `https://github.com/stegyan/yandex-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@storybook/mcp-root`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@subdownload/mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@suekou/mcp-notion-server`** (`npm`) — `https://github.com/suekou/mcp-notion-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@sumup/mcp`** (`npm`) — `https://github.com/sumup/sumup-ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@takumi0706/google-calendar-mcp`** (`npm`) — `https://github.com/takumi0706/google-calendar-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@tatumio/blockchain-mcp`** (`npm`) — `https://github.com/tatumio/blockchain-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@the-i18n-kit/mcp`** (`npm`) — `https://github.com/fabkho/the-i18n-kit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theo.foobar/mcp-time`** (`npm`) — `https://github.com/TheoBrigitte/mcp-time#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/amocrm-mcp`** (`npm`) — `https://github.com/theYahia/amocrm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/calltouch-mcp`** (`npm`) — `https://github.com/theYahia/calltouch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/cbr-mcp`** (`npm`) — `https://github.com/theYahia/cbr-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/mindbox-mcp`** (`npm`) — `https://github.com/theYahia/mindbox-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/roistat-mcp`** (`npm`) — `https://github.com/theYahia/roistat-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/sendpulse-mcp`** (`npm`) — `https://github.com/theYahia/sendpulse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/tkassa-mcp`** (`npm`) — `https://github.com/theYahia/tkassa-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/unisender-mcp`** (`npm`) — `https://github.com/theYahia/unisender-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/vk-ads-mcp`** (`npm`) — `https://github.com/theYahia/vk-ads-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/yandex-direct-mcp`** (`npm`) — `https://github.com/theYahia/yandex-direct-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/yandex-metrika-mcp`** (`npm`) — `https://github.com/theYahia/yandex-metrika-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/yandex-webmaster-mcp`** (`npm`) — `https://github.com/theYahia/yandex-webmaster-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@theyahia/yookassa-mcp`** (`npm`) — `https://github.com/theYahia/yookassa-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@tlders/mcp`** (`npm`) — `https://github.com/TLDers/tlders-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@traderouter/trade-router-mcp`** (`npm`) — `https://github.com/TradeRouter/trade-router-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`@trishchuk/codex-mcp-tool`** (`npm`) — `https://github.com/x51xxx/codex-mcp-tool`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@trishchuk/copilot-mcp-server`** (`npm`) — `https://github.com/x51xxx/copilot-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@turbo-puffin/measure-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@underground-cultural-district/mcp-server`** (`npm`) — `https://github.com/lisamaraventano-spine/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@urlbox/screenshot-mcp`** (`npm`) — `https://github.com/urlbox/screenshot-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@usegorilla/mcp`** (`npm`) — `https://github.com/opusforge/gorilla-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@vaulted/mcp-server`** (`npm`) — `https://github.com/vaulted-fyi/vaulted-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@verilex/mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@verygoodplugins/mcp-edd`** (`npm`) — `https://github.com/verygoodplugins/mcp-edd`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@verygoodplugins/mcp-evernote`** (`npm`) — `https://github.com/verygoodplugins/mcp-evernote`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@verygoodplugins/mcp-freescout`** (`npm`) — `https://github.com/verygoodplugins/mcp-freescout`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@verygoodplugins/mcp-toggl`** (`npm`) — `https://github.com/verygoodplugins/mcp-toggl`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@vezlo/src-to-kb`** (`npm`) — `https://smithery.ai/servers/@vezlo/src-to-kb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@vitrine3d/mcp`** (`npm`) — `https://github.com/vitrine3d/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@vodailocz/kilo-kit-mcp`** (`npm`) — `https://github.com/VoDaiLocz/kilo-kit-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@voltanotes/mcp`** (`npm`) — `https://github.com/iamredmh/volta-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@vruum/mcp`** (`npm`) — `https://github.com/vruum-gtm/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@waiaas/mcp`** (`npm`) — `https://github.com/minhoyoo-iotrust/WAIaaS`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@wasapi/mcp-server`** (`npm`) — `https://github.com/Vinix-Code-Dev/wasapi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@waxseal/verify`** (`npm`) — `https://waxseal.id`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@wazion/mcp-server`** (`npm`) — `https://smithery.ai/servers/@wazion/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@webvizio/mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@wenyan-md/mcp`** (`npm`) — `https://github.com/caol64/wenyan-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@willianpinho/large-file-mcp`** (`npm`) — `https://github.com/willianpinho/large-file-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@wong2/mcp-cli`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@wsapichat/mcp-server`** (`npm`) — `https://github.com/wsapi-chat/wsapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@wyrdsekai/codezaiku-mcp`** (`npm`) — `https://github.com/Wyrdsekai/codezaiku`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@wyrdsekai/researchzosho-mcp`** (`npm`) — `https://github.com/Wyrdsekai/researchzosho`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@xeroapi/xero-mcp-server`** (`npm`) — `https://github.com/XeroAPI/xero-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@xexr/mcp-libsql`** (`npm`) — `https://github.com/Xexr/mcp-libsql`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@yepcode/mcp-server`** (`npm`) — `https://github.com/yepcode/mcp-server-js`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@yincongcyincong/victoriametrics-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`@zenglp/mcp-server-mysql`** (`npm`) — `https://github.com/benborla/mcp-server-mysql`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`@zennolab/zennobrowser-mcp-server`** (`npm`) — `https://zennolab.com/en/products/zennobrowser/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`a11y-mcp-server`** (`npm`) — `https://github.com/ronantakizawa/a11ymcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`a2asearch-mcp`** (`npm`) — `https://github.com/tadas-github/a2asearch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`after-effects-mcp`** (`npm`) — `https://github.com/a-y-ibrahim/after-effects-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agent-breadcrumbs-repo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agent-domain-service-mcp`** (`npm`) — `https://github.com/gregm711/agent-domain-service-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agent-teams-task-mcp`** (`npm`) — `https://github.com/backloghq/backlog`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agent402`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agent47`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agentcivics-workspace`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agentfund`** (`npm`) — `https://github.com/stevemilton/ArisPay`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agenthop`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agentic-kb-root`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agenticmail-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agentql-mcp`** (`npm`) — `https://github.com/tinyfish-io/agentql-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agreements-api-sdk`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai-agent-browser`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai-naming-standard-mcp`** (`npm`) — `https://github.com/ai-naming-standard/v6`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai-readiness`** (`npm`) — `https://github.com/foundry-north/ai-readiness`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ai-voice-agent`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aicomglobal`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aicommander-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aidex-mcp`** (`npm`) — `https://github.com/CSCSoftware/AiDex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aim-guard-mcp`** (`npm`) — `https://github.com/AIM-Intelligence/AIM-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ainative-memory-mcp`** (`npm`) — `https://github.com/AINative-Studio/ainative-memory-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ainative-postgres-mcp`** (`npm`) — `https://github.com/AINative-Studio/ainative-postgres-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ainative-prd-mcp`** (`npm`) — `https://github.com/AINative-Studio/ainative-prd-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ainative-strapi-mcp-server`** (`npm`) — `https://github.com/AINative-Studio/ainative-strapi-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ainative-zerodb-mcp-server`** (`npm`) — `https://github.com/AINative-Studio/ainative-zerodb-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aiprox-mcp`** (`npm`) — `https://github.com/unixlamadev-spec/aiprox-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aiwiki`** (`npm`) — `https://github.com/XuebinMa/AIWiki`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`alderpost-mcp`** (`npm`) — `https://github.com/8randonpickart5/alderpost-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`altium-designer-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`amber-mcp-introspection`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`amocrm-kommo-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`any-cli-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`any-script-mcp`** (`npm`) — `https://github.com/izumin5210/any-script-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`anyhook-mcp-workspace`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`apifable`** (`npm`) — `https://github.com/ycs77/apifable`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`apiguru-mcp`** (`npm`) — `https://github.com/apiguru-app/agent-kit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`appstore-connect-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aradia-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`arch-viewer`** (`npm`) — `https://gitee.com/heyangyan/architecture_viewer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`arr-mcp-server`** (`npm`) — `https://github.com/alexscdt/arr-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`arvo-mcp`** (`npm`) — `https://github.com/khaoss85/arvo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`astro-mcp-server`** (`npm`) — `https://github.com/timbroddin/astro-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`astrofabric-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`atlassian-trello-mcp`** (`npm`) — `https://github.com/agrath/Trello-Desktop-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atomgit-mcp-server`** (`npm`) — `https://atomgit.com/atomgit-open-source-ecosystem/atomgit-mcp-server/blob/master/README.md`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aurora-agent-mcp`** (`npm`) — `https://github.com/AURORA-NEURO/aurora-agent#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`auth-fetch-mcp`** (`npm`) — `https://github.com/ymw0407/auth-fetch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`authenticator-mcp`** (`npm`) — `https://github.com/firstorderai/authenticator_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`avito-mcp`** (`npm`) — `https://github.com/elchin92/avito-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aws-lambda-mcp-server`** (`npm`) — `https://github.com/poad/aws-lambda-mcp-server#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`balatro-mcp`** (`npm`) — `https://github.com/Arcadi4/balatro-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bandcamp-mcp`** (`npm`) — `https://github.com/Venut-Technologies/bandcamp-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`base-mcp`** (`npm`) — `https://github.com/base/base-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bazi-reader-mcp-workspace`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`bear-notes-mcp`** (`npm`) — `https://github.com/vasylenko/bear-notes-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`beatdesign`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`benchclaw-integrations`** (`npm`) — `https://www.p2pclaw.com/app/benchmark`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`betterdb-monitor`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`birdnet-go-mcp`** (`npm`) — `https://github.com/zax0rz/birdnet-go-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bit-monk-signal-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`bitbucket-mcp`** (`npm`) — `https://github.com/MatanYemini/bitbucket-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`bitrix24-mcp`** (`npm`) — `https://github.com/penmadebykisss/bitrix24-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`blogburst-mcp-server`** (`npm`) — `https://github.com/shensi8312/blogburst-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`boldem-api-mcp`** (`npm`) — `https://dev.azure.com/webkomplet/Boldem.Tools/_git/Boldem.Tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`bolthub-sdk`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`brave-search-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`bridge`** (`npm`) — `https://github.com/bridge-codes/bridge`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`broke2built-skills-mcp`** (`npm`) — `https://api.broke2builtai.com/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`browser-control-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`bugsnag-mcp-server`** (`npm`) — `https://github.com/yourusername/bugsnag-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cabal-hunter-mcp`** (`npm`) — `https://github.com/paulf280-ui/cabal-hunter-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`caisse-enregistreuse-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cal-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`callchatsyn-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`calllint-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`capsulemcp`** (`npm`) — `https://github.com/soil-dev/capsulemcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`celiums-memory`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cellar`** (`npm`) — `https://github.com/treygriffith/cellar`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cesium-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`chatpipe-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`chelaile-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`chinese-almanac-mcp`** (`npm`) — `https://github.com/yonlandwu/chinese-almanac-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cinderwright-mcp-server`** (`npm`) — `https://github.com/cinderwright-ai/cinderwright-api`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`clarvia-mcp-server`** (`npm`) — `https://clarvia.art`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`claude-debugs-for-you`** (`npm`) — `https://github.com/jasonjmcghee/claude-debugs-for-you`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`claude-intercom`** (`npm`) — `https://github.com/MuhammadTalhaMT/claude-intercom`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`claude-mermaid`** (`npm`) — `https://github.com/veelenga/claude-mermaid`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`clipkit-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cloud-cost-mcp`** (`npm`) — `https://github.com/jasonwilbur/cloud-cost-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cloudeval-cli-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`coda-mcp`** (`npm`) — `https://github.com/orellazri/coda-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`codebase-context`** (`npm`) — `https://github.com/PatrickSys/codebase-context`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`codebeamer-mcp`** (`npm`) — `https://github.com/3KniGHtcZ/codebeamer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`codeguardian-studio`** (`npm`) — `https://github.com/phuongrealmax/code-guardian`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`codemagic-mcp-server`** (`npm`) — `https://github.com/todah-zg/codemagic-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`codemem-workspace`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`coil-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`coincap-mcp`** (`npm`) — `https://github.com/QuantGeekDev/coincap-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`com.gamelovers.mcp-unity`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`comet-mcp`** (`npm`) — `https://github.com/hanzili/comet-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`compress-new/compress-tokens`** (`npm`) — `https://compress-new.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`contentrain-ai`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`contentstudio-mcp`** (`npm`) — `https://github.com/d4interactive/contentstudio-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`contextmcp`** (`npm`) — `https://github.com/dodopayments/context-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`contradiction-mcp-workspace`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`councilof-ai`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`counsel-mcp-server`** (`npm`) — `https://github.com/mercurialsolo/counsel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`create-packkit`** (`npm`) — `https://github.com/PackkitLabs/create-packkit-js`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cross-llm-mcp`** (`npm`) — `https://github.com/JamesANZ/cross-llm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`crypto-indicators-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cryptodataapi-mcp`** (`npm`) — `https://github.com/Crypto-Data-API/cryptodataapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cspr-trade-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cubiczan-agent-platform`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cukaimax-tax-authority`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cz-agents-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`daedalmap-runtime`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`davinci-resolve-mcp`** (`npm`) — `https://github.com/samuelgursky/davinci-resolve-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`decision-anchor-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`deep-thinker`** (`npm`) — `https://github.com/hubinoretros/deep-thinker`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`depguard-cli`** (`npm`) — `https://github.com/mopanc/depguard`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`devglow-mcp`** (`npm`) — `https://github.com/aesopfrom0/devglow-releases`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dialectos`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`django-mcp`** (`npm`) — `https://github.com/ajaymahato431/django-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`django-orm-lens`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dockerhub-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`domain-mcp-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dotpals`** (`npm`) — `https://github.com/rikinshah787/dotpals`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`doubletick-cli`** (`npm`) — `https://github.com/cseguinlz/doubletick-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`dragon-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`duplex`** (`npm`) — `https://github.com/Eric-huang799/duplex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`e2b-sandbox-mcp`** (`npm`) — `https://github.com/asif-nvc/e2b-sandbox-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`easybill-mcp`** (`npm`) — `https://github.com/stack74/easybill-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`easypanel-mcp-server`** (`npm`) — `https://github.com/helbertparanhos/easypanel-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`elisym`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ephemeris-mcp`** (`npm`) — `https://github.com/TensorLink-AI/ephemeris-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`equivault-mcp`** (`npm`) — `https://github.com/equivault/equivault-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`evc-spark-mcp`** (`npm`) — `https://github.com/entire-vc/evc-spark-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`excelmcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`farnsworth-syntek`** (`npm`) — `https://github.com/timowhite88/farnsworth-syntek`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fast-filesystem-mcp`** (`npm`) — `https://github.com/efforthye/fast-filesystem-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fastalert-mcp-server`** (`npm`) — `https://github.com/FastAlertNow/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fauxnix-cli`** (`npm`) — `https://github.com/20000419/fauxnix`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`feedthrough`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`figwright`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`filament-mcp`** (`npm`) — `https://github.com/ajaymahato431/filament-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`finlynq`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`finmap-mcp`** (`npm`) — `https://github.com/finmap-org/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`finmap-mcp`** (`npm`) — `https://github.com/finmap-org/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fluxdown-repo-tooling`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`founders-os`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`framedeck-mcp`** (`npm`) — `https://github.com/Lukaris/framedeck-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`frantic-mcp`** (`npm`) — `https://github.com/gofrantic/frantic-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`freelo-mcp`** (`npm`) — `https://github.com/karlost/FreeloMCP#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`frontlens-mcp`** (`npm`) — `https://github.com/ajaymahato431/frontlens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gamenumerics`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`garminconnect-js`** (`npm`) — `https://github.com/DynamicsNinja/garminconnect-js`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gautamgb/mcpindex`** (`npm`) — `https://smithery.ai/servers/gautamgb/mcpindex`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`geolens`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ghidralens`** (`npm`) — `https://github.com/hellosverre/ghidralens#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`github-repo-mcp`** (`npm`) — `https://github.com/Ryan0204/github-repo-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`github-repo-mcp`** (`npm`) — `https://github.com/Ryan0204/github-repo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gitlab-mr-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`gizmoanalytics-mcp`** (`npm`) — `https://github.com/sudomichael/analyticsautopilot`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gondola-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`google-searchconsole-mcp`** (`npm`) — `https://github.com/aashish/gsc-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`google-tasks-mcp`** (`npm`) — `https://github.com/justerlex/google-tasks-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gov-data-mcp`** (`npm`) — `https://github.com/malonestar/gov-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`grafema`** (`npm`) — `https://github.com/Disentinel/grafema`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`graphlit-mcp-server`** (`npm`) — `https://github.com/graphlit/graphlit-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`greencalculus-mcp`** (`npm`) — `https://github.com/greencalculus/greencalculus-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`gtm-mcp-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hasdata-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`help-scout-mcp-server`** (`npm`) — `https://github.com/drewburchfield/help-scout-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hermtica`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hindsight`** (`npm`) — `https://github.com/metonym/hindsight`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hlido-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hono-telescope`** (`npm`) — `https://github.com/jubstaaa/hono-telescope`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`html-report`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`htmlradar`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hubble-mcp-tool`** (`npm`) — `https://github.com/HubbleVision/hubble-ai-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`humanforai`** (`npm`) — `https://github.com/humanforai/humanforai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`hyperiux-ui`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ibge-mcp-server`** (`npm`) — `https://github.com/ViniciusCestarii/ibge-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`icon-composer-mcp`** (`npm`) — `https://github.com/ethbak/icon-composer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`icon-composer-mcp`** (`npm`) — `https://github.com/ethbak/icon-composer-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`idapixl-web-research-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`image-tiler-mcp-server`** (`npm`) — `https://github.com/keiver/image-tiler-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`imba-agent-mcp-docker`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`imessage-mcp`** (`npm`) — `https://github.com/anipotts/imessage-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`inbox-zero`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`infaton-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`instavision-mcp`** (`npm`) — `https://instavision.co/mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`intelligence-api`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`interactive-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`intlayer-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`inxmail-mcp`** (`npm`) — `https://github.com/shahabazdev/inxmail-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ios-simulator-mcp`** (`npm`) — `https://github.com/joshuayoes/ios-simulator-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`iranti-core`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`iterm-mcp`** (`npm`) — `https://github.com/ferrislucas/iterm-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jamjet-policy`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jobctl-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jobicy-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jorkal-nft-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`json-mcp-filter`** (`npm`) — `https://github.com/kehvinbehvin/json-mcp-filter`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`junipr-mcp`** (`npm`) — `https://github.com/junipr-labs/junipr-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`jupiter-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kinescope/kinescope-mcp`** (`npm`) — `https://kinescope-mcp--kinescope.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`klanex-mcp`** (`npm`) — `https://github.com/chrassy/klanex-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`knowledgelib-io`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kranz-docs`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`labelgrid-mcp-workspace`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`langfuse-mcp`** (`npm`) — `https://github.com/hugoles/langfuse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`learn-shell`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`lennys-podcast-wisdom`** (`npm`) — `https://github.com/bluzername/lennys-quotes`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`lightningprox-mcp`** (`npm`) — `https://github.com/unixlamadev-spec/lightningprox-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`linkedin-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`lintbase-root`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`liquidiction-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`livetennisapi-mcp`** (`npm`) — `https://github.com/livetennisapi/livetennisapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`livewire-mcp`** (`npm`) — `https://github.com/ajaymahato431/livewire-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`llm-token-tracker`** (`npm`) — `https://github.com/wn01011/llm-token-tracker`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`local-mcp-releases`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`loreroom`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`loupe`** (`npm`) — `https://github.com/chaijs/loupe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`macrostrat-mcp`** (`npm`) — `https://github.com/blake365/macrostrat-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`madurai-transit-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`magicmaster-mcp`** (`npm`) — `https://github.com/denisok-ai/magicmaster-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mandare-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`maple`** (`npm`) — `https://github.com/jdubie/maple`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`maqami-travel`** (`npm`) — `https://mcp.maqami.co/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`martin-loop`** (`npm`) — `https://github.com/Keesan12/martin-loop`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`marzban-sdk-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-ai-hr-management-toolkit`** (`npm`) — `https://github.com/XJTLUmedia/AI-HR-Management-Toolkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-animenewsnetwork`** (`npm`) — `https://github.com/smeet666/mcp-animenewsnetwork`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-bideetmusique`** (`npm`) — `https://github.com/smeet666/mcp-bideetmusique`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-cloud-remote`** (`npm`) — `https://github.com/correalenon/mcp-server-locaweb-remote#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-code-indexer`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-discord-bridge`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-fetch-server`** (`npm`) — `https://github.com/zcaceres/fetch-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-graphql`** (`npm`) — `https://github.com/blurrah/mcp-graphql`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-hko`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-imslp`** (`npm`) — `https://github.com/smeet666/mcp-imslp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-ipfs`** (`npm`) — `https://github.com/alexbakers/mcp-ipfs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-iva-mcu`** (`npm`) — `https://github.com/kostikpenzin/mcp_iva_mcu`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-linkedin`** (`npm`) — `https://github.com/hlos-ai/mcp-servers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-longjobs`** (`npm`) — `https://github.com/ljppanda/mcp-longjobs`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-lootdrop`** (`npm`) — `https://github.com/aissablk1/mcp-lootdrop#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-lrclib`** (`npm`) — `https://github.com/smeet666/mcp-lrclib`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-lyricscom`** (`npm`) — `https://github.com/smeet666/mcp-lyricscom`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-maigret`** (`npm`) — `https://github.com/w0h1v/mcp-maigret`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-manager`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-markdownify-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-marmiton`** (`npm`) — `https://github.com/smeet666/mcp-marmiton`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-metacritic`** (`npm`) — `https://github.com/smeet666/mcp-metacritic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-mongo-server`** (`npm`) — `https://github.com/kiliczsh/mcp-mongo-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-multi-db`** (`npm`) — `https://github.com/mahAnuj/mcp-multi-db`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-multi-ssh`** (`npm`) — `https://github.com/hl9020/mcp-multi-ssh`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-oauth-server`** (`npm`) — `https://github.com/wille/mcp-oauth-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-odbc-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-openapi-schema-explorer`** (`npm`) — `https://github.com/kadykov/mcp-openapi-schema-explorer`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-page-capture`** (`npm`) — `https://github.com/chasesaurabh/mcp-page-capture`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-pointer-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-pulsenetwork`** (`npm`) — `https://github.com/GTCC777/mcp-pulsenetwork`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-rule34`** (`npm`) — `https://github.com/smeet666/mcp-rule34`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-security-audit`** (`npm`) — `https://github.com/qianniuspace/mcp-security-audit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server`** (`npm`) — `https://github.com/sandy-mount/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-apple-events`** (`npm`) — `https://github.com/FradSer/mcp-server-apple-events`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-apple-shortcuts`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-dumplingai`** (`npm`) — `https://github.com/dumpling-ai/mcp-server-dumplingai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-flipt-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-giphy`** (`npm`) — `https://github.com/magarcia/mcp-server-giphy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-iaptic`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-mysql`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-nationalparks`** (`npm`) — `https://github.com/KyrieTangSheng/mcp-server-nationalparks`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-rijksmuseum`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-runescape`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-taskwarrior`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-wslc`** (`npm`) — `https://github.com/aihuali213/mcp-server-wslc`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-shield`** (`npm`) — `https://github.com/riseandignite/mcp-shield`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-shrimp-task-manager`** (`npm`) — `https://github.com/cjo4m06/mcp-shrimp-task-manager`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-sketch`** (`npm`) — `https://github.com/YamadaAoi/mcp-sketch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-sqlite`** (`npm`) — `https://github.com/jparkerweb/mcp-sqlite`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-ssh-manager`** (`npm`) — `https://github.com/bvisible/mcp-ssh-manager`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-swagger-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-zotero`** (`npm`) — `https://github.com/kaliaboi/mcp-zotero`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcpspend`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mdshare`** (`npm`) — `https://github.com/RileyLin/mdshare`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`media-gen-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`medical-mcp`** (`npm`) — `https://github.com/jamesanz/medical-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`memories-mcp`** (`npm`) — `https://github.com/divyekant/memories`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`memorylane`** (`npm`) — `https://github.com/deusXmachina-dev/memorylane`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`memorylens-mcp`** (`npm`) — `https://github.com/MarcelRoozekrans/memorylens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`memorymesh`** (`npm`) — `https://github.com/CheMiguel23/memorymesh`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`meta-tiktok-ads-from-agent1st`** (`npm`) — `https://github.com/Nolas-Shadow/agent1st-ads-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`metamcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`metavolve-labs/intelligence-aeternum`** (`npm`) — `https://intelligence-aeternum--metavolve-labs.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`metmuseum-mcp`** (`npm`) — `https://github.com/mikechao/metmuseum-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mibly-apple-health-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`microtap-mcp`** (`npm`) — `https://github.com/swaltersjrtest/microtap-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mobbdev`** (`npm`) — `https://github.com/mobb-dev/bugsy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mongodb-atlas-mcp-server`** (`npm`) — `https://github.com/montumodi/mongodb-atlas-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mongodb-lens`** (`npm`) — `https://github.com/furey/mongodb-lens`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`monorepo`** (`npm`) — `https://github.com/mariuslundgard/monorepo`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mushi-mushi`** (`npm`) — `https://github.com/kensaurus/mushi-mushi`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`myclaw-toolkit`** (`npm`) — `https://github.com/Dusheh/myclaw-toolkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`myinstants-mcp`** (`npm`) — `https://github.com/austenstone/myinstants-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`n8n-mcp`** (`npm`) — `https://github.com/czlonkowski/n8n-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`neurodock`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`newsmcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`newsmcp`** (`npm`) — `https://newsmcp.io`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`nextjs-mcp-architecture`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`nexus-mcp`** (`npm`) — `https://github.com/adawalli/nexus`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nightlife-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`nobulex`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`nocodb-mcp-server`** (`npm`) — `https://github.com/edwinbernadus/nocodb-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`node-code-sandbox-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`normativa-colombia-mcp`** (`npm`) — `https://github.com/Angelthebestone/Normativa-colombiana-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nostr-mcp-server`** (`npm`) — `https://github.com/AustinKelsay/nostr-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nostrpulse-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`noumi-mcp`** (`npm`) — `https://github.com/xieyb2012-netizen/noumi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nowsecure-mcp-server`** (`npm`) — `https://github.com/tatavarthitarun/nowsecure-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`npm-package-docs-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ntfy-me-mcp`** (`npm`) — `https://github.com/gitmotion/ntfy-me-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`obsidian-mcp-pro`** (`npm`) — `https://github.com/rps321321/obsidian-mcp-pro`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`octagon-deep-research-mcp`** (`npm`) — `https://github.com/OctagonAI/octagon-deep-research-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`octagon-mcp`** (`npm`) — `https://github.com/OctagonAI/octagon-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`octocode-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`offnadir-delta-mcp`** (`npm`) — `https://github.com/Off-Nadir-Lab/offnadir-delta-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`oorlogsbronnen-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`open-code-review`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`open-websearch`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`openregistry`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`opentabs`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`operational-ontology`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`opgg-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ophis`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`options-chain-mcp`** (`npm`) — `https://github.com/blake365/options-chain`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`orchard-data-mcp`** (`npm`) — `https://github.com/letom1176-spec/orchard-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`package-registry-mcp`** (`npm`) — `https://github.com/artmann/package-registry-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`package-registry-mcp`** (`npm`) — `https://github.com/artmann/package-registry-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pagewire-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pairbook-mcp`** (`npm`) — `https://github.com/pairbook-io/pairbook-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pangolinfo-amazon-data-mcp`** (`npm`) — `https://github.com/Pangolin-spg/amazon-data-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pantheon-mcp`** (`npm`) — `https://github.com/valado/pantheon-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`passbaton`** (`npm`) — `https://github.com/leesgit/passbaton`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`patchwarden`** (`npm`) — `https://github.com/jiezeng2004-design/PatchWarden`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pdf-it-mcp`** (`npm`) — `https://github.com/mrslbt/pdf-it`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pdfnative-mcp`** (`npm`) — `https://github.com/Nizoka/pdfnative-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`peckish-mcp`** (`npm`) — `https://github.com/CydVilla/peckish#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`peppyneuron-mcp`** (`npm`) — `https://peppyneuron.com`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`permark`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pifini-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pipedream`** (`npm`) — `https://github.com/PipedreamHQ/pipedream`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pix-mcp`** (`npm`) — `https://github.com/Regenerating-World/pix-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`plori-mcp`** (`npm`) — `https://github.com/plori-ai/plori`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`plugwise-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pmpt-cli`** (`npm`) — `https://github.com/pmptwiki/pmpt-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pod`** (`npm`) — `https://github.com/yyx990803/pod`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`posecode-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`posthog-mcp-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`precis`** (`npm`) — `https://github.com/precis-logging/precis`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`prediction-markets-mcp`** (`npm`) — `https://github.com/JamesANZ/prediction-market-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`preflight-dev`** (`npm`) — `https://github.com/TerminalGravity/preflight`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pretrip-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`procore-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`project-telos-mcp`** (`npm`) — `https://github.com/HarperZ9/telos`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`proxy-shopping-web`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`publee-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`public-browser`** (`npm`) — `https://github.com/Silbercue/public-browser`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qa-probe`** (`npm`) — `https://github.com/LS-SIEM-LLP/qa-probe`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qr-for-agent-api`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`quantakrypto-tools`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`quanters-akshare-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`quickcast-mcp`** (`npm`) — `https://github.com/Miladmet/quickcast-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`quran-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ragstack-lambda`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`reado`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`referencesource-mcp`** (`npm`) — `https://github.com/joelp22-maker/referencesource-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rein`** (`npm`) — `https://github.com/UndefinedCode/Rein.js`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`remote-mcp-github-oauth`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`remote-mcp-server-authless`** (`npm`) — `https://github.com/skedgo/tripgo-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`replicant-mcp`** (`npm`) — `https://github.com/thecombatwombat/replicant-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`repoguard-rules`** (`npm`) — `https://github.com/taylormatematica-beep/repoguard`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rest-api-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`restcsv-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`rhumb`** (`npm`) — `https://github.com/supertrained/rhumb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rocketride-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`root`** (`npm`) — `https://github.com/mafintosh/root`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`root`** (`npm`) — `https://github.com/mafintosh/root`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`roslyn-codelens-mcp`** (`npm`) — `https://github.com/MarcelRoozekrans/roslyn-codelens-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`routed`** (`npm`) — `https://github.com/gather/routed`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`rrweb-stack`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`rss-feeds-mcp`** (`npm`) — `https://github.com/aashish/rss-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ru-business-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`s2-sdk-typescript`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`safe-docx-suite`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sandbox-as-a-service-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`scamcheck-mcp-server`** (`npm`) — `https://github.com/smijo-geek/scamcheck-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`scout-mcp`** (`npm`) — `https://github.com/terragon-labs/scout-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`scouter-mcp`** (`npm`) — `https://github.com/anand-loop/scouter-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`scriptflow-mcp`** (`npm`) — `https://github.com/yourusername/scriptflow-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`searchfetch`** (`npm`) — `https://github.com/maxylev/searchfetch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`searchlink-lite`** (`npm`) — `https://github.com/GlobalMatchHub/searchlink-lite`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`securelend/financial-services`** (`npm`) — `https://financial-services--securelend.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`seedance-prompts-mcp`** (`npm`) — `https://github.com/hanshs474/seedance-prompts-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: PROMPT_ONLY`
+- [x] **`sendmux-sdk-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sensenova-u1-mcp`** (`npm`) — `https://github.com/Microbiosis/sensenova-u1-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`serato-dj-mcp`** (`npm`) — `https://github.com/Venut-Technologies/serato-dj-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`servemyapi`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`shadowgraph-unified-plugin`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`shieldapi-mcp`** (`npm`) — `https://github.com/alberthild/shieldapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`shrike-mcp`** (`npm`) — `https://github.com/Shrike-Security/shrike-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sicarius-guard`** (`npm`) — `https://github.com/Chronolapse411/sicarius-guard`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`signallord-mcp-server`** (`npm`) — `https://gitlab.com/valhallalabs1/signallord-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`singapore-proxy-mcp`** (`npm`) — `https://github.com/Xavierfok/singapore-proxy-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`sint-protocol`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`skillssafe-mcp`** (`npm`) — `https://github.com/GUCCI-atlasv/skillssafe-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`smart-tree`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`snapy-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sofagent-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sofya-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`solana-mcp-server`** (`npm`) — `https://github.com/ExpertVagabond/solana-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`solnk-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sonos-ts-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sonovault-mcp`** (`npm`) — `https://github.com/rekordcloud/sonovault-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`spacemolt/gameserver`** (`npm`) — `https://gameserver--spacemolt.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`spanlens`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`spine-mcp-server`** (`npm`) — `https://github.com/zhoushengmin/spine-mcp-server#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`spotify-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`srezai-mcp`** (`npm`) — `https://github.com/srezai-team/srezai-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stape-mcp-server`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`steamgpt-mcp`** (`npm`) — `https://github.com/SteamGPTnet/steamgpt-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`stet-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`stockfilm/stockfilm-mcp`** (`npm`) — `https://stockfilm-mcp--stockfilm.run.tools`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`superglookoquery`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`swaptitan-sdk`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`swarmwage`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`swift-patterns-mcp`** (`npm`) — `https://github.com/efremidze/swift-patterns-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`t2000-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tabedata-mcp`** (`npm`) — `https://github.com/mrslbt/tabedata-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`taghvim-mcp`** (`npm`) — `https://github.com/mrfelfel/taghvim`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tap-public-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tarotoo-mcp-server`** (`npm`) — `https://github.com/Tarotoo-com/tarotoo-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`task-master-ai`** (`npm`) — `https://github.com/eyaltoledano/claude-task-master`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`technical-seo-mcp`** (`npm`) — `https://github.com/sourav2024/seo-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tensorfeed`** (`npm`) — `https://github.com/RipperMercs/tensorfeed`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`the-i18n-mcp`** (`npm`) — `https://github.com/fabkho/the-i18n-kit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`therundown-data-mcp-scaffold`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tickerinside-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tierward`** (`npm`) — `https://github.com/marcoguillermaz/tierward`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tiktapdown-mcp`** (`npm`) — `https://github.com/farukkolip/tiktapdown-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tlv-mcp-server-cf`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`todoglow-mcp`** (`npm`) — `https://github.com/aesopfrom0/todoglow-releases`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`token-of-esteem-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`token-tracker-mcp`** (`npm`) — `https://github.com/nikhilnt1234/TokenBurnRate#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`tollboothswap-mcp`** (`npm`) — `https://github.com/soundsparkaudiolab/tollboothswap-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`toolport`** (`npm`) — `https://github.com/assistant-ui/assistant-ui`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`topaz-mcp`** (`npm`) — `https://github.com/TopazLabs/topaz-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`touch-grass`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`trainrouter-atlas`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`transloadit-node-sdk`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`travel-art-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`trident-mcp`** (`npm`) — `https://github.com/alexeibespalov/tridentpublic`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`trieve`** (`npm`) — `https://github.com/devflowinc/trieve`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`trust-ledger-os`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tsgram-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tui-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`unfour`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`uniswap-trader-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`universal-mcp-toolkit-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`uploadkit`** (`npm`) — `https://github.com/drumst0ck/uploadkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`uptybots-mcp-server`** (`npm`) — `https://github.com/uptybots/mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`usecortex-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`usgs-quakes-mcp`** (`npm`) — `https://github.com/blake365/usgs-quakes-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`utuh-mcp`** (`npm`) — `https://utuh.vercel.app/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`veezee-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`veroq-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`vet-workspace`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`vibealive`** (`npm`) — `https://github.com/skullzarmy/vibealive`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vineverse-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`visionaire-engine`** (`npm`) — `https://github.com/mi60dev/visionaire-engine`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vitamind-mcp`** (`npm`) — `https://getvitamind.app/connect`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`vitamind-mcp`** (`npm`) — `https://getvitamind.app/connect`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`vite_react_shadcn_ts`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`volcanoes-mcp`** (`npm`) — `https://github.com/blake365/volcanoes-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`w3ship-mcp-server`** (`npm`) — `https://github.com/baskcart/w3ship-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`waiaas`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`wargaming-mcp-server`** (`npm`) — `https://github.com/lHyperionl/WG-Console-MCP-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wasmagent-js`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`wcli0`** (`npm`) — `https://github.com/s2005/wcli0`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`web-analyzer-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`web-exposure-mcp`** (`npm`) — `https://github.com/Perufitlife/web-exposure-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`web-fetcher-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`web3-research-mcp`** (`npm`) — `https://github.com/aaronjmars/web3-research-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wechat-fastbridge`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`weftcut`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`wellknown-mcp`** (`npm`) — `https://github.com/sanemavcil/wellknown-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wellread`** (`npm`) — `https://github.com/mnlt/wellread`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`whenlabs-monorepo`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`whisper-windows-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`wisepanel-mcp`** (`npm`) — `https://github.com/ikoskela/wisepanel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wizzy-mcp-tmdb`** (`npm`) — `https://github.com/drakonkat/wizzy-mcp-tmdb`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`workopia-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`workspaces`** (`npm`) — `https://github.com/zeekay/workspaces`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wp-cli-mcp`** (`npm`) — `https://github.com/mvtandas/wp-cli-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`xcode-mcp-server`** (`npm`) — `https://github.com/r-huijts/xcode-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`xiaoflow-mcp-server`** (`npm`) — `https://github.com/xiaoq-in/xiaoflow-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`yanifend-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zenbrain`** (`npm`) — `https://github.com/zensation-ai/zenbrain`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zero-api-key-web-search`** (`npm`) — `https://github.com/wd041216-bit/zero-api-key-web-search`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zipmem-mcp`** (`npm`) — `https://github.com/ahmetakyurt/zipmem-mcp#readme`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zitadel-mcp-server`** (`npm`) — `https://github.com/takleb3rry/zitadel-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ztds-mcp`** (`npm`) — `https://github.com/moxno/ztds.ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`zuora-mcp`** (`npm`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`MCP-geo`** (`pypi`) — `https://pypi.org/project/mcp-geo/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`WaveGuardClient`** (`pypi`) — `https://pypi.org/project/WaveGuardClient/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`a11y-toolkit`** (`pypi`) — `https://github.com/kinti/a11y-toolkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aaaa`** (`pypi`) — `http://github.com/sgrieve/aaaa`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aamio`** (`pypi`) — `https://pypi.org/project/aamio/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`acb-tax-mcp`** (`pypi`) — `https://github.com/haiiibin/acb-tax-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`adhd-hub`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`afair`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agent-memory-bridge`** (`pypi`) — `https://pypi.org/project/agent-memory-bridge/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agent-os-kernel`** (`pypi`) — `https://github.com/microsoft/agent-governance-toolkit`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agent-utils-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`agenthotspot-mcp`** (`pypi`) — `https://github.com/AgentHotspot/agenthotspot-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`agentward`** (`pypi`) — `https://pypi.org/project/agentward/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ai-runtime-guard`** (`pypi`) — `https://pypi.org/project/ai-runtime-guard/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aiskillstore-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aiswmm`** (`pypi`) — `https://pypi.org/project/aiswmm/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`alibaba-cloud-ops-mcp-server`** (`pypi`) — `https://pypi.org/project/alibaba-cloud-ops-mcp-server/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`anki-mcp`** (`pypi`) — `https://pypi.org/project/anki-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aperag`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`apktool-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`arc-gate-mcp`** (`pypi`) — `https://pypi.org/project/arc-gate-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`arcgis-pro-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`arch-ops-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`arkforge-mcp`** (`pypi`) — `https://github.com/ark-forge/arkforge-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`astro-skill`** (`pypi`) — `https://github.com/adityarya24/astro-skill`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`atlassian-browser-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`aura-memory`** (`pypi`) — `https://github.com/teolex2020/aura-memory`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`authmcp-gateway`** (`pypi`) — `https://github.com/loglux/authmcp-gateway`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY`
+- [x] **`aviationstack-mcp`** (`pypi`) — `https://github.com/pradumnasaraf/aviationstack-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`aws-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`blender-mcp`** (`pypi`) — `https://pypi.org/project/blender-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`blocknative-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`boss-agent-cli`** (`pypi`) — `https://github.com/can4hou6joeng4/boss-agent-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`braintree-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`browser-use-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cadence`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`charted`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`chronulus-mcp`** (`pypi`) — `https://pypi.org/project/chronulus-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`citeguard-cli`** (`pypi`) — `https://pypi.org/project/citeguard-cli/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`claw-tsaver`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cockroachdb-mcp-server`** (`pypi`) — `https://pypi.org/project/cockroachdb-mcp-server/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`codebase-agent-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`codegraphcontext`** (`pypi`) — `https://pypi.org/project/codegraphcontext/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cognee`** (`pypi`) — `https://github.com/topoteretes/cognee`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`comfy-pilot`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`content-core`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`context-linter`** (`pypi`) — `https://github.com/hanselhansel/context-cli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`context-memory`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`contextpulse`** (`pypi`) — `https://pypi.org/project/contextpulse/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cosmergon-agent`** (`pypi`) — `https://github.com/rkocosmergon/cosmergon-agent`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`cozyvtt-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`crypto-portfolio-mcp`** (`pypi`) — `https://pypi.org/project/crypto-portfolio-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`crypto-rss-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cute-web-scraper`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cyberchef-api-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`cygnus-ssh-mcp`** (`pypi`) — `https://github.com/cygnussystems/cygnus-ssh-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`daisys-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dbt-docs-mcp`** (`pypi`) — `https://pypi.org/project/dbt-docs-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dbt-mcp`** (`pypi`) — `https://github.com/dbt-labs/dbt-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`deckrun-mcp`** (`pypi`) — `https://github.com/agenticdecks/deckrun-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`deep-research-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dexio`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dida-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`didlogic_mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`dune-analytics-mcp`** (`pypi`) — `https://pypi.org/project/dune-analytics-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`empathy-framework`** (`pypi`) — `https://pypi.org/project/empathy-framework/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`excalidraw-architect-mcp`** (`pypi`) — `https://github.com/BV-Venky/excalidraw-architect-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`excel-mcp-server`** (`pypi`) — `https://github.com/haris-musa/excel-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`fable-recall`** (`pypi`) — `https://pypi.org/project/fable-recall/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`fal-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`fcop`** (`pypi`) — `https://pypi.org/project/fcop/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`fermat-mcp`** (`pypi`) — `https://pypi.org/project/fermat-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`filesystem-mcp`** (`pypi`) — `https://github.com/kujirahand/mcp_server-filesystem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`finbrain-mcp`** (`pypi`) — `https://pypi.org/project/finbrain-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`findata`** (`pypi`) — `https://github.com/santokalayil/findata`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`firstcycling`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`fittin-mcp`** (`pypi`) — `https://pypi.org/project/fittin-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`fix-protocol-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`freqtrade-mcp`** (`pypi`) — `https://pypi.org/project/freqtrade-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`freshdesk-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`gget-mcp`** (`pypi`) — `https://pypi.org/project/gget-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`grounding-ai`** (`pypi`) — `https://pypi.org/project/grounding-ai/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`harmonyos-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`hocr`** (`pypi`) — `https://github.com/concordusapps/python-hocr`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`iai-pme`** (`pypi`) — `https://pypi.org/project/iai-pme/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ida-pro-mcp`** (`pypi`) — `https://github.com/mrexodia/ida-pro-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`immich-photo-manager`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`infra-mcp`** (`pypi`) — `https://pypi.org/project/infra-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jmeter-mcp-server`** (`pypi`) — `https://github.com/jeswanth/jmeter-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`joinly`** (`pypi`) — `https://pypi.org/project/joinly/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jscpd-repo`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`jupiter-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`k6-mcp-server`** (`pypi`) — `https://github.com/Geun-Oh/k6-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kafka-schema-registry-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kagimcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kd-scout`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`keboola-mcp-server`** (`pypi`) — `https://pypi.org/project/keboola-mcp-server/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`keel-trade`** (`pypi`) — `https://github.com/keel-trade/keel-trade`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`keep-mcp`** (`pypi`) — `https://github.com/feuerdev/keep-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kill-process-mcp`** (`pypi`) — `https://github.com/misiektoja/kill-process-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`knowledge-rag`** (`pypi`) — `https://github.com/lyonzin/knowledge-rag`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`kokoro-tts-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`kops`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`label-studio-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`langfuse-mcp`** (`pypi`) — `https://github.com/avivsinai/langfuse-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`latex-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`lilbee`** (`pypi`) — `https://github.com/tobocop2/lilbee`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`litvm-tcg-oracle`** (`pypi`) — `https://github.com/sailorpepe/litvm-tcg-oracle-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`llm-council`** (`pypi`) — `https://pypi.org/project/llm-council/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`llm-routing`** (`pypi`) — `https://github.com/ypollak2/llm-router`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`locust-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`locusync-server`** (`pypi`) — `https://github.com/matbel91765/locusync-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`logfire-mcp`** (`pypi`) — `https://pypi.org/project/logfire-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`logimu-shopping-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mac-messages-mcp`** (`pypi`) — `https://github.com/carterlasalle/mac_messages_mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mac-monitor`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mailchimp-mcp`** (`pypi`) — `https://github.com/damientilman/mailchimp-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`managed-agent-control-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`marconi`** (`pypi`) — `https://pypi.org/project/marconi/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`matlab-mcp-python`** (`pypi`) — `https://github.com/HanSur94/matlab-mcp-server-python`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`maven-mcp`** (`pypi`) — `https://pypi.org/project/maven-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-ai-soc-sher`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-broker`** (`pypi`) — `https://pypi.org/project/mcp-broker/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-caldav`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-cli`** (`pypi`) — `https://pypi.org/project/mcp-cli/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-clickhouse`** (`pypi`) — `https://pypi.org/project/mcp-clickhouse/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-confluence-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-drill`** (`pypi`) — `https://pypi.org/project/mcp-drill/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-gsuite`** (`pypi`) — `https://pypi.org/project/mcp-gsuite/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-local-rag`** (`pypi`) — `https://pypi.org/project/mcp-local-rag/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-nixos`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-obsidian`** (`pypi`) — `https://pypi.org/project/mcp-obsidian/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-panther`** (`pypi`) — `https://github.com/panther-labs/mcp-panther`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-pinecone`** (`pypi`) — `https://pypi.org/project/mcp-pinecone/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-ping-pong`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-portainer`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-proxy`** (`pypi`) — `https://github.com/sparfenyuk/mcp-proxy`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-romm`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-roo-memory`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-ancestry`** (`pypi`) — `https://pypi.org/project/mcp-server-ancestry/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-apache-airflow`** (`pypi`) — `https://pypi.org/project/mcp-server-apache-airflow/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-appwrite`** (`pypi`) — `https://pypi.org/project/mcp-server-appwrite/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-deep-research`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-ds`** (`pypi`) — `https://pypi.org/project/mcp-server-ds/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-duckdb`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-git`** (`pypi`) — `https://github.com/modelcontextprotocol/servers/tree/main/src/git`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-home-assistant`** (`pypi`) — `https://pypi.org/project/mcp-server-home-assistant/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-notmuch`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-qdrant`** (`pypi`) — `https://pypi.org/project/mcp-server-qdrant/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-rabbitmq`** (`pypi`) — `https://github.com/kenliao94/mcp-server-rabbitmq`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-time`** (`pypi`) — `https://github.com/modelcontextprotocol/servers/tree/main/src/time`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-server-webcrawl`** (`pypi`) — `https://pypi.org/project/mcp-server-webcrawl/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-server-zoomeye`** (`pypi`) — `https://pypi.org/project/mcp-server-zoomeye/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-shell-server`** (`pypi`) — `https://pypi.org/project/mcp-shell-server/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-simple-timeserver`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-tautulli`** (`pypi`) — `https://github.com/lodordev/mcp-tautulli`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mcp-teams-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-techtrend`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-templates`** (`pypi`) — `https://pypi.org/project/mcp-templates/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-text-editor`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-tinybird`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-twikit`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp-vms`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp_safe_local_python_executor`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mcp_server_bing`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`membase-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`membership-filter-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`memem`** (`pypi`) — `https://github.com/TT-Wang/memem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`memgraph-ai`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mesh-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mikeplus-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`minreestr-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mk-qa-master`** (`pypi`) — `https://github.com/kao273183/mk-qa-master`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`mlb-api-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mnemos`** (`pypi`) — `https://pypi.org/project/mnemos/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mnemostack`** (`pypi`) — `https://github.com/udjin-labs/mnemostack`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`modbus-mcp`** (`pypi`) — `https://pypi.org/project/modbus-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`moltline-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`monarch-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mvf1`** (`pypi`) — `https://github.com/RobSpectre/mvf1`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`myco`** (`pypi`) — `https://pypi.org/project/myco/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`mysql_mcp_server_pro`** (`pypi`) — `https://pypi.org/project/mysql-mcp-server-pro/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`naja-scope`** (`pypi`) — `https://github.com/keplertech/naja-scope`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`networkx-mcp-server`** (`pypi`) — `https://github.com/Bright-L01/networkx-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`newsagent-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`nexus-mcp-ci`** (`pypi`) — `https://github.com/jaggernaut007/Nexus-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nexusfeed-mcp`** (`pypi`) — `https://github.com/nexusfeed/nexusfeed-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`nlqueries-core`** (`pypi`) — `https://pypi.org/project/nlqueries-core/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`noodle-biomedical-literature-discovery-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`notediscovery`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`nvim-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`odoo19-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ollama-omega`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`omega-brain-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`omniparser-autogui-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`opengenes-mcp`** (`pypi`) — `https://pypi.org/project/opengenes-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`openterms-mcp`** (`pypi`) — `https://github.com/jstibal/openterms-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`openwand`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pandaone-guard`** (`pypi`) — `https://pypi.org/project/pandaone-guard/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`paperboy`** (`pypi`) — `http://github.com/edgeflip/dispatch`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pcq`** (`pypi`) — `https://pypi.org/project/pcq/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`permisapi-mcp`** (`pypi`) — `https://github.com/Evan-Crx/permisapi-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`personal-understanding`** (`pypi`) — `https://pypi.org/project/personal-understanding/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`piloty`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`project-context-mcp`** (`pypi`) — `https://github.com/ericbrown/project-context-mcp`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`project-tessera`** (`pypi`) — `https://github.com/besslframework-stack/project-tessera`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`pubmed-search`** (`pypi`) — `https://pypi.org/project/pubmed-search/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pyats-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`pydantic-ai`** (`pypi`) — `https://github.com/pydantic/pydantic-ai`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`python-openstackmcp-server`** (`pypi`) — `https://github.com/openstack-kr/python-openstackmcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`qgis-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`qiniu-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`qq-agent-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`quickchat-ai-mcp`** (`pypi`) — `https://pypi.org/project/quickchat-ai-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`repomapper`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`resume-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ros-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`rot`** (`pypi`) — `https://pypi.org/project/rot/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`scraperapi-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sensorium`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`seosiri-biorobotics`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`shipstores`** (`pypi`) — `https://github.com/FidelisMM/shipstores`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`skill-seekers`** (`pypi`) — `https://github.com/yusufkaraaslan/Skill_Seekers`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`skysql-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`socialintel-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`sovereign-mcp`** (`pypi`) — `https://pypi.org/project/sovereign-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`spix-mcp`** (`pypi`) — `https://pypi.org/project/spix-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`spring-nacos-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`srunx`** (`pypi`) — `https://github.com/ksterx/srunx`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`synergy-age-mcp`** (`pypi`) — `https://pypi.org/project/synergy-age-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tasty-agent`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`telebrief`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`telephony-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`terse-mcp`** (`pypi`) — `https://github.com/inth3shadows/terse`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`teslamate-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`text-file-read-and-refactor-mcp`** (`pypi`) — `https://pypi.org/project/text-file-read-and-refactor-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`thegraph-mcp`** (`pypi`) — `https://pypi.org/project/thegraph-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`touchpoint-py`** (`pypi`) — `https://pypi.org/project/touchpoint-py/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`tp-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`trends-mcp-server`** (`pypi`) — `https://github.com/trendsmcp-ai/Trends-MCP`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`trinity-lite`** (`pypi`) — `https://github.com/Yomiracle/trinity-lite`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`twelvedata-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`ucsc-genome-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`umbra`** (`pypi`) — `https://github.com/KelSolaar/Umbra`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`urldna-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`usemymac`** (`pypi`) — `https://pypi.org/project/usemymac/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`vizro`** (`pypi`) — `https://github.com/mckinsey/vizro`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`vmem`** (`pypi`) — `https://github.com/pierotofy/vmem`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`wcgw`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`weather-mcp-server`** (`pypi`) — `https://github.com/qianyan/weather-mcp-server`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`web-eval-agent`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`wecom-docs-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`whale-tracker-mcp`** (`pypi`) — `https://pypi.org/project/whale-tracker-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`wildfire-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`workspace-metabolism`** (`pypi`) — `https://github.com/metabolism-tools/workspace-metabolism`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ws-mcp`** (`pypi`) — `https://pypi.org/project/ws-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`xray`** (`pypi`) — `https://github.com/pydata/xarray`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK`
+- [x] **`ydb-mcp`** (`pypi`) — `https://pypi.org/project/ydb-mcp/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zabbix-mcp-server`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zaturn`** (`pypi`) — `https://pypi.org/project/zaturn/`
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zettelkasten-mcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
+- [x] **`zulipmcp`** (`pypi`) — ``
+  - **Status**: `CONFIRMED_ZERO_TOOLS: NO_REPOSITORY`
