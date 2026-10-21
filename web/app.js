@@ -142,7 +142,14 @@ async function loadCatalog() {
 
 function render() {
   const q = activeQuery.toLowerCase().trim();
+  const filterToolsOnly = document.getElementById("filterToolsOnly")?.checked;
+
   filteredCatalog = catalog.filter((item) => {
+    if (filterToolsOnly) {
+      const activeVer = getActiveVersionForServer(item);
+      const vData = getVersionData(item, activeVer);
+      if (!vData.tools || vData.tools.length === 0) return false;
+    }
     if (activeEco !== "all" && item.ecosystem.toLowerCase() !== activeEco) {
       return false;
     }
@@ -306,8 +313,8 @@ function updateCardContent(card, item) {
   } else {
     toolsPreviewHtml = `
       <div class="tools-section">
-        <div class="tools-label">Tools</div>
-        <div style="font-size:0.8rem; color:var(--text-dim); margin-top:0.25rem;">No static tools declared for v${escapeHtml(activeVer)}</div>
+        <div class="tools-label">Tools (0)</div>
+        <div class="no-tools-badge">No static tools declared (Remote Endpoint / Gateway)</div>
       </div>
     `;
   }
@@ -495,6 +502,13 @@ if (searchInput) {
   searchInput.addEventListener("input", (e) => {
     activeQuery = e.target.value;
     updateURLState();
+    render();
+  });
+}
+
+const filterToolsOnlyCheckbox = document.getElementById("filterToolsOnly");
+if (filterToolsOnlyCheckbox) {
+  filterToolsOnlyCheckbox.addEventListener("change", (e) => {
     render();
   });
 }

@@ -292,3 +292,32 @@ def test_build_catalog_entry_null_repository_and_homepage():
     assert entry["repository_url"] == ""
     assert entry["homepage_url"] == ""
 
+
+def test_web_updates_js_interactive_tool_expansion():
+    js_file = Path("web/updates.js")
+    assert js_file.is_file()
+    js_content = js_file.read_text(encoding="utf-8")
+    assert "tool-tag-more" in js_content
+    assert "toggleToolsExpand" in js_content
+    assert "no-tools-badge" in js_content
+    assert "filterToolsOnly" in js_content
+
+def test_web_app_js_zero_tools_and_filter():
+    app_file = Path("web/app.js")
+    assert app_file.is_file()
+    js_content = app_file.read_text(encoding="utf-8")
+    assert "no-tools-badge" in js_content
+    assert "filterToolsOnly" in js_content
+
+def test_web_updates_html_contains_filter():
+    html_file = Path("web/updates.html")
+    assert html_file.is_file()
+    html_content = html_file.read_text(encoding="utf-8")
+    assert "filterToolsOnly" in html_content
+
+def test_web_index_html_contains_filter():
+    html_file = Path("web/index.html")
+    assert html_file.is_file()
+    html_content = html_file.read_text(encoding="utf-8")
+    assert "filterToolsOnly" in html_content
+
