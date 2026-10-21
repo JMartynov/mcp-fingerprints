@@ -600,11 +600,11 @@ class FastMcpAstVisitor(ast.NodeVisitor):
                             if isinstance(k, ast.Constant) and isinstance(k.value, str) and isinstance(v, ast.Constant):
                                 tool_annotations[k.value] = bool(v.value)
 
-            if dec_name in ("tool", "mcp_tool") or (isinstance(func_node, ast.Attribute) and func_node.attr == "tool"):
+            if dec_name in ("tool", "mcp_tool", "action", "command") or (isinstance(func_node, ast.Attribute) and func_node.attr in ("tool", "action", "command")):
                 is_tool = True
-            elif isinstance(func_node, ast.Attribute) and func_node.attr in ("tool", "register"):
+            elif isinstance(func_node, ast.Attribute) and func_node.attr in ("tool", "register", "action", "command"):
                 val_id = getattr(func_node.value, "id", "")
-                if "tool" in val_id or "server" in val_id or "mcp" in val_id:
+                if "tool" in val_id or "server" in val_id or "mcp" in val_id or "action" in val_id or "command" in val_id:
                     is_tool = True
             elif dec_name in ("prompt", "mcp_prompt") or (isinstance(func_node, ast.Attribute) and func_node.attr == "prompt"):
                 is_prompt = True
@@ -1129,6 +1129,63 @@ def parse_typescript_mcp_ast(code: str) -> AstBundleResult:
             i_name = im.group(1)
             if i_name not in seen_names and i_name.lower() not in ignored_names:
                 add_tool(i_name, f"Execute {i_name}", {}, [])
+
+    # Pattern 6: Dynamic Array Resolution in ListToolsRequestSchema handlers
+    # Find list tools request handlers returning `tools: IDENTIFIER`
+    list_tools_handlers = re.finditer(r'ListToolsRequestSchema[\s\S]*?return\s+\{[\s\S]*?tools\s*:\s*([a-zA-Z_$][0-9a-zA-Z_$]*)', code)
+    for m in list_tools_handlers:
+        identifier = m.group(1)
+        # Search the module scope for `const IDENTIFIER = [...]` or `let IDENTIFIER = [...]`
+        # Also match the tools inside it by using the regex used in Pattern 4
+        # We can locate the assignment block and search within it.
+        escaped_identifier = re.escape(identifier)
+        array_decl_match = re.search(rf'(?:const|let|var)\s+{escaped_identifier}\s*(?::\s*[^=]+)?\s*=\s*\[', code)
+        if array_decl_match:
+            start_idx = array_decl_match.end()
+            # Extract tools by searching from start_idx in `code` using Pattern 4 regex
+            chunk = code[start_idx : start_idx + 10000] # large enough chunk
+            
+            # Use same match logic as pattern 4, inside this chunk
+            for match in re.finditer(r'(?:\{|,)\s*name\s*:\s*["\']([a-zA-Z0-9_\-]+)["\']', chunk):
+                t_name = match.group(1)
+                if t_name in seen_names or t_name.startswith("$"):
+                    continue
+
+                sub_start_idx = match.start()
+                sub_chunk = chunk[sub_start_idx : sub_start_idx + 2500]
+
+                # Isolate this object up to next tool definition if possible
+                next_tool_match = re.search(r'(?:\{|,)\s*name\s*:\s*["\']', sub_chunk[10:])
+                if next_tool_match:
+                    sub_chunk = sub_chunk[:next_tool_match.start() + 10]
+
+                desc_m = re.search(
+                    r'description\s*:\s*([\'"`].*?[\'"`](?:\s*\+\s*[\'"`].*?[\'"`])*)',
+                    sub_chunk,
+                    re.DOTALL,
+                )
+                schema_m = re.search(r'(?:inputSchema|parameters)\s*:\s*\{', sub_chunk)
+
+                if desc_m:
+                    raw_desc = desc_m.group(1)
+                    cleaned_desc = re.sub(r'[\'"`]\s*\+\s*[\'"`]', '', raw_desc)
+                    t_desc = re.sub(r'\s+', ' ', cleaned_desc).strip('\'"` \n') or t_name
+                else:
+                    t_desc = t_name
+
+                properties = {}
+                required = []
+
+                if schema_m:
+                    schema_chunk = sub_chunk[schema_m.end() - 1 :]
+                    for p_match in re.finditer(r'([a-zA-Z0-9_$]+)\s*:\s*\{([^{}]+)\}', schema_chunk, re.DOTALL):
+                        p_name = p_match.group(1)
+                        p_body = p_match.group(2)
+                        t_match = re.search(r'type\s*:\s*["\']([^"\']+)["\']', p_body)
+                        if t_match:
+                            properties[p_name] = {"type": t_match.group(1)}
+
+                add_tool(t_name, t_desc, properties, required)
 
     return AstBundleResult(tools=extracted, env_vars=env_vars)
 
@@ -1746,10 +1803,18 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
         elif lang in ("cs", "csharp", "dotnet"):
             return parse_dotnet_mcp_code(code)
         elif lang in ("openapi", "swagger", "json", "yaml", "yml"):
+            from mcp_fingerprints.manifest_parser import parse_manifest_mcp_tools
+            manifest_res = parse_manifest_mcp_tools(code)
+            if manifest_res:
+                return manifest_res
             from mcp_fingerprints.openapi_parser import parse_openapi_spec
             return parse_openapi_spec(code)
             
     # Heuristics if language is unknown or not matched
+    from mcp_fingerprints.manifest_parser import parse_manifest_mcp_tools
+    manifest_res = parse_manifest_mcp_tools(code)
+    if manifest_res:
+        return manifest_res
     if "openapi" in code or "swagger" in code or "paths:" in code:
         from mcp_fingerprints.openapi_parser import parse_openapi_spec
         oa_res = parse_openapi_spec(code)
