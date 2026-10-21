@@ -1437,9 +1437,15 @@ class PassportSynchronizer:
                     if npm_meta and "dist-tags" in npm_meta:
                         latest_dist = npm_meta["dist-tags"].get("latest")
                         known_versions = {v.version for v in spec.versions}
-                        if latest_dist and latest_dist not in known_versions:
+                        needs_desc = not (spec.description and spec.description.strip())
+                        if (latest_dist and latest_dist not in known_versions) or needs_desc:
+                            # Pull full packument to capture description, repository, author and license
+                            full_npm_meta, _ = fetch_json(f"https://registry.npmjs.org/{pkg_name}")
+                            if full_npm_meta:
+                                npm_meta = full_npm_meta
+                        if (latest_dist and latest_dist not in known_versions) or (needs_desc and npm_meta.get("description")):
                             logger.info(
-                                "Found NEW version for npm %s: %s (was %s)",
+                                "Updating metadata/version for npm %s: %s (was %s)",
                                 pkg_name,
                                 latest_dist,
                                 known_versions,
@@ -1470,9 +1476,10 @@ class PassportSynchronizer:
                     if pypi_meta and "info" in pypi_meta:
                         latest_dist = pypi_meta["info"].get("version")
                         known_versions = {v.version for v in spec.versions}
-                        if latest_dist and latest_dist not in known_versions:
+                        needs_desc = not (spec.description and spec.description.strip())
+                        if (latest_dist and latest_dist not in known_versions) or (needs_desc and pypi_meta["info"].get("summary")):
                             logger.info(
-                                "Found NEW version for PyPI %s: %s (was %s)",
+                                "Updating metadata/version for PyPI %s: %s (was %s)",
                                 pkg_name,
                                 latest_dist,
                                 known_versions,
