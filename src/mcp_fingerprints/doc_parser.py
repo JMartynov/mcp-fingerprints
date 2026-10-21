@@ -30,10 +30,11 @@ def parse_markdown_tool_docs(content: str) -> list[dict[str, Any]]:
         m = re.match(r'^(#{1,6})\s+(.*)', line)
         if m:
             level = len(m.group(1))
-            title = m.group(2).strip().lower()
-            if title in ('tools', 'available tools'):
+            title = m.group(2).strip()
+            if re.search(r'(?i)\btools?\b', title):
                 in_tools_section = True
                 section_level = level
+                table_headers = []
             elif in_tools_section and level <= section_level:
                 in_tools_section = False
         
@@ -43,24 +44,49 @@ def parse_markdown_tool_docs(content: str) -> list[dict[str, Any]]:
                 parts = [p.strip() for p in line.split('|')[1:-1]]
                 if len(parts) >= 2:
                     name_clean = clean_markdown(parts[0])
-                    # Skip header/separator rows
-                    if name_clean.lower() not in ('tool', 'name') and not re.match(r'^[-:\s]+$', parts[0]):
-                        desc = parts[1]
+                    # Detect header rows dynamically
+                    if not table_headers and re.match(r'^[a-zA-Z0-9\s_]+$', name_clean) and any(x.lower() in ('name', 'tool', 'function') for x in parts):
+                        table_headers = [clean_markdown(p).lower() for p in parts]
+                        i += 1
+                        continue
+                    
+                    # Skip separator rows
+                    if re.match(r'^[-:\s]+$', parts[0]):
+                        i += 1
+                        continue
+                        
+                    name_col_idx = 0
+                    desc_col_idx = 1
+                    params_col_idx = 2
+                    
+                    if table_headers:
+                        for idx, h in enumerate(table_headers):
+                            if h in ('name', 'tool', 'function'):
+                                name_col_idx = idx
+                            elif h in ('description', 'desc', 'summary'):
+                                desc_col_idx = idx
+                            elif h in ('parameters', 'params', 'arguments', 'args', 'schema'):
+                                params_col_idx = idx
+                                
+                    if len(parts) > max(name_col_idx, desc_col_idx):
+                        name_val = clean_markdown(parts[name_col_idx])
+                        desc_val = parts[desc_col_idx]
                         properties = {}
                         required = []
-                        if len(parts) >= 3:
-                            args_str = parts[2]
+                        if len(parts) > params_col_idx:
+                            args_str = parts[params_col_idx]
                             arg_matches = re.findall(r'([a-zA-Z0-9_]+)\s*(?::|\()?\s*([a-zA-Z0-9_]+)?\)?', clean_markdown(args_str))
                             for match in arg_matches:
                                 arg_name, arg_type = match
                                 if arg_name:
                                     properties[arg_name] = {"type": arg_type or "string"}
                                     required.append(arg_name)
-                        tools.append({
-                            "name": name_clean, 
-                            "description": clean_markdown(desc), 
-                            "inputSchema": {"type": "object", "properties": properties, "required": required}
-                        })
+                        if name_val:
+                            tools.append({
+                                "name": name_val, 
+                                "description": clean_markdown(desc_val), 
+                                "inputSchema": {"type": "object", "properties": properties, "required": required}
+                            })
             
             # Parse Markdown List items
             list_m = re.match(r'^[-*]\s+(.*)', line)

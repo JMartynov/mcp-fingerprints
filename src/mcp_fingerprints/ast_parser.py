@@ -300,7 +300,13 @@ class FastMcpAstVisitor(ast.NodeVisitor):
         self.extracted_resources: list[dict[str, Any]] = []
         self.extracted_env_vars: set[str] = set()
         self.pydantic_models: dict[str, dict[str, Any]] = dict(pydantic_models or {})
+        self._current_module_body: list[ast.stmt] = []
 
+
+    def visit_Module(self, node: ast.Module) -> None:
+        self._current_module_body = node.body
+        self._current_module_node = node
+        self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> None:
         for target in node.targets:
@@ -336,12 +342,28 @@ class FastMcpAstVisitor(ast.NodeVisitor):
             is_tool_call = True
         elif isinstance(func, ast.Attribute) and func.attr in ("Tool", "MCPToolDefinition", "ToolDefinition", "MCPTool"):
             is_tool_call = True
+        elif isinstance(func, ast.Attribute) and func.attr == "add_tool" and isinstance(func.value, ast.Name) and func.value.id in ("mcp", "server"):
+            is_tool_call = True
 
         if is_tool_call:
             name = None
             desc = ""
             properties: dict[str, Any] = {}
             required: list[str] = []
+
+            # Extract from positional args for add_tool if necessary
+            if getattr(func, "attr", None) == "add_tool" and node.args:
+                first_arg = node.args[0]
+                if isinstance(first_arg, ast.Name):
+                    name = first_arg.id
+                    # Try to extract description from function docstring if we can find it in the same scope
+                    # We might need to walk the tree to find it if it's not at the top level module body
+                    for n in ast.walk(self._current_module_node) if hasattr(self, "_current_module_node") else []:
+                        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == name:
+                            docstring = ast.get_docstring(n)
+                            if docstring:
+                                desc = docstring
+                            break
 
             for kw in node.keywords:
                 if kw.arg == "name":
@@ -1116,7 +1138,7 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
     extracted: list[dict[str, Any]] = []
     seen_names: set[str] = set()
 
-    for match in re.finditer(r'mcp\.NewTool\s*\(\s*["\']([^"\']+)["\']', code):
+    for match in re.finditer(r'mcp\.(?:NewTool|NewToolWithRawSchema)\s*\(\s*["\']([^"\']+)["\']', code):
         name = match.group(1)
         if name in seen_names:
             continue
@@ -1139,8 +1161,16 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
         body = chunk[:end_idx] if end_idx != -1 else chunk
             
         desc = name
+        
+        # Check if description is passed as a positional argument right after NewTool("name", "description")
+        inline_desc_match = re.match(r'^\s*,\s*mcp\.WithDescription\s*\(\s*["\']([^"\']+)["\']\s*\)', chunk)
+        if not inline_desc_match:
+            inline_desc_match = re.match(r'^\s*,\s*["\']([^"\']+)["\']', chunk)
+        
         desc_match = re.search(r'mcp\.WithDescription\s*\(\s*["\']([^"\']+)["\']\s*\)', body)
-        if desc_match:
+        if inline_desc_match:
+            desc = inline_desc_match.group(1)
+        elif desc_match:
             desc = desc_match.group(1)
             
         properties: dict[str, dict[str, str]] = {}

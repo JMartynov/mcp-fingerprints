@@ -969,10 +969,13 @@ class PassportSynchronizer:
             if "/" in package_name:
                 s_names.append(package_name.split("/")[-1])
             for s_name in s_names:
-                s_detail, _ = fetch_json(f"https://api.smithery.ai/servers/{s_name}")
-                if s_detail and isinstance(s_detail, dict) and "tools" in s_detail:
-                    smithery_data = s_detail
-                    break
+                try:
+                    s_detail, _ = fetch_json(f"https://api.smithery.ai/servers/{s_name}", timeout=2)
+                    if s_detail and isinstance(s_detail, dict) and "tools" in s_detail:
+                        smithery_data = s_detail
+                        break
+                except Exception:
+                    pass
         tools: list[dict[str, Any]] = list(pre_extracted_tools or [])
         prompts: list[dict[str, Any]] = []
         resources: list[dict[str, Any]] = []
@@ -980,9 +983,10 @@ class PassportSynchronizer:
         extra_capabilities: dict[str, bool] = dict(pre_extracted_capabilities or {})
         desc = ""
         repo_url = None
+        homepage_url = None
         license_str = None
         author = existing_spec.author if existing_spec else None
-        keywords: list[str] = []
+        keywords: list[str] = list(existing_spec.keywords) if existing_spec and existing_spec.keywords else []
         aliases: list[str] = [package_name]
         dist_tags: dict[str, str] = {}
         all_versions: list[VersionFingerprint] = []
@@ -1179,6 +1183,15 @@ class PassportSynchronizer:
                 extra_capabilities["http_status"] = 404
                 extra_capabilities["archival_reason"] = "Repository or package returned HTTP 404/Not Found"
 
+        # Prior-Version Toolset Inheritance
+        if not tools and existing_spec:
+            prior_tools, prior_prompts, prior_resources = self._extract_prior_tools(existing_spec)
+            if prior_tools:
+                tools = prior_tools
+                prompts = prior_prompts
+                resources = prior_resources
+                is_simulated = True
+
         if official_registry_data:
             srv = official_registry_data.get("server", {})
             reg_v = srv.get("version", "1.0.0")
@@ -1330,6 +1343,18 @@ class PassportSynchronizer:
             except InvalidVersion:
                 return (0, v_obj.version)
                 
+        # If new metadata is missing or empty, preserve existing_spec metadata
+        if existing_spec:
+            if not desc or not desc.strip():
+                desc = existing_spec.description
+            if not repo_url or not str(repo_url).strip():
+                repo_url = existing_spec.repository_url
+            if not homepage_url or not str(homepage_url).strip():
+                if hasattr(existing_spec, "homepage_url"):
+                    homepage_url = existing_spec.homepage_url
+            if not license_str or not str(license_str).strip():
+                license_str = existing_spec.license
+
         is_valid, reason = McpServerValidator.is_valid_mcp_server(
             package_name=clean_pkg_name,
             ecosystem=ecosystem,
@@ -1351,6 +1376,7 @@ class PassportSynchronizer:
             display_name=clean_pkg_name,
             description=desc,
             repository_url=repo_url,
+            homepage_url=homepage_url,
             author=author,
             license=license_str,
             keywords=tuple(sorted(set(keywords))),
@@ -1540,6 +1566,10 @@ class PassportSynchronizer:
                     continue
                 
                 check_repo = spec.repository_url
+                
+                # Generic GitHub Slug URL Auto-Resolution
+                if not check_repo and re.match(r"^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$", spec.package_name):
+                    check_repo = f"https://github.com/{spec.package_name}"
                 
                 if spec.ecosystem == "npm" or "npm_registry" in spec.sources_merged:
                     if spec.package_name not in npm_probed_packages:
