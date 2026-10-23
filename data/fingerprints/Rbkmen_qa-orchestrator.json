@@ -1,0 +1,734 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "qa-orchestrator",
+  "purl": "pkg:pypi/qa-orchestrator",
+  "ecosystem": "pypi",
+  "display_name": "qa-orchestrator",
+  "description": "Deterministic QA review routing and orchestration for MCP host agents",
+  "author": null,
+  "repository_url": "https://github.com/Rbkmen/qa-orchestrator",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "qa-orchestrator"
+  ],
+  "sources_merged": [
+    "github",
+    "github_ast",
+    "pypi"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:93c88372e35b1da5b76bee0a0fe4be321f0fbc31e88002c9492fa6bbd96c9f96",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "advance_qa_orchestration",
+          "canonical_hash": "sha256:b48f523a965596fb4929f5fdb9886354bd65fce4a9b30058dba48c4f84e3e9ae",
+          "description": "Record one active QA step's result; return updated state and next_action instructions for the host.",
+          "is_mutating": false,
+          "property_keys": [
+            "completed_profile",
+            "completed_profiles",
+            "completed_step",
+            "expected_revision",
+            "profile_reports",
+            "request_id",
+            "risk_signals",
+            "run_id",
+            "selected_bundle",
+            "selected_profile",
+            "skip_synthesis",
+            "status"
+          ],
+          "required_keys": [
+            "completed_step",
+            "run_id",
+            "status"
+          ],
+          "parameter_types": {
+            "run_id": "string",
+            "completed_step": "string",
+            "status": "string",
+            "selected_bundle": "string",
+            "selected_profile": "string",
+            "completed_profile": "string",
+            "completed_profiles": "string",
+            "profile_reports": "string",
+            "risk_signals": "string",
+            "skip_synthesis": "boolean",
+            "request_id": "string",
+            "expected_revision": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "run_id": {
+                "type": "string"
+              },
+              "completed_step": {
+                "type": "string",
+                "description": "Required: copy the exact current_step from the latest session returned by start, advance, or get. Complete only triage, primary_review, deep_review, or synthesis. If current_step is awaiting_host_outcome, call finish_qa_orchestration instead."
+              },
+              "status": {
+                "type": "string",
+                "description": "Required on every call, including successful steps: use completed when the active step succeeds. Use partial or blocked only to stop early, then finalize with the same outcome using finish_qa_orchestration."
+              },
+              "selected_bundle": {
+                "type": "string",
+                "description": "For completed triage, choose one fixed bundle only for broad, cross-concern, or high-risk work; several changed files alone do not require one. It is mutually exclusive with selected_profile; recommended_bundles is only a shortlist.",
+                "default": null
+              },
+              "selected_profile": {
+                "type": "string",
+                "description": "For completed triage, default to one allowed profile for a narrow, single-concern, low-risk review. It is mutually exclusive with selected_bundle.",
+                "default": null
+              },
+              "completed_profile": {
+                "type": "string",
+                "description": "Legacy-compatible single-profile completion. After the complete execution_group has finished, submit exactly the current_profile returned by the latest advance_qa_orchestration call and follow fixed route order; never advance parallel profiles concurrently. Use completed_profiles to record a whole group in one call. Omit for other steps or an early stop.",
+                "default": null
+              },
+              "completed_profiles": {
+                "type": "string",
+                "description": "After the whole next execution_group has finished, submit every profile in that group exactly once and in fixed route order. This records the group in one call. For a bundle, the list must match the next complete group; for one profile, submit a one-item list. Mutually exclusive with completed_profile. Omit for other steps or an early stop.",
+                "default": null
+              },
+              "profile_reports": {
+                "type": "string",
+                "description": "For a review-context-bound session, one structured result per completed profile, in the same order. Every finding must cite Evidence Packet references. Optional execution_metrics are host-reported and are not independently verified. Up to ten reports are accepted, with 72 KiB per report and 288 KiB combined per session. Omit for legacy sessions without review_context.",
+                "default": null
+              },
+              "risk_signals": {
+                "type": "string",
+                "description": "Required with the final completed primary-review profile. Send an empty object when no evidence-based fixed escalation signals apply; any true signal requires a short rationale and Evidence Packet references. Do not send on earlier profiles or on the synthesis transition.",
+                "default": null
+              },
+              "skip_synthesis": {
+                "type": "boolean",
+                "description": "Optional clean-review fast path. Set true only after one selected profile reports no findings or unresolved material questions and every risk signal is false. The host still validates and reports the final QA result; the server trusts this host claim and cannot verify review content. Bundles, findings, unresolved questions, or any risk signal require the normal synthesis stage.",
+                "default": false
+              },
+              "request_id": {
+                "type": "string",
+                "description": "Optional unique transition key. Requires expected_revision. Retrying the exact same payload returns current retained state without repeating the transition; reusing the key with another payload is rejected.",
+                "default": null
+              },
+              "expected_revision": {
+                "type": "string",
+                "description": "Optional workflow revision from the latest session. A new transition is rejected if stale; a recognized request_id replay remains safe.",
+                "default": null
+              }
+            },
+            "required": [
+              "completed_step",
+              "run_id",
+              "status"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:07ac361ee88704149ee8d6986f93a77a86b5d62ff37a03d86611bccec8ff2ab1",
+          "parameters": [
+            {
+              "name": "completed_profile",
+              "type": "string",
+              "description": "Legacy-compatible single-profile completion. After the complete execution_group has finished, submit exactly the current_profile returned by the latest advance_qa_orchestration call and follow fixed route order; never advance parallel profiles concurrently. Use completed_profiles to record a whole group in one call. Omit for other steps or an early stop.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "completed_profiles",
+              "type": "string",
+              "description": "After the whole next execution_group has finished, submit every profile in that group exactly once and in fixed route order. This records the group in one call. For a bundle, the list must match the next complete group; for one profile, submit a one-item list. Mutually exclusive with completed_profile. Omit for other steps or an early stop.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "completed_step",
+              "type": "string",
+              "description": "Required: copy the exact current_step from the latest session returned by start, advance, or get. Complete only triage, primary_review, deep_review, or synthesis. If current_step is awaiting_host_outcome, call finish_qa_orchestration instead.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "expected_revision",
+              "type": "string",
+              "description": "Optional workflow revision from the latest session. A new transition is rejected if stale; a recognized request_id replay remains safe.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "profile_reports",
+              "type": "string",
+              "description": "For a review-context-bound session, one structured result per completed profile, in the same order. Every finding must cite Evidence Packet references. Optional execution_metrics are host-reported and are not independently verified. Up to ten reports are accepted, with 72 KiB per report and 288 KiB combined per session. Omit for legacy sessions without review_context.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "request_id",
+              "type": "string",
+              "description": "Optional unique transition key. Requires expected_revision. Retrying the exact same payload returns current retained state without repeating the transition; reusing the key with another payload is rejected.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "risk_signals",
+              "type": "string",
+              "description": "Required with the final completed primary-review profile. Send an empty object when no evidence-based fixed escalation signals apply; any true signal requires a short rationale and Evidence Packet references. Do not send on earlier profiles or on the synthesis transition.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "run_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "selected_bundle",
+              "type": "string",
+              "description": "For completed triage, choose one fixed bundle only for broad, cross-concern, or high-risk work; several changed files alone do not require one. It is mutually exclusive with selected_profile; recommended_bundles is only a shortlist.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "selected_profile",
+              "type": "string",
+              "description": "For completed triage, default to one allowed profile for a narrow, single-concern, low-risk review. It is mutually exclusive with selected_bundle.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skip_synthesis",
+              "type": "boolean",
+              "description": "Optional clean-review fast path. Set true only after one selected profile reports no findings or unresolved material questions and every risk signal is false. The host still validates and reports the final QA result; the server trusts this host claim and cannot verify review content. Bundles, findings, unresolved questions, or any risk signal require the normal synthesis stage.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Required on every call, including successful steps: use completed when the active step succeeds. Use partial or blocked only to stop early, then finalize with the same outcome using finish_qa_orchestration.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "delete_qa_orchestration",
+          "canonical_hash": "sha256:af79e6a54a85dce8501f05010b324adfb847fc1180b8b0cef1f0f22de05d8f33",
+          "description": "Delete one QA session from memory and configured recovery storage.",
+          "is_mutating": false,
+          "property_keys": [
+            "run_id"
+          ],
+          "required_keys": [
+            "run_id"
+          ],
+          "parameter_types": {
+            "run_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "run_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "run_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2a38aa73cdee3ab9bf4337c4cb20f38b65a1813305f66bfb2d255dadc3d0f84b",
+          "parameters": [
+            {
+              "name": "run_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "finish_qa_orchestration",
+          "canonical_hash": "sha256:2671db499d073aae0280f3b12a2473c7bc7fbc75c4292b9063a1ff4d3d355017",
+          "description": "Finalize the QA run and store its structured report when the session is review-bound.",
+          "is_mutating": false,
+          "property_keys": [
+            "expected_revision",
+            "final_review_report",
+            "outcome",
+            "run_id"
+          ],
+          "required_keys": [
+            "outcome",
+            "run_id"
+          ],
+          "parameter_types": {
+            "run_id": "string",
+            "outcome": "string",
+            "final_review_report": "string",
+            "expected_revision": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "run_id": {
+                "type": "string"
+              },
+              "outcome": {
+                "type": "string",
+                "description": "Host-selected final session status: completed, partial, or blocked."
+              },
+              "final_review_report": {
+                "type": "string",
+                "description": "Structured synthesized findings and coverage for a review_context-bound session. Required when its outcome is completed; each finding cites registered evidence refs and the original profile-local candidate IDs and evidence that support it. The report must include one candidate_decisions entry per submitted candidate. Every defect candidate needs failure_condition, flip_condition, expected_behavior, and actual_behavior (source-predicted, not runtime proof), and every outcome needs a bound refutation assessment: not_refuted for confirmed/duplicate, refuted for rejected, unverified for unverified. Rejected/unverified outcomes preserve the original candidate snapshot. Confirmed findings require host severity, impact, affected area, and source locations. Optional verification_records capture test/CI/runtime scenarios, results, environment, run reference, reason, and exact reviewed head SHA; these remain host-supplied and are not independently authenticated by the orchestrator. The report is limited to 80 KiB; profile plus final reports are limited to 288 KiB per session.",
+                "default": null
+              },
+              "expected_revision": {
+                "type": "string",
+                "description": "Optional current workflow revision for a new finalization. The same retained outcome/report can still be replayed idempotently.",
+                "default": null
+              }
+            },
+            "required": [
+              "outcome",
+              "run_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:958af3aa2862e0c84ebbd13a8e341499021389556d6e79c8a60b1f752c0c030c",
+          "parameters": [
+            {
+              "name": "expected_revision",
+              "type": "string",
+              "description": "Optional current workflow revision for a new finalization. The same retained outcome/report can still be replayed idempotently.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "final_review_report",
+              "type": "string",
+              "description": "Structured synthesized findings and coverage for a review_context-bound session. Required when its outcome is completed; each finding cites registered evidence refs and the original profile-local candidate IDs and evidence that support it. The report must include one candidate_decisions entry per submitted candidate. Every defect candidate needs failure_condition, flip_condition, expected_behavior, and actual_behavior (source-predicted, not runtime proof), and every outcome needs a bound refutation assessment: not_refuted for confirmed/duplicate, refuted for rejected, unverified for unverified. Rejected/unverified outcomes preserve the original candidate snapshot. Confirmed findings require host severity, impact, affected area, and source locations. Optional verification_records capture test/CI/runtime scenarios, results, environment, run reference, reason, and exact reviewed head SHA; these remain host-supplied and are not independently authenticated by the orchestrator. The report is limited to 80 KiB; profile plus final reports are limited to 288 KiB per session.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "outcome",
+              "type": "string",
+              "description": "Host-selected final session status: completed, partial, or blocked.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "run_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_qa_orchestration",
+          "canonical_hash": "sha256:83e00ededabc74ddd6a059af74dcaf5b7f70945a6bf9679505ef4596ee98b1c9",
+          "description": "Read one retained run_id's state, audit trace, bound context and structured reports.",
+          "is_mutating": false,
+          "property_keys": [
+            "run_id"
+          ],
+          "required_keys": [
+            "run_id"
+          ],
+          "parameter_types": {
+            "run_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "run_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "run_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:922422183616e01e8be51140df00bed1df638cf80b7148fcba9bb7ca93342b3e",
+          "parameters": [
+            {
+              "name": "run_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_qa_orchestration_catalog",
+          "canonical_hash": "sha256:e84e968919d94eb501083660aa7b4e83f9fd5d02642797439750a2ca0a66a16b",
+          "description": "Read the static profile/bundle catalog: specialists, review scopes, and execution schedules.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5e16ab4128dd8e68b5cbc8098386e4c575683553e8a2672a59246c59a22a6282",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_qa_orchestration_model_policy",
+          "canonical_hash": "sha256:00a681c61e7bb6acb465083d4b2c80db4e851bfe2a07eca97dbe6355875cb686",
+          "description": "Read the server-wide model policy used to create new sessions.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e8b4847c2747a113f7fda42fed79274dfeb32b6b69672f6e3e726bfe669da4d8",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_qa_orchestrations",
+          "canonical_hash": "sha256:00f95843ae77448461a5baec5e9423cbb5d399dbfa0b7ffd85b46290f78a518b",
+          "description": "List non-expired QA session identifiers and brief metadata, including bound review identity.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b96b54902470f0c49ca4df955df23a16d4e3573233157c8b639b2979544e2de4",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "prepare_qa_orchestration",
+          "canonical_hash": "sha256:9e3efba2449143fd121a57fd5bfb89509df1d58fdd5d8ed6897e2655c05bb168",
+          "description": "Return one specialist's fixed ReviewRoute checklist: profile, display_name, focus,",
+          "is_mutating": false,
+          "property_keys": [
+            "agent_profile"
+          ],
+          "required_keys": [
+            "agent_profile"
+          ],
+          "parameter_types": {
+            "agent_profile": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "agent_profile": {
+                "type": "string",
+                "description": "Choose one fixed specialist profile: code_explorer maps execution and evidence; code_reviewer reviews implementation; pr_test_analyzer reviews coverage; security_reviewer and silent_failure_hunter target security and silent failures; ruby_reviewer, python_reviewer, typescript_reviewer, react_reviewer, and mobile_reviewer target their named stacks. Choose from changed files and confirmed stack."
+              }
+            },
+            "required": [
+              "agent_profile"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dc9a2bef0c621e3acb5b036de72622d530ae1d07543f97c4405536a506bfcede",
+          "parameters": [
+            {
+              "name": "agent_profile",
+              "type": "string",
+              "description": "Choose one fixed specialist profile: code_explorer maps execution and evidence; code_reviewer reviews implementation; pr_test_analyzer reviews coverage; security_reviewer and silent_failure_hunter target security and silent failures; ruby_reviewer, python_reviewer, typescript_reviewer, react_reviewer, and mobile_reviewer target their named stacks. Choose from changed files and confirmed stack.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "prepare_qa_orchestration_bundle",
+          "canonical_hash": "sha256:b48220fcb175eb990502acb2561fdabf2f5642c1dd932a19f37d0a2e22dacddc",
+          "description": "Return every fixed ReviewRoute checklist and execution wave for one bundle.",
+          "is_mutating": false,
+          "property_keys": [
+            "bundle"
+          ],
+          "required_keys": [
+            "bundle"
+          ],
+          "parameter_types": {
+            "bundle": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "bundle": {
+                "type": "string",
+                "description": "Selected fixed multi-profile bundle. The tool returns every checklist and its ordered execution_groups. Profiles in the same group may run concurrently; for one profile, use prepare_qa_orchestration."
+              }
+            },
+            "required": [
+              "bundle"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ade8ae16ec3f2f7dfb225f4f1e81b3186d67c25ed06924909fbc2d889f06ec1b",
+          "parameters": [
+            {
+              "name": "bundle",
+              "type": "string",
+              "description": "Selected fixed multi-profile bundle. The tool returns every checklist and its ordered execution_groups. Profiles in the same group may run concurrently; for one profile, use prepare_qa_orchestration.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "renew_qa_orchestration",
+          "canonical_hash": "sha256:5c6cceb58bdb62060cf7edae5274f7a9fbe10b269b6de47da03b2f04ddb81bc9",
+          "description": "Extend an active session's TTL while host review work is running.",
+          "is_mutating": false,
+          "property_keys": [
+            "expected_revision",
+            "run_id"
+          ],
+          "required_keys": [
+            "run_id"
+          ],
+          "parameter_types": {
+            "run_id": "string",
+            "expected_revision": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "run_id": {
+                "type": "string"
+              },
+              "expected_revision": {
+                "type": "string",
+                "description": "Optional current workflow revision; stale renewals fail.",
+                "default": null
+              }
+            },
+            "required": [
+              "run_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:07fa921277bee667d71aaa35427edb4ccf0b9c773b97103604282fb77288947d",
+          "parameters": [
+            {
+              "name": "expected_revision",
+              "type": "string",
+              "description": "Optional current workflow revision; stale renewals fail.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "run_id",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "start_qa_orchestration",
+          "canonical_hash": "sha256:b1ec9f8ac52566715db9187393070e38162f08db1f67897262626dd5d407563f",
+          "description": "Create a QA session and bind code reviews to one immutable review input.",
+          "is_mutating": false,
+          "property_keys": [
+            "review_context",
+            "task_type"
+          ],
+          "required_keys": [
+            "task_type"
+          ],
+          "parameter_types": {
+            "task_type": "string",
+            "review_context": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "task_type": {
+                "type": "string",
+                "description": "Broad request category: ordinary_review for implementation review, widget_review for widget changes, epic_analysis for broad exploration, requirements_analysis for requirement review, qa_planning for coverage planning, autotest_implementation for automation work, or other. This shapes the task-type shortlist; review_context may append stack-matched bundles. The host chooses the route from changed files and evidence; this is not a risk level."
+              },
+              "review_context": {
+                "type": "string",
+                "description": "Optional immutable repository, base/head, changed-file, diff, and Evidence Packet identity. Required for ordinary_review and widget_review, with an input_manifest using schema v2. When supplied, every completed profile must include a structured report whose evidence references belong to this packet; completed outcomes require a final report. The response may include file-type-based recommended_profiles and stack-matched recommended_bundles as non-binding hints. Optional evidence_registry metadata binds each ref to a source kind, revision, coordinates and content hash. The host verifies actual content locally.",
+                "default": null
+              }
+            },
+            "required": [
+              "task_type"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:2b29667958b51b72a1493a41d2435f3de214e7fc95a4b4b002daea1c21ba81d9",
+          "parameters": [
+            {
+              "name": "review_context",
+              "type": "string",
+              "description": "Optional immutable repository, base/head, changed-file, diff, and Evidence Packet identity. Required for ordinary_review and widget_review, with an input_manifest using schema v2. When supplied, every completed profile must include a structured report whose evidence references belong to this packet; completed outcomes require a final report. The response may include file-type-based recommended_profiles and stack-matched recommended_bundles as non-binding hints. Optional evidence_registry metadata binds each ref to a source kind, revision, coordinates and content hash. The host verifies actual content locally.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "task_type",
+              "type": "string",
+              "description": "Broad request category: ordinary_review for implementation review, widget_review for widget changes, epic_analysis for broad exploration, requirements_analysis for requirement review, qa_planning for coverage planning, autotest_implementation for automation work, or other. This shapes the task-type shortlist; review_context may append stack-matched bundles. The host chooses the route from changed files and evidence; this is not a risk level.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

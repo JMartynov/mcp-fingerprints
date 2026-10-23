@@ -1,0 +1,3995 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "sena-labs/replicate-mcp-server",
+  "purl": "pkg:generic/sena-labs%2Freplicate-mcp-server",
+  "ecosystem": "generic",
+  "display_name": "sena-labs/replicate-mcp-server",
+  "description": "Universal MCP server — works with any MCP client (Claude Desktop, the claude.ai web app, Cursor, Cline, or your own host). Gives native access to the full Replicate catalog — image, video, music, speech (TTS + STT), LLMs, vision, upscale, inpaint, segment, embeddings, voice cloning, 3D generation, lipsync/avatar, trainings (fine-tune) and deployments, and anything else hosted on replicate.com. 36 tools, 66 curated models. Every generate/run tool waits for completion and auto-downloads outputs. Includes a pre-call cost estimator, prediction history / cancel tools, multi-token round-robin pool, rate-limit awareness, and both stdio and a webhook-friendly HTTP/SSE transport.",
+  "author": null,
+  "repository_url": "https://github.com/sena-labs/replicate-mcp-server",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "sena-labs/replicate-mcp-server"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "3.3.0",
+      "toolset_canonical_hash": "sha256:7d75c05b998eb3210464c376b8746f13156c9bb8939bb40e79aacc0e6e87df04",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://replicate-mcp-server--sena-labs.run.tools",
+          "configSchema": {
+            "type": "object",
+            "required": [
+              "replicateApiToken"
+            ],
+            "properties": {
+              "replicateApiToken": {
+                "type": "string",
+                "title": "Replicate API Token",
+                "format": "password",
+                "x-from": {
+                  "header": "x-replicate-api-token"
+                },
+                "x-order": 0,
+                "description": "Your Replicate API token (starts with r8_). Each user supplies their own. Get one at https://replicate.com/account/api-tokens."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": true,
+        "resources": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "replicate_batch_start",
+          "canonical_hash": "sha256:ab3da43874697f3f6465c46a414a1fe18c3854bdcd1c934cf0ecc9e79d246289",
+          "description": "Run multiple Replicate predictions in parallel as a background job. Returns a job_id immediately — the predictions run in the background. Poll replicate_batch_status for progress and results.\n\nUse this when you have 2–50 predictions to run and don't want to block. Each item specifies its own model and input, so you can mix models in one batch.\n\nIMPORTANT: model must be a full Replicate identifier (\"owner/name\" or \"owner/name:version\"), not a curated shortcut like \"flux-schnell\". Use replicate_get_model_schema to look up the correct identifier.\n\nArgs:\n  - items (array, 1–50): Predictions to run. Each: { model: \"owner/name[:version]\", input: {...} }.\n  - concurrency (1–10, default 3): Max simultaneous predictions. Raise with caution — Replicate rate-limits free accounts.\n  - download (boolean, default true): Download output files locally.\n  - timeout_ms_per_item (default 300000): Per-prediction timeout. Timed-out items have pending=true in their result.\n  - ttl_hours (1–72, default 1): How long to keep results in memory. Job state is lost if the MCP server restarts.\n\nReturns: { job_id, total, message }\n\nExample:\n  items=[\n    { model: \"black-forest-labs/flux-schnell\", input: { prompt: \"a red fox\" } },\n    { model: \"black-forest-labs/flux-schnell\", input: { prompt: \"a blue whale\" } },\n  ]\n  → Returns { job_id: \"abc-123\", total: 2, message: \"...\" }\n  → Then poll: replicate_batch_status({ job_id: \"abc-123\" })",
+          "is_mutating": false,
+          "property_keys": [
+            "concurrency",
+            "download",
+            "items",
+            "timeout_ms_per_item",
+            "ttl_hours"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "items": "array",
+            "download": "boolean",
+            "ttl_hours": "integer",
+            "concurrency": "integer",
+            "timeout_ms_per_item": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "model",
+                    "input"
+                  ],
+                  "properties": {
+                    "input": {
+                      "type": "object",
+                      "description": "Model input parameters as a JSON object.",
+                      "additionalProperties": {}
+                    },
+                    "model": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Replicate model identifier: \"owner/name\" or \"owner/name:version\". Full ID required — curated shortcuts not supported here."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 50,
+                "minItems": 1,
+                "description": "Predictions to run. 1–50 items."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Download output files locally. Default: true."
+              },
+              "ttl_hours": {
+                "type": "integer",
+                "default": 1,
+                "maximum": 72,
+                "minimum": 1,
+                "description": "How long to keep job results in memory (1–72h). Default: 1h. State is lost if the server restarts."
+              },
+              "concurrency": {
+                "type": "integer",
+                "default": 3,
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Max simultaneous predictions (1–10). Default: 3."
+              },
+              "timeout_ms_per_item": {
+                "type": "integer",
+                "default": 300000,
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Per-prediction timeout in ms (5000–1800000). Default: 300000 (5min)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:77096d6d035d52f0f87f6b6d7e47e26281b42143e8ce97aa428bc71a402422e3",
+          "parameters": [
+            {
+              "name": "concurrency",
+              "type": "integer",
+              "description": "Max simultaneous predictions (1–10). Default: 3.",
+              "required": false,
+              "default": 3,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Download output files locally. Default: true.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "items",
+              "type": "array",
+              "description": "Predictions to run. 1–50 items.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms_per_item",
+              "type": "integer",
+              "description": "Per-prediction timeout in ms (5000–1800000). Default: 300000 (5min).",
+              "required": false,
+              "default": 300000,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "ttl_hours",
+              "type": "integer",
+              "description": "How long to keep job results in memory (1–72h). Default: 1h. State is lost if the server restarts.",
+              "required": false,
+              "default": 1,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_batch_status",
+          "canonical_hash": "sha256:fa3131cf60cce224e21af6c51f11bdb47e55fa6a69ba6fc0a962bd090ba01aca",
+          "description": "Poll the status of an async batch job started with replicate_batch_start.\n\nArgs:\n  - job_id (string): Job ID returned by replicate_batch_start.\n  - include_results (boolean, default true): Include full PredictionResult per item. Set false for a counts-only summary while the job is still running.\n\nReturns structuredContent:\n  {\n    job_id, overall_status, total, succeeded, failed, running, pending,\n    created_at, expires_at,\n    items: [{ index, model, status, prediction_id, result?, error?, started_at, completed_at }]\n  }\n\noverall_status:\n  \"running\"   — predictions still in progress\n  \"completed\" — all items succeeded\n  \"partial\"   — all done, at least one failed\n\nTip: Poll every 10–30 seconds until overall_status is \"completed\" or \"partial\".",
+          "is_mutating": false,
+          "property_keys": [
+            "include_results",
+            "job_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "job_id": "string",
+            "include_results": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Job ID returned by replicate_batch_start."
+              },
+              "include_results": {
+                "type": "boolean",
+                "default": true,
+                "description": "Include full PredictionResult per completed item. Set false to get counts-only summary for large batches. Default: true."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:dba5b4c8f99f6e57dfd8daa6cdddd1e8880c7b0c3ca7da4096cd418c5861f810",
+          "parameters": [
+            {
+              "name": "include_results",
+              "type": "boolean",
+              "description": "Include full PredictionResult per completed item. Set false to get counts-only summary for large batches. Default: true.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "job_id",
+              "type": "string",
+              "description": "Job ID returned by replicate_batch_start.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_cancel_prediction",
+          "canonical_hash": "sha256:83f421f9d70514c7a760d2ccb24282552986c3bbf660d8c28c29054e4c15c17f",
+          "description": "Cancel an in-progress prediction by its ID. Useful for long-running async jobs (video, large LLM) when the user no longer needs the result.\n\nArgs:\n  - prediction_id (string): ID of the prediction to cancel (returned by an earlier generate_* call).\n\nReturns: PredictionSummary with updated status (typically \"canceled\").",
+          "is_mutating": false,
+          "property_keys": [
+            "prediction_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "prediction_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "prediction_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "ID of the prediction to cancel."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c76c0054db9e4d011c1b2252e1261af3abffe32b60a3970ef0bb7110c1418b48",
+          "parameters": [
+            {
+              "name": "prediction_id",
+              "type": "string",
+              "description": "ID of the prediction to cancel.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_cancel_training",
+          "canonical_hash": "sha256:b066031da7429a90f0f282bad1ea20bdbd49217e7804f07b265886ea889eb4cf",
+          "description": "Cancel an in-progress training run by its ID. Trainings can run for many minutes and cost real money — cancel when no longer needed.\n\nArgs:\n  - training_id: ID of the training to cancel.\n\nReturns structuredContent: TrainingSummary with the updated status (typically \"canceled\").",
+          "is_mutating": false,
+          "property_keys": [
+            "training_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "training_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "training_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "ID of the in-progress training run to cancel."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b45ae4b3ea68cff3510276fd048d44af60517f11dc5d2b269b8067772ebbb9f4",
+          "parameters": [
+            {
+              "name": "training_id",
+              "type": "string",
+              "description": "ID of the in-progress training run to cancel.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_chat",
+          "canonical_hash": "sha256:f1e04a18d4d82054a612b9d6a74731bc04bea01513f634d6075e5100823cc7d0",
+          "description": "Run a large language model hosted on Replicate. Use this for free-form text generation, Q&A, code writing, summarisation, translation — anything where the input is text and the output is text.\n\nArgs:\n  - prompt (string): User message.\n  - model (string, default \"llama-3-70b\"): Curated key (llama-3.1-405b, llama-3-70b, llama-3-8b, mistral-7b, mixtral-8x7b, deepseek-r1) or \"owner/name\".\n  - system_prompt (string, optional): Persona / instructions.\n  - max_tokens (1-8192, optional): Generation limit.\n  - temperature (0-2, optional): Sampling temperature.\n  - extra_input (object, optional): Model-specific extras (top_p, top_k, frequency_penalty, etc.).\n  - download (boolean, default false): No file outputs; leave false.\n  - timeout_ms (5000-1800000, optional): Default 300000.\n\nReturns: PredictionResult with text_output[0] containing the model's reply (later entries are raw streamed segments if applicable).\n\nExamples:\n  - prompt=\"Explain quantum entanglement in two sentences.\", model=\"llama-3-70b\"\n  - prompt=\"Write a Python function to compute Levenshtein distance.\", model=\"mistral-large\", system_prompt=\"You are an expert software engineer.\"",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "max_tokens",
+            "model",
+            "prompt",
+            "system_prompt",
+            "temperature",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "prompt": "string",
+            "download": "boolean",
+            "max_tokens": "integer",
+            "timeout_ms": "integer",
+            "extra_input": "object",
+            "temperature": "number",
+            "system_prompt": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "llama-3.1-405b",
+                      "llama-3-70b",
+                      "llama-3-8b",
+                      "mistral-7b",
+                      "mixtral-8x7b",
+                      "deepseek-r1"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "llama-3-70b",
+                "description": "LLM identifier. Curated keys: llama-3.1-405b, llama-3-70b, llama-3-8b, mistral-7b, mixtral-8x7b, deepseek-r1. Or full Replicate \"owner/name[:version]\"."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 50000,
+                "minLength": 1,
+                "description": "User message / prompt for the LLM."
+              },
+              "download": {
+                "type": "boolean",
+                "default": false,
+                "description": "LLM output is text — default false (no file to download)."
+              },
+              "max_tokens": {
+                "type": "integer",
+                "maximum": 8192,
+                "minimum": 1,
+                "description": "Max tokens to generate. Default model-dependent."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs.",
+                "additionalProperties": {}
+              },
+              "temperature": {
+                "type": "number",
+                "maximum": 2,
+                "minimum": 0,
+                "description": "Sampling temperature 0.0–2.0. Lower = more deterministic."
+              },
+              "system_prompt": {
+                "type": "string",
+                "maxLength": 10000,
+                "description": "Optional system prompt to set persona / instructions."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bd0fe156186d93d0ff343121d4ad3c423680a1fce1cc9dd94408053008e3eeaa",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "LLM output is text — default false (no file to download).",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_tokens",
+              "type": "integer",
+              "description": "Max tokens to generate. Default model-dependent.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "LLM identifier. Curated keys: llama-3.1-405b, llama-3-70b, llama-3-8b, mistral-7b, mixtral-8x7b, deepseek-r1. Or full Replicate \"owner/name[:version]\".",
+              "required": false,
+              "default": "llama-3-70b",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "User message / prompt for the LLM.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "system_prompt",
+              "type": "string",
+              "description": "Optional system prompt to set persona / instructions.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "temperature",
+              "type": "number",
+              "description": "Sampling temperature 0.0–2.0. Lower = more deterministic.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_clone_voice",
+          "canonical_hash": "sha256:32c3dfceaa949be890046ffcbbb7c0651ae0e9d4272a87dead244102a73cb4f6",
+          "description": "Synthesize speech in a cloned voice. Provide a short reference audio sample (~5-30 s) and the text to speak; the model reproduces the voice characteristics.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, include the URL printed in the tool's text content as a markdown link `[Audio](URL)` so the user can play it. URLs expire in ~24h.\n\nArgs:\n  - text (string, 1-5000): Text to synthesize in the cloned voice.\n  - reference_audio_url (URL): URL of the voice sample to clone from. Use replicate_upload_file to upload a local file first.\n  - language (string, optional): ISO-639 code (e.g. \"en\", \"es\", \"it\"). Default \"en\".\n  - model (string, default \"xtts-v2\"): Curated key (xtts-v2, openvoice-v2) or \"owner/name[:version]\".\n  - extra_input (object, optional): Model-specific extras.\n  - download (boolean, default true).\n  - timeout_ms: Default 300000.\n\nReturns: PredictionResult. local_paths contain WAV/MP3 files.\n\nExamples:\n  - text=\"Hello world, this is my cloned voice.\", reference_audio_url=\"<url-to-your-voice-sample.wav>\"\n  - text=\"Buongiorno a tutti!\", reference_audio_url=\"<url>\", language=\"it\"",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "language",
+            "model",
+            "reference_audio_url",
+            "text",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string",
+            "download": "boolean",
+            "language": "string",
+            "timeout_ms": "integer",
+            "extra_input": "object",
+            "reference_audio_url": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 5000,
+                "minLength": 1,
+                "description": "Text to synthesize in the cloned voice."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "xtts-v2",
+                      "openvoice-v2"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "xtts-v2",
+                "description": "Voice cloning model. Curated: xtts-v2, openvoice-v2. Or \"owner/name\"."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true
+              },
+              "language": {
+                "type": "string",
+                "maxLength": 10,
+                "description": "ISO-639 language code (e.g. 'en', 'es', 'it'). Default: 'en'."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs.",
+                "additionalProperties": {}
+              },
+              "reference_audio_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of a short voice sample (~5-30s) to clone. Use replicate_upload_file if you only have a local file."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:fee2c6e8c589a98fc23ae02561e78edfed876875cc7515074765dc79d69cce65",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "language",
+              "type": "string",
+              "description": "ISO-639 language code (e.g. 'en', 'es', 'it'). Default: 'en'.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Voice cloning model. Curated: xtts-v2, openvoice-v2. Or \"owner/name\".",
+              "required": false,
+              "default": "xtts-v2",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "reference_audio_url",
+              "type": "string",
+              "description": "URL of a short voice sample (~5-30s) to clone. Use replicate_upload_file if you only have a local file.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "description": "Text to synthesize in the cloned voice.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_create_training",
+          "canonical_hash": "sha256:c9071505f86a35d96d77b65a64fdf81ae47bd2e334427ec53e1fae72245af48a",
+          "description": "Kick off a fine-tuning (training) run on a trainable base model — e.g. a Flux LoRA trainer — with your dataset and hyperparameters. Returns immediately with a training ID; poll it with replicate_get_training.\n\nArgs:\n  - model: BASE trainer \"owner/name\" (or \"owner/name:version\" to pin the trainer version inline). e.g. \"ostris/flux-dev-lora-trainer\".\n  - version (optional): trainer version id. Required unless pinned inline on model.\n  - destination: \"owner/name\" the trained weights are pushed to. The destination model must already exist on your account.\n  - input: training inputs as a JSON object (dataset URL + hyperparameters). Call replicate_get_model_schema on the trainer to see its exact inputs.\n\nReturns structuredContent: TrainingSummary { id, status, model, version, destination, created_at, completed_at, output_version, error }.",
+          "is_mutating": false,
+          "property_keys": [
+            "destination",
+            "input",
+            "model",
+            "version"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "input": "object",
+            "model": "string",
+            "version": "string",
+            "destination": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "default": {},
+                "description": "Training inputs as a JSON object (dataset URL + hyperparameters). The exact keys depend on the trainer — call replicate_get_model_schema on the trainer model to see them.",
+                "additionalProperties": {}
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The BASE trainer model as \"owner/name\" (or \"owner/name:version\" to pin the trainer version inline). Example: \"ostris/flux-dev-lora-trainer\"."
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Trainer version id. Required unless you pinned it inline on `model` as \"owner/name:version\"."
+              },
+              "destination": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Where the trained weights are pushed, as \"owner/name\". The destination model must already exist on your account."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3604dc4a4747fd39de50ffcb0fc94eea4fbee985406824c6f94a208eaf7a7c2d",
+          "parameters": [
+            {
+              "name": "destination",
+              "type": "string",
+              "description": "Where the trained weights are pushed, as \"owner/name\". The destination model must already exist on your account.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "input",
+              "type": "object",
+              "description": "Training inputs as a JSON object (dataset URL + hyperparameters). The exact keys depend on the trainer — call replicate_get_model_schema on the trainer model to see them.",
+              "required": false,
+              "default": {},
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "The BASE trainer model as \"owner/name\" (or \"owner/name:version\" to pin the trainer version inline). Example: \"ostris/flux-dev-lora-trainer\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "version",
+              "type": "string",
+              "description": "Trainer version id. Required unless you pinned it inline on `model` as \"owner/name:version\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_embed_text",
+          "canonical_hash": "sha256:f2d4752b09aac9f7fc04923d2fb6ef8cab5d467917a2acc0cb26f5bc17fbe787",
+          "description": "Convert text(s) into numeric embedding vectors. Useful for RAG, semantic search, clustering, similarity scoring.\n\nArgs:\n  - texts: A single string or an array of strings (max 256). Each text is embedded independently.\n  - model (default \"bge-large\"): Curated (bge-large, jina-embeddings-v3, all-minilm) or \"owner/name\".\n  - extra_input (object, optional): Model-specific extras (e.g. {task: \"retrieval.query\"} for jina v3).\n\nReturns: PredictionResult — the embedding vectors are in structuredContent.output (model-specific shape).",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "model",
+            "texts",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "bge-large",
+                      "jina-embeddings-v3",
+                      "all-minilm"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "bge-large",
+                "description": "Embedding model. Curated: bge-large, jina-embeddings-v3, all-minilm. Or \"owner/name\"."
+              },
+              "texts": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "maxItems": 256,
+                    "minItems": 1
+                  }
+                ],
+                "description": "A single text or an array of texts to embed."
+              },
+              "download": {
+                "type": "boolean",
+                "default": false,
+                "description": "Output is a numeric vector — default false."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:885487a49753c6969961aab0a149be97a5b8f8461c950345ca43f0e49609ab4b",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Output is a numeric vector — default false.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Embedding model. Curated: bge-large, jina-embeddings-v3, all-minilm. Or \"owner/name\".",
+              "required": false,
+              "default": "bge-large",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "texts",
+              "type": "string",
+              "description": "A single text or an array of texts to embed.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_estimate_cost",
+          "canonical_hash": "sha256:5e521255baf0dce25c45a33f794de6147a0268b19d2aff1479327022f6749fb8",
+          "description": "Return an approximate dollar-cost estimate for a planned prediction BEFORE running it. Prices are a hand-curated snapshot — actual billing comes from Replicate. Call this when the user asks \"how much would X cost\" or before launching a costly model.\n\nArgs:\n  - model: Replicate \"owner/name\" id or a curated short key (e.g. \"flux-schnell\", \"kling-pro\").\n  - num_outputs (1-20, optional): How many outputs to estimate. Default 1.\n  - duration_seconds (1-600, optional): Required for per-second models (video, music, transcription, LLM).\n\nReturns structuredContent: { resolved_model_id, num_outputs, duration_seconds, estimated_usd, pricing_basis, note }.\n\nExamples:\n  - model=\"flux-schnell\", num_outputs=4  → ~$0.012 (4 × $0.003 per_run)\n  - model=\"kling-pro\", duration_seconds=5 → ~$0.45 (5 × $0.09 per_second)\n  - model=\"meta/meta-llama-3-70b-instruct\", duration_seconds=10 → ~$0.024 (10 × $0.0024 per_second)",
+          "is_mutating": false,
+          "property_keys": [
+            "duration_seconds",
+            "model",
+            "num_outputs"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "num_outputs": "integer",
+            "duration_seconds": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Replicate model id (\"owner/name\") or a curated key (e.g. \"flux-schnell\")."
+              },
+              "num_outputs": {
+                "type": "integer",
+                "maximum": 20,
+                "minimum": 1,
+                "description": "How many outputs to estimate for. Default 1."
+              },
+              "duration_seconds": {
+                "type": "number",
+                "maximum": 600,
+                "minimum": 1,
+                "description": "For models priced per second (video, audio, LLM), the expected duration / token-equivalent."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c5e166824d4d0e817a61b7825d7612d7f39df280141cefe8ed37cbbb83d39bea",
+          "parameters": [
+            {
+              "name": "duration_seconds",
+              "type": "number",
+              "description": "For models priced per second (video, audio, LLM), the expected duration / token-equivalent.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Replicate model id (\"owner/name\") or a curated key (e.g. \"flux-schnell\").",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "num_outputs",
+              "type": "integer",
+              "description": "How many outputs to estimate for. Default 1.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_generate_3d",
+          "canonical_hash": "sha256:fc7fd0b1c1e73c0a751a00d5cd15f008bd7b4af6fcbb893b767166f7d26cf6b7",
+          "description": "Generate a 3D mesh (GLB/OBJ) from a text prompt or a reference image. 3D generation is slow — typically 1-5 minutes.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, include the download URL(s) so the user can open the 3D file. URLs expire in ~24h.\n\nArgs:\n  - prompt (string, optional): Text description of the 3D object. Provide at least one of prompt or image_url.\n  - image_url (URL, optional): Reference image to convert to 3D. Provide at least one of prompt or image_url. Use replicate_upload_file for local files.\n  - model (string, default \"hunyuan-3d\"): Curated key (hunyuan-3d, rodin, triposr) or \"owner/name[:version]\".\n  - extra_input (object, optional): Model-specific extras (e.g. {num_inference_steps: 50}).\n  - download (boolean, default true): Download the GLB/OBJ locally.\n  - timeout_ms: Default 300000. For complex objects, increase or use the pending+poll flow.\n\nReturns: PredictionResult. local_paths will contain .glb or .obj files.\n\nExamples:\n  - prompt=\"A red ceramic teapot\" → hunyuan-3d\n  - image_url=\"<product-photo>\", model=\"triposr\" → fast single-image 3D\n  - image_url=\"<photo>\", model=\"rodin\" → high-quality 3D",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "image_url",
+            "model",
+            "prompt",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "prompt": "string",
+            "download": "boolean",
+            "image_url": "string",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "hunyuan-3d",
+                      "rodin",
+                      "triposr"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "hunyuan-3d",
+                "description": "3D generation model. Curated: hunyuan-3d, rodin, triposr. Or \"owner/name\"."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 2000,
+                "description": "Text description of the 3D object to generate. Provide either this or image_url (or both)."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true
+              },
+              "image_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of a reference image to convert to 3D. Provide either this or prompt (or both). Use replicate_upload_file for local images."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs (e.g. {num_inference_steps: 50}).",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7996550ec38f97546c0a31ea78375538c6cef9c36727f6701ef458759657d1de",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs (e.g. {num_inference_steps: 50}).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_url",
+              "type": "string",
+              "description": "URL of a reference image to convert to 3D. Provide either this or prompt (or both). Use replicate_upload_file for local images.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "3D generation model. Curated: hunyuan-3d, rodin, triposr. Or \"owner/name\".",
+              "required": false,
+              "default": "hunyuan-3d",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "Text description of the 3D object to generate. Provide either this or image_url (or both).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_generate_audio",
+          "canonical_hash": "sha256:8edbac2b5223f437af64e24f58f786613bb6b602c6b04b86a174af6f7bc93ad0",
+          "description": "Generate music, ambient audio, or full songs from a text prompt.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, include the URL(s) printed in the tool's text content as a markdown link `[Audio](URL)` in your reply so the user can play it. URLs expire in ~24h.\n\nModels:\n  - \"musicgen\" (default): Meta MusicGen. Instrumental music up to 30s. prompt → \"prompt\" field.\n  - \"ace-step\": Full songs with lyrics. prompt → \"tags\" field (style/genre tags). Pass lyrics separately via extra_input.lyrics. ~3-4 minutes runtime.\n  - \"riffusion\": Loop-friendly ambient/electronic. prompt → \"prompt_a\" field. No duration control.\n  - \"minimax-music\": MiniMax Music 2.6. Full songs up to 6min. prompt=style description; pass lyrics via extra_input.lyrics.\n  - \"lyria-3-pro\": Google Lyria 3 Pro. Full songs up to 3min WITH sung vocals. Put genre, mood, lyrics, and structure ([Verse]/[Chorus]) directly in the prompt. No duration — do NOT pass duration_seconds. Also \"lyria-3\" (30s clips) and \"lyria-2\" (48kHz instrumental).\n\nArgs:\n  - prompt (string): Description of the music. For ace-step this maps to the \"tags\" field (style tags like \"rock, guitar, upbeat\"). For riffusion this maps to \"prompt_a\". For lyria put genre/mood/lyrics/structure here.\n  - model (string, default \"musicgen\"): Curated key (musicgen, ace-step, riffusion, minimax-music, lyria-3-pro, lyria-3, lyria-2) or \"owner/name[:version]\".\n  - duration_seconds (1-300, optional): Duration in seconds. Supported by musicgen and ace-step. Ignored for riffusion and the lyria models (they have no duration parameter).\n  - extra_input (object, optional): Additional inputs. Examples: {temperature: 1.0, top_k: 250} for MusicGen; {lyrics: \"verse lyrics here\"} for ace-step.\n  - download (boolean, default true): Download as MP3/WAV.\n  - timeout_ms: Default 300000 (5min).\n\nReturns: PredictionResult. local_paths contain audio files.\n\nExamples:\n  - prompt=\"upbeat synthwave with driving bassline\", duration_seconds=15 → musicgen\n  - prompt=\"indie folk, acoustic guitar, female vocals\", model=\"ace-step\", extra_input={lyrics: \"Leaving home on a rainy day...\"}\n  - prompt=\"ambient lo-fi chill\", model=\"riffusion\"",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "duration_seconds",
+            "extra_input",
+            "model",
+            "prompt",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "prompt": "string",
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object",
+            "duration_seconds": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "musicgen",
+                      "ace-step",
+                      "riffusion",
+                      "minimax-music",
+                      "lyria-3-pro",
+                      "lyria-3",
+                      "lyria-2"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "musicgen",
+                "description": "Either a curated key (musicgen, ace-step, riffusion, minimax-music, lyria-3-pro, lyria-3, lyria-2) or a Replicate identifier."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1,
+                "description": "Description of the music/audio. For songs with lyrics (ace-step), include the lyrics here."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h)."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs.",
+                "additionalProperties": {}
+              },
+              "duration_seconds": {
+                "type": "number",
+                "maximum": 300,
+                "minimum": 1,
+                "description": "Duration in seconds. Model-dependent."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:746ce617f386e5355b0d4a2bf8997762f22177b712c6c2d68831326ec35f9d23",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h).",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "duration_seconds",
+              "type": "number",
+              "description": "Duration in seconds. Model-dependent.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Either a curated key (musicgen, ace-step, riffusion, minimax-music, lyria-3-pro, lyria-3, lyria-2) or a Replicate identifier.",
+              "required": false,
+              "default": "musicgen",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "Description of the music/audio. For songs with lyrics (ace-step), include the lyrics here.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_generate_image",
+          "canonical_hash": "sha256:d02219aefa872cd216bd77aad6c6968506f85a1f609f681c95ab3edcc74f5003",
+          "description": "Generate one or more images from a text prompt using a Replicate image model.\n\nUse this for any \"draw / create / generate an image of …\" request. By default it uses Flux Schnell (fast, ~2 seconds per image).\n\nDISPLAY REQUIREMENT — after this tool returns successfully, you MUST embed the image inline in your reply by pasting ONE of the three embed blocks the tool prints verbatim (Option 1 iframe, Option 2 <img>, or Option 3 markdown — try them in that order; pick the first one your chat client renders). The iframe variant scales to the chat column width with the image's native aspect ratio; the <img> variant is a responsive fallback; markdown is the universal last resort. Place the chosen embed BEFORE any descriptive prose. Do NOT paraphrase the URL or omit the embed — the user wants the image to appear in the main chat flow, not only inside the collapsed tool widget. URLs expire in ~24h.\n\nArgs:\n  - prompt (string): Text description of the image to generate.\n  - model (string, default \"flux-schnell\"): Either a curated key (flux-schnell, flux-dev, flux-pro, flux-2-max, sd-3.5-large, recraft-v3, recraft-v4.1, ideogram-v2, imagen-3, seedream) or a full Replicate identifier \"owner/name[:version]\".\n  - aspect_ratio (\"1:1\" | \"16:9\" | \"9:16\" | \"4:3\" | \"3:4\" | \"21:9\" | \"3:2\" | \"2:3\", optional): Aspect ratio. Default 1:1.\n  - num_outputs (1-4, optional): How many images to generate.\n  - seed (integer, optional): Random seed for reproducible output.\n  - extra_input (object, optional): Model-specific extra inputs (e.g. {guidance: 3.5, num_inference_steps: 28}). Use replicate_get_model_schema if unsure.\n  - download (boolean, default true): Download files locally to ~/Downloads/replicate-mcp/.\n  - timeout_ms (5000-1800000, optional): Max wait. Default 300000 (5min).\n\nReturns structuredContent matching PredictionResult:\n  {\n    \"status\": \"starting\" | \"processing\" | \"succeeded\" | \"failed\" | \"canceled\",\n    \"prediction_id\": string,\n    \"model\": string,\n    \"urls\": string[],          // Replicate URLs (expire ~24h)\n    \"local_paths\": string[],   // Absolute paths on disk when download=true\n    \"metrics\": { \"predict_time_seconds\": number } | undefined,\n    \"error\": string | undefined,\n    \"pending\": boolean | undefined  // true if timed out — poll via replicate_get_prediction\n  }\n\nExamples:\n  - \"An origami fox in a misty forest\" → uses flux-schnell, 1:1\n  - prompt=\"logo for a coffee shop called Crema\", model=\"recraft-v3\" → for text-in-image\n  - prompt=\"cinematic shot of a lighthouse\", model=\"flux-pro\", aspect_ratio=\"21:9\", seed=42\n\nError handling:\n  - If REPLICATE_API_TOKEN is missing, returns an actionable error telling the user how to set it.\n  - Invalid model IDs return Replicate's error message verbatim.",
+          "is_mutating": false,
+          "property_keys": [
+            "aspect_ratio",
+            "download",
+            "extra_input",
+            "model",
+            "num_outputs",
+            "prompt",
+            "seed",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "seed": "integer",
+            "prompt": "string",
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object",
+            "num_outputs": "integer",
+            "aspect_ratio": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "seed": {
+                "type": "integer",
+                "description": "Random seed for reproducible outputs."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "flux-schnell",
+                      "flux-dev",
+                      "flux-pro",
+                      "sd-3.5-large",
+                      "recraft-v3",
+                      "recraft-v4.1",
+                      "flux-2-max",
+                      "seedream",
+                      "ideogram-v2",
+                      "imagen-3"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "flux-schnell",
+                "description": "Either a curated key (flux-schnell, flux-dev, flux-pro, sd-3.5-large, recraft-v3, recraft-v4.1, flux-2-max, seedream, ideogram-v2, imagen-3) or a Replicate identifier like \"owner/name\" or \"owner/name:version\"."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1,
+                "description": "Text prompt describing the image to generate."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h)."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs merged into the request (e.g. {guidance: 3.5}). Use replicate_get_model_schema to see what a model accepts.",
+                "additionalProperties": {}
+              },
+              "num_outputs": {
+                "type": "integer",
+                "maximum": 4,
+                "minimum": 1,
+                "description": "Number of images to generate (1-4)."
+              },
+              "aspect_ratio": {
+                "enum": [
+                  "1:1",
+                  "16:9",
+                  "9:16",
+                  "4:3",
+                  "3:4",
+                  "21:9",
+                  "3:2",
+                  "2:3"
+                ],
+                "type": "string",
+                "description": "Aspect ratio. Supported by Flux models. Default 1:1."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:810de8a008b61982064b3e5128e90c5342494e67f5908eeda7335cf9e7420557",
+          "parameters": [
+            {
+              "name": "aspect_ratio",
+              "type": "string",
+              "description": "Aspect ratio. Supported by Flux models. Default 1:1.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "1:1",
+                "16:9",
+                "9:16",
+                "4:3",
+                "3:4",
+                "21:9",
+                "3:2",
+                "2:3"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h).",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs merged into the request (e.g. {guidance: 3.5}). Use replicate_get_model_schema to see what a model accepts.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Either a curated key (flux-schnell, flux-dev, flux-pro, sd-3.5-large, recraft-v3, recraft-v4.1, flux-2-max, seedream, ideogram-v2, imagen-3) or a Replicate identifier like \"owner/name\" or \"owner/name:version\".",
+              "required": false,
+              "default": "flux-schnell",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "num_outputs",
+              "type": "integer",
+              "description": "Number of images to generate (1-4).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "Text prompt describing the image to generate.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "seed",
+              "type": "integer",
+              "description": "Random seed for reproducible outputs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_generate_speech",
+          "canonical_hash": "sha256:8fe1902a62c968e32373be3a53d03995ef1181a3486f40fb7e217ee9ea6ad279",
+          "description": "Convert text to natural-sounding speech.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, include the URL printed in the tool's text content as a markdown link `[Speech](URL)` in your reply so the user can play it. URLs expire in ~24h.\n\nArgs:\n  - text (string, 1-5000): Text to synthesize.\n  - model (string, default \"kokoro\"): Curated key (kokoro, minimax-speech, chatterbox, gemini-tts, grok-tts) or \"owner/name[:version]\".\n  - voice (string, optional): Voice ID. For Kokoro: af_bella, af_sarah, am_adam, am_michael, bf_emma, bf_isabella, etc. (a-f = American female, b-f = British female, a-m = American male, b-m = British male).\n  - speed (0.5-2.0, optional): Speech rate.\n  - extra_input (object, optional): Model-specific extras (e.g. {audio_prompt: \"<url>\"} for voice cloning with Chatterbox).\n  - download (boolean, default true).\n  - timeout_ms: Default 300000.\n\nReturns: PredictionResult. local_paths contain WAV/MP3 files.",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "model",
+            "speed",
+            "text",
+            "timeout_ms",
+            "voice"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string",
+            "speed": "number",
+            "voice": "string",
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 5000,
+                "minLength": 1,
+                "description": "Text to synthesize."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "kokoro",
+                      "minimax-speech",
+                      "chatterbox",
+                      "gemini-tts",
+                      "grok-tts"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "kokoro",
+                "description": "Either a curated key (kokoro, minimax-speech, chatterbox, gemini-tts, grok-tts) or a Replicate identifier."
+              },
+              "speed": {
+                "type": "number",
+                "maximum": 2,
+                "minimum": 0.5,
+                "description": "Speech speed multiplier (0.5-2.0)."
+              },
+              "voice": {
+                "type": "string",
+                "description": "Voice identifier. Kokoro examples: af_bella, am_adam, bf_emma. Check model docs for full list."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h)."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs.",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c8233995a05fb704ae628183841626c4771cc61dff62ba7b655882f86fd3d559",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h).",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Either a curated key (kokoro, minimax-speech, chatterbox, gemini-tts, grok-tts) or a Replicate identifier.",
+              "required": false,
+              "default": "kokoro",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "speed",
+              "type": "number",
+              "description": "Speech speed multiplier (0.5-2.0).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "description": "Text to synthesize.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "voice",
+              "type": "string",
+              "description": "Voice identifier. Kokoro examples: af_bella, am_adam, bf_emma. Check model docs for full list.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_generate_video",
+          "canonical_hash": "sha256:8c9c613ef88dc22a00e5c7df3429fe020a83eaa6d7ec4c549212180378687f2e",
+          "description": "Generate a video clip from a text prompt (and optionally a starting image). Video generation is slow — typically 1-5 minutes per clip.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, include the URL(s) printed in the tool's text content so the user can open the video. URLs expire in ~24h.\n\nArgs:\n  - prompt (string): Text description of the video.\n  - model (string, default \"kling-pro\"): Curated key (kling-pro, minimax-video, hunyuan-video, luma-ray, wan-2.2, grok-video, seedance) or \"owner/name[:version]\".\n  - image_url (string, optional): Starting frame for image-to-video. Not all models support this.\n  - duration_seconds (1-60, optional): Desired duration. Model-dependent.\n  - aspect_ratio (\"16:9\" | \"9:16\" | \"1:1\", optional): Aspect ratio.\n  - extra_input (object, optional): Additional model-specific inputs.\n  - download (boolean, default true): Download the MP4 locally.\n  - timeout_ms: Max wait. Default 300000 (5min). For very long videos, increase or rely on the pending+poll flow.\n\nReturns: PredictionResult (see replicate_generate_image for shape). The local_paths will contain .mp4 files when downloaded.\n\nTip: If timeout_ms is exceeded, the result will have pending=true and a prediction_id. Wait a minute, then call replicate_get_prediction.",
+          "is_mutating": false,
+          "property_keys": [
+            "aspect_ratio",
+            "download",
+            "duration_seconds",
+            "extra_input",
+            "image_url",
+            "model",
+            "prompt",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "prompt": "string",
+            "download": "boolean",
+            "image_url": "string",
+            "timeout_ms": "integer",
+            "extra_input": "object",
+            "aspect_ratio": "string",
+            "duration_seconds": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "kling-pro",
+                      "minimax-video",
+                      "hunyuan-video",
+                      "luma-ray",
+                      "wan-2.2",
+                      "grok-video",
+                      "seedance"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "kling-pro",
+                "description": "Either a curated key (kling-pro, minimax-video, hunyuan-video, luma-ray, wan-2.2, grok-video, seedance) or a Replicate identifier."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1,
+                "description": "Text prompt describing the video."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h)."
+              },
+              "image_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Optional starting image URL for image-to-video. Not all models support this — check model schema."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs.",
+                "additionalProperties": {}
+              },
+              "aspect_ratio": {
+                "enum": [
+                  "16:9",
+                  "9:16",
+                  "1:1"
+                ],
+                "type": "string",
+                "description": "Aspect ratio."
+              },
+              "duration_seconds": {
+                "type": "number",
+                "maximum": 60,
+                "minimum": 1,
+                "description": "Desired duration in seconds. Model-dependent."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:90eedcb06e2d82d56c5a25e67c1fc974d7cedfa2d887e2c81328dadb7de6db9b",
+          "parameters": [
+            {
+              "name": "aspect_ratio",
+              "type": "string",
+              "description": "Aspect ratio.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "16:9",
+                "9:16",
+                "1:1"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h).",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "duration_seconds",
+              "type": "number",
+              "description": "Desired duration in seconds. Model-dependent.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_url",
+              "type": "string",
+              "description": "Optional starting image URL for image-to-video. Not all models support this — check model schema.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Either a curated key (kling-pro, minimax-video, hunyuan-video, luma-ray, wan-2.2, grok-video, seedance) or a Replicate identifier.",
+              "required": false,
+              "default": "kling-pro",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "Text prompt describing the video.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_get_deployment",
+          "canonical_hash": "sha256:38e659df37faca006cec8c667eae9699af367fd15ef1a641cc83b784ad6472de",
+          "description": "Get the configuration of one deployment: its current model + version, hardware, and autoscaling min/max instances.\n\nArgs:\n  - deployment: \"owner/name\" of the deployment.\n\nReturns structuredContent: DeploymentSummary.",
+          "is_mutating": false,
+          "property_keys": [
+            "deployment"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "deployment": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "deployment": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Deployment identifier as \"owner/name\"."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1bb79cd0fdc9c485820bc6f61f1adac19a74d185a41575d8c30081993934d285",
+          "parameters": [
+            {
+              "name": "deployment",
+              "type": "string",
+              "description": "Deployment identifier as \"owner/name\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_get_model_schema",
+          "canonical_hash": "sha256:a87f9b31edaf37b1d6633fae72f18b3c52c2129cd3590a812453a6804fbfcb06",
+          "description": "Retrieve metadata and the OpenAPI input/output schema for a specific Replicate model. Use this before replicate_run_model to know which fields the model accepts and what they mean.\n\nArgs:\n  - model (string): \"owner/name\" or \"owner/name:version\".\n\nReturns structuredContent:\n  {\n    \"model\": string,\n    \"description\": string | undefined,\n    \"visibility\": string | undefined,\n    \"latest_version_id\": string | undefined,\n    \"input_schema\": object | undefined,   // OpenAPI schema for inputs\n    \"output_schema\": object | undefined,  // OpenAPI schema for outputs\n    \"example_url\": string | undefined     // Replicate page with examples\n  }",
+          "is_mutating": false,
+          "property_keys": [
+            "model"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Model identifier in \"owner/name\" or \"owner/name:version\" form."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c37239340d356a220e82740166b3f0acf1f7decd1fa97834815699fdcab10ffb",
+          "parameters": [
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Model identifier in \"owner/name\" or \"owner/name:version\" form.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_get_prediction",
+          "canonical_hash": "sha256:8b31b2b628b8f57c4311ffa9993dd2c8592be7dc30f60373854cd54c0e06279f",
+          "description": "Retrieve the current status and (if available) outputs of a Replicate prediction by its ID. Use this when a previous generate_* or run_model call returned pending=true (timed out before completion).\n\nArgs:\n  - prediction_id (string): The ID returned by a previous call.\n  - download (boolean, default true): If the prediction has succeeded, download its outputs locally.\n\nReturns: PredictionResult — same shape as replicate_generate_image. If still running, status will be \"processing\" or \"starting\" and pending will be true.\n\nTypical flow:\n  1. Call replicate_generate_video → returns pending=true with prediction_id=abc123.\n  2. Wait ~1 minute.\n  3. Call replicate_get_prediction with prediction_id=abc123 → returns succeeded + URLs + local_paths.",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "prediction_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "download": "boolean",
+            "prediction_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "If the prediction has succeeded, whether to download outputs locally."
+              },
+              "prediction_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Prediction ID returned by a generate_* or run_model call that timed out."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d61e425246d23a0dfca1460e7334f7b04f99e12bf5de23f970b9bba9a9fd8aa7",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "If the prediction has succeeded, whether to download outputs locally.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prediction_id",
+              "type": "string",
+              "description": "Prediction ID returned by a generate_* or run_model call that timed out.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_get_training",
+          "canonical_hash": "sha256:b5fda7c433bd34e4676003897045c6ee8aa375b42efb2c4d34c587206fae8a82",
+          "description": "Retrieve the current state of a training run: status, the resulting trained model version (once it succeeds), and any error.\n\nArgs:\n  - training_id: ID returned by replicate_create_training.\n\nReturns structuredContent: TrainingSummary.",
+          "is_mutating": false,
+          "property_keys": [
+            "training_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "training_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "training_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "ID of the training run to inspect (returned by replicate_create_training)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:18f547064dafc6240fe5e6d4f8607dda7741f068258759dbc802ef334de93728",
+          "parameters": [
+            {
+              "name": "training_id",
+              "type": "string",
+              "description": "ID of the training run to inspect (returned by replicate_create_training).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_inpaint",
+          "canonical_hash": "sha256:ad5d38171d6531c0d2282dd76fcd6aa2f1a35eeb1374344418dad4e9a400496a",
+          "description": "Fill masked regions of an image based on a text prompt. Works for both inpainting (replace inside) and outpainting (extend canvas) when the mask covers the target area.\n\nDISPLAY REQUIREMENT — embed the result inline using one of the three blocks (iframe / <img> / markdown) printed by the tool.\n\nArgs:\n  - image (URL): Source image.\n  - mask (URL): Mask image. White = keep, black/transparent = repaint.\n  - prompt: Describes what should appear in the masked region.\n  - model (default \"flux-fill-pro\"): Curated (flux-fill-pro, sd-inpaint, ideogram-v2-edit) or \"owner/name\".\n  - extra_input (object, optional): Model-specific extras (e.g. {guidance: 30} for flux-fill-pro).",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "image",
+            "mask",
+            "model",
+            "prompt",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "mask": "string",
+            "image": "string",
+            "prompt": "string",
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mask": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the mask. White areas are kept; black/transparent areas are inpainted."
+              },
+              "image": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the source image."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "flux-fill-pro",
+                      "sd-inpaint",
+                      "ideogram-v2-edit"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "flux-fill-pro",
+                "description": "Inpaint model. Curated: flux-fill-pro, sd-inpaint, ideogram-v2-edit. Or \"owner/name\"."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 4000,
+                "minLength": 1,
+                "description": "Text describing what to paint in the masked area."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:c28b78deaa45a11bab6e6b4a8397eb39285c25115e08c6555a3c4fb4aef0e003",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "description": "URL of the source image.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "mask",
+              "type": "string",
+              "description": "URL of the mask. White areas are kept; black/transparent areas are inpainted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Inpaint model. Curated: flux-fill-pro, sd-inpaint, ideogram-v2-edit. Or \"owner/name\".",
+              "required": false,
+              "default": "flux-fill-pro",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "Text describing what to paint in the masked area.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_lipsync",
+          "canonical_hash": "sha256:81db2caffe03922628bbe726312c7b383d37a24b9978ef18900c0d08e381a948",
+          "description": "Animate a portrait image to speak — either from a text script (model does TTS + lipsync) or from a driving audio file. Produces an MP4 video.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, include the URL(s) so the user can open the video. URLs expire in ~24h.\n\nArgs:\n  - image_url (URL): Portrait or face image to animate. Use replicate_upload_file for local files.\n  - text (string, optional): Script for the avatar to speak. Used by video-avatar (maps to voice_script). At least one of text or audio_url is required.\n  - audio_url (URL, optional): Driving audio for lipsync. Required for sadtalker; optional override for video-avatar. At least one of text or audio_url is required.\n  - model (string, default \"video-avatar\"): Curated key (video-avatar, sadtalker) or \"owner/name[:version]\".\n  - extra_input (object, optional): Model-specific extras (e.g. {voice_prompt: \"speak slowly\"} for video-avatar).\n  - download (boolean, default true): Download the MP4 locally.\n  - timeout_ms: Default 300000.\n\nReturns: PredictionResult. local_paths contain .mp4 files.\n\nExamples:\n  - image_url=\"<portrait.jpg>\", text=\"Hello! Welcome to our product demo.\" → video-avatar (TTS + lipsync)\n  - image_url=\"<face.jpg>\", audio_url=\"<speech.wav>\", model=\"sadtalker\" → audio-driven lipsync",
+          "is_mutating": false,
+          "property_keys": [
+            "audio_url",
+            "download",
+            "extra_input",
+            "image_url",
+            "model",
+            "text",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string",
+            "download": "boolean",
+            "audio_url": "string",
+            "image_url": "string",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 5000,
+                "description": "Text script for the avatar to speak. Required for models that do TTS+lipsync (video-avatar). Ignored when audio_url is provided."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "video-avatar",
+                      "sadtalker"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "video-avatar",
+                "description": "Lipsync model. Curated: video-avatar, sadtalker. Or \"owner/name\"."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true
+              },
+              "audio_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the driving audio. Required for audio-only lipsync models (sadtalker). Optional override when model can do TTS."
+              },
+              "image_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the portrait or face image to animate. Use replicate_upload_file for local files."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Additional model-specific inputs.",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:6c5a99eeed40296ef958f928da441d0456a1d92d5f875f9c8a36068689cbd81f",
+          "parameters": [
+            {
+              "name": "audio_url",
+              "type": "string",
+              "description": "URL of the driving audio. Required for audio-only lipsync models (sadtalker). Optional override when model can do TTS.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Additional model-specific inputs.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image_url",
+              "type": "string",
+              "description": "URL of the portrait or face image to animate. Use replicate_upload_file for local files.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Lipsync model. Curated: video-avatar, sadtalker. Or \"owner/name\".",
+              "required": false,
+              "default": "video-avatar",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "description": "Text script for the avatar to speak. Required for models that do TTS+lipsync (video-avatar). Ignored when audio_url is provided.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_list_deployments",
+          "canonical_hash": "sha256:95e5435cc1065a05f424a3c9ccc6ba2db04b6e69c0a1479fc931e2d916da8a4d",
+          "description": "List the deployments on the authenticated Replicate account. A deployment is a private, autoscaled endpoint pinned to a specific model + hardware.\n\nArgs:\n  - limit (1-100, default 20): How many deployments to return.\n\nReturns structuredContent: { count: number, deployments: DeploymentSummary[] }.\nEach DeploymentSummary has owner, name, and current_release { model, version, hardware, min_instances, max_instances }.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 20,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Number of deployments to return (1–100). Default 20."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d2b02c3ebe958066ee6afcaa967ec6e47674333ea7776dae0b4f936e39a3d1f8",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Number of deployments to return (1–100). Default 20.",
+              "required": false,
+              "default": 20,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_list_predictions",
+          "canonical_hash": "sha256:c7fec1fff8f0740b13cf2e5d3c763f593708e6010f40709ca09dfc9c3126c6ae",
+          "description": "Return the most recent predictions on the authenticated Replicate account. Useful to recover a prediction ID, audit recent calls, or check what's still running.\n\nArgs:\n  - limit (1-100, default 10): How many predictions to return.\n\nReturns structuredContent: { count: number, predictions: PredictionSummary[] }\nEach PredictionSummary has id, model, status, created_at, completed_at, url.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Number of recent predictions to return (1–100). Default 10."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:095638d273be281c7c8e745f3016d14054b9d4e95fa27645f6f306ae6c1a3d9e",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Number of recent predictions to return (1–100). Default 10.",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_list_trainings",
+          "canonical_hash": "sha256:7466d340c81bcb58b8b1576bd8a445c08bbefbcf1e092655c4d769f218b51c6a",
+          "description": "Return the most recent training runs on the authenticated account.\n\nArgs:\n  - limit (1-100, default 10): How many trainings to return.\n\nReturns structuredContent: { count: number, trainings: TrainingSummary[] }.",
+          "is_mutating": false,
+          "property_keys": [
+            "limit"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "default": 10,
+                "maximum": 100,
+                "minimum": 1,
+                "description": "Number of recent training runs to return (1–100). Default 10."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7704e75b072b0e242d7c96c6043ce46d7cfb4f12de59e98e88a4d7415da63917",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Number of recent training runs to return (1–100). Default 10.",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_pipeline_start",
+          "canonical_hash": "sha256:dc74916471489cade9d79aceaf6d2e7eceacbf289258580784ef8cbf6cafb517",
+          "description": "Run a directed acyclic graph (DAG) of Replicate predictions as a background job. Returns a pipeline_id immediately. Poll replicate_pipeline_status for per-step progress and results.\n\nIndependent steps run concurrently. Downstream steps auto-start when their dependencies complete. Use \"$stepId.field[n]\" template strings to pass one step's output as another step's input.\n\nIMPORTANT: model must be a full Replicate identifier (\"owner/name\" or \"owner/name:version\"). Curated shortcuts (e.g. \"flux-schnell\") are not supported — look up the full id via replicate_get_model_schema.\n\nTemplate reference syntax:\n  \"$gen.urls[0]\"          → first URL output of step \"gen\"\n  \"$gen.urls\"             → full URLs array\n  \"$gen.local_paths[0]\"   → first downloaded local path\n  \"$gen.text_output[0]\"   → first text output (for LLMs)\n\nArgs:\n  - steps (array, 1–20): Pipeline steps. Each: { id, model, input, depends_on? }.\n    depends_on is inferred from $ref patterns in input when omitted.\n  - concurrency (1–5, default 3): Max simultaneous steps.\n  - download (boolean, default true): Download step outputs locally.\n  - timeout_ms_per_step (default 300000): Per-step timeout.\n  - ttl_hours (1–72, default 1): How long to keep results in memory. Lost on server restart.\n\nReturns: { pipeline_id, total, message }\n\nExample — generate + upscale + remove background in parallel:\n  steps=[\n    { \"id\": \"gen\", \"model\": \"black-forest-labs/flux-schnell\", \"input\": { \"prompt\": \"a fox\" } },\n    { \"id\": \"upscale\", \"model\": \"nightmareai/real-esrgan\", \"input\": { \"image\": \"$gen.urls[0]\", \"scale\": 4 } },\n    { \"id\": \"no_bg\", \"model\": \"lucataco/remove-bg\", \"input\": { \"image\": \"$gen.urls[0]\" } }\n  ]\n  upscale and no_bg both depend on gen, run in parallel after gen completes.",
+          "is_mutating": false,
+          "property_keys": [
+            "concurrency",
+            "download",
+            "steps",
+            "timeout_ms_per_step",
+            "ttl_hours"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "steps": "array",
+            "download": "boolean",
+            "ttl_hours": "integer",
+            "concurrency": "integer",
+            "timeout_ms_per_step": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "steps": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "model",
+                    "input"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Unique step name within this pipeline."
+                    },
+                    "input": {
+                      "type": "object",
+                      "description": "Model inputs. Use \"$stepId.field[n]\" to reference prior step outputs. E.g. \"$gen.urls[0]\", \"$llm.text_output[0]\".",
+                      "additionalProperties": {}
+                    },
+                    "model": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Full Replicate model id: \"owner/name\" or \"owner/name:version\". Full id required — curated shortcuts not supported."
+                    },
+                    "depends_on": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": "Explicit dependency step IDs. When omitted, inferred automatically from $ref patterns in input."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "description": "Pipeline steps. 1–20 steps."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Download step outputs locally. Default: true."
+              },
+              "ttl_hours": {
+                "type": "integer",
+                "default": 1,
+                "maximum": 72,
+                "minimum": 1,
+                "description": "How long to keep pipeline results in memory (1–72h). Default: 1h. State is lost if the server restarts."
+              },
+              "concurrency": {
+                "type": "integer",
+                "default": 3,
+                "maximum": 5,
+                "minimum": 1,
+                "description": "Max simultaneous steps (1–5). Default: 3."
+              },
+              "timeout_ms_per_step": {
+                "type": "integer",
+                "default": 300000,
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Per-step prediction timeout ms (5000–1800000). Default: 300000 (5min)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3489ac7a4a4734909e0ebbb6ddbc5800fb22dd0d9bce838ade01f058c83ae691",
+          "parameters": [
+            {
+              "name": "concurrency",
+              "type": "integer",
+              "description": "Max simultaneous steps (1–5). Default: 3.",
+              "required": false,
+              "default": 3,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Download step outputs locally. Default: true.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "steps",
+              "type": "array",
+              "description": "Pipeline steps. 1–20 steps.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms_per_step",
+              "type": "integer",
+              "description": "Per-step prediction timeout ms (5000–1800000). Default: 300000 (5min).",
+              "required": false,
+              "default": 300000,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "ttl_hours",
+              "type": "integer",
+              "description": "How long to keep pipeline results in memory (1–72h). Default: 1h. State is lost if the server restarts.",
+              "required": false,
+              "default": 1,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_pipeline_status",
+          "canonical_hash": "sha256:08b1b21bdc5f57c0dc93fea56947c633152f580e8ce31f9dcc66cb11f8825f05",
+          "description": "Poll the status of a pipeline started with replicate_pipeline_start.\n\nArgs:\n  - pipeline_id (string): Pipeline ID returned by replicate_pipeline_start.\n  - include_outputs (boolean, default true): Include full PredictionResult per step. Set false for a counts-only summary while the pipeline is running.\n\nReturns structuredContent:\n  {\n    pipeline_id, overall_status, total, succeeded, failed, skipped, running, pending,\n    created_at, expires_at,\n    steps: [{ id, model, status, prediction_id, result?, error?, skip_reason?, started_at, completed_at }]\n  }\n\noverall_status:\n  \"running\"   — steps still executing\n  \"completed\" — all steps succeeded\n  \"partial\"   — all done, at least one failed or was skipped (failed dependency or budget error)\n\nNote: pipeline-level errors (cycle detected, unknown depends_on) are rejected at replicate_pipeline_start with an error response — they never produce a pollable pipeline.\n\nTip: Poll every 10–30 seconds until overall_status is \"completed\" or \"partial\".",
+          "is_mutating": false,
+          "property_keys": [
+            "include_outputs",
+            "pipeline_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "pipeline_id": "string",
+            "include_outputs": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "pipeline_id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Pipeline ID returned by replicate_pipeline_start."
+              },
+              "include_outputs": {
+                "type": "boolean",
+                "default": true,
+                "description": "Include full PredictionResult per step. Set false for counts-only summary while pipeline is running. Default: true."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:a2b16721ec1beeab5f77336b3061081cf460153fabc6ad18881ac7cd93b0cdf2",
+          "parameters": [
+            {
+              "name": "include_outputs",
+              "type": "boolean",
+              "description": "Include full PredictionResult per step. Set false for counts-only summary while pipeline is running. Default: true.",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "pipeline_id",
+              "type": "string",
+              "description": "Pipeline ID returned by replicate_pipeline_start.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_recommend_model",
+          "canonical_hash": "sha256:4fdaf0954b6c57d8ef10853b8c7caed6c7898c3c9b2b8ebd1066ba807ebcf7f8",
+          "description": "Rank the curated models in a category by a priority (speed, cost, quality, or balanced) and return recommendations with cost estimates and reasoning. This does NOT run anything — it advises which model to use.\n\nWorkflow: call this to pick a model, then call the matching generate tool (e.g. replicate_generate_image) with model set to the recommended key.\n\nArgs:\n  - category (required): One of image, video, audio, tts, llm, vision, upscale, bg, stt, inpaint, segment, embed, voiceclone, threed, lipsync.\n  - priority (default \"balanced\"): \"speed\" (fastest), \"cost\" (cheapest), \"quality\" (best), or \"balanced\" (weighted).\n  - task_description (optional): Free text. Keyword hints like \"quick draft\" or \"professional logo\" nudge balanced ranking.\n  - max_cost_usd (optional): Exclude models estimated above this cost.\n  - duration_seconds (optional, 1–600): For per-second-priced categories (video, audio), used in cost estimation.\n\nReturns structuredContent:\n  {\n    category, priority,\n    recommendations: [{ key, model_id, speed, est_cost_usd, score, reason }],  // top 5\n    count\n  }\n\nExamples:\n  - category=\"image\", priority=\"speed\" → flux-schnell first\n  - category=\"image\", priority=\"quality\" → highest-fidelity model first\n  - category=\"video\", priority=\"cost\", duration_seconds=5 → cheapest per-5s clip",
+          "is_mutating": false,
+          "property_keys": [
+            "category",
+            "duration_seconds",
+            "max_cost_usd",
+            "priority",
+            "task_description"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "category": "string",
+            "priority": "string",
+            "max_cost_usd": "number",
+            "duration_seconds": "number",
+            "task_description": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "enum": [
+                  "image",
+                  "video",
+                  "audio",
+                  "tts",
+                  "llm",
+                  "vision",
+                  "upscale",
+                  "bg",
+                  "stt",
+                  "inpaint",
+                  "segment",
+                  "embed",
+                  "voiceclone",
+                  "threed",
+                  "lipsync"
+                ],
+                "type": "string",
+                "description": "Which model category to recommend within."
+              },
+              "priority": {
+                "enum": [
+                  "speed",
+                  "cost",
+                  "quality",
+                  "balanced"
+                ],
+                "type": "string",
+                "default": "balanced",
+                "description": "Optimization target. speed=fastest, cost=cheapest, quality=best, balanced=weighted blend. Default: balanced."
+              },
+              "max_cost_usd": {
+                "type": "number",
+                "description": "Optional cap — exclude models whose estimated cost exceeds this. Models with unknown pricing are always included regardless of this cap.",
+                "exclusiveMinimum": 0
+              },
+              "duration_seconds": {
+                "type": "number",
+                "maximum": 600,
+                "minimum": 1,
+                "description": "For per-second-priced categories (video, audio), the expected duration used in cost estimation."
+              },
+              "task_description": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Optional task description. Keyword hints (e.g. 'quick draft' or 'professional logo') nudge balanced-mode ranking."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cbb9bb5d31bf13e220dc4772287867d6ddda8bca5d5cfcdd36dd8cc9692096a5",
+          "parameters": [
+            {
+              "name": "category",
+              "type": "string",
+              "description": "Which model category to recommend within.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "image",
+                "video",
+                "audio",
+                "tts",
+                "llm",
+                "vision",
+                "upscale",
+                "bg",
+                "stt",
+                "inpaint",
+                "segment",
+                "embed",
+                "voiceclone",
+                "threed",
+                "lipsync"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "duration_seconds",
+              "type": "number",
+              "description": "For per-second-priced categories (video, audio), the expected duration used in cost estimation.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_cost_usd",
+              "type": "number",
+              "description": "Optional cap — exclude models whose estimated cost exceeds this. Models with unknown pricing are always included regardless of this cap.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "priority",
+              "type": "string",
+              "description": "Optimization target. speed=fastest, cost=cheapest, quality=best, balanced=weighted blend. Default: balanced.",
+              "required": false,
+              "default": "balanced",
+              "enum": [
+                "speed",
+                "cost",
+                "quality",
+                "balanced"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "task_description",
+              "type": "string",
+              "description": "Optional task description. Keyword hints (e.g. 'quick draft' or 'professional logo') nudge balanced-mode ranking.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_refresh_models",
+          "canonical_hash": "sha256:633a9822759b013adde5a7587ba68b2a05a1431918ba6becceaff3a5f938c4cd",
+          "description": "Search Replicate for popular models NOT yet in the curated registry. Returns suggestions only — does not modify code.\n\nUse this to find new models worth adding. Then ask Claude to edit src/models.ts with the ones you want.\n\nArgs:\n  - categories (string[], optional): Which categories to check. Default: all 15 (image, video, audio, tts, llm, vision, upscale, bg, stt, inpaint, segment, embed, voiceclone, threed, lipsync).\n  - min_run_count (integer, optional): Minimum run_count threshold. Default: 1000.\n  - limit_per_category (integer, optional): Max suggestions per category (1-20). Default: 5.\n\nReturns structuredContent:\n  {\n    \"checked_at\": string,\n    \"categories_checked\": string[],\n    \"suggestions\": [{ category, owner, name, model_id, run_count, description, replicate_url }],\n    \"already_curated\": number,\n    \"total_suggestions\": number\n  }\n\nExamples:\n  - \"Check for new popular models\" → all categories, min 1000 runs\n  - categories=[\"image\",\"video\"], min_run_count=10000 → only top-tier image/video models",
+          "is_mutating": false,
+          "property_keys": [
+            "categories",
+            "limit_per_category",
+            "min_run_count"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "categories": "array",
+            "min_run_count": "integer",
+            "limit_per_category": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "description": "Categories to check. Default: all 15 (image, video, audio, tts, llm, vision, upscale, bg, stt, inpaint, segment, embed, voiceclone, threed, lipsync)."
+              },
+              "min_run_count": {
+                "type": "integer",
+                "default": 1000,
+                "minimum": 0,
+                "description": "Minimum run_count to surface a model. Default: 1000."
+              },
+              "limit_per_category": {
+                "type": "integer",
+                "default": 5,
+                "maximum": 20,
+                "minimum": 1,
+                "description": "Max suggestions per category (1–20). Default: 5."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8de8203b24860d60f7cd49cd1088825db7501da64c01af3a541d6eef9d7a7356",
+          "parameters": [
+            {
+              "name": "categories",
+              "type": "array",
+              "description": "Categories to check. Default: all 15 (image, video, audio, tts, llm, vision, upscale, bg, stt, inpaint, segment, embed, voiceclone, threed, lipsync).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "limit_per_category",
+              "type": "integer",
+              "description": "Max suggestions per category (1–20). Default: 5.",
+              "required": false,
+              "default": 5,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "min_run_count",
+              "type": "integer",
+              "description": "Minimum run_count to surface a model. Default: 1000.",
+              "required": false,
+              "default": 1000,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_remove_background",
+          "canonical_hash": "sha256:1cbcd77693cfc9d87fb81b00fac2735b1d434250b67beba1d7a5bba0950d00db",
+          "description": "Produce a transparent-background version (PNG) of an image.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, embed the cut-out image inline using one of the three blocks (iframe / <img> / markdown) printed by the tool.\n\nArgs:\n  - image (string URL): URL of the source image.\n  - model (string, default \"rembg\"): Curated key (rembg, birefnet, briaai-rmbg) or \"owner/name\".\n  - extra_input (object, optional): Model-specific extras.\n  - download (boolean, default true): Download the cut-out PNG locally.\n\nReturns: PredictionResult with urls + local_paths to a transparent PNG.\n\nExamples:\n  - image=\"<product-photo>\" → rembg quick cut\n  - image=\"<portrait>\", model=\"birefnet\" → sharper edge for hair",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "image",
+            "model",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image": "string",
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the image whose background to remove."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "rembg",
+                      "birefnet",
+                      "briaai-rmbg"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "rembg",
+                "description": "Background remover. Curated: rembg, birefnet, briaai-rmbg. Or \"owner/name\"."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:7402c667d1d788f590f7812e68d258698b63177a5e4e3a70eae816e3367020ee",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "description": "URL of the image whose background to remove.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Background remover. Curated: rembg, birefnet, briaai-rmbg. Or \"owner/name\".",
+              "required": false,
+              "default": "rembg",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_run_deployment",
+          "canonical_hash": "sha256:ee6d911e923612077ab981a509c02fac56b8121bf6de6cdc0b02088a27f91540",
+          "description": "Run a prediction against a deployment's current release. WAITS for the prediction to finish and (by default) auto-downloads the outputs locally — same UX as the curated generate_* tools.\n\nArgs:\n  - deployment: \"owner/name\" of the deployment to run.\n  - input: model input parameters as a JSON object (same shape the deployment's underlying model expects).\n  - download (default true): download output files locally.\n  - timeout_ms (optional): max ms to wait before returning a pending result you can poll with replicate_get_prediction.\n\nReturns the standard prediction result (inline image preview / text output, URLs, local_paths, prediction_id).",
+          "is_mutating": false,
+          "property_keys": [
+            "deployment",
+            "download",
+            "input",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "input": "object",
+            "download": "boolean",
+            "deployment": "string",
+            "timeout_ms": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "default": {},
+                "description": "Model input parameters as a JSON object — same shape the deployment's underlying model expects.",
+                "additionalProperties": {}
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h)."
+              },
+              "deployment": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Deployment to run, as \"owner/name\". Inspect it first with replicate_get_deployment."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e83d88ac5ea5b35e081aaba15be4b3de4efd913e0427547660a2cb602f6d808b",
+          "parameters": [
+            {
+              "name": "deployment",
+              "type": "string",
+              "description": "Deployment to run, as \"owner/name\". Inspect it first with replicate_get_deployment.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h).",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "input",
+              "type": "object",
+              "description": "Model input parameters as a JSON object — same shape the deployment's underlying model expects.",
+              "required": false,
+              "default": {},
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_run_model",
+          "canonical_hash": "sha256:bb01ba99fc2b1c288a50b10e77ffde20b038dcb295dd6b85a43ccfecf588c2b2",
+          "description": "Generic escape hatch: run ANY model in the Replicate catalog by its \"owner/name\" identifier. This tool gives Claude access to the entire Replicate model catalog — anything not covered by the curated specialised tools (image, video, audio, speech, chat, vision, upscale, remove-bg) can be reached from here.\n\nDISPLAY REQUIREMENT — if the result includes image URLs, paste ONE of the embed blocks the tool prints (iframe / <img> / markdown — try in order) verbatim in your reply so the image renders inline in the chat.\n\nUse this for any category WITHOUT a curated specialised tool, including but not limited to:\n  - Embeddings (sentence-transformers, BGE, Jina)\n  - Segmentation (SAM, Segment Anything)\n  - Depth estimation (MiDaS, ZoeDepth, Marigold)\n  - Inpainting / outpainting (LaMa, Stable Diffusion Inpaint, controlnet-inpaint)\n  - ControlNet variants (canny, depth, openpose, normal-map)\n  - Face / pose / hand detection (insightface, mediapipe, etc.)\n  - 3D generation (TripoSR, Wonder3D, InstantMesh)\n  - Audio-to-text / speech recognition (whisper, Distil-Whisper)\n  - Audio separation / stem splitting (Demucs, MDX)\n  - Style transfer, colourisation, deblurring, denoising\n  - Code completion / instruction-tuned code models (CodeLlama, DeepSeek-Coder)\n  - Music continuation / source separation\n  - ANY newly released model not yet in the curated registries\n\nWorkflow:\n  1. (Optional) Call replicate_search_models to discover models by keyword (e.g. \"image segmentation\", \"speech to text\").\n  2. (Recommended) Call replicate_get_model_schema with \"owner/name\" to inspect required inputs.\n  3. Call this tool with the model id and an input object matching that schema.\n\nArgs:\n  - model (string): \"owner/name\" (latest official version) or \"owner/name:version_hash\" (pinned).\n  - input (object): Model-specific input parameters.\n  - download (boolean, default true): Download outputs locally.\n  - timeout_ms: Default 300000.\n\nReturns: PredictionResult.\n\nExamples:\n  - Upscale an image:\n      model=\"nightmareai/real-esrgan\",\n      input={\"image\": \"https://example.com/in.png\", \"scale\": 4}\n  - Remove background:\n      model=\"lucataco/remove-bg\",\n      input={\"image\": \"<url>\"}\n  - Run an LLM (output is text, not a file, so local_paths will be empty):\n      model=\"meta/meta-llama-3-70b-instruct\",\n      input={\"prompt\": \"Explain quantum entanglement in two sentences.\"}",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "input",
+            "model",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "input": "object",
+            "model": "string",
+            "download": "boolean",
+            "timeout_ms": "integer"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "object",
+                "description": "Model input parameters as a JSON object. Use replicate_get_model_schema first if unsure what a model accepts.",
+                "additionalProperties": {}
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Replicate model identifier. Either \"owner/name\" (uses latest official version) or \"owner/name:version_hash\" (pins a specific version). Examples: \"black-forest-labs/flux-schnell\", \"meta/meta-llama-3-70b-instruct\"."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h)."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:60a8b97699704cf6795f9bcda7a07b58d1376e314ea1a0594e0c8ea82c9fa511",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Whether to download the generated files locally. Default true. When false, only Replicate URLs are returned (URLs expire after ~24h).",
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "input",
+              "type": "object",
+              "description": "Model input parameters as a JSON object. Use replicate_get_model_schema first if unsure what a model accepts.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Replicate model identifier. Either \"owner/name\" (uses latest official version) or \"owner/name:version_hash\" (pins a specific version). Examples: \"black-forest-labs/flux-schnell\", \"meta/meta-llama-3-70b-instruct\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_search_models",
+          "canonical_hash": "sha256:11bdfbb26b39304ceb9c63e44cb90818184bc9e63242c6bac152bf3eaea5d1fd",
+          "description": "Search the Replicate catalog by free-text query. Returns up to 25 matching models with names, descriptions, and URLs.\n\nArgs:\n  - query (string, 1-200 chars): Free-text search. Examples: \"image upscaler\", \"voice cloning\", \"depth estimation\", \"code generation\".\n\nReturns structuredContent:\n  {\n    \"count\": number,\n    \"models\": [\n      {\n        \"owner\": string,\n        \"name\": string,\n        \"description\": string | undefined,\n        \"url\": string,\n        \"run_count\": number | undefined,\n        \"cover_image_url\": string | undefined\n      }\n    ]\n  }\n\nTip: Once you find a promising model, call replicate_get_model_schema with \"owner/name\" to see its inputs before calling replicate_run_model.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1,
+                "description": "Free-text search across the Replicate model catalog. Examples: \"image upscaler\", \"voice cloning\", \"background removal\"."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9bb1861e1bf286b42d14281fbd7df4c4e70298eca446c4b82a8f0b88a284ec29",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Free-text search across the Replicate model catalog. Examples: \"image upscaler\", \"voice cloning\", \"background removal\".",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_segment",
+          "canonical_hash": "sha256:79abca5dd8975eb3b29a51c387f90cc563a7b063bd6fa8b743dd608574fe2395",
+          "description": "Produce a segmentation mask of an image. Use SAM 2 for point/box-prompt masks (auto-mask everything when no prompt given) or Grounded-SAM for text-prompt masking like \"the red car\".\n\nDISPLAY REQUIREMENT — embed the mask result inline using one of the three blocks printed by the tool.\n\nArgs:\n  - image (URL): Source image.\n  - prompt (string, optional): Text prompt for grounded segmentation. Required for grounded-sam.\n  - model (default \"sam-2\"): Curated (sam-2, grounded-sam) or \"owner/name\".\n  - extra_input (object, optional): SAM-specific tuning (e.g. {points_per_side: 32}).",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "image",
+            "model",
+            "prompt",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image": "string",
+            "prompt": "string",
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the image to segment."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "sam-2",
+                      "grounded-sam"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "sam-2",
+                "description": "Segmentation model. Curated: sam-2, grounded-sam. Or \"owner/name\"."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 2000,
+                "description": "Text-prompt for grounded segmentation (e.g. 'the red car'). Required for grounded-sam."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "description": "Model-specific extras (e.g. {points_per_side: 32} for SAM 2 auto-mask).",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:70f7330fb50ab4349a9ad2c14dfd612231da5e483c02a1cb4c9acbfe7ccaad03",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": "Model-specific extras (e.g. {points_per_side: 32} for SAM 2 auto-mask).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "description": "URL of the image to segment.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Segmentation model. Curated: sam-2, grounded-sam. Or \"owner/name\".",
+              "required": false,
+              "default": "sam-2",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "Text-prompt for grounded segmentation (e.g. 'the red car'). Required for grounded-sam.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_transcribe_audio",
+          "canonical_hash": "sha256:82f3e77b8c5e2a7bc0b8715e5a856f1eaf716033329a26e1def735789e3f75e0",
+          "description": "Transcribe an audio or video file to text using Whisper-family models on Replicate.\n\nArgs:\n  - audio (URL): URL of the audio (or video) to transcribe.\n  - model (default \"incredibly-fast-whisper\"): Curated key (whisper, incredibly-fast-whisper, whisperx, scribe) or \"owner/name\".\n  - language (string, optional): ISO-639 hint (e.g. \"en\", \"it\"). Default: auto-detect.\n  - translate_to_english (bool, optional): Translate the transcript to English instead of preserving source language.\n  - extra_input (object, optional): Model-specific extras (e.g. {batch_size: 24} for incredibly-fast-whisper).\n\nReturns: PredictionResult with text_output containing the transcript.",
+          "is_mutating": false,
+          "property_keys": [
+            "audio",
+            "download",
+            "extra_input",
+            "language",
+            "model",
+            "timeout_ms",
+            "translate_to_english"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "audio": "string",
+            "download": "boolean",
+            "language": "string",
+            "timeout_ms": "integer",
+            "extra_input": "object",
+            "translate_to_english": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "audio": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the audio (or video) file to transcribe."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "whisper",
+                      "incredibly-fast-whisper",
+                      "whisperx",
+                      "scribe"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "incredibly-fast-whisper",
+                "description": "Speech-to-text model. Curated: whisper, incredibly-fast-whisper, whisperx, scribe. Or \"owner/name\"."
+              },
+              "download": {
+                "type": "boolean",
+                "default": false,
+                "description": "Output is text — default false."
+              },
+              "language": {
+                "type": "string",
+                "maxLength": 20,
+                "description": "ISO-639 language hint (e.g. 'en', 'it'). Default: auto-detect."
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "translate_to_english": {
+                "type": "boolean",
+                "description": "If true, translate the transcript to English."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:b8e6abbab54a6457f24147f7922cb4dc1339fe8a6bc874f0b8becf1873a3c647",
+          "parameters": [
+            {
+              "name": "audio",
+              "type": "string",
+              "description": "URL of the audio (or video) file to transcribe.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": "Output is text — default false.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "language",
+              "type": "string",
+              "description": "ISO-639 language hint (e.g. 'en', 'it'). Default: auto-detect.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Speech-to-text model. Curated: whisper, incredibly-fast-whisper, whisperx, scribe. Or \"owner/name\".",
+              "required": false,
+              "default": "incredibly-fast-whisper",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "translate_to_english",
+              "type": "boolean",
+              "description": "If true, translate the transcript to English.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_upload_file",
+          "canonical_hash": "sha256:1e8fa846ada0f74613b5c8244bfc969dd90c9c86c2fe0974035fa337e2fd3db7",
+          "description": "Upload a file to Replicate's file storage and get back a URL valid for ~24 hours. Pass the returned URL as a model input (e.g. image for upscale/inpaint/vision, image_url for video, reference_audio_url for voice clone).\n\nTwo input modes — provide EXACTLY ONE:\n  - file_path: absolute local path of a file on the machine running the server.\n  - base64_data: the file's bytes as base64 (a bare base64 string OR a full \"data:<mime>;base64,...\" URI). Use this when you hold bytes in memory but have no local path — e.g. an image a user dropped into the chat that a code container can read and base64-encode. NOTE: an MCP client (Claude Desktop) generally cannot reproduce a large dragged-in image's exact bytes as a tool argument — base64 mode is for callers that genuinely have the bytes (web container, programmatic clients).\n\nArgs:\n  - file_path (string, optional): Absolute local path. Provide this OR base64_data.\n  - base64_data (string, optional): base64 contents or data: URI. Provide this OR file_path.\n  - mime_type (string, optional): MIME override (e.g. 'image/png'). Auto-detected from the path extension or a data: URI; defaults to application/octet-stream for raw base64.\n  - file_name (string, optional): Name for a base64 upload.\n\nReturns structuredContent: { url, file_id, name }\n  - url: Replicate-hosted URL (~24h expiry) — pass this as a model input.\n\nExamples:\n  - file_path=\"C:/Users/me/photo.png\"\n  - base64_data=\"data:image/png;base64,iVBORw0KG...\", → uploads, returns URL",
+          "is_mutating": false,
+          "property_keys": [
+            "base64_data",
+            "file_name",
+            "file_path",
+            "mime_type"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "file_name": "string",
+            "file_path": "string",
+            "mime_type": "string",
+            "base64_data": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "file_name": {
+                "type": "string",
+                "description": "Optional name for a base64 upload. Ignored when file_path is used (the basename is taken from the path)."
+              },
+              "file_path": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Absolute local path of the file to upload. Provide either this OR base64_data."
+              },
+              "mime_type": {
+                "type": "string",
+                "description": "MIME type override (e.g. 'image/png'). Auto-detected from file extension (file_path) or the data URI; defaults to application/octet-stream for raw base64."
+              },
+              "base64_data": {
+                "type": "string",
+                "minLength": 1,
+                "description": "File contents as base64 (a bare base64 string or a full 'data:<mime>;base64,...' URI). Use this when you have bytes in memory but no local path — e.g. a code container that read a chat-uploaded image. Provide either this OR file_path."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:50f4b61dd0553655e85a530863b273b3def97c89e478e37871b66589da179600",
+          "parameters": [
+            {
+              "name": "base64_data",
+              "type": "string",
+              "description": "File contents as base64 (a bare base64 string or a full 'data:<mime>;base64,...' URI). Use this when you have bytes in memory but no local path — e.g. a code container that read a chat-uploaded image. Provide either this OR file_path.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "file_name",
+              "type": "string",
+              "description": "Optional name for a base64 upload. Ignored when file_path is used (the basename is taken from the path).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "file_path",
+              "type": "string",
+              "description": "Absolute local path of the file to upload. Provide either this OR base64_data.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "mime_type",
+              "type": "string",
+              "description": "MIME type override (e.g. 'image/png'). Auto-detected from file extension (file_path) or the data URI; defaults to application/octet-stream for raw base64.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_upscale_image",
+          "canonical_hash": "sha256:41a267b9242b662d4dd4d89a097bb78b8ec7b42e8a92fcc4360d27acd37a1d87",
+          "description": "Upscale an image to higher resolution. Optional face restoration for photos.\n\nDISPLAY REQUIREMENT — after this tool returns successfully, embed the upscaled image inline using one of the three blocks (iframe / <img> / markdown) printed by the tool. Place it BEFORE descriptive prose. URLs expire ~24h.\n\nArgs:\n  - image (string URL): URL of the source image.\n  - model (string, default \"real-esrgan\"): Curated key (real-esrgan, clarity-upscaler, swinir, gfpgan) or \"owner/name\".\n  - scale (1-10, optional): Upscale factor. Default 4 for real-esrgan; 2 for gfpgan; 2 for clarity-upscaler.\n  - extra_input (object, optional): Model-specific extras (e.g. {face_enhance: true} for real-esrgan).\n  - download (boolean, default true): Download upscaled file locally.\n\nReturns: PredictionResult with urls + local_paths to the upscaled image.\n\nExamples:\n  - image=\"<low-res-photo>\", scale=4 → real-esrgan\n  - image=\"<face-photo>\", model=\"gfpgan\", scale=2 → restoration\n  - image=\"<artwork>\", model=\"clarity-upscaler\", scale=2",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "image",
+            "model",
+            "scale",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image": "string",
+            "scale": "number",
+            "download": "boolean",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the image to upscale."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "real-esrgan",
+                      "clarity-upscaler",
+                      "swinir",
+                      "gfpgan",
+                      "clarity-pro"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "real-esrgan",
+                "description": "Upscaler. Curated: real-esrgan, clarity-upscaler, swinir, gfpgan, clarity-pro. Or \"owner/name\"."
+              },
+              "scale": {
+                "type": "number",
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Upscale factor (1–10). Model-dependent; default 4 for real-esrgan."
+              },
+              "download": {
+                "type": "boolean",
+                "default": true
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:54f6b29e0842000a1f95ad25bced289ce6dd7209a09d075f84c7ea50a3ffeba7",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": true,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "description": "URL of the image to upscale.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Upscaler. Curated: real-esrgan, clarity-upscaler, swinir, gfpgan, clarity-pro. Or \"owner/name\".",
+              "required": false,
+              "default": "real-esrgan",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "scale",
+              "type": "number",
+              "description": "Upscale factor (1–10). Model-dependent; default 4 for real-esrgan.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "replicate_vision",
+          "canonical_hash": "sha256:b79c357d8cbb2f480cd4ba4ccc7f62905509ffb2718c69bc068555604a1430a5",
+          "description": "Run a vision-language model to describe, caption, or answer questions about an image.\n\nArgs:\n  - image (string URL): URL of the image to analyse.\n  - prompt (string, optional): Question or instruction (e.g. \"describe this image\", \"count the people\"). Default is a generic caption.\n  - model (string, default \"llava-13b\"): Curated key (llava-13b, llava-v1.6-34b, blip-2, qwen-vl) or \"owner/name\".\n  - max_tokens (1-4096, optional): Response length.\n  - extra_input (object, optional): Model-specific extras.\n\nReturns: PredictionResult with text_output containing the model's textual answer.\n\nExamples:\n  - image=\"https://example.com/photo.jpg\", prompt=\"What objects are visible?\"\n  - image=\"<chart-url>\", prompt=\"Read the values off this chart and list them.\", model=\"llava-v1.6-34b\"",
+          "is_mutating": false,
+          "property_keys": [
+            "download",
+            "extra_input",
+            "image",
+            "max_tokens",
+            "model",
+            "prompt",
+            "timeout_ms"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "image": "string",
+            "prompt": "string",
+            "download": "boolean",
+            "max_tokens": "integer",
+            "timeout_ms": "integer",
+            "extra_input": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "image": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL of the image to analyse / caption."
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "llava-13b",
+                      "llava-v1.6-34b",
+                      "blip-2",
+                      "qwen-vl"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "default": "llava-13b",
+                "description": "Vision model. Curated: llava-13b, llava-v1.6-34b, blip-2, qwen-vl. Or \"owner/name\"."
+              },
+              "prompt": {
+                "type": "string",
+                "maxLength": 10000,
+                "minLength": 1,
+                "description": "Optional question or instruction (e.g. 'describe this image', 'count the people'). Default is a generic caption."
+              },
+              "download": {
+                "type": "boolean",
+                "default": false
+              },
+              "max_tokens": {
+                "type": "integer",
+                "maximum": 4096,
+                "minimum": 1
+              },
+              "timeout_ms": {
+                "type": "integer",
+                "maximum": 1800000,
+                "minimum": 5000,
+                "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min)."
+              },
+              "extra_input": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:182901dc0300c59d157484db50dbd8f72a9b3e05d8c42cd3a9ded487aa1aa45d",
+          "parameters": [
+            {
+              "name": "download",
+              "type": "boolean",
+              "description": null,
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "extra_input",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "description": "URL of the image to analyse / caption.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": "uri",
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_tokens",
+              "type": "integer",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Vision model. Curated: llava-13b, llava-v1.6-34b, blip-2, qwen-vl. Or \"owner/name\".",
+              "required": false,
+              "default": "llava-13b",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "prompt",
+              "type": "string",
+              "description": "Optional question or instruction (e.g. 'describe this image', 'count the people'). Default is a generic caption.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "timeout_ms",
+              "type": "integer",
+              "description": "Max ms to wait for the prediction. If exceeded, returns the prediction ID so you can poll via replicate_get_prediction. Default: 300000 (5min).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [
+        {
+          "name": "generate_media",
+          "description": "",
+          "argument_keys": [
+            "aspect_ratio",
+            "description",
+            "type"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "recommend_then_generate",
+          "description": "",
+          "argument_keys": [
+            "priority",
+            "task"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "batch_generate",
+          "description": "",
+          "argument_keys": [
+            "prompts",
+            "type"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "image_to_video_pipeline",
+          "description": "",
+          "argument_keys": [
+            "image_prompt",
+            "motion"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        },
+        {
+          "name": "transcribe_and_summarize",
+          "description": "",
+          "argument_keys": [
+            "audio_url"
+          ],
+          "required_arguments": [],
+          "arguments": []
+        }
+      ],
+      "resource_signatures": [
+        {
+          "uri_template": "replicate://models",
+          "name": "model-catalog",
+          "description": "",
+          "mime_type": "application/json"
+        },
+        {
+          "uri_template": "replicate://capabilities",
+          "name": "capabilities",
+          "description": "",
+          "mime_type": "application/json"
+        }
+      ]
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

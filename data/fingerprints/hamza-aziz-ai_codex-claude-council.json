@@ -1,0 +1,1532 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "hamza-aziz-ai/codex-claude-council",
+  "purl": "pkg:generic/hamza-aziz-ai%2Fcodex-claude-council",
+  "ecosystem": "generic",
+  "display_name": "hamza-aziz-ai/codex-claude-council",
+  "description": "ChatGPT (Codex CLI) and Claude (Claude Code) discuss your question until they agree, on your own subscriptions. Runs locally; needs both CLIs signed in.",
+  "author": null,
+  "repository_url": "https://github.com/hamza-aziz-ai/codex-claude-council",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "Codex–Claude Council",
+    "hamza-aziz-ai/codex-claude-council"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "0.13.4",
+      "toolset_canonical_hash": "sha256:d1dbd4b612ff2f309f8585958fa495bfb31451dadc96fb6d46b4680edcc7f02e",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "6b559876-f907-40b4-8ff5-f8c7382b2f2b/c1b56957-fde7-47d3-9614-3131fd6870d1/server.mcpb",
+          "runtime": "node",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "council_ask",
+          "canonical_hash": "sha256:24e69a30d059bde93760935aa350000febc5ca78fa2fabddb753f734fb640c0e",
+          "description": "Get one cross-checked answer from Codex (ChatGPT) and Claude: each answers on its own, then they reply to each other until both agree, and one writes the final answer that the other checks. Use it for decisions, reviews and questions where a second model's check is worth minutes of waiting; for a quick single opinion use council_ask_codex or council_ask_claude, and for the whole discussion use council_debate. It runs the user's local Codex and Claude Code CLIs on their own subscriptions, so it uses both plans' quota, and takes minutes; a call still running after about 50 s returns a job_id for council_result. With workspace, both models read the project but never change it. Each model keeps its session between calls, so it remembers earlier questions.",
+          "is_mutating": false,
+          "property_keys": [
+            "claude_effort",
+            "claude_model",
+            "claude_session_id",
+            "codex_effort",
+            "codex_model",
+            "codex_session_id",
+            "max_rounds",
+            "network",
+            "question",
+            "skill",
+            "synthesizer",
+            "web_search",
+            "workspace"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "skill": "string",
+            "network": "boolean",
+            "question": "string",
+            "workspace": "string",
+            "max_rounds": "integer",
+            "web_search": "boolean",
+            "codex_model": "string",
+            "synthesizer": "string",
+            "claude_model": "string",
+            "codex_effort": "string",
+            "claude_effort": "string",
+            "codex_session_id": "string",
+            "claude_session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "skill": {
+                "type": "string",
+                "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans."
+              },
+              "network": {
+                "type": "boolean",
+                "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it."
+              },
+              "question": {
+                "type": "string",
+                "description": "The question, with any context the models need."
+              },
+              "workspace": {
+                "type": "string",
+                "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used)."
+              },
+              "max_rounds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Optional limit on the exchange. After the two independent answers, each model replies to the other's latest message, round after round, until both agree; then the synthesizer writes the final answer and the other checks it. N (1 or more): at most N exchanges. 0: no limit (can take a long time and use a lot of both plans' usage). Omit to use the configured default (5 unless the user changed it). Set only when the user asks for a number of rounds or for agreement without a limit."
+              },
+              "web_search": {
+                "type": "boolean",
+                "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access."
+              },
+              "codex_model": {
+                "type": "string",
+                "description": "Optional Codex (ChatGPT) model override, e.g. gpt-5.6-sol. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "synthesizer": {
+                "enum": [
+                  "claude",
+                  "codex"
+                ],
+                "type": "string",
+                "description": "Optional: which model writes the final answer (\"codex\" is ChatGPT); the other checks it. Omit to use the configured default (Claude unless the user changed it)."
+              },
+              "claude_model": {
+                "type": "string",
+                "description": "Optional Claude model override: an alias such as opus, sonnet or fable, or a full model name. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "codex_effort": {
+                "enum": [
+                  "none",
+                  "minimal",
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh"
+                ],
+                "type": "string",
+                "description": "Optional Codex reasoning effort override. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "claude_effort": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh",
+                  "max"
+                ],
+                "type": "string",
+                "description": "Optional Claude effort level override. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "codex_session_id": {
+                "type": "string",
+                "description": "Optional: a Codex session the user already has: its id (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed)."
+              },
+              "claude_session_id": {
+                "type": "string",
+                "description": "Optional: a Claude Code session the user already has: its UUID (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:34c7fc411d6e4da50af92f57e4b1605d28a3458f3567c371b7cd63d615fa5aaa",
+          "parameters": [
+            {
+              "name": "claude_effort",
+              "type": "string",
+              "description": "Optional Claude effort level override. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "claude_model",
+              "type": "string",
+              "description": "Optional Claude model override: an alias such as opus, sonnet or fable, or a full model name. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "claude_session_id",
+              "type": "string",
+              "description": "Optional: a Claude Code session the user already has: its UUID (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "codex_effort",
+              "type": "string",
+              "description": "Optional Codex reasoning effort override. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "none",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "codex_model",
+              "type": "string",
+              "description": "Optional Codex (ChatGPT) model override, e.g. gpt-5.6-sol. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "codex_session_id",
+              "type": "string",
+              "description": "Optional: a Codex session the user already has: its id (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_rounds",
+              "type": "integer",
+              "description": "Optional limit on the exchange. After the two independent answers, each model replies to the other's latest message, round after round, until both agree; then the synthesizer writes the final answer and the other checks it. N (1 or more): at most N exchanges. 0: no limit (can take a long time and use a lot of both plans' usage). Omit to use the configured default (5 unless the user changed it). Set only when the user asks for a number of rounds or for agreement without a limit.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "network",
+              "type": "boolean",
+              "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "question",
+              "type": "string",
+              "description": "The question, with any context the models need.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skill",
+              "type": "string",
+              "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "synthesizer",
+              "type": "string",
+              "description": "Optional: which model writes the final answer (\"codex\" is ChatGPT); the other checks it. Omit to use the configured default (Claude unless the user changed it).",
+              "required": false,
+              "default": null,
+              "enum": [
+                "claude",
+                "codex"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "web_search",
+              "type": "boolean",
+              "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "workspace",
+              "type": "string",
+              "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "council_ask_claude",
+          "canonical_hash": "sha256:d80986750763bcf7ff729385b5a36a72d1eab7e8a40b5d865c6af384f1d28b77",
+          "description": "Ask Claude alone, through the user's Claude Code CLI signed in with a Claude subscription, and return its answer. Use it for a quick second opinion from Claude, for example from Codex or ChatGPT; use council_ask when the answer should also be cross-checked by Codex, or council_ask_codex for Codex alone. It uses the user's Claude plan and usually answers within a minute (longer at high effort, when it returns a job_id for council_result). With workspace it reads the project in plan mode and never changes it; its session carries over between calls.",
+          "is_mutating": false,
+          "property_keys": [
+            "effort",
+            "model",
+            "question",
+            "session_id",
+            "skill",
+            "web_search",
+            "workspace"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "skill": "string",
+            "effort": "string",
+            "question": "string",
+            "workspace": "string",
+            "session_id": "string",
+            "web_search": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "Optional Claude model override: an alias such as opus, sonnet or fable, or a full model name. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "skill": {
+                "type": "string",
+                "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans."
+              },
+              "effort": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh",
+                  "max"
+                ],
+                "type": "string",
+                "description": "Optional Claude effort level override. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "question": {
+                "type": "string",
+                "description": "The question, with any context the models need."
+              },
+              "workspace": {
+                "type": "string",
+                "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used)."
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Optional: a Claude Code session the user already has: its UUID (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed)."
+              },
+              "web_search": {
+                "type": "boolean",
+                "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:d516c9f04cef945809fe1cffed0453df9fdf21e944368af0e4abfdc63c6d09a7",
+          "parameters": [
+            {
+              "name": "effort",
+              "type": "string",
+              "description": "Optional Claude effort level override. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Optional Claude model override: an alias such as opus, sonnet or fable, or a full model name. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "question",
+              "type": "string",
+              "description": "The question, with any context the models need.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Optional: a Claude Code session the user already has: its UUID (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skill",
+              "type": "string",
+              "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "web_search",
+              "type": "boolean",
+              "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "workspace",
+              "type": "string",
+              "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "council_ask_codex",
+          "canonical_hash": "sha256:5d1d191078166f98926edb668a91bc6fe836edf9450a18acfc8d63d1c1d0dbad",
+          "description": "Ask Codex (ChatGPT) alone, through the user's Codex CLI signed in with ChatGPT, and return its answer. Use it for a quick second opinion from ChatGPT; use council_ask when the answer should also be cross-checked by Claude, or council_ask_claude for Claude alone. It uses the user's ChatGPT plan and usually answers within a minute (longer at high effort, when it returns a job_id for council_result). With workspace it reads the project but never changes it; its session carries over between calls.",
+          "is_mutating": false,
+          "property_keys": [
+            "effort",
+            "model",
+            "network",
+            "question",
+            "session_id",
+            "skill",
+            "web_search",
+            "workspace"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "model": "string",
+            "skill": "string",
+            "effort": "string",
+            "network": "boolean",
+            "question": "string",
+            "workspace": "string",
+            "session_id": "string",
+            "web_search": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "Optional Codex (ChatGPT) model override, e.g. gpt-5.6-sol. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "skill": {
+                "type": "string",
+                "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans."
+              },
+              "effort": {
+                "enum": [
+                  "none",
+                  "minimal",
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh"
+                ],
+                "type": "string",
+                "description": "Optional Codex reasoning effort override. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "network": {
+                "type": "boolean",
+                "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it."
+              },
+              "question": {
+                "type": "string",
+                "description": "The question, with any context the models need."
+              },
+              "workspace": {
+                "type": "string",
+                "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used)."
+              },
+              "session_id": {
+                "type": "string",
+                "description": "Optional: a Codex session the user already has: its id (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed)."
+              },
+              "web_search": {
+                "type": "boolean",
+                "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:38d5139702c2fa58c385e33fd1b433f76ef175495b6077ebf3d7fb1f73c5b547",
+          "parameters": [
+            {
+              "name": "effort",
+              "type": "string",
+              "description": "Optional Codex reasoning effort override. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "none",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "description": "Optional Codex (ChatGPT) model override, e.g. gpt-5.6-sol. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "network",
+              "type": "boolean",
+              "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "question",
+              "type": "string",
+              "description": "The question, with any context the models need.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "session_id",
+              "type": "string",
+              "description": "Optional: a Codex session the user already has: its id (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skill",
+              "type": "string",
+              "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "web_search",
+              "type": "boolean",
+              "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "workspace",
+              "type": "string",
+              "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "council_cancel",
+          "canonical_hash": "sha256:5505bfbf6dde394be40c9a9645da11871fcdcb83c6335d1dfdaad385f33b6a43",
+          "description": "Stop a running job (a council_ask, council_debate, council_ask_codex, council_ask_claude or council_join): its Codex and Claude CLI processes are ended and its progress is discarded, so its answer can no longer be retrieved. Use it when the user asks to stop, or a council is no longer needed; to check on a job instead, use council_result.",
+          "is_mutating": false,
+          "property_keys": [
+            "job_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "job_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string",
+                "description": "The job_id a council tool returned while still working. Omit to use the most recent job."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:edad9d7dcfa1d059d44b9e0b93eed33ab6cee43f4a59ee71c487a0b12c725a61",
+          "parameters": [
+            {
+              "name": "job_id",
+              "type": "string",
+              "description": "The job_id a council tool returned while still working. Omit to use the most recent job.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "council_debate",
+          "canonical_hash": "sha256:5eb93442132e2f0639131425ee72b55b2b11ec577026a14eba762018be7682b5",
+          "description": "Run the same council as council_ask but return the whole discussion as JSON: both opening answers, every exchange with each model's reply and verdict, the check of the final answer, and the settings used. Use it when the user wants to see where the models disagreed or how they converged; use council_ask when only the answer matters, since the transcript is long. Same cost and timing as council_ask: both plans' quota, minutes, and a job_id for council_result if it is still running after about 50 s.",
+          "is_mutating": false,
+          "property_keys": [
+            "claude_effort",
+            "claude_model",
+            "claude_session_id",
+            "codex_effort",
+            "codex_model",
+            "codex_session_id",
+            "max_rounds",
+            "network",
+            "question",
+            "skill",
+            "synthesizer",
+            "web_search",
+            "workspace"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "skill": "string",
+            "network": "boolean",
+            "question": "string",
+            "workspace": "string",
+            "max_rounds": "integer",
+            "web_search": "boolean",
+            "codex_model": "string",
+            "synthesizer": "string",
+            "claude_model": "string",
+            "codex_effort": "string",
+            "claude_effort": "string",
+            "codex_session_id": "string",
+            "claude_session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "skill": {
+                "type": "string",
+                "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans."
+              },
+              "network": {
+                "type": "boolean",
+                "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it."
+              },
+              "question": {
+                "type": "string",
+                "description": "The question, with any context the models need."
+              },
+              "workspace": {
+                "type": "string",
+                "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used)."
+              },
+              "max_rounds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Optional limit on the exchange. After the two independent answers, each model replies to the other's latest message, round after round, until both agree; then the synthesizer writes the final answer and the other checks it. N (1 or more): at most N exchanges. 0: no limit (can take a long time and use a lot of both plans' usage). Omit to use the configured default (5 unless the user changed it). Set only when the user asks for a number of rounds or for agreement without a limit."
+              },
+              "web_search": {
+                "type": "boolean",
+                "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access."
+              },
+              "codex_model": {
+                "type": "string",
+                "description": "Optional Codex (ChatGPT) model override, e.g. gpt-5.6-sol. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "synthesizer": {
+                "enum": [
+                  "claude",
+                  "codex"
+                ],
+                "type": "string",
+                "description": "Optional: which model writes the final answer (\"codex\" is ChatGPT); the other checks it. Omit to use the configured default (Claude unless the user changed it)."
+              },
+              "claude_model": {
+                "type": "string",
+                "description": "Optional Claude model override: an alias such as opus, sonnet or fable, or a full model name. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "codex_effort": {
+                "enum": [
+                  "none",
+                  "minimal",
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh"
+                ],
+                "type": "string",
+                "description": "Optional Codex reasoning effort override. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "claude_effort": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high",
+                  "xhigh",
+                  "max"
+                ],
+                "type": "string",
+                "description": "Optional Claude effort level override. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "codex_session_id": {
+                "type": "string",
+                "description": "Optional: a Codex session the user already has: its id (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed)."
+              },
+              "claude_session_id": {
+                "type": "string",
+                "description": "Optional: a Claude Code session the user already has: its UUID (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed)."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:a94b86cec8295ddc245643cad5136698d0626a013cddb942e9f3fa29537c1ebd",
+          "parameters": [
+            {
+              "name": "claude_effort",
+              "type": "string",
+              "description": "Optional Claude effort level override. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "claude_model",
+              "type": "string",
+              "description": "Optional Claude model override: an alias such as opus, sonnet or fable, or a full model name. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "claude_session_id",
+              "type": "string",
+              "description": "Optional: a Claude Code session the user already has: its UUID (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "codex_effort",
+              "type": "string",
+              "description": "Optional Codex reasoning effort override. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "none",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "codex_model",
+              "type": "string",
+              "description": "Optional Codex (ChatGPT) model override, e.g. gpt-5.6-sol. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "codex_session_id",
+              "type": "string",
+              "description": "Optional: a Codex session the user already has: its id (as shown by `/status`) or the name they gave it with `/rename`; on another machine, user@host:<id or name> (runs there through ssh), to continue in place instead of a new session, so the model keeps that session's memory. Pass it exactly as the user gives it, only when they give one. The council's turns are added to that session, in plan mode (nothing is changed).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_rounds",
+              "type": "integer",
+              "description": "Optional limit on the exchange. After the two independent answers, each model replies to the other's latest message, round after round, until both agree; then the synthesizer writes the final answer and the other checks it. N (1 or more): at most N exchanges. 0: no limit (can take a long time and use a lot of both plans' usage). Omit to use the configured default (5 unless the user changed it). Set only when the user asks for a number of rounds or for agreement without a limit.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "network",
+              "type": "boolean",
+              "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "question",
+              "type": "string",
+              "description": "The question, with any context the models need.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skill",
+              "type": "string",
+              "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "synthesizer",
+              "type": "string",
+              "description": "Optional: which model writes the final answer (\"codex\" is ChatGPT); the other checks it. Omit to use the configured default (Claude unless the user changed it).",
+              "required": false,
+              "default": null,
+              "enum": [
+                "claude",
+                "codex"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "web_search",
+              "type": "boolean",
+              "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "workspace",
+              "type": "string",
+              "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "council_join",
+          "canonical_hash": "sha256:e89f79b81e05eddb3d8aeff84f14f8c9ca40dd92784f8358cf4200e4535c553f",
+          "description": "Take part in the council yourself, in this conversation, with everything you already know, instead of a separate session of your model: you are one member and the plugin runs the other model (Codex if you are Claude, Claude if you are Codex), optionally continuing the user's own session of it. The steps are the same as council_ask (answer independently, then reply to each other's latest message until both agree, then write and check the final answer). Whenever it is your turn, this tool (or council_turn / council_result) returns the council's message to you: write your reply yourself and send it with council_turn. Use this when the user wants you to discuss with the other model, or gives the id of their session of the other model; use council_ask instead when the user wants a council of two separate sessions. Only the other model runs a CLI session; your turns are written here, in this conversation.",
+          "is_mutating": false,
+          "property_keys": [
+            "max_rounds",
+            "me",
+            "network",
+            "other_effort",
+            "other_model",
+            "other_session_id",
+            "question",
+            "skill",
+            "synthesizer",
+            "web_search",
+            "workspace"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "me": "string",
+            "skill": "string",
+            "network": "boolean",
+            "question": "string",
+            "workspace": "string",
+            "max_rounds": "integer",
+            "web_search": "boolean",
+            "other_model": "string",
+            "synthesizer": "string",
+            "other_effort": "string",
+            "other_session_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "me": {
+                "enum": [
+                  "claude",
+                  "codex"
+                ],
+                "type": "string",
+                "description": "Which model you are: \"claude\" if you are Claude (Claude Code, Claude Desktop), \"codex\" if you are Codex or ChatGPT. The other model is the one the plugin runs."
+              },
+              "skill": {
+                "type": "string",
+                "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans."
+              },
+              "network": {
+                "type": "boolean",
+                "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it."
+              },
+              "question": {
+                "type": "string",
+                "description": "The question, with any context the models need."
+              },
+              "workspace": {
+                "type": "string",
+                "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used)."
+              },
+              "max_rounds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Optional limit on the exchange. After the two independent answers, each model replies to the other's latest message, round after round, until both agree; then the synthesizer writes the final answer and the other checks it. N (1 or more): at most N exchanges. 0: no limit (can take a long time and use a lot of both plans' usage). Omit to use the configured default (5 unless the user changed it). Set only when the user asks for a number of rounds or for agreement without a limit."
+              },
+              "web_search": {
+                "type": "boolean",
+                "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access."
+              },
+              "other_model": {
+                "type": "string",
+                "description": "Optional model override for the other model. Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "synthesizer": {
+                "enum": [
+                  "claude",
+                  "codex"
+                ],
+                "type": "string",
+                "description": "Optional: which model writes the final answer, \"claude\" or \"codex\" (you or the other model); the other checks it. Omit to write it yourself (the host); pass it only when the user names who should write it."
+              },
+              "other_effort": {
+                "type": "string",
+                "description": "Optional effort override for the other model (Codex: none, minimal, low, medium, high, xhigh; Claude: low, medium, high, xhigh, max). Omit to use the configured default; set only when the user asks for a specific one."
+              },
+              "other_session_id": {
+                "type": "string",
+                "description": "Optional: the id or /rename name of the user's own session of the other model (a Codex session if you are Claude, a Claude Code session if you are Codex), or user@host:<id or name> for one on another machine (it runs there through ssh), to continue in place with its memory. Pass it exactly as the user gives it, only when they give one; never your own session."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:1116afc1d74da3f0adf533c4fa6598aa8002d0b3539916366ac80fe0bfa3f46d",
+          "parameters": [
+            {
+              "name": "max_rounds",
+              "type": "integer",
+              "description": "Optional limit on the exchange. After the two independent answers, each model replies to the other's latest message, round after round, until both agree; then the synthesizer writes the final answer and the other checks it. N (1 or more): at most N exchanges. 0: no limit (can take a long time and use a lot of both plans' usage). Omit to use the configured default (5 unless the user changed it). Set only when the user asks for a number of rounds or for agreement without a limit.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "me",
+              "type": "string",
+              "description": "Which model you are: \"claude\" if you are Claude (Claude Code, Claude Desktop), \"codex\" if you are Codex or ChatGPT. The other model is the one the plugin runs.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "claude",
+                "codex"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "network",
+              "type": "boolean",
+              "description": "Optional: whether Codex's shell commands may reach the network (for example to call an API or fetch live data), still read-only on disk. Omit to use the configured default (off unless the user changed it). Pass true only when the user asks for it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "other_effort",
+              "type": "string",
+              "description": "Optional effort override for the other model (Codex: none, minimal, low, medium, high, xhigh; Claude: low, medium, high, xhigh, max). Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "other_model",
+              "type": "string",
+              "description": "Optional model override for the other model. Omit to use the configured default; set only when the user asks for a specific one.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "other_session_id",
+              "type": "string",
+              "description": "Optional: the id or /rename name of the user's own session of the other model (a Codex session if you are Claude, a Claude Code session if you are Codex), or user@host:<id or name> for one on another machine (it runs there through ssh), to continue in place with its memory. Pass it exactly as the user gives it, only when they give one; never your own session.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "question",
+              "type": "string",
+              "description": "The question, with any context the models need.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "skill",
+              "type": "string",
+              "description": "Optional: the name of an installed skill both models may use for this question, at the steps where they judge it is needed, including any sub-agents it calls for; for several skills, their names separated by commas (\"llm-council, caveman\"). Pass only skills the user asks to use (by name, or by a phrase the skill says triggers it). Skills of Claude Code's and Codex's enabled plugins can be named too. Installed: none (install with `codex-claude-council skill add <GitHub URL>`). A step that uses it takes much longer and uses much more of both plans.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "synthesizer",
+              "type": "string",
+              "description": "Optional: which model writes the final answer, \"claude\" or \"codex\" (you or the other model); the other checks it. Omit to write it yourself (the host); pass it only when the user names who should write it.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "claude",
+                "codex"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "web_search",
+              "type": "boolean",
+              "description": "Optional: whether the models may search the web and read web pages. Omit to use the configured default (on unless the user changed it). Pass false only when the user asks for no internet access.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "workspace",
+              "type": "string",
+              "description": "Absolute path of the project folder you are working in. Both models then work in it in plan mode: they read it (files, search, read-only commands such as git log and diff) but never change it. Pass it whenever the question is about the code, a change, a fix, an error or logs in this project. Omit only for questions unrelated to any project (or when passing a session id: the session's own folder is used).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "council_result",
+          "canonical_hash": "sha256:633447bc2b33679ee66e7a103543bf5ce6aee286f4a37427b719e912d18c5f02",
+          "description": "Wait for a job that returned status working with a job_id (from council_ask, council_debate, council_ask_codex, council_ask_claude or council_join), and return its answer, or with council_join your next turn. Waits up to about 50 s and returns as soon as something is ready; if the job is still working, call it again. Use it instead of asking the same question again, which would start a second job and use the plans twice. Waiting uses no model quota.",
+          "is_mutating": false,
+          "property_keys": [
+            "job_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "job_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "job_id": {
+                "type": "string",
+                "description": "The job_id a council tool returned while still working. Omit to use the most recent job."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:01498123be233f04142aed9a1091934fa0db3b176a8c747d395194ce76a10567",
+          "parameters": [
+            {
+              "name": "job_id",
+              "type": "string",
+              "description": "The job_id a council tool returned while still working. Omit to use the most recent job.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "council_turn",
+          "canonical_hash": "sha256:fadd2082e9df89c903206234ba26a12e7909f0eb66e0d6050faf5d3ed077e14d",
+          "description": "Send your reply to the council's latest message, after council_join, council_turn or council_result returned your turn, and wait for the next step. Only for councils started with council_join; the text is passed to the other model as written, so write the complete reply yourself. If the council is not waiting for you, it says so and you call council_result instead; if the next step takes longer than about 50 s, call council_result with the council_id.",
+          "is_mutating": false,
+          "property_keys": [
+            "council_id",
+            "text"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "text": "string",
+            "council_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "Your complete reply to that message, written by you."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "The council_id from the message you are replying to."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string",
+                "description": "The answer (council_debate: its JSON), or the message to act on; the same as the text content."
+              },
+              "job_id": {
+                "type": "string",
+                "description": "With working or stopped: the job to wait for, or the one stopped."
+              },
+              "status": {
+                "enum": [
+                  "done",
+                  "working",
+                  "your_turn",
+                  "stopped"
+                ],
+                "type": "string",
+                "description": "done: text is the answer. working: still running; call council_result with job_id. your_turn (council_join): text is the council's message; reply with council_turn and council_id. stopped: council_cancel stopped job_id."
+              },
+              "council_id": {
+                "type": "string",
+                "description": "With your_turn: the council to reply to with council_turn."
+              }
+            },
+            "required": [
+              "status",
+              "text"
+            ]
+          },
+          "description_hash": "sha256:af80c97fd8c478f5971083b6ca90600066ee7dc03f58a2422025476e4d10f15c",
+          "parameters": [
+            {
+              "name": "council_id",
+              "type": "string",
+              "description": "The council_id from the message you are replying to.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "text",
+              "type": "string",
+              "description": "Your complete reply to that message, written by you.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

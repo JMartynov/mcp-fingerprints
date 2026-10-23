@@ -1,0 +1,672 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "ru-payroll-mcp",
+  "purl": "pkg:npm/ru-payroll-mcp",
+  "ecosystem": "npm",
+  "display_name": "ru-payroll-mcp",
+  "description": "MCP server for Russian payroll: net/gross salary with progressive NDFL 13-22%, employer insurance contributions, vacation pay, sick pay and unused-vacation compensation (2025-2026 rules), fully local",
+  "author": null,
+  "repository_url": "https://github.com/penmadebykisss/ru-payroll-mcp",
+  "homepage_url": null,
+  "license": "MIT",
+  "keywords": [
+    "accounting",
+    "ai-agent",
+    "hr",
+    "mcp",
+    "model-context-protocol",
+    "ndfl",
+    "payroll",
+    "russia",
+    "salary"
+  ],
+  "aliases": [
+    "ru-payroll-mcp"
+  ],
+  "sources_merged": [
+    "github",
+    "github_ast",
+    "npm_registry"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.0.0",
+      "toolset_canonical_hash": "sha256:f50c8e6174db5a697575a9dce7f2af599a2743aa0ad1bbe526300ca8fa8cd9e6",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "ndfl_calc",
+          "canonical_hash": "sha256:d11f7a125d3fca8008f81483b8b95122782e1508d5001d772eabf585c4e79482",
+          "description": "НДФЛ резидента с дохода от работы по шкале 2025–2026 годов: 13 % до 2,4 млн, 15 % до 5 млн, 18 % до 20 млн, 20 % до 50 млн, 22 % сверх (в год). ",
+          "is_mutating": false,
+          "property_keys": [
+            "income",
+            "income_before"
+          ],
+          "required_keys": [
+            "income"
+          ],
+          "parameter_types": {
+            "income": "number",
+            "income_before": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "income": {
+                "type": "number",
+                "description": "Доход, ₽: годовой или сумма одной выплаты, если задан income_before"
+              },
+              "income_before": {
+                "type": "number",
+                "description": "Доход с начала года до этой выплаты, ₽ — тогда считается налог только с income"
+              }
+            },
+            "required": [
+              "income"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:33ace776b51c97aad71c252e9a220f3f888b0d40f870ed22a0bdbafa12ace86c",
+          "parameters": [
+            {
+              "name": "income",
+              "type": "number",
+              "description": "Доход, ₽: годовой или сумма одной выплаты, если задан income_before",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "income_before",
+              "type": "number",
+              "description": "Доход с начала года до этой выплаты, ₽ — тогда считается налог только с income",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "payroll_params",
+          "canonical_hash": "sha256:dc8f105c137affc1bbd44cf7ef87dc6db2a75e59dcdf9122349d4fe4e07e35b8",
+          "description": "Справочные параметры для зарплаты за 2025 или 2026 год: МРОТ, предельная база страховых взносов, 1,5 МРОТ для льготы МСП, ",
+          "is_mutating": false,
+          "property_keys": [
+            "year"
+          ],
+          "required_keys": [
+            "year"
+          ],
+          "parameter_types": {
+            "year": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "year"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:224244a73a01e5dff1e16c07bb9d84c8fde319fe056d42163141201d26081c4e",
+          "parameters": [
+            {
+              "name": "year",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "salary_calc",
+          "canonical_hash": "sha256:b33a6da73a008a7df43b5681f71e643fbdc0addcf7e63b5436c0164212c40ce1",
+          "description": "Считает по окладу (зарплате до вычета налога) помесячно за год: НДФЛ по прогрессивной шкале 13–22 % нарастающим итогом, сумму на руки, ",
+          "is_mutating": false,
+          "property_keys": [
+            "accident_pct",
+            "bonus",
+            "bonus_month",
+            "gross",
+            "months",
+            "tariff",
+            "year"
+          ],
+          "required_keys": [
+            "accident_pct",
+            "gross",
+            "tariff",
+            "year"
+          ],
+          "parameter_types": {
+            "gross": "number",
+            "year": "string",
+            "tariff": "string",
+            "accident_pct": "string",
+            "months": "number",
+            "bonus": "number",
+            "bonus_month": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "gross": {
+                "type": "number",
+                "description": "Начисленная зарплата в месяц до НДФЛ, ₽ (оклад плюс постоянные надбавки)"
+              },
+              "year": {
+                "type": "string"
+              },
+              "tariff": {
+                "type": "string"
+              },
+              "accident_pct": {
+                "type": "string"
+              },
+              "months": {
+                "type": "number",
+                "description": "Сколько месяцев считать с января",
+                "default": 12
+              },
+              "bonus": {
+                "type": "number",
+                "description": "Разовая премия, ₽"
+              },
+              "bonus_month": {
+                "type": "number",
+                "description": "Месяц выплаты премии 1–12 (по умолчанию декабрь)"
+              }
+            },
+            "required": [
+              "accident_pct",
+              "gross",
+              "tariff",
+              "year"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:243f66380dc4c2ea204bdf8a04ee5fd234d51fa5278b8a578605bb44cb9761a9",
+          "parameters": [
+            {
+              "name": "accident_pct",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "bonus",
+              "type": "number",
+              "description": "Разовая премия, ₽",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "bonus_month",
+              "type": "number",
+              "description": "Месяц выплаты премии 1–12 (по умолчанию декабрь)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "gross",
+              "type": "number",
+              "description": "Начисленная зарплата в месяц до НДФЛ, ₽ (оклад плюс постоянные надбавки)",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "months",
+              "type": "number",
+              "description": "Сколько месяцев считать с января",
+              "required": false,
+              "default": 12,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "tariff",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "year",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "salary_from_net",
+          "canonical_hash": "sha256:cb18eaf474131ea478e4f8c826d5f155fe1c630d0e3e5ea917dea34a572d9f87",
+          "description": "Находит, какую зарплату начислять, чтобы сотрудник получил на руки нужную сумму, с учётом прогрессивного НДФЛ ",
+          "is_mutating": false,
+          "property_keys": [
+            "accident_pct",
+            "income_before",
+            "net",
+            "tariff",
+            "year"
+          ],
+          "required_keys": [
+            "accident_pct",
+            "net",
+            "tariff",
+            "year"
+          ],
+          "parameter_types": {
+            "net": "number",
+            "income_before": "number",
+            "year": "string",
+            "tariff": "string",
+            "accident_pct": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "net": {
+                "type": "number",
+                "description": "Нужная сумма на руки за месяц, ₽"
+              },
+              "income_before": {
+                "type": "number",
+                "description": "Доход сотрудника у этого работодателя с начала года до этого месяца, ₽",
+                "default": 0
+              },
+              "year": {
+                "type": "string"
+              },
+              "tariff": {
+                "type": "string"
+              },
+              "accident_pct": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "accident_pct",
+              "net",
+              "tariff",
+              "year"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e7fb2a2ef3d9a35f7eb371144fafd986f140166844ff6a979acf825adfa3fde3",
+          "parameters": [
+            {
+              "name": "accident_pct",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "income_before",
+              "type": "number",
+              "description": "Доход сотрудника у этого работодателя с начала года до этого месяца, ₽",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "net",
+              "type": "number",
+              "description": "Нужная сумма на руки за месяц, ₽",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "tariff",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "year",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "sick_leave_pay",
+          "canonical_hash": "sha256:8728eed9586f8a73de21e7e7a03b46d7cd6c6fc2fb2b110931db944e5dfcec6d",
+          "description": "Пособие по временной нетрудоспособности (255-ФЗ): заработок за два предыдущих года (каждый ограничен предельной базой) / 730, но не ниже МРОТ × 24 / 730; ",
+          "is_mutating": false,
+          "property_keys": [
+            "days",
+            "earnings_prev1",
+            "earnings_prev2",
+            "insurance_years",
+            "part_time_ratio",
+            "year"
+          ],
+          "required_keys": [
+            "days",
+            "earnings_prev1",
+            "earnings_prev2",
+            "insurance_years",
+            "year"
+          ],
+          "parameter_types": {
+            "year": "string",
+            "earnings_prev1": "number",
+            "earnings_prev2": "number",
+            "days": "number",
+            "insurance_years": "number",
+            "part_time_ratio": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "year": {
+                "type": "string"
+              },
+              "earnings_prev1": {
+                "type": "number",
+                "description": "Заработок за прошлый год, ₽ (для больничного в 2026 — за 2025)"
+              },
+              "earnings_prev2": {
+                "type": "number",
+                "description": "Заработок за позапрошлый год, ₽ (для 2026 — за 2024)"
+              },
+              "days": {
+                "type": "number",
+                "description": "Календарные дни болезни"
+              },
+              "insurance_years": {
+                "type": "number",
+                "description": "Страховой стаж в годах, например 6.5"
+              },
+              "part_time_ratio": {
+                "type": "number",
+                "description": "Доля ставки при неполном времени (для минимального пособия)",
+                "default": 1
+              }
+            },
+            "required": [
+              "days",
+              "earnings_prev1",
+              "earnings_prev2",
+              "insurance_years",
+              "year"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:177eb522daafd4a730877ddc4539681bd86c9630ece2a679f7d5bc5f8fc58fb6",
+          "parameters": [
+            {
+              "name": "days",
+              "type": "number",
+              "description": "Календарные дни болезни",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "earnings_prev1",
+              "type": "number",
+              "description": "Заработок за прошлый год, ₽ (для больничного в 2026 — за 2025)",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "earnings_prev2",
+              "type": "number",
+              "description": "Заработок за позапрошлый год, ₽ (для 2026 — за 2024)",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "insurance_years",
+              "type": "number",
+              "description": "Страховой стаж в годах, например 6.5",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "part_time_ratio",
+              "type": "number",
+              "description": "Доля ставки при неполном времени (для минимального пособия)",
+              "required": false,
+              "default": 1,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "year",
+              "type": "string",
+              "description": null,
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "unused_vacation_compensation",
+          "canonical_hash": "sha256:65fcfa34a099e5fe137bfa34bde8b290abb9d680ba9ca968cbd23f736aa0c1aa",
+          "description": "Компенсация при увольнении: сколько дней отпуска положено (28 дней в год пропорционально отработанным месяцам, с округлением месяцев по правилу «больше половины — целый»), ",
+          "is_mutating": false,
+          "property_keys": [
+            "annual_days",
+            "days",
+            "used_days",
+            "worked_months"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "days": "number",
+            "worked_months": "number",
+            "annual_days": "number",
+            "used_days": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "number",
+                "description": "Неиспользованные дни, если известны; иначе считаются из worked_months"
+              },
+              "worked_months": {
+                "type": "number",
+                "description": "Отработано месяцев в текущем рабочем году (для расчёта дней)"
+              },
+              "annual_days": {
+                "type": "number",
+                "description": "Положено дней отпуска в год",
+                "default": 28
+              },
+              "used_days": {
+                "type": "number",
+                "description": "Уже использовано дней в этом рабочем году",
+                "default": 0
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:596c975be8f94381e8565037672a0c21ff8e87574a4720b74e7f5ded9cf88418",
+          "parameters": [
+            {
+              "name": "annual_days",
+              "type": "number",
+              "description": "Положено дней отпуска в год",
+              "required": false,
+              "default": 28,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "days",
+              "type": "number",
+              "description": "Неиспользованные дни, если известны; иначе считаются из worked_months",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "used_days",
+              "type": "number",
+              "description": "Уже использовано дней в этом рабочем году",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "worked_months",
+              "type": "number",
+              "description": "Отработано месяцев в текущем рабочем году (для расчёта дней)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "vacation_pay",
+          "canonical_hash": "sha256:e5f8427ddf69b7328f81c2e1c99f9bcef39d2fb270cc700772450617b1737013",
+          "description": "Отпускные по ст. 139 ТК и Положению № 922: средний дневной заработок = заработок за 12 месяцев / (29,3 × полные месяцы + дни неполных месяцев), ",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8c927b7ae19cb9555b3618840a1414f27ab31d7f0cbe97169c4184c9103f813a",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}
