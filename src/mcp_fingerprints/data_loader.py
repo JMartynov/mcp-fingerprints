@@ -29,13 +29,15 @@ def get_passports_path(download_if_missing: bool = True) -> Path:
     Tier 3: On-demand download from GitHub repository CDN.
     """
     # 1. Local workspace / checkout
-    repo_gz = Path(SNAPSHOT_FILENAME)
-    if repo_gz.is_file():
-        return repo_gz.resolve()
-
-    data_dir = Path("data/fingerprints")
-    if data_dir.is_dir():
-        return data_dir.resolve()
+    candidates = [
+        Path(SNAPSHOT_FILENAME),
+        Path("data") / SNAPSHOT_FILENAME,
+        Path("data/passports.json"),
+        Path("data/fingerprints"),
+    ]
+    for cand in candidates:
+        if cand.exists():
+            return cand.resolve()
 
     # 2. User cache directory
     cached_gz = CACHE_DIR / SNAPSHOT_FILENAME
