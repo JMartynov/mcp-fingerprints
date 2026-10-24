@@ -165,7 +165,7 @@ def compare_passports_for_drift(
                 new_hash = new_v.get("toolset_canonical_hash")
 
                 # Canonical hash drift check
-                empty_hash = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                empty_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
                 if old_hash and new_hash and old_hash != new_hash:
                     # Ignore harmless transitions from empty hash to populated hash during initial enrichment
                     if old_hash != empty_hash:
