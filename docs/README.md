@@ -96,6 +96,16 @@ python3 -m pytest tests/ -v
 
 ---
 
+## 🚀 Strategic Ecosystem Blueprints & Implementation Tasks (Tasks 63–66)
+
+*   [**`IMPLEMENTATION_PLAN_ECOSYSTEM_BLUEPRINTS.md`**](tasks/IMPLEMENTATION_PLAN_ECOSYSTEM_BLUEPRINTS.md) — **Master Architectural & Phased Implementation Plan (Waves 4–6 & Action 5)**
+*   [**`task_63_sidecar_policy_generator_opa_envoy.md`**](tasks/task_63_sidecar_policy_generator_opa_envoy.md) — **Task 63: Sidecar Policy Generator (`mcp-fingerprints export-policy` for OPA Rego v1 & Envoy filters)**
+*   [**`task_64_schema_driven_protocol_fuzzer.md`**](tasks/task_64_schema_driven_protocol_fuzzer.md) — **Task 64: Schema-Driven Active Protocol Fuzzer (`mcp-fingerprints fuzz`)**
+*   [**`task_65_cyclonedx_sbom_export_and_sigstore_attestation.md`**](tasks/task_65_cyclonedx_sbom_export_and_sigstore_attestation.md) — **Task 65: CycloneDX 1.6 AI-Tool SBOM Export & Sigstore Keyless Attestation (`mcp-fingerprints export-sbom`)**
+*   [**`task_66_turnkey_docker_sandboxed_installer.md`**](tasks/task_66_turnkey_docker_sandboxed_installer.md) — **Task 66: Turnkey Docker-Sandboxed Server Installer (`mcp-fingerprints install`)**
+
+---
+
 ## 🔍 Empirical Ecosystem Research Audits
 
 The `docs/research/` directory hosts empirical data and findings from an extensive research audit of **1,000 real-world MCP servers** across 5 distinct ecosystem groups:
