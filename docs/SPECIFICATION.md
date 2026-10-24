@@ -393,3 +393,13 @@ This mathematical structure guarantees that:
    - Generates deterministic structural manifests and tracks schema evolution across releases.
 4. **Tool Integrity & Prompt Tamper Detection**:
    - Detects tool description alterations and schema modifications by comparing `canonical_hash` and `description_hash` against historical baselines.
+
+---
+
+## 8. Invariant Verification & Ecosystem Audit
+
+The formal invariants of this specification are validated across the automated test suite and documented in the technical reports:
+* [**Cumulative Master Report: Workflow Invariants, Architecture & Code Audit**](reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md): 400 test cases verifying canonical hash determinism, pure structural domain isolation, cache coherency, and protocol containment.
+* [**Cumulative Master Report: Ecosystem Benchmark & Strategic Gap Analysis**](reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md): Comparative benchmark against 14+ industry ecosystems and 4 architectural blueprints.
+* [**Documentation Hub & Technical Reports Index**](README.md): Comprehensive navigation hub for all specifications, task reports, and empirical research audits.
+* [**Automated Invariant Verification Suites**](../tests/): Live test fixtures enforcing the 5 core invariant pillars (`tests/test_live_*.py`).

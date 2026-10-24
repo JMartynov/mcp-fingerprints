@@ -4,8 +4,11 @@
 [![Passports Count](https://img.shields.io/badge/passports-5058+-blue.svg)](data/fingerprints)
 [![Tools Provided](https://img.shields.io/badge/with_tools-710-green.svg)](data/fingerprints)
 [![Tombstoned Servers](https://img.shields.io/badge/tombstoned-150-inactive.svg)](data/fingerprints)
-[![Test Suite](https://img.shields.io/badge/tests-252_passing-brightgreen.svg)](tests/)
+[![Test Suite](https://img.shields.io/badge/tests-400_passing-brightgreen.svg)](tests/)
+[![Invariant Suite](https://img.shields.io/badge/invariants-5_pillars_verified-blue.svg)](docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md)
+[![Ecosystem Audit](https://img.shields.io/badge/ecosystem_audit-14+_benchmarked-purple.svg)](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Docs Hub](https://img.shields.io/badge/Docs-Architecture_&_Reports-orange.svg)](docs/README.md)
 [![Web Directory](https://img.shields.io/badge/Web_Directory-Live_Catalog-38bdf8?style=flat-square&logo=googlechrome)](https://jmartynov.github.io/mcp-fingerprints/)
 [![What's New](https://img.shields.io/badge/What's_New-Latest_Sync_Updates-22c55e?style=flat-square&logo=git)](https://jmartynov.github.io/mcp-fingerprints/updates.html)
 
@@ -21,7 +24,9 @@ An open-source, automated database and knowledge base of **Model Context Protoco
 
 ## Key Features
 - **5,446+ Indexed Passports**: Cross-indexed across npm, PyPI, Crates.io, Maven Central, Docker Hub, and GitHub polyglot registries.
+- **Automated Invariant Verification Suite (400 Passing Tests)**: 5 core invariant pillars verified across subprocess sandboxing, JSON-RPC protocol conformance, canonical SHA-256 order-invariance, tri-layer metric boundaries, lossless configuration patching, supply-chain drift detection, and polyglot AST/OpenAPI parsing ([`docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md`](docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md)).
 - **Empirical Ecosystem Research Audit**: Comprehensive empirical audit of 1,000 real MCP servers across 5 representative groups (Rust, Go, JVM/.NET, Regional/International, Monorepos/Containers) cataloging systemic blind spots and remedies ([`docs/research/master_mcp_ecosystem_audit_report.md`](docs/research/master_mcp_ecosystem_audit_report.md)).
+- **Industry Benchmark & Strategic Gap Analysis**: Exhaustive comparative evaluation against 14+ commercial ecosystems across runtime proxies, registries, fuzzers, guardrails, and Sigstore/CycloneDX supply-chain attestations with four actionable strategic blueprints ([`docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md)).
 - **Full Polyglot & Macro Ingestion Engines**: First-class support for Rust `rmcp` macros (`#[tool(...)] async fn`), Go `mark3labs/mcp-go` builder patterns, Spring AI `@Tool`, C# .NET `[McpServerTool]`, standalone PEP 723 `uvx` scripts, and CJK multilingual Unicode preservation.
 - **Interactive Command Hub (`mcp-fingerprints interactive`)**: Emoji-decorated ergonomic TUI for workstation scanning, ready database search, unknown MCP auto-addition, and 1-click baseline diffing.
 - **Cross-Platform Multi-Agent Discovery**: Out-of-the-box discovery and inventory across 14+ AI coding agents (Claude Code, Desktop, Cursor, Windsurf, Zed, Cline, Roo, Goose, Continue, Junie, Copilot, Antigravity, OpenHands) across macOS, Linux, and Windows.
@@ -260,6 +265,140 @@ MCP Fingerprints extracts rich parameter schemas and runtime protocol hints dire
   - `openWorldHint`: Tool interacts with external/unconstrained network services.
 * **Transport Specifications**: Captures supported transports (`stdio`, `sse`, `streamable-http`, `websocket`) and required environment variables.
 
+---
+
+## 🛡️ Automated Invariant Verification Suite (400 Passing Tests)
+
+`mcp-fingerprints` enforces rigorous mathematical and security guarantees across all subsystems. The automated verification suite encompasses **400 passing tests** organized into **five core invariant pillars**, ensuring zero regression, strict protocol adherence, and robust subprocess isolation.
+
+```mermaid
+flowchart TD
+    subgraph Suite["Automated Invariant Verification Suite (400 Passing Tests)"]
+        direction TB
+        P1["Pillar 1: Subprocess Sandboxing & JSON-RPC Protocol\ntests/test_live_cli_sandbox_invariants.py"]
+        P2["Pillar 2: Canonicalizer, Domain Isolation & Snapshots\ntests/test_live_canonicalizer_snapshot_invariants.py"]
+        P3["Pillar 3: Tri-Layer Matcher, Metrics & Fast Index\ntests/test_live_matcher_search_invariants.py"]
+        P4["Pillar 4: Config Scanner, Lossless Exporters & Drift\ntests/test_live_config_scanner_tamper_drift.py"]
+        P5["Pillar 5: Polyglot AST Extractors & Spec Parsers\ntests/test_live_ast_openapi_zero_tool_parsers.py"]
+    end
+
+    P1 -->|Clean Subprocess Spawning| P4
+    P5 -->|Deterministic Tool Contract Extraction| P2
+    P2 -->|Order-Invariant SHA-256| P3
+    P4 -->|Baseline Diffs & Drift Alerts| P3
+```
+
+### The 5 Invariant Pillars
+
+#### 1. Subprocess Sandboxing & JSON-RPC Protocol Invariants
+* **Test Suite**: [`tests/test_live_cli_sandbox_invariants.py`](tests/test_live_cli_sandbox_invariants.py)
+* **Technical Report**: [`docs/reports/task1_cli_sandbox_protocol_report.md`](docs/reports/task1_cli_sandbox_protocol_report.md)
+* **Enforced Invariants**:
+  - **Child Credential Sanitization**: Subprocess execution environments are rigorously purged of sensitive credentials (`AWS_*`, `OPENAI_*`, `GITHUB_*`, `SSH_AUTH_SOCK`, `*_KEY`, `*_SECRET`) while preserving critical system paths (`PATH`, `HOME`, `LANG`).
+  - **Execution Timeout & Process Tree Reaping**: Subprocesses that hang or exceed timeout thresholds ($\le 5.0\text{s}$) are reaped cleanly via `SIGTERM` with automatic escalation to `SIGKILL`, preventing orphaned background processes and zombie leaks.
+  - **JSON-RPC 2.0 Conformance**: Strict validation of `jsonrpc: "2.0"` envelope fields, request/response ID reflection, and RFC-compliant error payloads (requiring integer `code` and string `message`).
+  - **MCP Handshake Sequencing**: Strict state machine ordering (`initialize` $\rightarrow$ `notifications/initialized` $\rightarrow$ operational commands); out-of-order sequences trigger immediate protocol violations.
+
+#### 2. Canonicalizer, Domain Isolation & Snapshot Invariants
+* **Test Suite**: [`tests/test_live_canonicalizer_snapshot_invariants.py`](tests/test_live_canonicalizer_snapshot_invariants.py)
+* **Technical Report**: [`docs/reports/task2_canonicalizer_snapshot_invariants_report.md`](docs/reports/task2_canonicalizer_snapshot_invariants_report.md)
+* **Enforced Invariants**:
+  - **Order-Independent & Whitespace-Invariant SHA-256**: Canonical digests (`canonical_hash`, `toolset_canonical_hash`) generate identical cryptographic hashes across 500 random property permutations, dictionary key reorderings, and whitespace mutations.
+  - **Pure Structural Domain Isolation**: Core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`, `ToolContractSignature`) strictly reject and strip external vulnerability/risk fields (`vulnerabilities`, `cve`, `security_profile`), preserving clean architectural separation.
+  - **Two-Tier Cache Coherency**: Filesystem `mtime` validation cascades to Tier 2 SHA-256 payload digest verification upon timestamp drift, ensuring zero cache corruption.
+  - **Ephemeral DB Resilience**: Ephemeral query engine automatically falls back from DuckDB to SQLite or dictionary scanning without unhandled exceptions.
+  - **Deterministic Snapshot Compilation**: Validates `passports.json.gz` byte-level RFC 1952 gzip compression and strict JSON serialization.
+
+#### 3. Tri-Layer Matcher, Distance Metrics & Fast Index Invariants
+* **Test Suite**: [`tests/test_live_matcher_search_invariants.py`](tests/test_live_matcher_search_invariants.py)
+* **Technical Report**: [`docs/reports/task3_matcher_search_invariants_report.md`](docs/reports/task3_matcher_search_invariants_report.md)
+* **Enforced Invariants**:
+  - **Layer 1 Exact Cryptographic Matching**: $O(1)$ lookup matching runtime toolset hashes directly against passport catalogs with confidence 1.0 in $< 0.05\text{ms}$.
+  - **Layer 2 Topological Jaccard Metric Bounds**: Set-theoretic distance metrics strictly bounded in $[0.0, 1.0]$ across property keys, required parameters, and types with adaptive matching thresholds ($> 0.65$).
+  - **Layer 3 Composite Capability Matching**: Weighted capability scoring formula ($0.7 \cdot \text{Topology} + 0.3 \cdot \text{Capabilities}$) gracefully handling missing or partial capability sets.
+  - **Graceful Semantic Search Fallback**: Seamless, transparent fallback from vector embeddings to lexical BM25 token matching when `fastembed` is absent or uninitialized.
+  - **Scalable In-Memory Index**: In-memory multi-index scales to 2,000+ packages with sub-millisecond query latency ($< 1.8\text{ms}$) and zero collision states.
+
+#### 4. Config Scanner, Lossless Exporters & Supply-Chain Drift Invariants
+* **Test Suite**: [`tests/test_live_config_scanner_tamper_drift.py`](tests/test_live_config_scanner_tamper_drift.py)
+* **Technical Report**: [`docs/reports/task4_config_scanner_tamper_drift_report.md`](docs/reports/task4_config_scanner_tamper_drift_report.md)
+* **Enforced Invariants**:
+  - **Multi-Client Discovery**: Automatic path and syntax discovery across 8+ AI clients (Claude Desktop, Cursor, Zed, Cline, Roo, Antigravity, OpenHands, Windsurf).
+  - **Lossless In-Place JSONC Modification**: Configuration injection preserves user comments (`// comment`), indentation, and structural formatting verbatim.
+  - **Supply-Chain Tamper Detection Escalation**: Altered tool hashes on identical versions escalate to CRITICAL `hash_tamper`; unversioned tool additions escalate to HIGH `tool_added`.
+  - **Empty-Hash Transition Exemption (MED-01)**: Initial passport creation transitions from empty state (`e3b0c44...` or `sha256:e3b0c44...`) are cleanly exempted from tampering alerts.
+  - **Workstation Baseline Diffing**: Symmetric set differencing accurately categorizes added, removed, and modified tools across workstation snapshots.
+
+#### 5. Polyglot AST Extractors, OpenAPI & Zero-Tool Parsers
+* **Test Suite**: [`tests/test_live_ast_openapi_zero_tool_parsers.py`](tests/test_live_ast_openapi_zero_tool_parsers.py)
+* **Technical Report**: [`docs/reports/task5_ast_openapi_zero_tool_report.md`](docs/reports/task5_ast_openapi_zero_tool_report.md)
+* **Enforced Invariants**:
+  - **Polyglot AST Extraction**: First-class static AST extraction for Python FastMCP (`@mcp.tool()`), TypeScript Zod (`CallToolRequestSchema`), Go (`mark3labs/mcp-go`), Rust (`rmcp` macros), JVM Spring AI (`@Tool`), and C# .NET (`[McpServerTool]`).
+  - **OpenAPI v3 Endpoint Conversion**: Deterministic mapping of OpenAPI 3.0/3.1 `paths` and `operationId` into valid MCP tool contracts with input schema typing.
+  - **Markdown Documentation Extraction**: Fallback parameter and signature extraction from Markdown README tables and fenced code blocks.
+  - **I18N Unicode Sanitization**: Preserves international multilingual UTF-8 characters (CJK, Cyrillic, accented latin, emojis) while strictly stripping ASCII control bytes (`0x00-0x1F`, `0x7F`).
+
+### Running the Invariant Verification Suites
+
+```bash
+# Execute all 5 live invariant test suites
+python3 -m pytest tests/test_live_cli_sandbox_invariants.py \
+                 tests/test_live_canonicalizer_snapshot_invariants.py \
+                 tests/test_live_matcher_search_invariants.py \
+                 tests/test_live_config_scanner_tamper_drift.py \
+                 tests/test_live_ast_openapi_zero_tool_parsers.py -v
+
+# Run the complete test suite (400 passing tests)
+python3 -m pytest tests/ -v
+```
+
+---
+
+## 🔬 Codebase Audit & Ecosystem Gap Analysis
+
+An exhaustive audit of the `mcp-fingerprints` codebase and a comparative benchmark across the wider Model Context Protocol and AI security landscape are documented in the [`docs/reports/`](docs/reports/) directory.
+
+### Cumulative Master Reports
+
+* [**`WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md`**](docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md): Comprehensive 43-module architectural map, verification matrix of all 5 invariant pillars, and unified technical findings ledger detailing code remediations and quality guarantees.
+* [**`ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`**](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md): In-depth comparative feature matrix benchmarking `mcp-fingerprints` against 14+ industry ecosystems (runtime proxies, commercial registries, automated fuzzers, AI guardrails, and cryptographic attestations).
+
+### Discrete Technical Reports (Tasks 1–9)
+
+| Task | Domain Area | Technical Report Link | Key Deliverables & Insights |
+|:---|:---|:---|:---|
+| **Task 1** | CLI Subprocess Sandbox & Protocol | [`task1_cli_sandbox_protocol_report.md`](docs/reports/task1_cli_sandbox_protocol_report.md) | Subprocess execution containment, credential sanitization, timeout reaping, and JSON-RPC 2.0 handshake validation. |
+| **Task 2** | Canonicalizer & Snapshot Invariants | [`task2_canonicalizer_snapshot_invariants_report.md`](docs/reports/task2_canonicalizer_snapshot_invariants_report.md) | Order-invariant SHA-256 hashing across 500 permutations, pure structural domain isolation, and two-tier cache coherency. |
+| **Task 3** | Tri-Layer Matcher & Fast Index | [`task3_matcher_search_invariants_report.md`](docs/reports/task3_matcher_search_invariants_report.md) | Layer 1 exact cryptographic lookup, Layer 2 topological Jaccard metrics, Layer 3 composite scoring, and fast index scalability. |
+| **Task 4** | Config Scanner & Drift Detection | [`task4_config_scanner_tamper_drift_report.md`](docs/reports/task4_config_scanner_tamper_drift_report.md) | Multi-client workstation configuration discovery across 8+ agents, lossless JSONC modification, and supply-chain drift alerts. |
+| **Task 5** | Polyglot AST & Zero-Tool Parsers | [`task5_ast_openapi_zero_tool_report.md`](docs/reports/task5_ast_openapi_zero_tool_report.md) | Static AST parameter extraction across 6 languages, OpenAPI v3 endpoint conversion, and CJK Unicode sanitization. |
+| **Task 6** | Runtime Proxies & Policy Engines | [`task6_runtime_proxies_policy_engines_report.md`](docs/reports/task6_runtime_proxies_policy_engines_report.md) | Comparative analysis of Invariant Labs, Lakera Guard, Cisco, and Cloudflare. Delineates offline static identity vs. runtime payload proxying. |
+| **Task 7** | Registries, Hosting & CLI Ergonomics | [`task7_registries_hosting_cli_report.md`](docs/reports/task7_registries_hosting_cli_report.md) | Evaluation of Smithery.ai, Docker MCP Catalog, and PulseMCP. Blueprints 1-click installation mechanics and containerized execution. |
+| **Task 8** | Fuzzing & Security Guardrails | [`task8_fuzzing_guardrails_benchmark_report.md`](docs/reports/task8_fuzzing_guardrails_benchmark_report.md) | Benchmark against Protect AI Guardian, Verity, Garak, and Mindgard. Designs schema-driven fuzzer architecture (`mcp-fuzz`). |
+| **Task 9** | SBOM, Attestation & Supply Chain | [`task9_sbom_attestation_supply_chain_report.md`](docs/reports/task9_sbom_attestation_supply_chain_report.md) | Evaluation of Sigstore Cosign, CycloneDX/SPDX, and SLSA Level 3. Details keyless OIDC passport signing and Rekor transparency logs. |
+
+### Technical Audit Findings & Remediations
+
+*   **Finding MED-01 (Remediated): Empty SHA-256 Format in Drift Detector**  
+    *Root Cause*: `src/mcp_fingerprints/drift_detector.py` previously expected the empty-state hash to contain a `sha256:` prefix, whereas canonicalizer records store raw 64-character hexadecimal digests (`e3b0c44...`). This caused initial passport creation to emit false-positive tampering warnings.  
+    *Remedy*: Added dual support for raw hex and prefixed formats (`is_empty_hash`), verified in `tests/test_live_config_scanner_tamper_drift.py`.
+*   **Finding MED-02 (Remediated): Floating-Point Metric Bounding**  
+    *Root Cause*: Jaccard similarity and capability scores could produce floating-point edge representations (e.g. `0.9999999999999999`).  
+    *Remedy*: Explicit mathematical clamping ($0.0 \le S \le 1.0$) and delta tolerance assertions in `src/mcp_fingerprints/distance.py`.
+*   **Structural Domain Isolation Guarantee**: Verified that all core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`) strictly isolate structural metadata, discarding transient vulnerability flags to preserve clean architectural boundaries.
+
+### Four Strategic Architectural Blueprints
+
+From the ecosystem gap analysis, four concrete architectural blueprints are formulated in [`ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md):
+1.  **Sidecar Policy Generator**: Translating static AST parameter schemas and protocol hints (`readOnlyHint`, `destructiveHint`) into Open Policy Agent (OPA) / Rego rules for runtime proxies.
+2.  **Schema-Driven Fuzzer (`mcp-fuzz`)**: Generating adversarial boundary payloads derived directly from extracted JSON Schema types and bounds to probe live MCP endpoints for prompt injection and buffer handling.
+3.  **Sigstore OIDC Attestation**: Cryptographically signing passport releases via GitHub Actions OIDC tokens and publishing signed attestations to the public Rekor transparency log.
+4.  **CLI Registry & Sandbox Connectors**: Providing ergonomic 1-click installation commands (`mcp-fingerprints install <server>`) and containerized sandboxed runtime runners.
+
+For complete documentation, index, and report details, see the [**Documentation Hub**](docs/README.md) and [**Reports Catalog**](docs/reports/README.md).
+
+---
+
 ## Fast Consumption
 
 You can fetch the latest consolidated database in a single GET request:
@@ -307,6 +446,9 @@ python -m mcp_fingerprints.cli probe <server_command>
 
 # Validate schema invariants
 python -m mcp_fingerprints.cli validate --dir data/fingerprints
+
+# Run automated invariant verification test suites (5 pillars, 400 passing tests)
+pytest tests/test_live_cli_sandbox_invariants.py tests/test_live_canonicalizer_snapshot_invariants.py tests/test_live_matcher_search_invariants.py tests/test_live_config_scanner_tamper_drift.py tests/test_live_ast_openapi_zero_tool_parsers.py
 
 # Build compressed snapshot
 python -m mcp_fingerprints.cli snapshot
