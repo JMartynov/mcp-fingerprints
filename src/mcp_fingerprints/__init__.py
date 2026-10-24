@@ -27,6 +27,7 @@ from mcp_fingerprints.models import (
 )
 from mcp_fingerprints.snapshot_diff import compare_snapshots, InventorySnapshot
 from mcp_fingerprints.sanitizer import sanitize_unicode_text, sanitize_metadata, sanitize_tool_definition
+from mcp_fingerprints.data_loader import get_passports_path, load_passports
 
 
 __version__ = "1.0.17"
@@ -35,18 +36,22 @@ from mcp_fingerprints.prober import McpProber, ProbeReport
 
 class McpIdentifier:
     """Top-level unified MCP identifier for stdio and HTTP."""
-    def __init__(self, passports_dir: str | None = None):
+    def __init__(self, passports_dir: str | Path | None = None):
         from mcp_fingerprints.matcher import FingerprintMatcher
         from pathlib import Path
         
         self.matcher = FingerprintMatcher()
         if passports_dir:
-            self.matcher.load_from_directory(Path(passports_dir))
+            p = Path(passports_dir)
+            if p.is_dir():
+                self.matcher.load_from_directory(p)
+            else:
+                self.matcher.load_from_snapshot(p)
         else:
-            # Try default if exists
-            default_dir = Path("data/fingerprints")
-            if default_dir.exists():
-                self.matcher.load_from_directory(default_dir)
+            try:
+                self.matcher.load_default(download_if_missing=False)
+            except Exception:
+                pass
         self.prober = McpProber(self.matcher)
 
 def identify_stdio(command: list[str], timeout: float = 10.0, passports_dir: str | None = None, **kwargs) -> ProbeReport:
@@ -99,4 +104,6 @@ __all__ = [
     "sanitize_unicode_text",
     "sanitize_metadata",
     "sanitize_tool_definition",
+    "get_passports_path",
+    "load_passports",
 ]

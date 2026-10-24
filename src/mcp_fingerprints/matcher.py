@@ -58,6 +58,18 @@ class FingerprintMatcher:
         """Load and index all JSON fingerprint files using fast binary cache."""
         return self.fast_index.load_from_directory(directory, use_cache=use_cache)
 
+    def load_from_snapshot(self, snapshot_path: str | Path) -> int:
+        """Load and index all passports from a compiled JSON or GZ snapshot."""
+        return self.fast_index.load_from_snapshot(snapshot_path)
+
+    def load_default(self, download_if_missing: bool = True) -> int:
+        """Load passports via multi-tier fallback (local repo -> user cache -> CDN)."""
+        from mcp_fingerprints.data_loader import get_passports_path
+        target = get_passports_path(download_if_missing=download_if_missing)
+        if target.is_dir():
+            return self.load_from_directory(target)
+        return self.load_from_snapshot(target)
+
     def match(
         self,
         tools: list[dict[str, Any]],

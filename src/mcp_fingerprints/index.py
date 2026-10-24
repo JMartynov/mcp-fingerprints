@@ -143,6 +143,32 @@ class FingerprintFastIndex:
         )
         return count
 
+    def load_from_snapshot(self, snapshot_path: str | Path) -> int:
+        """Load and index all passports directly from a compiled JSON or GZ snapshot."""
+        path = Path(snapshot_path)
+        if not path.is_file():
+            return 0
+        import gzip
+        open_fn = gzip.open if path.name.endswith(".gz") else open
+        count = 0
+        with open_fn(path, "rt", encoding="utf-8") as f:
+            data = json.load(f)
+            if isinstance(data, dict):
+                pkg_dict = data.get("passports", data)
+                if isinstance(pkg_dict, dict):
+                    for pkg_data in pkg_dict.values():
+                        if isinstance(pkg_data, dict) and "package_name" in pkg_data:
+                            spec = ServerPackageSpec.from_dict(pkg_data)
+                            self.register_package(spec)
+                            count += 1
+                elif isinstance(pkg_dict, list):
+                    for pkg_data in pkg_dict:
+                        if isinstance(pkg_data, dict) and "package_name" in pkg_data:
+                            spec = ServerPackageSpec.from_dict(pkg_data)
+                            self.register_package(spec)
+                            count += 1
+        return count
+
     def get_candidate_packages_for_tools(self, tool_names: list[str]) -> set[str]:
         """O(1) inverted lookup returning package names sharing observed tool names."""
         candidates: set[str] = set()
