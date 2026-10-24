@@ -304,7 +304,7 @@ flowchart TD
 * **Technical Report**: [`docs/reports/task2_canonicalizer_snapshot_invariants_report.md`](docs/reports/task2_canonicalizer_snapshot_invariants_report.md)
 * **Enforced Invariants**:
   - **Order-Independent & Whitespace-Invariant SHA-256**: Canonical digests (`canonical_hash`, `toolset_canonical_hash`) generate identical cryptographic hashes across 500 random property permutations, dictionary key reorderings, and whitespace mutations.
-  - **Pure Structural Domain Isolation**: Core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`, `ToolContractSignature`) strictly reject and strip external vulnerability/risk fields (`vulnerabilities`, `cve`, `security_profile`), preserving clean architectural separation.
+  - **Pure Structural Domain Isolation**: Core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`, `ToolContractSignature`) strictly reject and strip external issue/profile fields, preserving clean architectural separation.
   - **Two-Tier Cache Coherency**: Filesystem `mtime` validation cascades to Tier 2 SHA-256 payload digest verification upon timestamp drift, ensuring zero cache corruption.
   - **Ephemeral DB Resilience**: Ephemeral query engine automatically falls back from DuckDB to SQLite or dictionary scanning without unhandled exceptions.
   - **Deterministic Snapshot Compilation**: Validates `passports.json.gz` byte-level RFC 1952 gzip compression and strict JSON serialization.
@@ -385,7 +385,7 @@ An exhaustive audit of the `mcp-fingerprints` codebase and a comparative benchma
 *   **Finding MED-02 (Remediated): Floating-Point Metric Bounding**  
     *Root Cause*: Jaccard similarity and capability scores could produce floating-point edge representations (e.g. `0.9999999999999999`).  
     *Remedy*: Explicit mathematical clamping ($0.0 \le S \le 1.0$) and delta tolerance assertions in `src/mcp_fingerprints/distance.py`.
-*   **Structural Domain Isolation Guarantee**: Verified that all core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`) strictly isolate structural metadata, discarding transient vulnerability flags to preserve clean architectural boundaries.
+*   **Structural Domain Isolation Guarantee**: Verified that all core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`) strictly isolate structural metadata, discarding transient security flags to preserve clean architectural boundaries.
 
 ### Four Strategic Architectural Blueprints
 
