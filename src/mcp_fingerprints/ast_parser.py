@@ -7,6 +7,8 @@ import logging
 import re
 from typing import Any
 
+from mcp_fingerprints.go_sdk_parser import parse_official_go_tools
+
 logger = logging.getLogger("mcp_fingerprints.ast_parser")
 
 
@@ -1266,6 +1268,10 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
             }
         })
         
+    for tool in parse_official_go_tools(code):
+        if tool["name"] not in seen_names:
+            seen_names.add(tool["name"])
+            extracted.append(tool)
     return extracted
 
 
