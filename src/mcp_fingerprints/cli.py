@@ -367,6 +367,21 @@ def main() -> None:
         "--server", help="Server name/alias (overrides package name for config key)"
     )
 
+    # SBOM Exporter
+    export_sbom_parser = subparsers.add_parser(
+        "export-sbom", help="Export SBOM (CycloneDX/SPDX) with Sigstore support"
+    )
+    export_sbom_group = export_sbom_parser.add_mutually_exclusive_group(required=True)
+    export_sbom_group.add_argument("--passport", help="Specific passport to export")
+    export_sbom_group.add_argument("--all", action="store_true", help="Export all passports")
+    export_sbom_parser.add_argument(
+        "--format", choices=["cyclonedx", "spdx"], default="cyclonedx", help="SBOM format"
+    )
+    export_sbom_parser.add_argument("--output", help="Output file path")
+    export_sbom_parser.add_argument(
+        "--dir", default="data/fingerprints", help="Directory containing passports (default: data/fingerprints)"
+    )
+
     # Validate Protocol
     validate_p = subparsers.add_parser(
         "validate-protocol", help="Validate server JSON-RPC 2.0 and MCP Protocol conformance"
@@ -1030,6 +1045,41 @@ def main() -> None:
                 f.write(out_content)
 
         if args.fail_on_tamper and report.has_tamper_incidents:
+            sys.exit(1)
+
+    elif args.command == "export-sbom":
+        from mcp_fingerprints.data_loader import load_passports
+        passports = load_passports(args.dir)
+        
+        specs = []
+        if args.passport:
+            if Path(args.passport).exists():
+                with open(args.passport, "r") as f:
+                    from mcp_fingerprints.models import ServerPackageSpec
+                    spec = ServerPackageSpec.from_dict(json.load(f))
+                    specs.append(spec)
+            else:
+                for spec in passports:
+                    if spec.package_name == args.passport or spec.package_name in args.passport:
+                        specs.append(spec)
+                        break
+                if not specs:
+                    print(f"Error: Passport {args.passport} not found.")
+                    sys.exit(1)
+        else:
+            specs = passports
+
+        try:
+            sbom_data = CycloneDXExporter.export(specs, format=args.format)
+            out_str = json.dumps(sbom_data, indent=2)
+            if args.output:
+                with open(args.output, "w", encoding="utf-8") as f:
+                    f.write(out_str)
+                print(f"Successfully exported {args.format.upper()} to {args.output}")
+            else:
+                print(out_str)
+        except Exception as e:
+            print(f"Error exporting SBOM: {e}")
             sys.exit(1)
 
     elif args.command == "validate-protocol":
