@@ -178,6 +178,16 @@ def main() -> None:
         help="Clear any existing checkpoint and start from the beginning",
     )
 
+    # Install
+    install_p = subparsers.add_parser("install", help="Turnkey Docker-Sandboxed Server Installer")
+    install_p.add_argument("package_or_passport", help="Package name, passport JSON file, or slug")
+    install_p.add_argument("--client", choices=["claude", "cursor", "windsurf", "zed", "cline", "all"], default="all", help="Target client config")
+    install_p.add_argument("--sandbox", choices=["docker", "none"], default="none", help="Sandboxing mode")
+    install_p.add_argument("--network", choices=["none", "bridge"], default="none", help="Network policy for Docker sandbox")
+    install_p.add_argument("--read-only", action="store_true", help="Enable read-only tmpfs for Docker sandbox")
+    install_p.add_argument("--dry-run", action="store_true", help="Preview install plan and patched JSONC without writing to disk")
+    install_p.add_argument("--config-path", help="Path to a specific config file to patch")
+
     # Match
     match_p = subparsers.add_parser(
         "match",
@@ -845,6 +855,43 @@ def main() -> None:
                 sys.exit(1)
         else:
             print(f"Error: Could not load {script_path}")
+            sys.exit(1)
+
+    elif args.command == "install":
+        from mcp_fingerprints.installer import ClientInstaller, SandboxMode, NetworkPolicy
+
+        
+        try:
+            plan = ClientInstaller.install(
+                package_or_passport=args.package_or_passport,
+                client=args.client,
+                sandbox=SandboxMode(args.sandbox),
+                network_policy=NetworkPolicy(args.network),
+                read_only=getattr(args, "read_only", False),
+                dry_run=args.dry_run,
+                config_path=args.config_path
+            )
+            
+            print(f"Install Plan:")
+            print(f"  Server Key: {plan.server_key}")
+            print(f"  Package:    {plan.package_name}")
+            print(f"  Ecosystem:  {plan.ecosystem}")
+            print(f"  Command:    {plan.command}")
+            print(f"  Args:       {plan.args}")
+            print(f"  Env:        {plan.env}")
+            print(f"  Clients:    {plan.target_clients}")
+            
+            print("\nPatched Files:")
+            for path, content in plan.patched_files.items():
+                print(f"--- {path} ---")
+                print(content)
+            
+            if not args.dry_run:
+                print("\nInstallation complete!")
+            else:
+                print("\nDry-run complete. No files were modified.")
+        except Exception as e:
+            print(f"ERROR: {e}")
             sys.exit(1)
 
     elif args.command == "search":

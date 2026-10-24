@@ -28,6 +28,7 @@ from mcp_fingerprints.models import (
 from mcp_fingerprints.snapshot_diff import compare_snapshots, InventorySnapshot
 from mcp_fingerprints.sanitizer import sanitize_unicode_text, sanitize_metadata, sanitize_tool_definition
 from mcp_fingerprints.data_loader import get_passports_path, load_passports
+from mcp_fingerprints.installer import ClientInstaller, DockerSandboxBuilder, InstallPlan, SandboxMode, NetworkPolicy
 
 
 __version__ = "1.0.19"
@@ -106,4 +107,9 @@ __all__ = [
     "sanitize_tool_definition",
     "get_passports_path",
     "load_passports",
+    "ClientInstaller",
+    "DockerSandboxBuilder",
+    "InstallPlan",
+    "SandboxMode",
+    "NetworkPolicy",
 ]
