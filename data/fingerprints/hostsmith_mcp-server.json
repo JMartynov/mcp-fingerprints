@@ -1,0 +1,738 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "hostsmith/mcp-server",
+  "purl": "pkg:generic/hostsmith%2Fmcp-server",
+  "ecosystem": "generic",
+  "display_name": "hostsmith/mcp-server",
+  "description": "Hostsmith is static hosting built for AI agents. Hand it a file - HTML, PDF, image, or a folder of static assets - and get back a live, shareable HTTPS URL in seconds. No repository, no build pipeline, no CI configuration; the agent calls a tool and the user gets a URL.\n\nUse it to publish reports, share generated demos, ship one-page sites, or host any artifact your agent produces. Attach custom domains, mark sites as private, and choose EU or US data residency at the infrastructure level.",
+  "author": null,
+  "repository_url": "https://github.com/hostsmith/mcp-server",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "hostsmith/mcp-server"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.6.1",
+      "toolset_canonical_hash": "sha256:120e4e5d15749b4934b645f7c83b7cf5474dc73f5cdd13296ba976a6f24c54d5",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://hostsmith.run.tools",
+          "configSchema": {}
+        },
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://mcp.hostsmith.net/mcp",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "create_site",
+          "canonical_hash": "sha256:7d0a3fa53980a429c185ccb4ebc42dfdfd79e0fc7851fce7ef9c599b1a8c1ec5",
+          "description": "Create a new Hostsmith site and return its `siteId`, full URL, and configuration. Use when the user wants to publish or host new content and no suitable site already exists. After creation, deploy content with `deploy_files` (small inline text) or `deploy_create_upload` + `deploy_finalize` (binaries / files > ~1 MB, uploaded directly to S3). The site-resolution and confirmation flow is described in the global server instructions; the rules below are specific to this tool's parameters.\n\n`domain` MUST be one of the domains returned by `list_domains` for this user - never invent or assume one. The selected domain must be in `active` status; if it isn't, surface the problem to the user instead of attempting creation. `partition` passed to this tool MUST match the partition of the selected domain.\n\nSubdomain selection must respect the domain's capabilities from `list_domains`. To serve the bare apex, pass `subdomain: \"www\"` - only valid when the domain has `enableApexDomain: true` (typically custom domains the user owns). For any other subdomain, the domain must have `enableSubdomains: true`; shared hosting domains (e.g. `*.hostsmith.link`) and most custom domains have `enableApexDomain: false`, so a non-apex subdomain is required there. If the chosen domain doesn't support the kind of site the user asked for (apex vs subdomain), surface the conflict rather than silently picking something else.",
+          "is_mutating": false,
+          "property_keys": [
+            "domain",
+            "partition",
+            "subdomain"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "domain": "string",
+            "partition": "string",
+            "subdomain": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "Parent domain for the site, MUST be one returned by `list_domains` for this user. Examples: \"us.hostsmith.link\", \"eu.hostsmith.link\", or a custom domain the user owns. Do not invent domains."
+              },
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Data partition for the new site. Must match the partition of the selected domain."
+              },
+              "subdomain": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "description": "Subdomain prefix; auto-generated if omitted. Lowercase alphanumeric with hyphens only - no dots, uppercase, or underscores. Pass `subdomain: \"www\"` only when the chosen `domain` has `enableApexDomain: true` in `list_domains` (creates the canonical site at `www.<apex>` with the bare apex redirecting to it). For any other subdomain the chosen `domain` must have `enableSubdomains: true`."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:5d0852c609735f258c51a4db3eab0d5788ecdd721d8c4706b18817b9239bda3d",
+          "parameters": [
+            {
+              "name": "domain",
+              "type": "string",
+              "description": "Parent domain for the site, MUST be one returned by `list_domains` for this user. Examples: \"us.hostsmith.link\", \"eu.hostsmith.link\", or a custom domain the user owns. Do not invent domains.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Data partition for the new site. Must match the partition of the selected domain.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "subdomain",
+              "type": "string",
+              "description": "Subdomain prefix; auto-generated if omitted. Lowercase alphanumeric with hyphens only - no dots, uppercase, or underscores. Pass `subdomain: \"www\"` only when the chosen `domain` has `enableApexDomain: true` in `list_domains` (creates the canonical site at `www.<apex>` with the bare apex redirecting to it). For any other subdomain the chosen `domain` must have `enableSubdomains: true`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "delete_site",
+          "canonical_hash": "sha256:7cdf7c5ad0341c32181bc6c76588c4d1bc47a6b8310573cb491d04bdb9ee24aa",
+          "description": "Permanently delete a Hostsmith site and all of its deployed files. **Destructive - only call after explicit user confirmation.** The site URL becomes unreachable immediately and the content cannot be recovered. The user must pass `confirm: true` for the deletion to proceed; otherwise the call returns an error explaining the safeguard.",
+          "is_mutating": false,
+          "property_keys": [
+            "confirm",
+            "partition",
+            "siteId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "siteId": "string",
+            "confirm": "boolean",
+            "partition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "siteId": {
+                "type": "string",
+                "description": "The site ID to delete (from `list_sites` or `get_site`)."
+              },
+              "confirm": {
+                "type": "boolean",
+                "description": "Set to true only after the user has explicitly confirmed they want to permanently delete this site. Required safeguard - never pass true speculatively."
+              },
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Data partition the site lives in. Omit to use the user's home partition."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:486bd6d007114916991b7098a83231a023ddfa45d685ebf1489135d21db15426",
+          "parameters": [
+            {
+              "name": "confirm",
+              "type": "boolean",
+              "description": "Set to true only after the user has explicitly confirmed they want to permanently delete this site. Required safeguard - never pass true speculatively.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Data partition the site lives in. Omit to use the user's home partition.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "siteId",
+              "type": "string",
+              "description": "The site ID to delete (from `list_sites` or `get_site`).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "deploy_create_upload",
+          "canonical_hash": "sha256:218eccc70f6aeb1ccb478ccb456782af1ecde81b2d70927290a259c01b5fd187",
+          "description": "Start a direct-to-S3 upload for binary or large files. Use this instead of `deploy_files` for binaries (PDF, image, video, zip) or any file > ~1 MB. The MCP server has no access to the user's filesystem and `deploy_files` ships content inline through Lambda (capped at ~6 MB JSON-RPC payloads); this tool returns presigned S3 PUT URLs so the file bytes flow directly from your environment to S3, never through the MCP server.\n\n**Bundle into a zip first when:** the upload contains more than 3 files OR any file is larger than ~1 MB. The fileWorker auto-extracts a single-zip upload after promotion, so subdirectories are preserved end-to-end and you avoid one PUT round-trip per file. Skip zipping only for the trivial single-small-file case (e.g. one HTML).\n\n  Bash bundle-and-deploy template (the agent should adapt fileNames and the cleanup prompt):\n    TMP=$(mktemp -d)\n    zip -r \"$TMP/site.zip\" index.html styles.css img/   # add every file/dir to deploy\n    SIZE=$(stat -c%s \"$TMP/site.zip\" 2>/dev/null || stat -f%z \"$TMP/site.zip\")\n    # 1. call deploy_create_upload with { siteId, files: [{ fileName: \"site.zip\", fileSize: $SIZE }] }\n    # 2. PUT $TMP/site.zip to the returned URL(s) per the protocol below, capturing ETag\n    # 3. call deploy_finalize with { siteId, versionId, completions: [...] }\n    # 4. ASK THE USER: \"Deploy succeeded. Remove temp folder $TMP? [y/N]\"\n    #    Only run `rm -rf \"$TMP\"` after explicit confirmation; otherwise leave it for them to inspect.\n\nThree-step protocol:\n1. Call this tool with `{ siteId, files: [{ fileName, fileSize }] }`. Receive `{ versionId, files: { [fileName]: { uploadId, key, partUploadUrls: [{ part, url }], partSize, expiresAt } } }`.\n2. For each file, slice the bytes into chunks of `partSize` and PUT each chunk to its `partUploadUrls[i].url`. **Capture the `ETag` response header from every PUT** - you will need it for finalize.\n\n   Single-part (small file, one URL): `curl -D - -X PUT --data-binary @file.pdf \"$URL\"`, then grep the response headers for `ETag`.\n\n   Multi-part with `dd` (no temp files; reads each chunk in place):\n     count=$(jq \".files[\\\"large.zip\\\"].partUploadUrls | length\" envelope.json)\n     for i in $(seq 0 $((count-1))); do\n       url=$(jq -r \".files[\\\"large.zip\\\"].partUploadUrls[$i].url\" envelope.json)\n       etag=$(dd if=large.zip bs=5M skip=$i count=1 status=none \\\n                | curl -sS -D - -X PUT --data-binary @- \"$url\" \\\n                | awk -F': ' 'tolower($1)==\"etag\"{print $2}' | tr -d '\\r')\n       echo \"{ \\\"PartNumber\\\": $((i+1)), \\\"ETag\\\": $etag }\" >> parts.json\n     done\n\n   Multi-part in Python - **prefer this over dd for files > ~50 MB** (parallel PUTs, no temp files, cleaner error handling):\n     import json, requests\n     from concurrent.futures import ThreadPoolExecutor\n     env = json.load(open(\"envelope.json\"))\n     info = env[\"files\"][\"large.zip\"]\n     part_size = info[\"partSize\"]\n     def upload_part(p):\n         with open(\"large.zip\", \"rb\") as f:   # own handle per thread\n             f.seek((p[\"part\"] - 1) * part_size)\n             r = requests.put(p[\"url\"], data=f.read(part_size))\n             r.raise_for_status()\n             return {\"PartNumber\": p[\"part\"], \"ETag\": r.headers[\"ETag\"]}\n     with ThreadPoolExecutor(max_workers=5) as ex:   # cap concurrency at 5\n         parts = list(ex.map(upload_part, info[\"partUploadUrls\"]))\n3. Call `deploy_finalize` with `{ siteId, versionId, completions: [{ uploadId, key, parts: [{ ETag, PartNumber }] }] }` for every multi-part file. Single-part uploads (`uploadId` is empty in the start response) need no completion entry.\n\nThe site must already exist - call `create_site` first if you do not have a `siteId`. Deploying overwrites existing content; confirm overwrite with the user first.\n\nIf your host environment provides no HTTP-PUT capability (no bash/curl, no Python `requests`, no `fetch`), present the presigned URL(s) to the user with instructions to upload the file manually (curl or browser), then call `deploy_finalize` after the user confirms.",
+          "is_mutating": false,
+          "property_keys": [
+            "files",
+            "partition",
+            "siteId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "files": "array",
+            "siteId": "string",
+            "partition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "fileName",
+                    "fileSize"
+                  ],
+                  "properties": {
+                    "fileName": {
+                      "type": "string",
+                      "description": "File path relative to site root (e.g. `index.html`, `report.pdf`, `assets/video.mp4`)."
+                    },
+                    "fileSize": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Exact file size in bytes."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Files to upload. Most user requests are a single file."
+              },
+              "siteId": {
+                "type": "string",
+                "description": "The site ID to deploy to (from `list_sites` or `create_site`)."
+              },
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Data partition the site lives in. Omit to use the user's home partition."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ec214b43dcf50c5b940a11295d4eb7738947998a80d101d406a41e2125642e33",
+          "parameters": [
+            {
+              "name": "files",
+              "type": "array",
+              "description": "Files to upload. Most user requests are a single file.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Data partition the site lives in. Omit to use the user's home partition.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "siteId",
+              "type": "string",
+              "description": "The site ID to deploy to (from `list_sites` or `create_site`).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "deploy_files",
+          "canonical_hash": "sha256:0678a8ab4843c51e182a21a4eb144411efc02caab97bdd7ad7884788eb85d569",
+          "description": "Publish in-memory file contents to a Hostsmith site without writing to disk. Use when you have just generated content (an HTML page, a report, JSON data) and the user wants it live. Returns the deployment version and status; call `get_site` afterwards if you need the public URL to share. The site must already exist - call `create_site` first if you do not have a `siteId`. Deploying to a site that already has content overwrites it - confirm overwrite with the user first.",
+          "is_mutating": false,
+          "property_keys": [
+            "files",
+            "partition",
+            "siteId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "files": "array",
+            "siteId": "string",
+            "partition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "fileName",
+                    "content"
+                  ],
+                  "properties": {
+                    "content": {
+                      "type": "string",
+                      "description": "The file content as a string."
+                    },
+                    "fileName": {
+                      "type": "string",
+                      "description": "File path relative to site root (e.g. `index.html`, `assets/style.css`)."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Files to deploy. For an HTML site, include an `index.html` as the entry point; otherwise any single file (PDF, image, JSON, etc.) works on its own."
+              },
+              "siteId": {
+                "type": "string",
+                "description": "The site ID to deploy to (from `list_sites` or `create_site`)."
+              },
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Data partition the site lives in. Omit to use the user's home partition."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:671450d618da5cb52e8c69e232a228af3f61541517f5d0c393442ac7731ec6c0",
+          "parameters": [
+            {
+              "name": "files",
+              "type": "array",
+              "description": "Files to deploy. For an HTML site, include an `index.html` as the entry point; otherwise any single file (PDF, image, JSON, etc.) works on its own.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Data partition the site lives in. Omit to use the user's home partition.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "siteId",
+              "type": "string",
+              "description": "The site ID to deploy to (from `list_sites` or `create_site`).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "deploy_finalize",
+          "canonical_hash": "sha256:0102ed2d7f200297f7388bc683ec17798a734ebbf6a6fde97b1becaf9ace0a09",
+          "description": "Commit a deploy started with `deploy_create_upload`. Pass the `versionId` from the start response and a `completions` array containing the agent-collected ETags for each multi-part file (single-part uploads - those whose start response had an empty `uploadId` - do not need a completion entry). Returns the live site URL on success. The site must belong to the authenticated user; bearer-token auth is re-validated server-side, so holding presigned URLs alone does not let an unrelated caller finalize.",
+          "is_mutating": false,
+          "property_keys": [
+            "completions",
+            "partition",
+            "siteId",
+            "versionId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "siteId": "string",
+            "partition": "string",
+            "versionId": "string",
+            "completions": "array"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "siteId": {
+                "type": "string",
+                "description": "The site ID being deployed to (must match the start call)."
+              },
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Data partition the site lives in. Omit to use the user's home partition."
+              },
+              "versionId": {
+                "type": "string",
+                "description": "The `versionId` returned by `deploy_create_upload`."
+              },
+              "completions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "uploadId",
+                    "key",
+                    "parts"
+                  ],
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "description": "S3 object key from the start response's `files[fileName].key`."
+                    },
+                    "parts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "ETag",
+                          "PartNumber"
+                        ],
+                        "properties": {
+                          "ETag": {
+                            "type": "string",
+                            "description": "ETag header value from the corresponding PUT response (include surrounding quotes if S3 returned them)."
+                          },
+                          "PartNumber": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "Part number matching `partUploadUrls[i].part` from the start response."
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "description": "ETag + PartNumber for every uploaded part of this file."
+                    },
+                    "uploadId": {
+                      "type": "string",
+                      "description": "S3 multipart upload ID from the start response's `files[fileName].uploadId`."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Completions for multi-part uploads. Omit or pass an empty array if every file was single-part."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ac9c9e8c758639fc5f29aed228e27a1f0313f1faf7d6ec963f915a4dfc524476",
+          "parameters": [
+            {
+              "name": "completions",
+              "type": "array",
+              "description": "Completions for multi-part uploads. Omit or pass an empty array if every file was single-part.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Data partition the site lives in. Omit to use the user's home partition.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "siteId",
+              "type": "string",
+              "description": "The site ID being deployed to (must match the start call).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "versionId",
+              "type": "string",
+              "description": "The `versionId` returned by `deploy_create_upload`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_account",
+          "canonical_hash": "sha256:28b9841d33d3d3697d6f7cbce5454af4687ee9ca2e9bd3221263cffec7aa3a44",
+          "description": "Get the user's account: organization details (`orgId`, `orgName`), the calling user's home partition under `user.homePartition`, current subscription plan with its limits (max sites, max domains, storage, bandwidth), and current usage counts. Use to check how much headroom the user has before creating new sites or to confirm plan-tier features. Usage is summed across all partitions.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:54f95ce071f0bf347a6850686270ef80b201f8ece3d3ffdc488aab5519f104a0",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_site",
+          "canonical_hash": "sha256:f7a6d6789e3fb400f6a089afa462d6c7307f1506f5284d848c2e45cff595303e",
+          "description": "Get full details of a specific Hostsmith site by ID, including its public URL (`https://<subdomain>.<domain>`), current deployment status, and configuration. Use after `list_sites` to inspect a single site, or after `deploy_files` / `deploy_finalize` to confirm the site is live and grab the URL to share with the user. Defaults to the user's home partition; pass `partition` explicitly when the site lives in a different one (visible in `list_sites` output).",
+          "is_mutating": false,
+          "property_keys": [
+            "partition",
+            "siteId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "siteId": "string",
+            "partition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "siteId": {
+                "type": "string",
+                "description": "The site ID returned by `list_sites` or `create_site`."
+              },
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Data partition the site lives in (visible in list_sites output). Omit to use the user's home partition."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:10008512bc250219f2e59e7049112eddd4c95a6fecbfdb00c31b6f1613a04b29",
+          "parameters": [
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Data partition the site lives in (visible in list_sites output). Omit to use the user's home partition.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "siteId",
+              "type": "string",
+              "description": "The site ID returned by `list_sites` or `create_site`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_domains",
+          "canonical_hash": "sha256:93d856c723cff3a3f344d4f46a92ca502d0fba835b171d18ced8925f2c4077b5",
+          "description": "List domains the user can host sites under. Returns shared hosting domains (e.g. `hostsmith.link`, available to everyone) and custom domains owned by the user's organization. Use this to pick a `domain` value before calling `create_site`. By default queries all partitions and merges; pass `partition` or `shared` to narrow.",
+          "is_mutating": false,
+          "property_keys": [
+            "partition",
+            "shared"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "shared": "boolean",
+            "partition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "shared": {
+                "type": "boolean",
+                "description": "Filter by domain type: true for shared only, false for custom only. Omit for both."
+              },
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Filter by data partition. Omit to query all partitions."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0e37ef6ed247d716a26e2e5788382b23e82317f43aafd1222385e37f72538c0c",
+          "parameters": [
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Filter by data partition. Omit to query all partitions.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "shared",
+              "type": "boolean",
+              "description": "Filter by domain type: true for shared only, false for custom only. Omit for both.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_sites",
+          "canonical_hash": "sha256:f25e2da7afdf79e379cfb8f3cfd269539e8cee80596fb5c5f049f84f99b7b747",
+          "description": "List Hostsmith sites in the user's account. Returns each site's `siteId`, `subdomain`, `domain`, and current status - feed `siteId` into `get_site`, `deploy_files`, `deploy_create_upload`, or `delete_site`. This is the source of truth for \"does the user already have a site at FQDN X\" - call it before any create/deploy/delete to resolve the user's site reference. By default queries all data partitions and merges the results; pass `partition: \"us\"` or `\"eu\"` to limit the query.",
+          "is_mutating": false,
+          "property_keys": [
+            "partition"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "partition": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "partition": {
+                "enum": [
+                  "us",
+                  "eu"
+                ],
+                "type": "string",
+                "description": "Filter by data partition. Omit to query all partitions."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d9337cf335e7af317bf4fa3a10f149811affe4c828393077aad6f13a2ea232c2",
+          "parameters": [
+            {
+              "name": "partition",
+              "type": "string",
+              "description": "Filter by data partition. Omit to query all partitions.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "us",
+                "eu"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

@@ -1,0 +1,717 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "LienDeadline/liendeadline-mcp",
+  "purl": "pkg:generic/LienDeadline%2Fliendeadline-mcp",
+  "ecosystem": "generic",
+  "display_name": "LienDeadline/liendeadline-mcp",
+  "description": "US mechanics lien and preliminary notice deadlines for construction material suppliers, with statute-cited lien guides for all 50 states and DC.",
+  "author": null,
+  "repository_url": "https://github.com/LienDeadline/liendeadline-mcp",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "LienDeadline",
+    "LienDeadline/liendeadline-mcp",
+    "liendeadline/liendeadline-mcp"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "0.5.5",
+      "toolset_canonical_hash": "sha256:256e3e5f339a548f44384e2bc85515ccdd6b97a6a8815639bbfac1a79917debe",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://liendeadline-mcp--liendeadline.run.tools",
+          "configSchema": {}
+        },
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://mcp.liendeadline.com/mcp",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "calculate_supplier_deadlines",
+          "canonical_hash": "sha256:379c7c9f526a83a68706e1463153ce7866d6b7ca83a5a90a0c6ce1e21f5f6142",
+          "description": "Calculates a construction material supplier's preliminary notice and lien filing deadlines from delivery events (contract supplier-events-v2), for questions that need deadline dates. Available baselines cover Florida and Kansas private projects; other states and public projects return review_required, which is a valid result, not an error. How the parameters depend on each other: last_delivery_date is required when deliveries_complete is true. Florida (FL) takes florida_final_payment_status and florida_termination_status; Kansas (KS) takes kansas_extension_status; these are rejected for other states. Each takes yes, no or unknown: an omitted or unknown answer keeps the affected deadline under review, and a blanket review flag is not accepted. A Florida event date is accepted only with the matching yes answer. Delivery dates are furnishing dates, not invoice dates. Returns JSON with an overall status (calculated or review_required), preliminary_notice and lien_filing (each with its own status: calculated, not_required, review_required or awaiting_final_delivery, plus deadline, days_from_now, description and statute source_url), critical_warnings, statute_citations, an exact echo of the submitted inputs and a disclaimer. Invalid or contradictory facts return an error naming the field before any API call. Public, stateless and read-only: no key needed, nothing is stored, and no notice is sent or lien filed. Not legal advice.",
+          "is_mutating": false,
+          "property_keys": [
+            "deliveries_complete",
+            "first_delivery_date",
+            "florida_final_payment_date",
+            "florida_final_payment_status",
+            "florida_termination_date",
+            "florida_termination_status",
+            "hired_by",
+            "kansas_extension_status",
+            "last_delivery_date",
+            "project_type",
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "state": "string",
+            "hired_by": "string",
+            "project_type": "string",
+            "last_delivery_date": "string",
+            "deliveries_complete": "boolean",
+            "first_delivery_date": "string",
+            "kansas_extension_status": "string",
+            "florida_termination_date": "string",
+            "florida_final_payment_date": "string",
+            "florida_termination_status": "string",
+            "florida_final_payment_status": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}$",
+                "description": "Two-letter code of the state where the project is located, e.g. \"FL\", \"KS\", \"TX\"; any state or DC is accepted. Decides which event questions apply."
+              },
+              "hired_by": {
+                "enum": [
+                  "owner",
+                  "contractor",
+                  "subcontractor"
+                ],
+                "type": "string",
+                "description": "Who ordered the materials from the supplier: the owner, a contractor or a subcontractor."
+              },
+              "project_type": {
+                "enum": [
+                  "commercial",
+                  "residential",
+                  "public"
+                ],
+                "type": "string",
+                "description": "Private commercial, private residential, or public (public projects always need review)."
+              },
+              "last_delivery_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Date of the final delivery, YYYY-MM-DD, not earlier than first_delivery_date. Required when deliveries_complete is true."
+              },
+              "deliveries_complete": {
+                "type": "boolean",
+                "description": "true when the final delivery has happened (then last_delivery_date is required); false while deliveries are ongoing, which returns awaiting_final_delivery for the lien date."
+              },
+              "first_delivery_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Date materials were first delivered (first furnishing), YYYY-MM-DD. Not an invoice date."
+              },
+              "kansas_extension_status": {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string",
+                "description": "Kansas only: was a statutory lien-period extension filed and mailed? no permits the ordinary lien baseline; yes, unknown or omitted requires qualified review."
+              },
+              "florida_termination_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Florida only: contract or notice-of-commencement termination date, YYYY-MM-DD, not earlier than first_delivery_date. Supply only with florida_termination_status=yes; a lien date still requires qualified review."
+              },
+              "florida_final_payment_date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Florida only: owner final-payment date, YYYY-MM-DD, not earlier than first_delivery_date. Supply only with florida_final_payment_status=yes."
+              },
+              "florida_termination_status": {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string",
+                "description": "Florida only: was the original contract or notice of commencement terminated? no permits the lien baseline; yes, unknown or omitted requires qualified lien review."
+              },
+              "florida_final_payment_status": {
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ],
+                "type": "string",
+                "description": "Florida only: did the owner make final payment to the contractor? unknown when not verified; omitted or unknown keeps the notice under review, and yes needs florida_final_payment_date for a notice baseline."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9b8f4170c536869bb7af68e166824c291ffa8c85346f28f860d9c9a0da834399",
+          "parameters": [
+            {
+              "name": "deliveries_complete",
+              "type": "boolean",
+              "description": "true when the final delivery has happened (then last_delivery_date is required); false while deliveries are ongoing, which returns awaiting_final_delivery for the lien date.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "first_delivery_date",
+              "type": "string",
+              "description": "Date materials were first delivered (first furnishing), YYYY-MM-DD. Not an invoice date.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "florida_final_payment_date",
+              "type": "string",
+              "description": "Florida only: owner final-payment date, YYYY-MM-DD, not earlier than first_delivery_date. Supply only with florida_final_payment_status=yes.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "florida_final_payment_status",
+              "type": "string",
+              "description": "Florida only: did the owner make final payment to the contractor? unknown when not verified; omitted or unknown keeps the notice under review, and yes needs florida_final_payment_date for a notice baseline.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "yes",
+                "no",
+                "unknown"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "florida_termination_date",
+              "type": "string",
+              "description": "Florida only: contract or notice-of-commencement termination date, YYYY-MM-DD, not earlier than first_delivery_date. Supply only with florida_termination_status=yes; a lien date still requires qualified review.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "florida_termination_status",
+              "type": "string",
+              "description": "Florida only: was the original contract or notice of commencement terminated? no permits the lien baseline; yes, unknown or omitted requires qualified lien review.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "yes",
+                "no",
+                "unknown"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hired_by",
+              "type": "string",
+              "description": "Who ordered the materials from the supplier: the owner, a contractor or a subcontractor.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "owner",
+                "contractor",
+                "subcontractor"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "kansas_extension_status",
+              "type": "string",
+              "description": "Kansas only: was a statutory lien-period extension filed and mailed? no permits the ordinary lien baseline; yes, unknown or omitted requires qualified review.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "yes",
+                "no",
+                "unknown"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "last_delivery_date",
+              "type": "string",
+              "description": "Date of the final delivery, YYYY-MM-DD, not earlier than first_delivery_date. Required when deliveries_complete is true.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "project_type",
+              "type": "string",
+              "description": "Private commercial, private residential, or public (public projects always need review).",
+              "required": false,
+              "default": null,
+              "enum": [
+                "commercial",
+                "residential",
+                "public"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "Two-letter code of the state where the project is located, e.g. \"FL\", \"KS\", \"TX\"; any state or DC is accepted. Decides which event questions apply.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "calculate_supplier_deadlines_v3",
+          "canonical_hash": "sha256:98f0bf3894e79d7aa719c5295f0d222fcee2f46e0fc7e846babe3839130194a3",
+          "description": "Evaluates supplier-events-v3 project facts against the exact discovered rule and question identities. Returns independent notice and lien outcomes with sources and an exact nested input echo. Only calculated outcomes contain deadline dates; review candidates remain unresolved. Stale identities return 409, unavailable reviewed sources return 503. Public, stateless and read-only; no key, stored records, sent notices or filed liens.",
+          "is_mutating": false,
+          "property_keys": [
+            "events",
+            "hired_by",
+            "project_type",
+            "questions_identity",
+            "rules_source",
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "state": "string",
+            "events": "object",
+            "hired_by": "string",
+            "project_type": "string",
+            "rules_source": "object",
+            "questions_identity": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}$",
+                "description": "Project jurisdiction: state or DC."
+              },
+              "events": {
+                "type": "object",
+                "description": "Discovered event IDs only; missing means unknown. Date only for yes and only where the question permits it. Invoice dates are not furnishing dates.",
+                "propertyNames": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,79}$"
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "required": [
+                    "answer"
+                  ],
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "answer": {
+                      "enum": [
+                        "yes",
+                        "no",
+                        "unknown"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "hired_by": {
+                "enum": [
+                  "owner",
+                  "contractor",
+                  "subcontractor"
+                ],
+                "type": "string"
+              },
+              "project_type": {
+                "enum": [
+                  "commercial",
+                  "residential",
+                  "public"
+                ],
+                "type": "string"
+              },
+              "rules_source": {
+                "type": "object",
+                "required": [
+                  "schema_version",
+                  "source_version",
+                  "source_hash",
+                  "reviewed_commit",
+                  "supplier_engine_version",
+                  "implementation_manifest_hash"
+                ],
+                "properties": {
+                  "source_hash": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "schema_version": {
+                    "enum": [
+                      "state-rules-v1",
+                      "state-rules-v2"
+                    ],
+                    "type": "string"
+                  },
+                  "source_version": {
+                    "type": "string"
+                  },
+                  "reviewed_commit": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{40}$"
+                  },
+                  "supplier_engine_version": {
+                    "type": "string"
+                  },
+                  "implementation_manifest_hash": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "description": "Exact rules_source from discovery for this scope.",
+                "additionalProperties": false
+              },
+              "questions_identity": {
+                "type": "object",
+                "required": [
+                  "questions_version",
+                  "question_set_hash"
+                ],
+                "properties": {
+                  "question_set_hash": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "questions_version": {
+                    "type": "string",
+                    "const": "supplier-questions-v1"
+                  }
+                },
+                "description": "Exact questions_identity from discovery.",
+                "additionalProperties": false
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:646cc6bd9b0e75840b30c4a811310961c39e0dbf6dc40cec5f8c367ef2c9602b",
+          "parameters": [
+            {
+              "name": "events",
+              "type": "object",
+              "description": "Discovered event IDs only; missing means unknown. Date only for yes and only where the question permits it. Invoice dates are not furnishing dates.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "hired_by",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "owner",
+                "contractor",
+                "subcontractor"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "project_type",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "commercial",
+                "residential",
+                "public"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "questions_identity",
+              "type": "object",
+              "description": "Exact questions_identity from discovery.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "question_set_hash": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "questions_version": {
+                  "type": "string",
+                  "const": "supplier-questions-v1"
+                }
+              }
+            },
+            {
+              "name": "rules_source",
+              "type": "object",
+              "description": "Exact rules_source from discovery for this scope.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "source_hash": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "schema_version": {
+                  "enum": [
+                    "state-rules-v1",
+                    "state-rules-v2"
+                  ],
+                  "type": "string"
+                },
+                "source_version": {
+                  "type": "string"
+                },
+                "reviewed_commit": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{40}$"
+                },
+                "supplier_engine_version": {
+                  "type": "string"
+                },
+                "implementation_manifest_hash": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "Project jurisdiction: state or DC.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_state_lien_guide",
+          "canonical_hash": "sha256:b01e95439fc84951d3da4b120788b823d2b503a38017e70b35de3e976c269c94",
+          "description": "Returns LienDeadline's editorial mechanics lien and preliminary notice guide for one state or DC: rules (rule summary with statute citations), deadline_rows (deadline table), faqs (common questions) and source_url (the guide's web page), roughly 4 KB of JSON. For questions about how a state's lien or notice rules work, why a deadline falls where it does, or which statute applies. An unknown state code returns an error. The guide is an editorial reference, not a calculation: its day counts are summaries, not computed deadlines. Public and read-only; no key needed.",
+          "is_mutating": false,
+          "property_keys": [
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "state": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "maxLength": 2,
+                "minLength": 2,
+                "description": "Two-letter US state or DC code, e.g. \"TX\"; case-insensitive."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ed87e503a7298b9500f62a5866be8f215af4b70bf54f4774b10dd1d75b7a811c",
+          "parameters": [
+            {
+              "name": "state",
+              "type": "string",
+              "description": "Two-letter US state or DC code, e.g. \"TX\"; case-insensitive.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_supplier_questions",
+          "canonical_hash": "sha256:139df56d45e451a07cf38c290c473af50c62a92a9b211e436083b1b5c12777f5",
+          "description": "Returns the current supplier-events-v3 scope support, jurisdiction-specific yes/no/unknown event questions, date policies, sources and exact rule/question identities for a material supplier. Public and read-only; no key or delivery dates needed. A 503 means the reviewed source is unavailable. Approval of research alone does not activate a scope.",
+          "is_mutating": false,
+          "property_keys": [
+            "hired_by",
+            "project_type",
+            "state"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "state": "string",
+            "hired_by": "string",
+            "project_type": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "pattern": "^[A-Za-z]{2}$",
+                "description": "Project jurisdiction: state or DC."
+              },
+              "hired_by": {
+                "enum": [
+                  "owner",
+                  "contractor",
+                  "subcontractor"
+                ],
+                "type": "string"
+              },
+              "project_type": {
+                "enum": [
+                  "commercial",
+                  "residential",
+                  "public"
+                ],
+                "type": "string"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:cd3978ecc4a11b1f5f4bcedf2ae2d9b873923a7219a047237c14963f4ec4e9cc",
+          "parameters": [
+            {
+              "name": "hired_by",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "owner",
+                "contractor",
+                "subcontractor"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "project_type",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": [
+                "commercial",
+                "residential",
+                "public"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "state",
+              "type": "string",
+              "description": "Project jurisdiction: state or DC.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "list_state_lien_guides",
+          "canonical_hash": "sha256:7ff9ae9cc3f51673535f9377c9cd88290ee7179efa3e9d8a0a1d0844c3c408ee",
+          "description": "Lists every published state lien guide in one response, without pagination: count plus state_code, title and slug for all 50 states and DC, in alphabetical order by state name. It lists editorial guides only and does not indicate which states have calculated deadlines. Takes no parameters. Public and read-only; no key needed.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:08def5334605217a4a84c71d2d52ec91c2f5a1933a249a710391a467e95ee996",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

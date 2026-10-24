@@ -1,0 +1,1148 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "LetsFG/LetsFG",
+  "purl": "pkg:generic/LetsFG%2FLetsFG",
+  "ecosystem": "generic",
+  "display_name": "LetsFG/LetsFG",
+  "description": "Agent-native flight **and hotel** search and booking. One tool call searches hundreds of airlines plus the major booking sites — Google Flights, Skyscanner, Kiwi, Kayak, Momondo — and returns merged, deduplicated, ranked results with per-flight reliability history.\n\nYour agent doesn't need to build a travel integration. It doesn't need to scrape. Add this MCP server and it can search and book flights and hotels.\n\n### Free, on one credential\n\nRun `letsfg auth` once — a zero-amount Stripe card setup, nothing charged, no authorization hold — and you get a 90-day token that reaches **both flights and hotels**. No Developer API account, no prepaid credits, no separate login for hotels. The same card authorises both products.\n\n### Why?\n\nFlight websites inflate prices with demand tracking, cookie-based pricing, and surge markup. LetsFG returns the raw price with no demand-based inflation and no cookie tracking — the same search returns the same prices however often you run it.\n\nFor hotels, you don't pay for the room upfront. A small charge holds the booking, and the balance goes straight to the hotel through a pay link, any time up to their own cancellation deadline. Only free-cancellation rates are sold, so every rate you see can actually be booked on those terms.\n\n### How it works\n\nSearch runs server-side at letsfg.co — no browsers, no scrapers on your machine. `search_flights` fans out across airline connectors and the major booking sites in parallel; `search_hotels` opens a real session at the supplier and returns live, bookable rates.\n\n### Tools\n\n**Flights**\n\n| Tool | What it does | Cost |\n|------|-------------|------|\n| `search_flights` | Search hundreds of airlines and booking sites | Free |\n| `resolve_location` | City/airport → IATA code | Free |\n| `book_flight` | Book with real PNR + e-ticket | Ticket price only — no LetsFG fee |\n| `unlock_flight_offer` | Confirm live price and reserve. Legacy, Developer API only — not part of the agent flow; call `book_flight` directly | — |\n\n**Hotels** — need a card on file, because a hotel search opens a real session at the supplier. `letsfg auth` already puts one there.\n\n| Tool | What it does | Cost |\n|------|-------------|------|\n| `resolve_hotel_city` | Place name → supplier city id. Call this first | Free |\n| `search_hotels` | Live, bookable, free-cancellation pay-later rates | Free |\n| `book_hotel` | Book a rate. Returns a job id — poll, don't retry | 5% now, non-refundable; balance to the hotel later |\n| `get_hotel_booking` | Poll the booking job until it succeeds or fails | Free |\n| `cancel_hotel_booking` | Release a reservation | Free |\n\n**Account**\n\n| Tool | What it does | Cost |\n|------|-------------|------|\n| `authenticate` | Zero-amount card setup → 90-day token | Free, nothing charged |\n| `setup_payment` | Attach a Stripe payment method | Free |\n| `get_agent_profile` | Your usage & profile | Free |\n| `load_resources` | Load the in-server usage guide | Free |\n\n### Auth\n\nEither credential reaches **both** flights and hotels:\n\n- **`LETSFG_BEARER_TOKEN`** — the free token from `letsfg auth`. Recommended.\n- **`LETSFG_API_KEY`** — a Developer API key (prepaid credits) from letsfg.co/developers, for high-volume commercial integrations.\n\nIf both are set, the token is used.\n\n### Pricing\n\n- **Flights** — search is free and unlimited. Booking charges the airline ticket price only, with no LetsFG fee.\n- **Hotels** — booking charges 5% of the price immediately as a non-refundable reservation fee. The balance is paid directly to the hotel through the pay link we return, by their own cancellation deadline. Cancel before that deadline and the balance was never charged.\n\n### Links\n\n- **GitHub:** [github.com/LetsFG/LetsFG](https://github.com/LetsFG/LetsFG) — full docs, open-source ranking engine, architecture guide, agent integration tutorials\n- **API Docs:** [letsfg.co/developers/api/docs](https://letsfg.co/developers/api/docs)\n- **PyPI:** [pypi.org/project/letsfg](https://pypi.org/project/letsfg/)\n- **npm:** [npmjs.com/package/letsfg-mcp](https://www.npmjs.com/package/letsfg-mcp)",
+  "author": null,
+  "repository_url": "https://github.com/LetsFG/LetsFG",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "LetsFG — Flights & Hotels",
+    "LetsFG/LetsFG",
+    "letsfg"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "2026.5.79",
+      "toolset_canonical_hash": "sha256:42bcfbf2f85f3cd5bec8ab53500d96defc118dbd56ffa2006e352dbc0b5e142c",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://letsfg.run.tools",
+          "configSchema": {
+            "type": "object",
+            "properties": {
+              "api_key": {
+                "type": "string",
+                "x-from": {
+                  "query": "api_key"
+                },
+                "x-order": 0,
+                "description": "Free token from letsfg auth, or a Developer API key. Reaches flights and hotels."
+              }
+            }
+          }
+        },
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://letsfg.co/mcp",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "book_flight",
+          "canonical_hash": "sha256:2ea1b11d49f912e369a45063ba46e702a3c53bc75ddf691f6ad2c842d826e774",
+          "description": "Book an unlocked flight. Creates a real airline PNR with e-ticket.\n\nREQUIREMENTS:\n1. Offer must be unlocked first (call unlock_flight_offer)\n2. Use passenger_id from search results\n3. Use REAL passenger details — airline sends e-ticket to the email provided",
+          "is_mutating": false,
+          "property_keys": [
+            "contact_email",
+            "offer_id",
+            "passengers"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offer_id": "string",
+            "passengers": "array",
+            "contact_email": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offer_id": {
+                "type": "string",
+                "description": "Unlocked offer ID (off_xxx)"
+              },
+              "passengers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "given_name",
+                    "family_name",
+                    "born_on",
+                    "email"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Passenger ID from search (pas_xxx)"
+                    },
+                    "email": {
+                      "type": "string",
+                      "description": "Passenger email for e-ticket"
+                    },
+                    "title": {
+                      "type": "string",
+                      "default": "mr",
+                      "description": "mr, ms, mrs, miss"
+                    },
+                    "gender": {
+                      "type": "string",
+                      "default": "m",
+                      "description": "m or f"
+                    },
+                    "born_on": {
+                      "type": "string",
+                      "description": "DOB YYYY-MM-DD"
+                    },
+                    "given_name": {
+                      "type": "string",
+                      "description": "First name as on passport"
+                    },
+                    "family_name": {
+                      "type": "string",
+                      "description": "Last name as on passport"
+                    },
+                    "phone_number": {
+                      "type": "string",
+                      "description": "Phone with country code"
+                    }
+                  }
+                },
+                "description": "Passenger details with id from search results"
+              },
+              "contact_email": {
+                "type": "string",
+                "description": "Contact email for booking confirmation"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:ff4dcab7d6765a76dd3a162d574600b7346c9d0c90256f30fe49280212e16ddd",
+          "parameters": [
+            {
+              "name": "contact_email",
+              "type": "string",
+              "description": "Contact email for booking confirmation",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "Unlocked offer ID (off_xxx)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "passengers",
+              "type": "array",
+              "description": "Passenger details with id from search results",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "book_hotel",
+          "canonical_hash": "sha256:e62adffc584fb40d67c50c109792949115d2e54abf93b53cef903ecee55d9c08",
+          "description": "Book one hotel room from a search_hotels result and charge the 5% reservation fee. Returns immediately with a `booking_job_id` — this is NOT the finished booking. A real hotel booking takes several minutes (the rate is re-blocked, the card charged, the room committed at the supplier), so you MUST poll get_hotel_booking every ~20 seconds until `status` is 'succeeded' or 'failed'. Do NOT call book_hotel again for the same offer while a job is still in progress — that books the room twice and charges two reservation fees.\n\nMoney: booking immediately charges 5% of the price to the connected account's card on file, as a non-refundable reservation fee. On success, the result carries a `pay_link` — the guest pays the remaining bare hotel cost directly to the supplier through that link, by `balance_due_by` (the supplier's real auto-cancellation date, not advisory). A declined card costs nothing: no reservation exists yet when the charge is attempted.",
+          "is_mutating": false,
+          "property_keys": [
+            "booking_handle",
+            "email",
+            "guests",
+            "phone",
+            "phone_country_code",
+            "special_requests"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "email": "string",
+            "phone": "string",
+            "guests": "array",
+            "booking_handle": "object",
+            "special_requests": "array",
+            "phone_country_code": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "description": "Guest email — the voucher and pay_link are sent here. A typo loses the booking."
+              },
+              "phone": {
+                "type": "string",
+                "description": "Guest phone number, digits only"
+              },
+              "guests": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "title",
+                    "first_name",
+                    "last_name"
+                  ],
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "description": "Mr / Mrs / Ms"
+                    },
+                    "last_name": {
+                      "type": "string",
+                      "description": "Last name as on ID"
+                    },
+                    "first_name": {
+                      "type": "string",
+                      "description": "First name as on ID"
+                    }
+                  }
+                },
+                "description": "One entry per guest staying in the room."
+              },
+              "booking_handle": {
+                "type": "object",
+                "description": "Copy this object VERBATIM from the `booking_handle` field of the offer the guest chose in search_hotels — every field, unedited. It carries the identifiers and the exact price the guest agreed to, so the booking can be verified against what was quoted."
+              },
+              "special_requests": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional free-text requests, e.g. 'late check-in', 'twin beds'. Not guaranteed by the supplier."
+              },
+              "phone_country_code": {
+                "type": "string",
+                "default": "48",
+                "description": "Phone country code, no plus sign"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:4c36ccdf80a54eccb86614493d4c7c84334413e61a8cda3bf6d34b1620b2fa17",
+          "parameters": [
+            {
+              "name": "booking_handle",
+              "type": "object",
+              "description": "Copy this object VERBATIM from the `booking_handle` field of the offer the guest chose in search_hotels — every field, unedited. It carries the identifiers and the exact price the guest agreed to, so the booking can be verified against what was quoted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "description": "Guest email — the voucher and pay_link are sent here. A typo loses the booking.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "guests",
+              "type": "array",
+              "description": "One entry per guest staying in the room.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "phone",
+              "type": "string",
+              "description": "Guest phone number, digits only",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "phone_country_code",
+              "type": "string",
+              "description": "Phone country code, no plus sign",
+              "required": false,
+              "default": "48",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "special_requests",
+              "type": "array",
+              "description": "Optional free-text requests, e.g. 'late check-in', 'twin beds'. Not guaranteed by the supplier.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "cancel_hotel_booking",
+          "canonical_hash": "sha256:1fc4b8f597678f6a7cd4f787016b4b38d54533f6b433e07f6f708961e99f25b1",
+          "description": "Release a confirmed hotel reservation at the supplier. Free until `balance_due_by`; after that the hotel's own cancellation ladder applies and can reach 100% (see `terms.ladder` from the booking result). The 5% reservation fee is never refunded, cancellation or not.\n\nThis can take a couple of minutes. If no response arrives before your own client gives up, that does NOT mean the cancellation failed — it may still be completing at the supplier. Wait a minute and check with support using the confirmation code rather than assuming failure or retrying immediately.",
+          "is_mutating": false,
+          "property_keys": [
+            "confirmation"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "confirmation": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "confirmation": {
+                "type": "string",
+                "description": "The `confirmation` code returned by a succeeded booking"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:313dfddc4c8c891eb5dd6ac038e09fa29d70bdfb0d361a238078ce14bceb6e4a",
+          "parameters": [
+            {
+              "name": "confirmation",
+              "type": "string",
+              "description": "The `confirmation` code returned by a succeeded booking",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_agent_profile",
+          "canonical_hash": "sha256:8603155f0b98bf0e1aa3ccbef0b56c17a71378b0718ff5f645d7678bf29ba164",
+          "description": "View your agent profile — payment status and usage stats.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:3444e42f44e2058bb4277906e5429647238957321aa1345187b54a02ef909085",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_hotel_booking",
+          "canonical_hash": "sha256:838bf3e953ddb0e0b6f3d033ccf696813410ed7773e69f091119c0ac0537112a",
+          "description": "Poll the result of a booking started with book_hotel. Call every ~20 seconds using the `booking_job_id` from book_hotel's response until `status` is 'succeeded' or 'failed' — it usually settles within 5 minutes. On success the result includes `confirmation`, `reservation_fee_charged`, `pay_link`, `balance_due`, `balance_due_by`, and the cancellation `terms`.",
+          "is_mutating": false,
+          "property_keys": [
+            "booking_job_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "booking_job_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "booking_job_id": {
+                "type": "string",
+                "description": "The booking_job_id from book_hotel"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:42ed262deb67f446f33cbcd9d80edcdaa40db6f083b4d652241a330b71ae5d06",
+          "parameters": [
+            {
+              "name": "booking_job_id",
+              "type": "string",
+              "description": "The booking_job_id from book_hotel",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "resolve_hotel_city",
+          "canonical_hash": "sha256:8e2d4c2f769992b61916077d6e72c5aa96c61128b0b3f683cde99cc52a21abcc",
+          "description": "Resolve a place name to the hotel-search city ids search_hotels understands. Use this when a place name is ambiguous (e.g. more than one 'Warsaw' or 'Springfield') and you need to show the guest a choice before searching — search_hotels already resolves unambiguous names on its own, so this is optional in the common case.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "City or place name, e.g. 'Warsaw', 'Paris'"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:60c186dad7ae4e9c60623426de9a09c8bb385b5a0012173f07933f3238407fb3",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "City or place name, e.g. 'Warsaw', 'Paris'",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "resolve_location",
+          "canonical_hash": "sha256:574c98e135e28104094ebc383d4c65f234d9439bdfd9b3a2a93bce75807a417f",
+          "description": "Convert a city or airport name to IATA codes for use in flight search. Use when the user says 'London' instead of 'LON'.",
+          "is_mutating": false,
+          "property_keys": [
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "City or airport name (e.g. 'London', 'New York', 'Heathrow')"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:1d22999c00fc8707ff65f9029c4a14efcfffbce3df26ef6d70391c99b0b2b2e1",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "description": "City or airport name (e.g. 'London', 'New York', 'Heathrow')",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_flights",
+          "canonical_hash": "sha256:5c68be073e639a2f10419a8bd853a700b880d41ccb1881c0770114dd9f29a96e",
+          "description": "Search for flights between any two cities/airports worldwide. Searches hundreds of airlines plus the major booking sites in parallel, server-side. Returns offers with prices, airlines, times, conditions.\n\nIMPORTANT: Response includes `passenger_ids` — save them for booking.",
+          "is_mutating": false,
+          "property_keys": [
+            "adults",
+            "cabin_class",
+            "children",
+            "currency",
+            "date_from",
+            "departure_time_from",
+            "departure_time_to",
+            "destination",
+            "max_results",
+            "origin",
+            "response_mode",
+            "return_from"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "adults": "integer",
+            "origin": "string",
+            "children": "integer",
+            "currency": "string",
+            "date_from": "string",
+            "cabin_class": "string",
+            "destination": "string",
+            "max_results": "integer",
+            "return_from": "string",
+            "response_mode": "string",
+            "departure_time_to": "string",
+            "departure_time_from": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "adults": {
+                "type": "integer",
+                "default": 1,
+                "description": "Number of adult passengers (default: 1)"
+              },
+              "origin": {
+                "type": "string",
+                "description": "IATA departure code (e.g. LON, JFK). Use resolve_location if you only have a city name."
+              },
+              "children": {
+                "type": "integer",
+                "default": 0,
+                "description": "Number of children (ages 2-11)"
+              },
+              "currency": {
+                "type": "string",
+                "default": "EUR",
+                "description": "Currency code (EUR, USD, GBP)"
+              },
+              "date_from": {
+                "type": "string",
+                "description": "Departure date YYYY-MM-DD"
+              },
+              "cabin_class": {
+                "enum": [
+                  "M",
+                  "W",
+                  "C",
+                  "F"
+                ],
+                "type": "string",
+                "description": "M=economy, W=premium, C=business, F=first"
+              },
+              "destination": {
+                "type": "string",
+                "description": "IATA arrival code (e.g. BCN, LAX)"
+              },
+              "max_results": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max offers to return (default: 10)"
+              },
+              "return_from": {
+                "type": "string",
+                "description": "Return date YYYY-MM-DD (omit for one-way)"
+              },
+              "response_mode": {
+                "enum": [
+                  "summary",
+                  "full"
+                ],
+                "type": "string",
+                "default": "summary",
+                "description": "'summary' (default) — compact price/airline/route per offer, saves tokens. 'full' — includes segments, conditions, bags, durations."
+              },
+              "departure_time_to": {
+                "type": "string",
+                "description": "Latest departure time (HH:MM, 24h). E.g. '14:00' for departures before 2pm"
+              },
+              "departure_time_from": {
+                "type": "string",
+                "description": "Earliest departure time (HH:MM, 24h). E.g. '08:00' for morning flights"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:97bf4181f7b82eadaa5102e9415d2d2841cdaa91e38682b397efcbe845f42a84",
+          "parameters": [
+            {
+              "name": "adults",
+              "type": "integer",
+              "description": "Number of adult passengers (default: 1)",
+              "required": false,
+              "default": 1,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "cabin_class",
+              "type": "string",
+              "description": "M=economy, W=premium, C=business, F=first",
+              "required": false,
+              "default": null,
+              "enum": [
+                "M",
+                "W",
+                "C",
+                "F"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "children",
+              "type": "integer",
+              "description": "Number of children (ages 2-11)",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "currency",
+              "type": "string",
+              "description": "Currency code (EUR, USD, GBP)",
+              "required": false,
+              "default": "EUR",
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "date_from",
+              "type": "string",
+              "description": "Departure date YYYY-MM-DD",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "departure_time_from",
+              "type": "string",
+              "description": "Earliest departure time (HH:MM, 24h). E.g. '08:00' for morning flights",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "departure_time_to",
+              "type": "string",
+              "description": "Latest departure time (HH:MM, 24h). E.g. '14:00' for departures before 2pm",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "destination",
+              "type": "string",
+              "description": "IATA arrival code (e.g. BCN, LAX)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_results",
+              "type": "integer",
+              "description": "Max offers to return (default: 10)",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "origin",
+              "type": "string",
+              "description": "IATA departure code (e.g. LON, JFK). Use resolve_location if you only have a city name.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "response_mode",
+              "type": "string",
+              "description": "'summary' (default) — compact price/airline/route per offer, saves tokens. 'full' — includes segments, conditions, bags, durations.",
+              "required": false,
+              "default": "summary",
+              "enum": [
+                "summary",
+                "full"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "return_from",
+              "type": "string",
+              "description": "Return date YYYY-MM-DD (omit for one-way)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_hotels",
+          "canonical_hash": "sha256:cebbe822afc19c95b8840266b9117cfafbdf3c726ba6cf08dc51faa44636e3d6",
+          "description": "Search real, bookable hotel rates in a city. Only free-cancellation, pay-later rates are returned, so everything you see can be booked — there is no separate wholesale figure to misquote. `price` is what the guest pays (hotel cost + a flat 5% reservation fee) — that fee is already inside `price`, so nothing extra is added at checkout, unlike a typical ~3% OTA booking fee.\n\nSearch is free up to 1,000 searches since your last hotel booking. Past that allowance, searches are sold in blocks of 1,000 for $5.00, debited from your prepaid developer balance the moment you cross the current allowance — book a hotel to reset the free allowance back to 1,000. A payment method on file is required for every search regardless — the same card that authorises flight booking (see setup_payment).\n\nEach offer carries a `booking_handle` object — pass it VERBATIM to book_hotel when the guest picks a room. Do not construct or edit it yourself.\n\nLogical filters, e.g. 'hotel with spa and parking, under €400, near the Eiffel Tower, with breakfast': set `amenities`, `max_total_price`, `max_distance_km`+`near`, and adults/children/child_ages directly — these are applied for you, not something you need to search broadly and filter yourself. `room_flexible=true` also tries the party split across multiple rooms when there are children, for 'any number of rooms is fine' requests. `dietary_hint` (e.g. 'vegan') is BEST-EFFORT only — say so to the guest, never claim it as verified.",
+          "is_mutating": false,
+          "property_keys": [
+            "adults",
+            "amenities",
+            "checkin",
+            "checkout",
+            "child_ages",
+            "children",
+            "dietary_hint",
+            "location",
+            "max_distance_km",
+            "max_results",
+            "max_total_price",
+            "near",
+            "response_mode",
+            "room_flexible"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "near": "string",
+            "adults": "integer",
+            "checkin": "string",
+            "checkout": "string",
+            "children": "integer",
+            "location": "string",
+            "amenities": "array",
+            "child_ages": "array",
+            "max_results": "integer",
+            "dietary_hint": "string",
+            "response_mode": "string",
+            "room_flexible": "boolean",
+            "max_distance_km": "number",
+            "max_total_price": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "near": {
+                "type": "string",
+                "description": "Landmark or place name to measure max_distance_km from, e.g. 'Eiffel Tower'. Defaults to the search city's center if omitted."
+              },
+              "adults": {
+                "type": "integer",
+                "default": 2,
+                "description": "Number of adult guests (default: 2)"
+              },
+              "checkin": {
+                "type": "string",
+                "description": "Check-in date YYYY-MM-DD"
+              },
+              "checkout": {
+                "type": "string",
+                "description": "Check-out date YYYY-MM-DD"
+              },
+              "children": {
+                "type": "integer",
+                "default": 0,
+                "description": "Number of children (default: 0). Set child_ages too if > 0."
+              },
+              "location": {
+                "type": "string",
+                "description": "City name, airport code, or 'lat,lon' coordinates. If ambiguous, call resolve_hotel_city first to disambiguate."
+              },
+              "amenities": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "wifi",
+                    "parking",
+                    "pool",
+                    "gym",
+                    "spa",
+                    "restaurant",
+                    "bar",
+                    "breakfast",
+                    "air_conditioning",
+                    "pet_friendly",
+                    "laundry",
+                    "accessibility",
+                    "business",
+                    "family",
+                    "entertainment",
+                    "outdoor",
+                    "shuttle",
+                    "safety"
+                  ],
+                  "type": "string"
+                },
+                "description": "Only return hotels that have ALL of these. Canonical flag ids -- e.g. ['spa','parking']. This is a closed enum on purpose: these are the categories real TBO amenity data actually supports, not free text."
+              },
+              "child_ages": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "description": "One age per child, same order/count as `children`."
+              },
+              "max_results": {
+                "type": "integer",
+                "default": 10,
+                "description": "Max hotels to return (default: 10)"
+              },
+              "dietary_hint": {
+                "type": "string",
+                "description": "Free text, e.g. 'vegan'. BEST-EFFORT text search against hotel descriptions only -- TBO has no structured dietary data. The response's `caveats` field will say this explicitly when set; never treat a match here as a verified guarantee to relay to a guest as fact."
+              },
+              "response_mode": {
+                "enum": [
+                  "summary",
+                  "full"
+                ],
+                "type": "string",
+                "default": "summary",
+                "description": "'summary' (default) — compact name/price/rating per hotel, saves tokens. 'full' — includes rooms, photos, policies, amenities."
+              },
+              "room_flexible": {
+                "type": "boolean",
+                "default": false,
+                "description": "\"Any number of rooms is fine\" -- also searches the party split across multiple rooms (never a room with 0 adults) and returns whichever rate shape is available, alongside the default one-room-for-everyone search. Only does anything when there are children and >=2 adults. Costs a second search credit when it actually finds something to split."
+              },
+              "max_distance_km": {
+                "type": "number",
+                "description": "Only return hotels within this distance of `near` (or the search city's own center, if `near` is omitted)."
+              },
+              "max_total_price": {
+                "type": "number",
+                "description": "Only return offers at or under this total price for the whole stay (not per night). Same currency as the response."
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:931225ff45b6470f5475d0f297c1ed72e06ac68dc643916ffc71309f638692fb",
+          "parameters": [
+            {
+              "name": "adults",
+              "type": "integer",
+              "description": "Number of adult guests (default: 2)",
+              "required": false,
+              "default": 2,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "amenities",
+              "type": "array",
+              "description": "Only return hotels that have ALL of these. Canonical flag ids -- e.g. ['spa','parking']. This is a closed enum on purpose: these are the categories real TBO amenity data actually supports, not free text.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "string",
+              "nested_properties": null
+            },
+            {
+              "name": "checkin",
+              "type": "string",
+              "description": "Check-in date YYYY-MM-DD",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "checkout",
+              "type": "string",
+              "description": "Check-out date YYYY-MM-DD",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "child_ages",
+              "type": "array",
+              "description": "One age per child, same order/count as `children`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "integer",
+              "nested_properties": null
+            },
+            {
+              "name": "children",
+              "type": "integer",
+              "description": "Number of children (default: 0). Set child_ages too if > 0.",
+              "required": false,
+              "default": 0,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "dietary_hint",
+              "type": "string",
+              "description": "Free text, e.g. 'vegan'. BEST-EFFORT text search against hotel descriptions only -- TBO has no structured dietary data. The response's `caveats` field will say this explicitly when set; never treat a match here as a verified guarantee to relay to a guest as fact.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "location",
+              "type": "string",
+              "description": "City name, airport code, or 'lat,lon' coordinates. If ambiguous, call resolve_hotel_city first to disambiguate.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_distance_km",
+              "type": "number",
+              "description": "Only return hotels within this distance of `near` (or the search city's own center, if `near` is omitted).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_results",
+              "type": "integer",
+              "description": "Max hotels to return (default: 10)",
+              "required": false,
+              "default": 10,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "max_total_price",
+              "type": "number",
+              "description": "Only return offers at or under this total price for the whole stay (not per night). Same currency as the response.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "near",
+              "type": "string",
+              "description": "Landmark or place name to measure max_distance_km from, e.g. 'Eiffel Tower'. Defaults to the search city's center if omitted.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "response_mode",
+              "type": "string",
+              "description": "'summary' (default) — compact name/price/rating per hotel, saves tokens. 'full' — includes rooms, photos, policies, amenities.",
+              "required": false,
+              "default": "summary",
+              "enum": [
+                "summary",
+                "full"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "room_flexible",
+              "type": "boolean",
+              "description": "\"Any number of rooms is fine\" -- also searches the party split across multiple rooms (never a room with 0 adults) and returns whichever rate shape is available, alongside the default one-room-for-everyone search. Only does anything when there are children and >=2 adults. Costs a second search credit when it actually finds something to split.",
+              "required": false,
+              "default": false,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "setup_payment",
+          "canonical_hash": "sha256:db748997dca51091cb46fc9a2f72e49ed24f83ae87d33064190a799e27e4fced",
+          "description": "Attach a payment card. Required before booking.\n\nFor testing: {\"token\": \"tok_visa\"}\nFor production: {\"payment_method_id\": \"pm_xxx\"} from Stripe.js\n\nOne-time setup — all future charges are automatic.",
+          "is_mutating": false,
+          "property_keys": [
+            "payment_method_id",
+            "token"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "token": "string",
+            "payment_method_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "Stripe token (e.g. tok_visa for testing)"
+              },
+              "payment_method_id": {
+                "type": "string",
+                "description": "Stripe PaymentMethod ID (pm_xxx)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:bf058c6a2fb1f7522c91e0b6646c754cd2b08265093e3d31eda11c2f05536d67",
+          "parameters": [
+            {
+              "name": "payment_method_id",
+              "type": "string",
+              "description": "Stripe PaymentMethod ID (pm_xxx)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "token",
+              "type": "string",
+              "description": "Stripe token (e.g. tok_visa for testing)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "unlock_flight_offer",
+          "canonical_hash": "sha256:b6dc301c698f4890d13ce17927d192dafe939e902c5c623df1f7e3081ac2ddc9",
+          "description": "Confirm live price and reserve a flight offer for 30 minutes. After unlocking, call book_flight to complete the booking.",
+          "is_mutating": false,
+          "property_keys": [
+            "offer_id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "offer_id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "offer_id": {
+                "type": "string",
+                "description": "Offer ID from search results (off_xxx)"
+              }
+            }
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:e66ca1a32591f0640ddfe34ab165580dfae4a2d0c702a1115e2cb2609fcfac40",
+          "parameters": [
+            {
+              "name": "offer_id",
+              "type": "string",
+              "description": "Offer ID from search results (off_xxx)",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}

@@ -1,0 +1,108 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "edycutjong/BagOS",
+  "purl": "pkg:generic/edycutjong%2FBagOS",
+  "ecosystem": "generic",
+  "display_name": "edycutjong/BagOS",
+  "description": "**BagOS gates every AI-initiated Solana spend: token-gated, SOL-capped, confirmed on chain.**\n\nAn MCP server that can move money hands an AI assistant a signing key. The assistant decides, and the transaction is already on chain by the time a human reads about it. BagOS makes it pause.\n\nThe first call to a write tool **signs nothing**. It returns a preview and a single-use confirmation token fingerprinted to the exact arguments, so a token issued for a 0.01 SOL swap cannot authorize a 10 SOL one. Nothing reaches the chain until you call again with that token.\n\n### Every write goes through this — in order\n\n`token gate → spend caps → confirmation → simulate → sign → send → confirm`\n\n- **Hard caps** — 0.1 SOL per transaction, 1 SOL per session, enforced before the Bags SDK is called\n- **Single-use tokens** — expire in 5 minutes and are bound to exact arguments\n- **Simulate before signing** — a failed simulation aborts the write\n- **Confirmed, or it throws** — never a success message for a transaction that did not land\n- **Devnet by default** — writes are mainnet-only, so an unconfigured install cannot spend real money\n\n### 14 tools\n\n**11 read** — never sign, never spend: heartbeat, authenticate, trade quotes, token analytics, top creators, per-token creators, claim stats, claim events, claimable fees, partner stats, social-handle → launch-wallet resolution.\n\n**1 gated** — `bags_prepare_token_metadata` reserves a mint and uploads metadata, then says plainly that nothing was launched. Completing a launch needs a Meteora fee-share split, which is your decision rather than a model's.\n\n**2 write** — `bags_execute_trade` and `bags_claim_fees`. Mainnet only, off unless you configure them.\n\n### Proof\n\n345 tests at 100% coverage — statements, branches, functions and lines — enforced in CI. Published from CI with SLSA provenance. Listed in the official MCP registry.\n\nDocs and live demo: https://bagos.edycu.dev\n",
+  "author": null,
+  "repository_url": "https://github.com/edycutjong/bagos",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "BagOS",
+    "edycutjong/BagOS",
+    "edycutjong/bagos"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "3.0.7",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "stdio",
+          "bundleUrl": "751bd03d-6ccd-431c-97ec-586c69011e91/44e283d5-b7a7-4896-9607-3f01e58335d5/server.mcpb",
+          "runtime": "node",
+          "configSchema": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "bags_api_key": {
+                "type": "string",
+                "title": "Bags API key",
+                "x-order": 0,
+                "description": "Needed before any tool can return data — every call fails without it. Left optional so the server installs and lists its tools first, and you can add the key once you have one. Create one at https://dev.bags.fm under API Keys."
+              },
+              "bags_network": {
+                "type": "string",
+                "title": "Solana cluster",
+                "default": "devnet",
+                "x-order": 1,
+                "description": "devnet or mainnet. Bags has no devnet deployment, so trading and fee claims require mainnet — but devnet is the default so an unconfigured install cannot spend real money."
+              },
+              "bos_token_mint": {
+                "type": "string",
+                "title": "Gate token mint",
+                "x-order": 5,
+                "description": "Mint address of the token that gates the write tools. Without it, write tools fail their gate check."
+              },
+              "bags_keypair_path": {
+                "type": "string",
+                "title": "Solana keypair file",
+                "x-order": 2,
+                "description": "Only needed for trading and fee claims. Leave empty to run read-only. Create one with: solana-keygen new -o ~/.config/bags/keypair.json"
+              },
+              "bags_max_sol_per_tx": {
+                "type": "number",
+                "title": "Max SOL per transaction",
+                "default": 0.1,
+                "x-order": 3,
+                "description": "Hard cap on what any single transaction may spend. A write exceeding this is refused before signing."
+              },
+              "bos_required_balance": {
+                "type": "number",
+                "title": "Gate token balance required",
+                "default": 10000,
+                "x-order": 6,
+                "description": "Minimum balance of the gate token needed to call a write tool."
+              },
+              "bags_max_sol_per_session": {
+                "type": "number",
+                "title": "Max SOL per session",
+                "default": 1,
+                "x-order": 4,
+                "description": "Hard cap on total SOL spent across one server session. Resets when the server restarts."
+              }
+            }
+          }
+        }
+      ],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}
