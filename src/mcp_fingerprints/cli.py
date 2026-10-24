@@ -490,6 +490,19 @@ def main() -> None:
         "--no-scan-global", dest="scan_global", action="store_false", help="Disable scanning of global npm/npx packages"
     )
 
+    # Export Policy
+    export_policy_p = subparsers.add_parser(
+        "export-policy", help="Compile MCP passports into sidecar policy configurations (Rego, Envoy)"
+    )
+    export_policy_p.add_argument("--passport", required=True, help="Passport name or file path to compile")
+    export_policy_p.add_argument(
+        "--format", choices=["rego", "envoy", "json"], default="rego", help="Policy format to output"
+    )
+    export_policy_p.add_argument(
+        "--mode", choices=["strict", "read-only", "allowlist"], default="strict", help="Policy enforcement mode"
+    )
+    export_policy_p.add_argument("--output", help="Optional file path to write the compiled policy")
+
     args = parser.parse_args()
 
     if args.command in ("interactive", "hub"):
@@ -1015,6 +1028,23 @@ def main() -> None:
             run_tui(Path(args.dir), args.query)
         except Exception as e:  # noqa: BLE001
             logger.error("TUI exited with error: %s", e)
+            sys.exit(1)
+
+    elif args.command == "export-policy":
+        from mcp_fingerprints.policy_exporter import PolicyExporter, PolicyFormat, PolicyMode
+
+        fmt = PolicyFormat(args.format)
+        mode = PolicyMode(args.mode)
+        
+        try:
+            result = PolicyExporter.export(args.passport, fmt=fmt, mode=mode, output_path=args.output)
+            if not args.output:
+                print(result)
+            else:
+                print(f"Policy successfully compiled and written to {args.output}")
+        except Exception as e:
+            logger.error("Failed to export policy: %s", e)
+            print(f"ERROR: {e}")
             sys.exit(1)
 
     elif args.command == "detect-drift":

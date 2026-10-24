@@ -30,6 +30,13 @@ from mcp_fingerprints.sbom_exporter import SBOMFormat, CycloneDXExporter, Sigsto
 from mcp_fingerprints.sanitizer import sanitize_unicode_text, sanitize_metadata, sanitize_tool_definition
 from mcp_fingerprints.data_loader import get_passports_path, load_passports
 from mcp_fingerprints.installer import ClientInstaller, DockerSandboxBuilder, InstallPlan, SandboxMode, NetworkPolicy
+from mcp_fingerprints.policy_exporter import (
+    PolicyExporter,
+    PolicyFormat,
+    PolicyMode,
+    RegoPolicyCompiler,
+    EnvoyWasmConfigCompiler,
+)
 
 
 __version__ = "1.0.19"
@@ -117,4 +124,9 @@ __all__ = [
     "InstallPlan",
     "SandboxMode",
     "NetworkPolicy",
+    "PolicyExporter",
+    "PolicyFormat",
+    "PolicyMode",
+    "RegoPolicyCompiler",
+    "EnvoyWasmConfigCompiler",
 ]
