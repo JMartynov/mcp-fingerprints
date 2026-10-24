@@ -21,6 +21,7 @@ from mcp_fingerprints.drift_detector import (
 )
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
+from mcp_fingerprints.fuzzer import SchemaDrivenFuzzer, FuzzReport
 from mcp_fingerprints.prober import McpProber
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
 from mcp_fingerprints.search import format_search_results, search_passports
@@ -432,6 +433,26 @@ def main() -> None:
         "--output", help="Optional file path to write output drift report"
     )
 
+    # Fuzz
+    fuzz_p = subparsers.add_parser(
+        "fuzz", help="Run schema-driven JSON-RPC 2.0 conformance fuzzer"
+    )
+    fuzz_p.add_argument(
+        "--passport", default=None, help="Name or path of the passport JSON to use for schemas"
+    )
+    fuzz_p.add_argument(
+        "--iterations", type=int, default=10, help="Number of payload mutations per tool"
+    )
+    fuzz_p.add_argument(
+        "--timeout", type=float, default=5.0, help="Per-request timeout in seconds"
+    )
+    fuzz_p.add_argument(
+        "--output", default=None, help="Path to write the JSON fuzz report"
+    )
+    fuzz_p.add_argument(
+        "fuzz_command", nargs=argparse.REMAINDER, help="Target command to fuzz"
+    )
+
     # Scan Configs
     scan_configs_p = subparsers.add_parser(
         "scan-configs", aliases=["scan"],
@@ -520,6 +541,52 @@ def main() -> None:
         print(json.dumps(result, indent=2))
         if not result["is_mcp"]:
              sys.exit(1)
+
+    elif args.command == "fuzz":
+        target_cmd = args.fuzz_command
+        if not target_cmd:
+            print("Error: must provide a command to fuzz")
+            sys.exit(1)
+            
+        if target_cmd[0] == "--":
+            target_cmd = target_cmd[1:]
+            
+        if not target_cmd:
+            print("Error: must provide a command to fuzz")
+            sys.exit(1)
+            
+        fuzzer = SchemaDrivenFuzzer(
+            target_command=target_cmd,
+            passport=args.passport,
+            iterations=args.iterations,
+            timeout=args.timeout,
+        )
+        
+        print(f"\n[Fuzzer] Starting fuzz on {' '.join(target_cmd)}")
+        if args.passport:
+            print(f"[Fuzzer] Using passport schemas from {args.passport}")
+        else:
+            print(f"[Fuzzer] Dynamically querying schemas via tools/list")
+            
+        report = fuzzer.fuzz()
+        
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(report.to_json())
+            print(f"\n[Fuzzer] Detailed report written to {args.output}")
+            
+        print("\n--- Fuzzing Summary ---")
+        print(f"Target: {' '.join(report.target_command)}")
+        print(f"Total Test Cases      : {report.total_cases}")
+        print(f"Clean Errors (handled): {report.clean_errors}")
+        print(f"Handled Results       : {report.handled_results}")
+        print(f"Protocol Violations   : {report.protocol_violations}")
+        print(f"Timeouts (hangs)      : {report.timeouts}")
+        print(f"Process Crashes       : {report.crashes}")
+        print(f"Overall Status        : {'PASSED' if report.passed else 'FAILED'}")
+        
+        if not report.passed:
+            sys.exit(1)
 
     elif args.command == "scan-configs" or args.command == "scan":
         import mcp_fingerprints.snapshot_diff as snapshot_diff

@@ -38,6 +38,15 @@ from mcp_fingerprints.policy_exporter import (
     EnvoyWasmConfigCompiler,
 )
 
+from mcp_fingerprints.fuzzer import (
+    PayloadCategory,
+    FuzzOutcome,
+    PayloadMutator,
+    FuzzCaseResult,
+    FuzzReport,
+    SchemaDrivenFuzzer,
+)
+
 
 __version__ = "1.0.19"
 
@@ -129,4 +138,10 @@ __all__ = [
     "PolicyMode",
     "RegoPolicyCompiler",
     "EnvoyWasmConfigCompiler",
+    "PayloadCategory",
+    "FuzzOutcome",
+    "PayloadMutator",
+    "FuzzCaseResult",
+    "FuzzReport",
+    "SchemaDrivenFuzzer",
 ]

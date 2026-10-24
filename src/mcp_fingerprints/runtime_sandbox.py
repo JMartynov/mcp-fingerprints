@@ -211,3 +211,56 @@ def probe_mcp_server_stdio(
         _terminate_process()
 
     return tools
+
+class RuntimeSandbox:
+    def __init__(self, target_command: list[str], env: dict[str, str] | None = None):
+        self.target_command = target_command
+        self.env = sanitize_environment(env)
+        self.process: subprocess.Popen | None = None
+
+    def start(self) -> subprocess.Popen | None:
+        try:
+            self.process = subprocess.Popen(
+                self.target_command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=self.env,
+                text=True,
+                bufsize=1,
+            )
+            return self.process
+        except Exception:
+            return None
+
+    def stop(self) -> None:
+        if self.process:
+            try:
+                if self.process.poll() is None:
+                    self.process.terminate()
+                    self.process.wait(timeout=1.0)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                try:
+                    self.process.wait(timeout=1.0)
+                except Exception:
+                    pass
+            except Exception:
+                try:
+                    self.process.kill()
+                except Exception:
+                    pass
+            finally:
+                if self.process and self.process.stdin:
+                    try:
+                        self.process.stdin.close()
+                    except Exception:
+                        pass
+                self.process = None
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
