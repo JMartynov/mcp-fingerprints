@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from mcp_fingerprints.config_exporter import export_client_config
+from mcp_fingerprints.sbom_exporter import CycloneDXExporter, SBOMFormat
+from mcp_fingerprints.models import ServerPackageSpec
 
 logger = logging.getLogger("mcp_fingerprints.tui")
 
@@ -257,7 +259,7 @@ class MCPCatalogBrowser:
 
         # Footer
         footer_text = (
-            "[↑/↓] Navigate  [Tab] Ecosystem  [S] Search  [C] Copy Config  [Q] Quit"
+            "[s]earch [Tab]filter [c]opy claude cfg [e]xport sbom [q]uit"
         )
         if self.status_message and self.status_timer > 0:
             footer_text = self.status_message
@@ -334,6 +336,29 @@ class MCPCatalogBrowser:
                             self.set_status("Copied Claude config to clipboard!", 20)
                         else:
                             self.set_status("Clipboard copy failed.", 20)
+                    except Exception as e:  # noqa: BLE001
+                        self.set_status(f"Export error: {e}", 20)
+                elif (
+                    ch in (ord("e"), ord("E"), ord("b"), ord("B"))
+                    and self.filtered_passports
+                    and self.selected_index < len(self.filtered_passports)
+                ):
+                    p = self.filtered_passports[self.selected_index]
+                    try:
+                        spec = ServerPackageSpec.from_dict(p)
+                        pkg_name = spec.package_name.replace("/", "_").replace("@", "")
+                        out_path = Path(f"export_{pkg_name}_cyclonedx.json")
+                        
+                        exporter = CycloneDXExporter()
+                        sbom = exporter.export(spec, format=SBOMFormat.CYCLONEDX)
+                        sbom_str = json.dumps(sbom, indent=2)
+                        
+                        out_path.write_text(sbom_str, encoding="utf-8")
+                        
+                        # Attempt to copy to clipboard too
+                        copy_to_clipboard(sbom_str)
+                        
+                        self.set_status(f"Exported CycloneDX SBOM to {out_path.name}", 30)
                     except Exception as e:  # noqa: BLE001
                         self.set_status(f"Export error: {e}", 20)
 
