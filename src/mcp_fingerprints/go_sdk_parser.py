@@ -203,7 +203,7 @@ def parse_official_go_tools(code: str) -> list[dict[str, Any]]:
             literal.take(",")
             name = fields.get("Name")
             schema = fields.get("InputSchema")
-            description = fields.get("Description", name)
+            description = fields.get("Description", "")
             if (
                 not isinstance(name, str)
                 or not name

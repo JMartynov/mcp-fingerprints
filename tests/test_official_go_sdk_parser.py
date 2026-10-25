@@ -1,6 +1,7 @@
 import pytest
 
 from mcp_fingerprints.ast_parser import parse_golang_mcp_code, parse_mcp_source_code
+from mcp_fingerprints.canonicalizer import extract_tool_signature
 
 IMPORT = 'import "github.com/modelcontextprotocol/go-sdk/mcp"'
 SCHEMA = """map[string]any{
@@ -42,6 +43,24 @@ def test_official_sdk_complete_literal_schema():
     ]
 
 
+def test_omitted_description_matches_explicit_empty_description_metadata():
+    explicit = source(description='""')
+    omitted = explicit.replace('Description: "", ', "")
+    (omitted_tool,) = parse_mcp_source_code(omitted, language="go")
+    (explicit_tool,) = parse_mcp_source_code(explicit, language="go")
+    omitted_signature = extract_tool_signature(omitted_tool)
+    explicit_signature = extract_tool_signature(explicit_tool)
+
+    assert omitted_signature.canonical_hash == explicit_signature.canonical_hash
+    assert omitted_signature.description == explicit_signature.description == ""
+    assert (
+        omitted_signature.description_hash
+        is explicit_signature.description_hash
+        is None
+    )
+    assert omitted_tool == explicit_tool
+
+
 def test_official_sdk_alias_raw_strings_comments_and_multiple_tools():
     code = source(description="`Search (all), {records}`")
     code = code.replace(
@@ -60,7 +79,7 @@ func more() {
     assert [t["name"] for t in tools] == ["search", "second"]
     assert tools[0]["description"] == "Search (all), {records}"
     assert tools[1]["inputSchema"] == {}
-    assert tools[1]["description"] == "second"
+    assert tools[1]["description"] == ""
 
 
 @pytest.mark.parametrize(
