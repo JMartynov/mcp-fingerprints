@@ -48,7 +48,7 @@ from mcp_fingerprints.fuzzer import (
 )
 
 
-__version__ = "1.0.19"
+__version__ = "1.0.20"
 
 from mcp_fingerprints.prober import McpProber, ProbeReport
 
