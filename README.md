@@ -168,7 +168,7 @@ Tools:     5 capabilities advertised
 ```
 
 ### Scenario 5: Stateful Workstation Drift Tracking & Baseline Diffs
-* **Use Case Description**: Prevent supply-chain poisoning and unauthorized configuration tampering in development environments or CI pre-commit checks.
+* **Use Case Description**: Track schema drift and unexpected configuration changes across developer environments or CI pre-commit checks.
 * **How It Works**: Establish a signed baseline of workstation MCP tools and compare on subsequent runs:
 ```bash
 # 1. Capture baseline snapshot
@@ -271,7 +271,7 @@ MCP Fingerprints extracts rich parameter schemas and runtime protocol hints dire
 
 ## 🛡️ Automated Invariant Verification Suite (400 Passing Tests)
 
-`mcp-fingerprints` enforces rigorous mathematical and security guarantees across all subsystems. The automated verification suite encompasses **400 passing tests** organized into **five core invariant pillars**, ensuring zero regression, strict protocol adherence, and robust subprocess isolation.
+`mcp-fingerprints` enforces rigorous mathematical and structural integrity guarantees across all subsystems. The automated verification suite encompasses **400 passing tests** organized into **five core invariant pillars**, ensuring zero regression, strict protocol adherence, and robust subprocess isolation.
 
 ```mermaid
 flowchart TD

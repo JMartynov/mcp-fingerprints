@@ -980,7 +980,7 @@ def main() -> None:
 
         if (
             args.webhook_url
-            or os.environ.get("SECURITY_WEBHOOK_URL")
+            or os.environ.get("DRIFT_WEBHOOK_URL")
             or os.environ.get("WEBHOOK_URL")
         ):
             dispatch_drift_webhook(report, webhook_url=args.webhook_url)

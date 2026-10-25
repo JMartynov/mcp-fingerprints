@@ -297,7 +297,7 @@ def dispatch_drift_webhook(
     """Dispatch drift audit notification payload to a configured webhook (Slack, Discord, generic)."""
     target_url = (
         webhook_url
-        or os.environ.get("SECURITY_WEBHOOK_URL")
+        or os.environ.get("DRIFT_WEBHOOK_URL")
         or os.environ.get("WEBHOOK_URL")
         or os.environ.get("SLACK_WEBHOOK_URL")
     )

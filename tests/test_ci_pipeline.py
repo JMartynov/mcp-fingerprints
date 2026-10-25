@@ -121,7 +121,8 @@ def test_daily_sync_drift_detection_step():
     assert "previous_passports.json.gz" in content
     assert "detect-drift" in content
     assert "--output drift_report.json" in content
-    assert "SECURITY_WEBHOOK_URL" in content
+    assert "WEBHOOK_URL" in content
+    assert "SECURITY_WEBHOOK_URL" not in content
 
     # Verify sequencing: backup happens before snapshot compilation, and detect-drift happens after snapshot
     idx_backup = content.find("cp passports.json.gz previous_passports.json.gz")

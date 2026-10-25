@@ -310,7 +310,7 @@ class VersionFingerprint:
 class ServerPackageSpec:
     """Catalog specification of an MCP server package and all its known version fingerprints.
 
-    Note: Pure structural model without vulnerability or mutable security metadata.
+    Note: Pure structural model without mutable external issue metadata.
     """
 
     package_name: str

@@ -393,7 +393,7 @@ This mathematical structure guarantees that:
    - Resolves arbitrary runtime toolset fingerprints directly to canonical package releases and source repositories.
 3. **Supply-Chain Verification & Schema Auditing**:
    - Generates deterministic structural manifests and tracks schema evolution across releases.
-4. **Tool Integrity & Prompt Tamper Detection**:
+4. **Tool Integrity & Prompt Drift Detection**:
    - Detects tool description alterations and schema modifications by comparing `canonical_hash` and `description_hash` against historical baselines.
 
 ---

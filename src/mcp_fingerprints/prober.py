@@ -133,7 +133,7 @@ class McpStdioProber:
         min_confidence_threshold: float = 0.65,
         env: dict[str, str] | None = None,
     ) -> ProbeReport:
-        """Launch command, conduct MCP handshake, query capabilities, and audit security."""
+        """Launch command, conduct MCP handshake, and query capabilities."""
         proc = None
         try:
             merged_env = os.environ.copy()
@@ -266,7 +266,7 @@ class McpHttpProber:
         server_name_hint: str | None = None,
         min_confidence_threshold: float = 0.65,
     ) -> ProbeReport:
-        """Connect to HTTP endpoint, conduct MCP handshake, query capabilities, and audit security."""
+        """Connect to HTTP endpoint, conduct MCP handshake, and query capabilities."""
         req_headers = {"Content-Type": "application/json"}
         if headers:
             req_headers.update(headers)
