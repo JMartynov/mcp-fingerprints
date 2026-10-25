@@ -1760,6 +1760,203 @@ def parse_swift_mcp_code(code: str) -> list[dict[str, Any]]:
     return extracted
 
 
+def parse_php_mcp_code(code: str) -> list[dict[str, Any]]:
+    """Statically extract MCP tool definitions from PHP source code."""
+    extracted: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+
+    def add_tool(name: str, desc: str, props: dict[str, Any], req: list[str]) -> None:
+        if not name or name in seen_names:
+            return
+        seen_names.add(name)
+        extracted.append(
+            {
+                "name": name,
+                "description": desc or name,
+                "inputSchema": {
+                    "type": "object",
+                    "properties": props,
+                    "required": sorted(req),
+                },
+            }
+        )
+
+    # 1. Attributes on methods/functions: #[McpTool(name: '...', description: '...')] or #[Tool('...')]
+    attr_regex = re.compile(
+        r"#\[\s*(?:McpTool|Tool)\s*\(\s*(.*?)\s*\)\s*\](?:\s|/\*.*?\*/|//[^\n]*)*?(?:public\s+|private\s+|protected\s+)?(?:static\s+)?function\s+([a-zA-Z0-9_]+)\s*\(",
+        re.DOTALL
+    )
+    for match in attr_regex.finditer(code):
+        attr_content = match.group(1)
+        func_name = match.group(2)
+        
+        name = ""
+        desc = ""
+        
+        name_m = re.search(r"(?:name\s*:\s*)?['\"]([^'\"]+)['\"]", attr_content)
+        if name_m:
+            name = name_m.group(1)
+        else:
+            name = func_name
+            
+        desc_m = re.search(r"description\s*:\s*['\"]([^'\"]+)['\"]", attr_content)
+        if desc_m:
+            desc = desc_m.group(1)
+        else:
+            pos_m = re.search(r"['\"][^'\"]+['\"]\s*,\s*(?:description\s*:\s*)?['\"]([^'\"]+)['\"]", attr_content)
+            if pos_m:
+                desc = pos_m.group(1)
+                
+        params_start = match.end()
+        chunk = code[params_start : params_start + 600]
+        
+        properties: dict[str, dict[str, str]] = {}
+        required: list[str] = []
+        
+        open_parens = 1
+        params_end = -1
+        in_string = False
+        for i in range(len(chunk)):
+            if chunk[i] in '\"\'':
+                if i == 0 or chunk[i-1] != '\\':
+                    in_string = not in_string
+            if not in_string:
+                if chunk[i] == "(":
+                    open_parens += 1
+                elif chunk[i] == ")":
+                    open_parens -= 1
+                    if open_parens == 0:
+                        params_end = i
+                        break
+                    
+        if params_end != -1:
+            params_str = chunk[:params_end]
+            params_list = []
+            curr_param = []
+            nest = 0
+            for char in params_str:
+                if char in "([<": nest += 1
+                elif char in ")]>": nest -= 1
+                elif char == "," and nest == 0:
+                    params_list.append("".join(curr_param))
+                    curr_param = []
+                    continue
+                curr_param.append(char)
+            if curr_param:
+                params_list.append("".join(curr_param))
+
+            for p in params_list:
+                p = p.strip()
+                if not p: continue
+                has_default = "=" in p
+                is_nullable = "?" in p or "null" in p
+                
+                parts = p.split("=")
+                decl = parts[0].strip()
+                
+                type_name = "string"
+                param_name = ""
+                
+                decl_parts = [dp for dp in decl.split(" ") if dp.strip()]
+                if len(decl_parts) > 1:
+                    type_raw = decl_parts[0].replace("?", "").lower()
+                    param_name = decl_parts[-1].lstrip("$")
+                    if type_raw in ("int", "integer"):
+                        type_name = "integer"
+                    elif type_raw in ("float", "double"):
+                        type_name = "number"
+                    elif type_raw in ("bool", "boolean"):
+                        type_name = "boolean"
+                    elif type_raw in ("array", "object"):
+                        type_name = "array"
+                elif len(decl_parts) == 1:
+                    param_name = decl_parts[0].lstrip("$")
+                    
+                if not param_name:
+                    continue
+                    
+                properties[param_name] = {"type": type_name}
+                if not has_default and not is_nullable:
+                    required.append(param_name)
+                    
+        add_tool(name, desc, properties, required)
+
+    # 2. Class-based tools
+    class_regex = re.compile(
+        r"class\s+[a-zA-Z0-9_]+\s+(?:extends\s+[a-zA-Z0-9_\\]*Tool|implements\s+[a-zA-Z0-9_\\]*McpToolInterface|extends\s+[a-zA-Z0-9_\\]*McpTool)[^{]*\{",
+        re.DOTALL
+    )
+    for class_match in class_regex.finditer(code):
+        start_idx = class_match.end()
+        body = ""
+        open_braces = 1
+        for i in range(start_idx, len(code)):
+            if code[i] == "{": open_braces += 1
+            elif code[i] == "}":
+                open_braces -= 1
+                if open_braces == 0:
+                    body = code[start_idx:i]
+                    break
+                    
+        name = ""
+        desc = ""
+        properties_c: dict[str, dict[str, str]] = {}
+        required_c: list[str] = []
+        
+        name_m = re.search(r"(?:protected|public)\s+(?:string\s+)?\$name\s*=\s*['\"]([^'\"]+)['\"]", body)
+        if name_m:
+            name = name_m.group(1)
+        else:
+            name_func = re.search(r"public\s+function\s+getName\s*\(\)\s*(?::\s*string)?\s*\{\s*return\s*['\"]([^'\"]+)['\"];", body, re.DOTALL)
+            if name_func:
+                name = name_func.group(1)
+                
+        desc_m = re.search(r"(?:protected|public)\s+(?:string\s+)?\$description\s*=\s*['\"]([^'\"]+)['\"]", body)
+        if desc_m:
+            desc = desc_m.group(1)
+            
+        if not desc:
+            # Check class docblock
+            decl_start = class_match.start()
+            prev_chunk = code[max(0, decl_start-300):decl_start]
+            docblock_m = re.search(r"/\*\*(.*?)\*/\s*$", prev_chunk, re.DOTALL)
+            if docblock_m:
+                doc = docblock_m.group(1)
+                lines = [l.strip().lstrip('*').strip() for l in doc.split('\n')]
+                lines = [l for l in lines if l and not l.startswith('@')]
+                if lines:
+                    desc = " ".join(lines).strip()
+                    
+            if not desc:
+                # Also check inner docblock inside class before methods
+                inner_doc_m = re.search(r"/\*\*(.*?)\*/", body, re.DOTALL)
+                if inner_doc_m:
+                    doc = inner_doc_m.group(1)
+                    lines = [l.strip().lstrip('*').strip() for l in doc.split('\n')]
+                    lines = [l for l in lines if l and not l.startswith('@')]
+                    if lines:
+                        desc = " ".join(lines).strip()
+                        
+        if not name:
+            continue
+            
+        add_tool(name, desc, properties_c, required_c)
+
+    # 3. Method registration: $server->registerTool('name', ...)
+    reg_regex = re.compile(
+        r"\$(?:server|mcp)->registerTool\s*\(\s*['\"]([^'\"]+)['\"]\s*(?:,\s*(function\s*\(.*?\))|\s*\))?",
+        re.DOTALL
+    )
+    for reg_match in reg_regex.finditer(code):
+        name = reg_match.group(1)
+        desc = name
+        properties_r: dict[str, dict[str, str]] = {}
+        required_r: list[str] = []
+        add_tool(name, desc, properties_r, required_r)
+
+    return extracted
+
+
 def parse_dotnet_mcp_code(code: str) -> list[dict[str, Any]]:
     """Statically extract MCP tool definitions from C#/.NET source code."""
     extracted: list[dict[str, Any]] = []
@@ -1972,6 +2169,8 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
             return parse_dotnet_mcp_code(code)
         elif lang in ("swift",):
             return parse_swift_mcp_code(code)
+        elif lang in ("php",):
+            return parse_php_mcp_code(code)
         elif lang in ("openapi", "swagger", "json", "yaml", "yml"):
             from mcp_fingerprints.manifest_parser import parse_manifest_mcp_tools
             manifest_res = parse_manifest_mcp_tools(code)
@@ -2021,6 +2220,10 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
         or re.search(r'struct\s+[a-zA-Z0-9_]+\s*:\s*(?:[a-zA-Z0-9_]+,\s*)*(?:Tool|MCPTool|ToolDefinition)', code)
     ):
         res = parse_swift_mcp_code(code)
+        if res: return res
+
+    if "<?php" in code or "namespace " in code or "$server->registerTool" in code or "#[McpTool" in code:
+        res = parse_php_mcp_code(code)
         if res: return res
 
     # Try python and ts fallbacks
