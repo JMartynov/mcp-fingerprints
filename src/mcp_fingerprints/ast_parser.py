@@ -2151,6 +2151,193 @@ def parse_dotnet_mcp_code(code: str) -> list[dict[str, Any]]:
 
 
 
+
+def parse_ruby_mcp_code(code: str) -> list[dict[str, Any]]:
+    """Statically extract MCP tool definitions from Ruby source code."""
+    extracted: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+
+    def add_tool(name: str, desc: str, props: dict[str, Any], req: list[str]) -> None:
+        if not name or name in seen_names:
+            return
+        seen_names.add(name)
+        extracted.append(
+            {
+                "name": name,
+                "description": desc or name,
+                "inputSchema": {
+                    "type": "object",
+                    "properties": props,
+                    "required": sorted(req),
+                },
+            }
+        )
+
+    def parse_params(body: str) -> tuple[dict[str, Any], list[str]]:
+        props: dict[str, Any] = {}
+        req: list[str] = []
+
+        param_regex = re.compile(
+            r'(?:param|argument)\s+[:"\']?([a-zA-Z0-9_]+)["\']?\s*(?:,\s*(.*?))?(?:\n|#|$)',
+            re.IGNORECASE,
+        )
+
+        for param_match in param_regex.finditer(body):
+            pname = param_match.group(1)
+            args_str = param_match.group(2) or ""
+
+            ptype = "string"
+            type_m = re.search(r'type:\s*[:"\']?([a-zA-Z0-9_]+)', args_str, re.IGNORECASE)
+            if type_m:
+                ptype_raw = type_m.group(1).lower()
+                if ptype_raw in ("integer", "int", "fixnum", "numeric", "float"):
+                    ptype = "number"
+                elif ptype_raw in ("boolean", "bool", "trueclass", "falseclass"):
+                    ptype = "boolean"
+                elif ptype_raw in ("array", "list"):
+                    ptype = "array"
+                elif ptype_raw in ("hash", "dict", "object"):
+                    ptype = "object"
+
+            props[pname] = {"type": ptype}
+
+            desc_m = re.search(r'(?:desc|description):\s*["\']([^"\']+)["\']', args_str)
+            if desc_m:
+                props[pname]["description"] = desc_m.group(1)
+
+            req_m = re.search(r"required:\s*(true|false)", args_str, re.IGNORECASE)
+            is_required = True
+            if req_m and req_m.group(1).lower() == "false":
+                is_required = False
+
+            if is_required:
+                req.append(pname)
+
+        return props, req
+
+    dsl_regex = re.compile(
+        r'(?:server\.register_tool|tool)\s*\(?\s*[:"\']([a-zA-Z0-9_]+)["\']?\s*(?:,\s*(.*?))?\)?\s+do\b',
+        re.DOTALL | re.IGNORECASE,
+    )
+
+    for match in dsl_regex.finditer(code):
+        name = match.group(1)
+        args_str = match.group(2) or ""
+        start_idx = match.end()
+
+        body = ""
+        open_count = 1
+
+        words = re.finditer(
+            r"\b(do|class|module|def|case|begin|if|unless|while|until|for|end)\b",
+            code[start_idx:],
+        )
+        for w in words:
+            word = w.group(1)
+            if word in (
+                "do",
+                "class",
+                "module",
+                "def",
+                "case",
+                "begin",
+                "if",
+                "unless",
+                "while",
+                "until",
+                "for",
+            ):
+                open_count += 1
+            elif word == "end":
+                open_count -= 1
+                if open_count == 0:
+                    body = code[start_idx : start_idx + w.start()]
+                    break
+
+        if not body:
+            body = code[start_idx:]
+            end_m = re.search(r"\bend\b", body)
+            if end_m:
+                body = body[: end_m.start()]
+
+        if body.strip().startswith("|"):
+            body_parts = body.split("|", 2)
+            if len(body_parts) >= 3:
+                body = body_parts[2]
+
+        desc = ""
+        desc_kw_m = re.search(r'(?:description|desc):\s*["\']([^"\']+)["\']', args_str)
+        if desc_kw_m:
+            desc = desc_kw_m.group(1)
+        else:
+            str_args = re.findall(r'["\']([^"\']+)["\']', args_str)
+            if str_args:
+                desc = str_args[0]
+
+        if not desc:
+            desc = name
+
+        props, req = parse_params(body)
+        add_tool(name, desc, props, req)
+
+    class_regex = re.compile(
+        r"class\s+[A-Z][a-zA-Z0-9_]*\s*<\s*(?:[A-Za-z0-9_]+::)*Tool\b", re.DOTALL
+    )
+    for match in class_regex.finditer(code):
+        start_idx = match.end()
+        body = ""
+        open_count = 1
+        words = re.finditer(
+            r"\b(do|class|module|def|case|begin|if|unless|while|until|for|end)\b",
+            code[start_idx:],
+        )
+        for w in words:
+            word = w.group(1)
+            if word in (
+                "do",
+                "class",
+                "module",
+                "def",
+                "case",
+                "begin",
+                "if",
+                "unless",
+                "while",
+                "until",
+                "for",
+            ):
+                open_count += 1
+            elif word == "end":
+                open_count -= 1
+                if open_count == 0:
+                    body = code[start_idx : start_idx + w.start()]
+                    break
+
+        if not body:
+            body = code[start_idx:]
+            end_m = re.search(r"\bend\b", body)
+            if end_m:
+                body = body[: end_m.start()]
+
+        name_m = re.search(
+            r'(?:@?name\s*(?:=\s*)?|\bname\b\s+)["\']([a-zA-Z0-9_]+)["\']', body
+        )
+        name = name_m.group(1) if name_m else None
+        if not name:
+            continue
+
+        desc_m = re.search(
+            r'(?:@?description\s*(?:=\s*)?|\bdescription\b\s+)["\']([^"\']+)["\']', body
+        )
+        desc = desc_m.group(1) if desc_m else name
+
+        props, req = parse_params(body)
+        add_tool(name, desc, props, req)
+
+    return extracted
+
+
+
 def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[str, Any]]:
     """Parse MCP source code and return extracted tool signatures."""
     if language:
@@ -2171,6 +2358,8 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
             return parse_swift_mcp_code(code)
         elif lang in ("php",):
             return parse_php_mcp_code(code)
+        elif lang in ("ruby", "rb"):
+            return parse_ruby_mcp_code(code)
         elif lang in ("openapi", "swagger", "json", "yaml", "yml"):
             from mcp_fingerprints.manifest_parser import parse_manifest_mcp_tools
             manifest_res = parse_manifest_mcp_tools(code)
@@ -2224,6 +2413,13 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
 
     if "<?php" in code or "namespace " in code or "$server->registerTool" in code or "#[McpTool" in code:
         res = parse_php_mcp_code(code)
+        if res: return res
+
+    if (
+        "def " in code and "end" in code
+        and ("< MCP::Tool" in code or "< Tool" in code or "server.register_tool" in code or "require \"mcp\"" in code or "require 'mcp'" in code or " tool :" in code or " tool \"" in code or " tool '" in code)
+    ):
+        res = parse_ruby_mcp_code(code)
         if res: return res
 
     # Try python and ts fallbacks
