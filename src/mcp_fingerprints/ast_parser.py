@@ -1405,6 +1405,178 @@ def parse_rust_mcp_code(code: str) -> list[dict[str, Any]]:
     return extracted
 
 
+
+def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
+    """Statically extract MCP tool definitions from Kotlin source code."""
+    extracted: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+
+    def add_tool(name: str, desc: str, schema: dict[str, Any]):
+        if name and name not in seen_names:
+            extracted.append({
+                "name": name,
+                "description": desc or f"Kotlin MCP Tool {name}",
+                "inputSchema": schema
+            })
+            seen_names.add(name)
+
+    # Kotlin type to JSON schema mapping
+    def map_type(kt_type: str) -> str:
+        kt_type = kt_type.replace('?', '').strip()
+        if kt_type in ('Int', 'Long', 'Short', 'Byte'):
+            return "integer"
+        elif kt_type in ('Float', 'Double'):
+            return "number"
+        elif kt_type == 'Boolean':
+            return "boolean"
+        elif kt_type.startswith('List<') or kt_type.startswith('Array<'):
+            return "array"
+        elif kt_type.startswith('Map<') or kt_type.startswith('JsonNode'):
+            return "object"
+        return "string"
+
+    def parse_parameters(params_str: str) -> dict[str, Any]:
+        schema = {"type": "object", "properties": {}, "required": []}
+        if not params_str.strip():
+            return schema
+
+        # Split by comma but respect generics < >
+        params = []
+        current = []
+        depth = 0
+        for char in params_str:
+            if char == '<': depth += 1
+            elif char == '>': depth -= 1
+            elif char == ',' and depth == 0:
+                params.append("".join(current).strip())
+                current = []
+                continue
+            current.append(char)
+        if current:
+            params.append("".join(current).strip())
+
+        for p in params:
+            # format: name: Type [= default]
+            m = re.match(r'([a-zA-Z0-9_]+)\s*:\s*([^=]+)(?:=(.*))?', p)
+            if m:
+                p_name = m.group(1).strip()
+                p_type_full = m.group(2).strip()
+                p_default = m.group(3)
+                
+                is_nullable = '?' in p_type_full
+                json_type = map_type(p_type_full)
+                
+                schema["properties"][p_name] = {"type": json_type}
+                
+                # It is required if it's not nullable and has no default value
+                if not is_nullable and not p_default:
+                    schema["required"].append(p_name)
+                    
+        return schema
+
+
+    # 1. Annotation-based
+    annotation_regex = re.compile(
+        r"@(?:Tool|McpFunction)\s*(?:\((.*?)\))?", re.DOTALL
+    )
+
+    for match in annotation_regex.finditer(code):
+        attrs = (match.group(1) or "").strip()
+        
+        name = ""
+        desc = ""
+        
+        # Parse attrs
+        name_m = re.search(r'name\s*=\s*["\']([^"\']+)["\']', attrs)
+        if name_m:
+            name = name_m.group(1)
+        
+        desc_m = re.search(r'(?:description|value)\s*=\s*["\']([^"\']+)["\']', attrs)
+        if desc_m:
+            desc = desc_m.group(1)
+            
+        if not name_m and not desc_m and attrs.startswith('"') and attrs.endswith('"'):
+            # @Tool("name") or maybe description if there's no name, let's assume description if no name attribute provided
+            if "description" in attrs or "value" in attrs:
+                pass
+            else:
+                 # Actually in Kotlin, often @Tool("...") sets the name. Let's look at standard annotations.
+                 # Task says: @Tool("...") -> extract function signature
+                 name_m_simple = re.match(r'^["\']([^"\']+)["\']$', attrs)
+                 if name_m_simple:
+                     name = name_m_simple.group(1)
+
+        start_idx = match.end()
+        chunk = code[start_idx:start_idx + 600]
+        
+        method_match = re.search(
+            r"(?:public|private|protected|internal)?\s*(?:open|override|final|suspend|inline)?\s*fun\s+(?:<[^>]+>\s+)?(?:[\w.]+\.)?([a-zA-Z0-9_]+)\s*\((.*?)\)",
+            chunk, re.DOTALL
+        )
+        
+        schema = {"type": "object", "properties": {}}
+        if method_match:
+            if not name:
+                name = method_match.group(1)
+            
+            params_str = method_match.group(2)
+            schema = parse_parameters(params_str)
+            
+        add_tool(name, desc, schema)
+
+    # 2. Ktor / DSL-based
+    # mcpServer { tool("name") { description = "..."; parameter(...) } }
+    # Or just tool("name", "desc") { ... }
+    dsl_regex = re.compile(
+        r'tool\s*\(\s*["\']([^"\']+)["\'](?:.*?\{|\))', re.DOTALL
+    )
+    for match in dsl_regex.finditer(code):
+        name = match.group(1)
+        desc = ""
+        
+        # Look ahead for description
+        start_idx = match.end()
+        # Find closing brace of tool block
+        depth = 1 if start_idx > 0 and code[start_idx-1] == '{' else 0
+        chunk = code[start_idx:start_idx + 500]
+        
+        desc_m = re.search(r'description\s*=\s*["\']([^"\']+)["\']', chunk)
+        if desc_m:
+            desc = desc_m.group(1)
+            
+        # We might not parse fully Ktor DSL parameters here due to complexity, but we can extract tool name and desc
+        schema = {"type": "object", "properties": {}}
+        add_tool(name, desc, schema)
+        
+    # 3. Class-based / Interface implementations
+    # class .*Tool : McpTool or class .*Tool(override val name: String = "...")
+    class_regex = re.compile(
+        r'class\s+([a-zA-Z0-9_]+Tool)(?:\s*\([^)]*\))?\s*:\s*[a-zA-Z0-9_]*McpTool[a-zA-Z0-9_]*', re.DOTALL
+    )
+    for match in class_regex.finditer(code):
+        class_name = match.group(1)
+        # Convert CamelCase to kebab-case or just use as is if not specified, 
+        # let's try to find name property
+        name = class_name
+        desc = ""
+        
+        start_idx = match.start()
+        chunk = code[start_idx:start_idx + 500]
+        
+        name_m = re.search(r'override\s+val\s+name(?:\s*:\s*String)?\s*=\s*["\']([^"\']+)["\']', chunk)
+        if name_m:
+            name = name_m.group(1)
+            
+        desc_m = re.search(r'override\s+val\s+description(?:\s*:\s*String)?\s*=\s*["\']([^"\']+)["\']', chunk)
+        if desc_m:
+            desc = desc_m.group(1)
+            
+        schema = {"type": "object", "properties": {}}
+        add_tool(name, desc, schema)
+        
+    return extracted
+
+
 def parse_jvm_mcp_code(code: str) -> list[dict[str, Any]]:
     """Statically extract MCP tool definitions from Java/Kotlin source code."""
     extracted: list[dict[str, Any]] = []
@@ -2350,8 +2522,10 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
             return parse_golang_mcp_code(code)
         elif lang in ("rust", "rs"):
             return parse_rust_mcp_code(code)
-        elif lang in ("java", "kt", "kotlin"):
+        elif lang == "java":
             return parse_jvm_mcp_code(code)
+        elif lang in ("kt", "kotlin"):
+            return parse_kotlin_mcp_code(code)
         elif lang in ("cs", "csharp", "dotnet"):
             return parse_dotnet_mcp_code(code)
         elif lang in ("swift",):
@@ -2378,6 +2552,10 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
         oa_res = parse_openapi_spec(code)
         if oa_res:
             return oa_res
+
+    if "fun " in code and ("val " in code or "var " in code or "data class " in code or "@Tool" in code or "mcpServer {" in code):
+        res = parse_kotlin_mcp_code(code)
+        if res: return res
 
     if "@Tool" in code or "@McpFunction" in code:
         res = parse_jvm_mcp_code(code)
