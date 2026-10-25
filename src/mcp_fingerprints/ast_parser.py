@@ -1592,6 +1592,174 @@ def parse_jvm_mcp_code(code: str) -> list[dict[str, Any]]:
     return extracted
 
 
+def parse_swift_mcp_code(code: str) -> list[dict[str, Any]]:
+    """Statically extract MCP tool definitions from Swift source code."""
+    extracted: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+
+    def add_tool(name: str, desc: str, props: dict[str, Any], req: list[str]) -> None:
+        if not name or name in seen_names:
+            return
+        seen_names.add(name)
+        extracted.append(
+            {
+                "name": name,
+                "description": desc or name,
+                "inputSchema": {
+                    "type": "object",
+                    "properties": props,
+                    "required": sorted(req),
+                },
+            }
+        )
+
+    # Helper to parse arguments/properties from a chunk of swift code
+    def parse_swift_args(args_chunk: str) -> tuple[dict[str, Any], list[str]]:
+        props: dict[str, Any] = {}
+        req: list[str] = []
+        
+        # Look for `let name: Type` or `var name: Type`
+        var_regex = re.compile(
+            r'(?:let|var)\s+([a-zA-Z0-9_]+)\s*:\s*([a-zA-Z0-9_\[\]\:\?\s<>\.]+?)(?=\n|;|,|$)'
+        )
+        
+        for match in var_regex.finditer(args_chunk):
+            pname = match.group(1)
+            ptype_raw = match.group(2).strip()
+            
+            is_optional = "?" in ptype_raw or "Optional<" in ptype_raw
+            ptype_clean = ptype_raw.replace("?", "").replace(" ", "")
+            
+            schema_type = "string"
+            if ptype_clean in ("Int", "Int32", "Int64", "UInt", "UInt32", "UInt64"):
+                schema_type = "integer"
+            elif ptype_clean in ("Double", "Float", "Decimal"):
+                schema_type = "number"
+            elif ptype_clean in ("Bool", "Boolean"):
+                schema_type = "boolean"
+            elif ptype_clean.startswith("[") and ptype_clean.endswith("]"):
+                if ":" in ptype_clean:
+                    schema_type = "object" # e.g. [String: Any]
+                else:
+                    schema_type = "array"
+            elif ptype_clean == "String":
+                schema_type = "string"
+                
+            props[pname] = {"type": schema_type}
+            if not is_optional:
+                req.append(pname)
+                
+        return props, req
+
+    # Pattern 1: Structs conforming to Tool, MCPTool, ToolDefinition
+    struct_regex = re.compile(
+        r'struct\s+[a-zA-Z0-9_]+\s*:\s*(?:[a-zA-Z0-9_]+,\s*)*(?:Tool|MCPTool|ToolDefinition)(?:\s*,\s*[a-zA-Z0-9_]+)*\s*\{'
+    )
+    for struct_match in struct_regex.finditer(code):
+        start_idx = struct_match.end()
+        # Extract body of the struct roughly
+        open_braces = 1
+        body_end = -1
+        for i in range(start_idx, len(code)):
+            if code[i] == '{':
+                open_braces += 1
+            elif code[i] == '}':
+                open_braces -= 1
+                if open_braces == 0:
+                    body_end = i
+                    break
+        if body_end != -1:
+            body = code[start_idx:body_end]
+            
+            name = ""
+            desc = ""
+            name_m = re.search(r'(?:let|var)\s+name(?:\s*:\s*String)?\s*(?:=|{)\s*["\']([^"\']+)["\']', body)
+            if name_m:
+                name = name_m.group(1)
+            
+            desc_m = re.search(r'(?:let|var)\s+description(?:\s*:\s*String)?\s*(?:=|{)\s*["\']([^"\']+)["\']', body)
+            if desc_m:
+                desc = desc_m.group(1)
+                
+            # Look for nested Arguments or Input structs
+            args_struct_m = re.search(r'struct\s+(?:Arguments|Input)\s*:\s*(?:Codable|Decodable)\s*\{([^}]+)\}', body)
+            props = {}
+            req = []
+            if args_struct_m:
+                props, req = parse_swift_args(args_struct_m.group(1))
+                
+            if name:
+                add_tool(name, desc, props, req)
+                
+    # Pattern 2: Macro/Attribute definitions @McpTool(name: "...", description: "...") or @Tool
+    func_regex = re.compile(
+        r'(@(?:McpTool|Tool)(?:\([^)]+\))?)\s*(?:public\s+|private\s+|internal\s+)?func\s+([a-zA-Z0-9_]+)\s*\(([^)]*)\)',
+        re.MULTILINE
+    )
+    for func_match in func_regex.finditer(code):
+        attr = func_match.group(1)
+        name = func_match.group(2)
+        args_str = func_match.group(3)
+        desc = name
+        
+        name_m = re.search(r'name\s*:\s*["\']([^"\']+)["\']', attr)
+        if name_m:
+            name = name_m.group(1)
+            
+        desc_m = re.search(r'description\s*:\s*["\']([^"\']+)["\']', attr)
+        if desc_m:
+            desc = desc_m.group(1)
+            
+        props = {}
+        req = []
+        if args_str.strip():
+            # Parse func arguments
+            # e.g. path: String, limit: Int?
+            # Also handle argument labels e.g. _ path: String
+            for arg_part in args_str.split(','):
+                arg_part = arg_part.strip()
+                if not arg_part: continue
+                parts = arg_part.split(':')
+                if len(parts) >= 2: # to handle dictionary types that might have inner colons
+                    name_part = parts[0].strip()
+                    type_part = ':'.join(parts[1:]).strip()
+                    
+                    # Name might have labels: `_ path` or `with path`
+                    pname = name_part.split()[-1]
+                    
+                    is_optional = "?" in type_part or "Optional<" in type_part or " = " in type_part
+                    ptype_clean = type_part.split('=')[0].replace("?", "").replace(" ", "")
+                    
+                    schema_type = "string"
+                    if "Int" in ptype_clean:
+                        schema_type = "integer"
+                    elif "Double" in ptype_clean or "Float" in ptype_clean or "Decimal" in ptype_clean:
+                        schema_type = "number"
+                    elif "Bool" in ptype_clean or "Boolean" in ptype_clean:
+                        schema_type = "boolean"
+                    elif ptype_clean.startswith("[") and ptype_clean.endswith("]"):
+                        if ":" in ptype_clean:
+                            schema_type = "object"
+                        else:
+                            schema_type = "array"
+                            
+                    props[pname] = {"type": schema_type}
+                    if not is_optional:
+                        req.append(pname)
+                        
+        add_tool(name, desc, props, req)
+        
+    # Pattern 3: server.registerTool("name", description: "...") { ... }
+    reg_regex = re.compile(
+        r'(?:server|app)\.registerTool\s*\(\s*["\']([^"\']+)["\']\s*,\s*description\s*:\s*["\']([^"\']+)["\']',
+        re.MULTILINE
+    )
+    for reg_match in reg_regex.finditer(code):
+        add_tool(reg_match.group(1), reg_match.group(2), {}, [])
+
+    return extracted
+
+
 def parse_dotnet_mcp_code(code: str) -> list[dict[str, Any]]:
     """Statically extract MCP tool definitions from C#/.NET source code."""
     extracted: list[dict[str, Any]] = []
@@ -1802,6 +1970,8 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
             return parse_jvm_mcp_code(code)
         elif lang in ("cs", "csharp", "dotnet"):
             return parse_dotnet_mcp_code(code)
+        elif lang in ("swift",):
+            return parse_swift_mcp_code(code)
         elif lang in ("openapi", "swagger", "json", "yaml", "yml"):
             from mcp_fingerprints.manifest_parser import parse_manifest_mcp_tools
             manifest_res = parse_manifest_mcp_tools(code)
@@ -1842,6 +2012,15 @@ def parse_mcp_source_code(code: str, language: str | None = None) -> list[dict[s
         
     if "fn main()" in code or "use rmcp" in code or "#[mcp_tool" in code:
         res = parse_rust_mcp_code(code)
+        if res: return res
+
+    if (
+        "import Foundation" in code
+        or "import MCP" in code
+        or "@McpTool" in code
+        or re.search(r'struct\s+[a-zA-Z0-9_]+\s*:\s*(?:[a-zA-Z0-9_]+,\s*)*(?:Tool|MCPTool|ToolDefinition)', code)
+    ):
+        res = parse_swift_mcp_code(code)
         if res: return res
 
     # Try python and ts fallbacks
