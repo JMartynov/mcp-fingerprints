@@ -16,7 +16,7 @@ This report documents the execution, verification, and integration of Wave 6 tas
 | Task | Title | Roadmap Spec | Jules Session ID | Status | Output Artifacts |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Task 9** | Pre-computed Semantic Embeddings Cache & Vector Index | Section 9 | `11637589781379961092` | Completed | `scripts/build_semantic_index.py`<br>`src/mcp_fingerprints/semantic_search.py`<br>`src/mcp_fingerprints/cli.py`<br>`tests/test_semantic_index_builder.py` |
-| **Task 10** | Automated Vulnerability Remediation Advisor (`fix-advisories`) | Section 10 | `7946851911190294951` | Completed | `src/mcp_fingerprints/remediation_advisor.py`<br>`src/mcp_fingerprints/cli.py`<br>`pyproject.toml`<br>`tests/test_remediation_advisor.py` |
+| **Task 10** | Automated issue Remediation Advisor (`fix-advisories`) | Section 10 | `7946851911190294951` | Completed | `src/mcp_fingerprints/remediation_advisor.py`<br>`src/mcp_fingerprints/cli.py`<br>`pyproject.toml`<br>`tests/test_remediation_advisor.py` |
 | **Task 11** | Remote SSE & WebSocket Cloud Transport Indexing & Export | Section 11 | `4086817754911393812` | Completed | `src/mcp_fingerprints/models.py`<br>`src/mcp_fingerprints/synchronizer.py`<br>`src/mcp_fingerprints/validator.py`<br>`src/mcp_fingerprints/config_exporter.py`<br>`tests/test_remote_transports.py` |
 | **Task 12** | Interactive Terminal TUI Browser (`browse`) | Section 12 | `18174243285448922908` | Completed | `src/mcp_fingerprints/tui.py`<br>`src/mcp_fingerprints/cli.py`<br>`tests/test_tui.py` |
 | **Task 13** | Automated TestPyPI Dry-Run Workflow (`test_release.yml`) | Section 13 | `16471876065274322177` | Completed | `.github/workflows/test_release.yml`<br>`src/mcp_fingerprints/__init__.py`<br>`README.md`<br>`tests/test_packaging_metadata.py` |
@@ -40,7 +40,7 @@ This report documents the execution, verification, and integration of Wave 6 tas
   - Updated `search --semantic` to report when the pre-computed index cache is utilized.
 - [x] Comprehensive test suite in `tests/test_semantic_index_builder.py` passes 100% with mock embeddings and vector normalization assertions.
 
-### Task 10: Automated Vulnerability Remediation Advisor (`mcp-fingerprints fix-advisories`)
+### Task 10: Automated issue Remediation Advisor (`mcp-fingerprints fix-advisories`)
 - [x] Implemented `src/mcp_fingerprints/remediation_advisor.py`:
   - `RemediationAction` and `RemediationReport` data models.
   - `evaluate_client_config(config_path, passport_dir) -> RemediationReport`.
@@ -145,7 +145,7 @@ tests/test_synchronizer_multiregistry.py ....                            [ 87%]
 tests/test_tombstoning.py .....                                          [ 89%]
 tests/test_tui.py ....                                                   [ 91%]
 tests/test_typescript_complex_tools.py .....                             [ 93%]
-tests/test_vulnerability_version_lifecycle.py ........                   [ 97%]
+tests/test_issue_version_lifecycle.py ........                   [ 97%]
 tests/test_web_catalog.py .....                                          [100%]
 
 ======================= 211 passed, 4 skipped in 48.80s ========================
@@ -154,4 +154,4 @@ tests/test_web_catalog.py .....                                          [100%]
 ---
 
 ## Conclusion
-All Wave 6 tasks (Tasks 9, 10, 11, 12, and 13) are fully implemented, verified, formatted, and ready for deployment on `main`. The codebase now features precomputed semantic search indexing, automated vulnerability remediation, cloud SSE/WebSocket transport support, an interactive curses TUI browser, and a TestPyPI dry-run CI pipeline.
+All Wave 6 tasks (Tasks 9, 10, 11, 12, and 13) are fully implemented, verified, formatted, and ready for deployment on `main`. The codebase now features precomputed semantic search indexing, automated issue remediation, cloud SSE/WebSocket transport support, an interactive curses TUI browser, and a TestPyPI dry-run CI pipeline.

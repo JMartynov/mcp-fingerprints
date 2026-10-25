@@ -1,7 +1,7 @@
 # Task 30: SARIF Export for GitHub Code Scanning (`audit-config --format sarif`)
 
 ### 1. Architectural Context & Technical Objective
-The current configuration auditing (`audit-config`) command provides basic JSON or terminal output. To seamlessly integrate `mcp_fingerprints` into enterprise CI/CD pipelines and vulnerability management workflows (like GitHub Advanced Security Code Scanning), it needs to export structural risk findings in the standard SARIF (Static Analysis Results Interchange Format) format.
+The current configuration auditing (`audit-config`) command provides basic JSON or terminal output. To seamlessly integrate `mcp_fingerprints` into enterprise CI/CD pipelines and issue management workflows (like GitHub Advanced Security Code Scanning), it needs to export structural risk findings in the standard SARIF (Static Analysis Results Interchange Format) format.
 The objective is to implement a SARIF v2.1.0 exporter that translates the static AST tool capability risk profiles (e.g., exposed shell execution tools) into SARIF rules and results. Note: As per Clean Architecture, this export is strictly for *structural risks* found via AST, not external CVE vulnerabilities.
 
 ### 2. Technical Implementation Specifications

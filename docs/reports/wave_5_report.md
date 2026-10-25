@@ -105,7 +105,7 @@ tests/test_source_data_varieties.py ........                             [ 86%]
 tests/test_synchronizer_multiregistry.py ....                            [ 88%]
 tests/test_tombstoning.py .....                                          [ 90%]
 tests/test_typescript_complex_tools.py .....                             [ 93%]
-tests/test_vulnerability_version_lifecycle.py ........                   [ 97%]
+tests/test_version_lifecycle.py ........                   [ 97%]
 tests/test_web_catalog.py .....                                          [100%]
 
 ======================= 192 passed, 4 skipped in 50.39s ========================

@@ -8,7 +8,7 @@ Maintainer: [@JMartynov](https://github.com/JMartynov)
 
 ## 1. Executive Summary & Purpose
 
-The **Model Context Protocol (MCP)** enables Large Language Model (LLM) agents to access external data sources, execute commands, and invoke tools across diverse ecosystems (npm, PyPI, Go, Rust, Docker). However, the decentralized and dynamic nature of MCP introduces critical security and governance challenges:
+The **Model Context Protocol (MCP)** enables Large Language Model (LLM) agents to access external data sources, execute commands, and invoke tools across diverse ecosystems (npm, PyPI, Go, Rust, Docker). However, the decentralized and dynamic nature of MCP introduces critical structural and cataloging challenges:
 
 1. **Tool Poisoning & Description Manipulation**: Malicious or hijacked servers can silently alter tool input schemas or inject hidden instructions into tool descriptions to manipulate agent reasoning.
 2. **Server Impersonation & Typosquatting**: Malicious actors publish counterfeit MCP servers mimicking legitimate database connectors or cloud utilities.
@@ -20,6 +20,8 @@ The **MCP Fingerprint & Passport Knowledge Base** solves these challenges by com
 ---
 
 ## 2. Ecosystem Architecture & Scope
+
+**`mcp-fingerprints` is strictly a structural classification, cataloging, and tool signature knowledge base — NOT a security tool.**
 
 `mcp-fingerprints` serves as the authoritative open standard for structural Model Context Protocol server passports. Its responsibilities are strictly focused on:
 - Static AST extraction across Python, TypeScript/JavaScript, Go, and Rust.

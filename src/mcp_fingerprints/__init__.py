@@ -26,26 +26,9 @@ from mcp_fingerprints.models import (
     VersionFingerprint,
 )
 from mcp_fingerprints.snapshot_diff import compare_snapshots, InventorySnapshot
-from mcp_fingerprints.sbom_exporter import SBOMFormat, CycloneDXExporter, SigstoreBundleVerifier, AttestationVerificationResult
+from mcp_fingerprints.sbom_exporter import SBOMFormat, CycloneDXExporter
 from mcp_fingerprints.sanitizer import sanitize_unicode_text, sanitize_metadata, sanitize_tool_definition
 from mcp_fingerprints.data_loader import get_passports_path, load_passports
-from mcp_fingerprints.installer import ClientInstaller, DockerSandboxBuilder, InstallPlan, SandboxMode, NetworkPolicy
-from mcp_fingerprints.policy_exporter import (
-    PolicyExporter,
-    PolicyFormat,
-    PolicyMode,
-    RegoPolicyCompiler,
-    EnvoyWasmConfigCompiler,
-)
-
-from mcp_fingerprints.fuzzer import (
-    PayloadCategory,
-    FuzzOutcome,
-    PayloadMutator,
-    FuzzCaseResult,
-    FuzzReport,
-    SchemaDrivenFuzzer,
-)
 
 
 __version__ = "1.0.20"
@@ -121,27 +104,9 @@ __all__ = [
     "scan_config_file",
     "SBOMFormat",
     "CycloneDXExporter",
-    "SigstoreBundleVerifier",
-    "AttestationVerificationResult",
     "sanitize_unicode_text",
     "sanitize_metadata",
     "sanitize_tool_definition",
     "get_passports_path",
     "load_passports",
-    "ClientInstaller",
-    "DockerSandboxBuilder",
-    "InstallPlan",
-    "SandboxMode",
-    "NetworkPolicy",
-    "PolicyExporter",
-    "PolicyFormat",
-    "PolicyMode",
-    "RegoPolicyCompiler",
-    "EnvoyWasmConfigCompiler",
-    "PayloadCategory",
-    "FuzzOutcome",
-    "PayloadMutator",
-    "FuzzCaseResult",
-    "FuzzReport",
-    "SchemaDrivenFuzzer",
 ]

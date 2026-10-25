@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint, ToolContractSignature
-from mcp_fingerprints.sbom_exporter import CycloneDXExporter, SBOMFormat, SigstoreBundleVerifier
+from mcp_fingerprints.sbom_exporter import CycloneDXExporter, SBOMFormat
 
 @pytest.fixture
 def sample_spec():
@@ -79,51 +79,4 @@ def test_purl_generation():
     )
     sbom = CycloneDXExporter.export(spec)
     assert sbom["components"][0]["purl"] == "pkg:cargo/test-server"
-
-def test_sigstore_verifier_missing_files(tmp_path):
-    res = SigstoreBundleVerifier.verify(tmp_path / "nonexistent", tmp_path / "nonexistent.bundle")
-    assert not res.verified
-    assert res.reason == "Artifact not found"
-
-def test_sigstore_verifier_mismatched(tmp_path):
-    art = tmp_path / "artifact.txt"
-    bun = tmp_path / "bundle.json"
-    
-    art.write_text("hello")
-    # SHA-256 of "hello" is 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
-    
-    bundle_content = {
-        "mediaType": "application/vnd.dev.sigstore.bundle+json;version=0.1",
-        "messageSignature": {
-            "messageDigest": {
-                "hash": "wronghash"
-            }
-        }
-    }
-    bun.write_text(json.dumps(bundle_content))
-    
-    res = SigstoreBundleVerifier.verify(art, bun)
-    assert not res.verified
-    assert "Mismatched digest" in res.reason
-
-def test_sigstore_verifier_valid_mock(tmp_path):
-    art = tmp_path / "artifact.txt"
-    bun = tmp_path / "bundle.json"
-    
-    art.write_text("hello")
-    # SHA-256 of "hello" is 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
-    
-    bundle_content = {
-        "mediaType": "application/vnd.dev.sigstore.bundle+json;version=0.1",
-        "messageSignature": {
-            "messageDigest": {
-                "hash": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-            }
-        }
-    }
-    bun.write_text(json.dumps(bundle_content))
-    
-    res = SigstoreBundleVerifier.verify(art, bun)
-    assert res.verified
-    assert res.artifact_sha256 == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
 

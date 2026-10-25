@@ -267,13 +267,13 @@ This task builds an offline vector index compiler (`scripts/build_semantic_index
 
 ---
 
-## 10. Automated Vulnerability Remediation Advisor (`mcp-fingerprints fix-advisories`)
+## 10. Automated issue Remediation Advisor (`mcp-fingerprints fix-advisories`)
 - **Board Item ID**: `PVTI_lAHOD-xmQM4BmPbTzg_qbKY`
 - **Category**: Security & Compliance
 - **Status**: Done
 
 ### 1. Architectural Context & Objective
-The passport repository tracks 508+ OSV and CVE vulnerability advisories attached to packages via `security_advisories`. While `mcp-fingerprints detect-drift` and `audit-config` alert maintainers to compromised packages, users currently receive no actionable guidance on how to fix them.
+The passport repository tracks 508+ OSV and CVE issue advisories attached to packages via `security_advisories`. While `mcp-fingerprints detect-drift` and `audit-config` alert maintainers to compromised packages, users currently receive no actionable guidance on how to fix them.
 This task implements an automated remediation advisor (`src/mcp_fingerprints/remediation_advisor.py`) and a new CLI command (`mcp-fingerprints fix-advisories`). It parses client configuration files (Claude Desktop, Cursor, Cline, Zed, Windsurf), inspects declared server packages against the OSV advisory database, and generates exact remediation pathways: either minimum safe version upgrades or semantically equivalent alternative MCP packages for deprecated or abandoned vulnerable servers.
 
 ### 2. Technical Implementation Specifications
@@ -499,7 +499,7 @@ This task adds URL deep linking and interactive security advisory badges to the 
    - Added direct copyable share links per server card.
 3. **Security Advisory Badges UI (`web/index.html` & `web/app.js`)**:
    - Renders distinct security advisory badge (`badge-advisory`) when `advisory_count > 0`.
-   - Clicking badge links directly to OSV database (`https://osv.dev/vulnerability/<ID>`).
+   - Clicking badge links directly to OSV database (`https://osv.dev/issue/<ID>`).
 4. **Unit Tests (`tests/test_web_catalog.py`)**:
    - Verifies `build_catalog_entry` extracts advisories, and `app.js` and `index.html` contain deep-linking and advisory badge elements.
 
@@ -527,7 +527,7 @@ This task delivers comprehensive open-source community polish: a complete `CONTR
    - Local development environment setup: Python 3.10+, virtual environment, `pip install -e ".[dev]"`.
    - Code standards: `ruff`, `pre-commit`, typing, and `pytest`.
    - MCP Server Passport Submission Guide: how to add or update server passports in `data/fingerprints/`.
-   - Security vulnerability reporting policy (responsible disclosure).
+   - Security issue reporting policy (responsible disclosure).
 2. **GitHub Issue Templates (`.github/ISSUE_TEMPLATE/`)**:
    - `bug_report.md`: Structured form for reporting bugs with environment details, reproduction steps, and logs.
    - `feature_request.md`: Template for proposing new features and CLI commands.
@@ -556,7 +556,7 @@ This task delivers comprehensive open-source community polish: a complete `CONTR
 - **Status**: Done
 
 ### 1. Architectural Context & Objective
-Remove vulnerability extraction (e.g. `OSV_DB_URL`, `OSVAdvisory` dataclass, `sync_advisories()`) from `mcp-fingerprints`, migrating these responsibilities to the `mcp-vulnerabilities` database. Also, move active remediation (e.g. `remediate()`, `PatchStrategy`) to `verity-mcp-auditor`. `mcp-fingerprints` must focus purely on being a static structural passport standard and knowledge base.
+Remove issue extraction (e.g. `OSV_DB_URL`, `OSVAdvisory` dataclass, `sync_advisories()`) from `mcp-fingerprints`, migrating these responsibilities to the `mcp-vulnerabilities` database. Also, move active remediation (e.g. `remediate()`, `PatchStrategy`) to `verity-mcp-auditor`. `mcp-fingerprints` must focus purely on being a static structural passport standard and knowledge base.
 
 ### 2. Technical Implementation Specifications
 1. Strip out `OSV_DB_URL`, OSV/CVE extraction logic, and the `OSVAdvisory` dataclass.
@@ -575,7 +575,7 @@ Remove vulnerability extraction (e.g. `OSV_DB_URL`, `OSVAdvisory` dataclass, `sy
 - **Status**: Done
 
 ### 1. Architectural Context & Objective
-Modify core data models (`ServerPackageSpec`, `VersionFingerprint`) in `mcp_fingerprints/models.py` to remove vulnerability tracking fields (`advisories`, `vulnerabilities`) and security remediation attributes, ensuring the schema remains strictly structural.
+Modify core data models (`ServerPackageSpec`, `VersionFingerprint`) in `mcp_fingerprints/models.py` to remove issue tracking fields (`advisories`, `vulnerabilities`) and security remediation attributes, ensuring the schema remains strictly structural.
 
 ### 2. Technical Implementation Specifications
 1. Remove `advisories` and `vulnerabilities` fields from models.
@@ -594,12 +594,12 @@ Modify core data models (`ServerPackageSpec`, `VersionFingerprint`) in `mcp_fing
 - **Status**: Done
 
 ### 1. Architectural Context & Objective
-Remove automated CVE advisory fetching, OSV patching steps, and vulnerability scanning logic from GitHub Actions workflows, `scripts/generate_web_catalog.py`, `scripts/build_snapshot.py`, and the CLI.
+Remove automated CVE advisory fetching, OSV patching steps, and issue scanning logic from GitHub Actions workflows, `scripts/generate_web_catalog.py`, `scripts/build_snapshot.py`, and the CLI.
 
 ### 2. Technical Implementation Specifications
 1. Refactor `scripts/generate_web_catalog.py` and `scripts/build_snapshot.py`.
 2. Refactor GitHub Actions (`daily_sync.yml`, `release.yml`, etc.) to remove OSV/CVE steps.
-3. Clean up CLI commands to remove vulnerability patching commands.
+3. Clean up CLI commands to remove issue patching commands.
 
 ### 3. Clear Acceptance Criteria
 - [x] Workflows and scripts execute without fetching OSV/CVE data.
@@ -919,7 +919,7 @@ Ensure Docker is running locally. Run `uv run mcp-fingerprints probe --sandbox=d
 - **Status**: Backlog
 
 ### 1. Architectural Context & Technical Objective
-The current configuration auditing (`audit-config`) command provides basic JSON or terminal output. To seamlessly integrate `mcp_fingerprints` into enterprise CI/CD pipelines and vulnerability management workflows (like GitHub Advanced Security Code Scanning), it needs to export structural risk findings in the standard SARIF (Static Analysis Results Interchange Format) format.
+The current configuration auditing (`audit-config`) command provides basic JSON or terminal output. To seamlessly integrate `mcp_fingerprints` into enterprise CI/CD pipelines and issue management workflows (like GitHub Advanced Security Code Scanning), it needs to export structural risk findings in the standard SARIF (Static Analysis Results Interchange Format) format.
 The objective is to implement a SARIF v2.1.0 exporter that translates the static AST tool capability risk profiles (e.g., exposed shell execution tools) into SARIF rules and results. Note: As per Clean Architecture, this export is strictly for *structural risks* found via AST, not external CVE vulnerabilities.
 
 ### 2. Technical Implementation Specifications
@@ -952,7 +952,7 @@ Run `uv run mcp-fingerprints audit-config --config my_config.json --format sarif
 
 ### 1. Architectural Context & Technical Objective
 While `mcp_fingerprints` tracks the structural layout of MCP servers via passports, it does not currently generate standard Software Bill of Materials (SBOMs) for the servers themselves.
-The objective is to implement an SBOM generation module that exports an MCP server's structural metadata and tool lists into the CycloneDX 1.5 JSON specification. This allows the structural data extracted by `mcp-fingerprints` to be easily ingested by standard enterprise supply chain tooling without blurring the lines into active vulnerability scanning.
+The objective is to implement an SBOM generation module that exports an MCP server's structural metadata and tool lists into the CycloneDX 1.5 JSON specification. This allows the structural data extracted by `mcp-fingerprints` to be easily ingested by standard enterprise supply chain tooling without blurring the lines into active issue scanning.
 
 ### 2. Technical Implementation Specifications
 1. Create `src/mcp_fingerprints/sbom.py`.
@@ -1022,7 +1022,7 @@ Ensure Docker is running locally. Run `uv run mcp-fingerprints probe --sandbox=d
 - **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
-Define high-fidelity, pure structural data models representing MCP tools, parameters, resources, prompts, and protocol annotations without any security or vulnerability fields. Expand `src/mcp_fingerprints/models.py` to introduce `ParameterMetadata` (parameter name, JSON Schema type, description, required boolean, default value, enum values, nested properties/items), `PromptDefinition` (name, description, arguments), `ResourceDefinition` (uri, name, mimeType, description), and `ProtocolAnnotations` (readOnly, destructive, idempotency, streaming). Purge any residual security attributes (`threat_score`, `risk_level`, `cve_refs`) from the core fingerprint models to enforce Clean Architecture ecosystem boundaries. Update `schemas/fingerprint_v1.json` and ensure full bidirectional serialization/deserialization.
+Define high-fidelity, pure structural data models representing MCP tools, parameters, resources, prompts, and protocol annotations without any security or issue fields. Expand `src/mcp_fingerprints/models.py` to introduce `ParameterMetadata` (parameter name, JSON Schema type, description, required boolean, default value, enum values, nested properties/items), `PromptDefinition` (name, description, arguments), `ResourceDefinition` (uri, name, mimeType, description), and `ProtocolAnnotations` (readOnly, destructive, idempotency, streaming). Purge any residual security attributes (`threat_score`, `risk_level`, `cve_refs`) from the core fingerprint models to enforce Clean Architecture ecosystem boundaries. Update `schemas/fingerprint_v1.json` and ensure full bidirectional serialization/deserialization.
 
 ### 2. Target Files & Documentation to Update
 - `src/mcp_fingerprints/models.py`
@@ -1126,7 +1126,7 @@ Enhance repository synchronizer and package ingestion engine (`src/mcp_fingerpri
 - **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
-Purge residual security and vulnerability scanning modules (`security_classifier.py`, `sarif_exporter.py`, etc., which are being migrated to `mcp-vulnerabilities`). Refactor the CLI (`src/mcp_fingerprints/cli.py`) and TUI (`src/mcp_fingerprints/tui.py`) to concentrate solely on pure structural MCP passport introspection, schema inspection, AST diffing, protocol validation, and registry browsing. Remove `--audit-risk`, `--sarif`, and CVE search commands, replacing them with deprecation notices directing users to `mcp-vulnerabilities`.
+Purge residual security and issue scanning modules (`security_classifier.py`, `sarif_exporter.py`, etc., which are being migrated to `mcp-vulnerabilities`). Refactor the CLI (`src/mcp_fingerprints/cli.py`) and TUI (`src/mcp_fingerprints/tui.py`) to concentrate solely on pure structural MCP passport introspection, schema inspection, AST diffing, protocol validation, and registry browsing. Remove `--audit-risk`, `--sarif`, and CVE search commands, replacing them with deprecation notices directing users to `mcp-vulnerabilities`.
 
 ### 2. Target Files & Documentation to Update
 - `src/mcp_fingerprints/cli.py`
@@ -1162,7 +1162,7 @@ Purge residual security and vulnerability scanning modules (`security_classifier
 - **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
-Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`, `web/catalog.json`) to showcase enriched structural metadata. Implement an interactive tool parameter inspector drawer/modal in the browser that allows users to drill down into any server, view full JSON Schema parameter definitions, types, required flags, default values, docstrings, prompt templates, and resource endpoints. Strip all vulnerability scores, CVE badges, and threat filters from the catalog UI. Optimize `src/mcp_fingerprints/snapshot.py` to compile an efficient, non-bloated `catalog.json`.
+Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`, `web/catalog.json`) to showcase enriched structural metadata. Implement an interactive tool parameter inspector drawer/modal in the browser that allows users to drill down into any server, view full JSON Schema parameter definitions, types, required flags, default values, docstrings, prompt templates, and resource endpoints. Strip all issue scores, CVE badges, and threat filters from the catalog UI. Optimize `src/mcp_fingerprints/snapshot.py` to compile an efficient, non-bloated `catalog.json`.
 
 ### 2. Target Files & Documentation to Update
 - `web/index.html`
@@ -1184,7 +1184,7 @@ Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`
 - [x] Interactive tool parameter inspector drawer/modal implemented with clean responsive CSS.
 - [x] Parameter type badges, required indicators, default values, and docstrings rendered clearly.
 - [x] Prompt templates and resource URIs displayed in dedicated tabs or expandable accordions.
-- [x] All security risk badges, CVE indicators, and vulnerability filters removed from the UI.
+- [x] All security risk badges, CVE indicators, and issue filters removed from the UI.
 - [x] `snapshot.py` generates minified, high-performance `catalog.json` for 5,000+ servers.
 - [x] Browser search, filtering, and copy client configuration snippets verified functional.
 
@@ -1197,7 +1197,7 @@ Overhaul the static web catalog (`web/index.html`, `web/app.js`, `web/style.css`
 - **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
-Sanitize the existing passport dataset in `data/` by writing an automated migration script (`scripts/sanitize_passports.py`) that strips all legacy security fields, risk scores, and vulnerability annotations, ensuring every passport strictly conforms to the pure structural schema. Cleanly reset the sync tracking state (`data/sync_state.json`) to allow a fresh, idempotent re-sync. Purify all repository documentation, architectural diagrams, and README files to firmly establish `mcp-fingerprints` as the canonical structural source of truth.
+Sanitize the existing passport dataset in `data/` by writing an automated migration script (`scripts/sanitize_passports.py`) that strips all legacy security fields, risk scores, and issue annotations, ensuring every passport strictly conforms to the pure structural schema. Cleanly reset the sync tracking state (`data/sync_state.json`) to allow a fresh, idempotent re-sync. Purify all repository documentation, architectural diagrams, and README files to firmly establish `mcp-fingerprints` as the canonical structural source of truth.
 
 ### 2. Target Files & Documentation to Update
 - `data/ (passport JSON files)`

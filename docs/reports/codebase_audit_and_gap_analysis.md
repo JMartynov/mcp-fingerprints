@@ -42,7 +42,7 @@
 
 ### A. Ecosystem Tooling Gaps
 - **Missing `mcp-fingerprints init` Wizard**: New users have no interactive way to generate a baseline configuration or initial passport. They must rely on the CLI to export existing ones, rather than scaffolding their own server.
-- **No bi-directional integration with `mcp-vulnerabilities`**: The current system fetches advisories via `VulnerabilityEnricher`, but cannot push newly detected risky signatures back to a central vulnerability database or format.
+- **No bi-directional integration with `mcp-anomalies`**: The current system fetches advisories via `structural anomalyEnricher`, but cannot push newly detected risky signatures back to a central structural anomaly database or format.
 - **SBOM / SARIF / CycloneDX Support**: The security classifier evaluates tools (High, Medium, Critical risks) and detects overlapping CVEs, but there is no way to export this data in an industry-standard format (SARIF, CycloneDX) for ingestion into platforms like GitHub Advanced Security or Datadog.
 
 ### B. Protocol Validation

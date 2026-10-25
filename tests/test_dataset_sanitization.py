@@ -35,3 +35,6 @@ def test_documentation_purification():
         text = doc.read_text(encoding="utf-8").lower()
         for term in forbidden:
             assert term not in text, f"Forbidden term '{term}' found in {doc}"
+    toml_text = Path("pyproject.toml").read_text(encoding="utf-8").lower()
+    assert "topic :: security" not in toml_text, "Topic :: Security found in pyproject.toml"
+    assert "\"security\"" not in toml_text, "security keyword found in pyproject.toml"

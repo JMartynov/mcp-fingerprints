@@ -16,6 +16,8 @@ An open-source, automated database and knowledge base of **Model Context Protoco
 
 ## Ecosystem Architecture & Scope
 
+**`mcp-fingerprints` is strictly a structural classification, cataloging, and tool signature knowledge base — NOT a security tool, firewall, fuzzer, or sandbox installer.**
+
 `mcp-fingerprints` serves as the authoritative open standard for structural Model Context Protocol server passports. It focuses purely on:
 * **Static AST Extraction**: Deep parameter schema, docstring, prompt, and resource extraction across Python, TypeScript/JavaScript, Go, and Rust.
 * **Deterministic Cryptographic Hashing**: Order-invariant and whitespace-insensitive canonical hashing (`canonical_hash`, `toolset_canonical_hash`).
@@ -26,7 +28,7 @@ An open-source, automated database and knowledge base of **Model Context Protoco
 - **5,446+ Indexed Passports**: Cross-indexed across npm, PyPI, Crates.io, Maven Central, Docker Hub, and GitHub polyglot registries.
 - **Automated Invariant Verification Suite (400 Passing Tests)**: 5 core invariant pillars verified across subprocess sandboxing, JSON-RPC protocol conformance, canonical SHA-256 order-invariance, tri-layer metric boundaries, lossless configuration patching, supply-chain drift detection, and polyglot AST/OpenAPI parsing ([`docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md`](docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md)).
 - **Empirical Ecosystem Research Audit**: Comprehensive empirical audit of 1,000 real MCP servers across 5 representative groups (Rust, Go, JVM/.NET, Regional/International, Monorepos/Containers) cataloging systemic blind spots and remedies ([`docs/research/master_mcp_ecosystem_audit_report.md`](docs/research/master_mcp_ecosystem_audit_report.md)).
-- **Industry Benchmark & Strategic Gap Analysis**: Exhaustive comparative evaluation against 14+ commercial ecosystems across runtime proxies, registries, fuzzers, guardrails, and Sigstore/CycloneDX supply-chain attestations with four actionable strategic blueprints ([`docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md)).
+- **Industry Benchmark & Registry Gap Analysis**: Comparative evaluation against parallel MCP registries, catalogs, discovery engines, and schema indexers (Smithery, PulseMCP, Official MCP Registry, Glama, Docker MCP Catalog) focusing on structural classification and cataloging features ([`docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md)).
 - **Full Polyglot & Macro Ingestion Engines**: First-class support for Rust `rmcp` macros (`#[tool(...)] async fn`), Go `mark3labs/mcp-go` builder patterns, Spring AI `@Tool`, C# .NET `[McpServerTool]`, standalone PEP 723 `uvx` scripts, and CJK multilingual Unicode preservation.
 - **Interactive Command Hub (`mcp-fingerprints interactive`)**: Emoji-decorated ergonomic TUI for workstation scanning, ready database search, unknown MCP auto-addition, and 1-click baseline diffing.
 - **Cross-Platform Multi-Agent Discovery**: Out-of-the-box discovery and inventory across 14+ AI coding agents (Claude Code, Desktop, Cursor, Windsurf, Zed, Cline, Roo, Goose, Continue, Junie, Copilot, Antigravity, OpenHands) across macOS, Linux, and Windows.
@@ -356,14 +358,107 @@ python3 -m pytest tests/ -v
 
 ## 🔬 Codebase Audit & Ecosystem Gap Analysis
 
-An exhaustive audit of the `mcp-fingerprints` codebase and a comparative benchmark across the wider Model Context Protocol and AI security landscape are documented in the [`docs/reports/`](docs/reports/) directory.
+An exhaustive audit of the `mcp-fingerprints` codebase and a comparative benchmark across the wider Model Context Protocol landscape are documented in the [`docs/reports/`](docs/reports/) directory.
 
 ### Cumulative Master Reports
 
-* [**`WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md`**](docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md): Comprehensive 43-module architectural map, verification matrix of all 5 invariant pillars, and unified technical findings ledger detailing code remediations and quality guarantees.
-* [**`ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`**](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md): In-depth comparative feature matrix benchmarking `mcp-fingerprints` against 14+ industry ecosystems (runtime proxies, commercial registries, automated fuzzers, AI guardrails, and cryptographic attestations).
+* [**`WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md`**](docs/reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md): Comprehensive architectural map, verification matrix of all 5 invariant pillars, and unified technical findings ledger detailing code remediations and quality guarantees.
+* [**`ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`**](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md): Comparative feature matrix benchmarking `mcp-fingerprints` against parallel MCP registries, catalogs, discovery engines, and schema indexers (Smithery, PulseMCP, Official MCP Registry, Glama, Docker MCP Catalog).
 
-### Discrete Technical Reports (Tasks 1–9)
+## Consuming the Snapshot Database
+```bash
+curl -sL https://raw.githubusercontent.com/JMartynov/mcp-fingerprints/main/passports.json.gz | gzip -d > passports.json
+```
+
+### Python
+```python
+import gzip, json, urllib.request
+
+url = "https://raw.githubusercontent.com/JMartynov/mcp-fingerprints/main/passports.json.gz"
+with urllib.request.urlopen(url) as resp:
+    with gzip.GzipFile(fileobj=resp) as gz:
+        data = json.load(gz)
+
+print(f"Loaded {data['total_passports']} MCP server passports.")
+```
+
+## CLI Usage
+
+The CLI provides a focused set of pure structural commands:
+
+```bash
+
+# Auto-discover local configs with generic agent detection and baseline drift tracking
+python -m mcp_fingerprints.cli scan --auto --save-baseline baseline.json
+python -m mcp_fingerprints.cli scan --auto --diff baseline.json
+
+# Detect if a generic command or URL is an MCP server
+python -m mcp_fingerprints.cli detect "uvx mcp-server-git"
+python -m mcp_fingerprints.cli detect http://localhost:8000/sse
+
+# Auto-generate passports for locally discovered tools
+python -m mcp_fingerprints.cli scan --auto --auto-passport
+
+# Sync from registries
+python -m mcp_fingerprints.cli sync --all
+
+# Match a toolset hash against the knowledge base
+python -m mcp_fingerprints.cli match <hash>
+
+# Probe a server and extract its fingerprint
+python -m mcp_fingerprints.cli probe <server_command>
+
+# Validate schema invariants
+python -m mcp_fingerprints.cli validate --dir data/fingerprints
+
+# Run automated invariant verification test suites (5 pillars, 400 passing tests)
+pytest tests/test_live_cli_sandbox_invariants.py tests/test_live_canonicalizer_snapshot_invariants.py tests/test_live_matcher_search_invariants.py tests/test_live_config_scanner_tamper_drift.py tests/test_live_ast_openapi_zero_tool_parsers.py
+
+# Build compressed snapshot
+python -m mcp_fingerprints.cli snapshot
+
+# Search the catalog
+python -m mcp_fingerprints.cli search "query"
+
+# Browse interactively via TUI
+python -m mcp_fingerprints.cli browse
+
+# Export client configurations (Claude, Cursor, Cline, Zed, Windsurf)
+python -m mcp_fingerprints.cli export-config <server_name> --client claude
+
+# Detect configuration drift against the latest passports
+python -m mcp_fingerprints.cli detect-drift <config_file>
+```
+
+## Reporting & Output Formats
+
+Customize the output verbosity to fit your terminal or CI environment:
+
+```bash
+# Concise 3-line summary for quick checks and CI logs
+mcp-fingerprints probe --format short -- npx -y @modelcontextprotocol/server-sqlite --db app.db
+
+# Exhaustive schema and parameter audit report
+mcp-fingerprints probe --format long -- npx -y @modelcontextprotocol/server-sqlite --db app.db
+
+# Structured JSON output for scripting and automation
+mcp-fingerprints probe --json -- npx -y @modelcontextprotocol/server-sqlite --db app.db
+```
+
+## Releases
+
+### TestPyPI Dry-Run
+
+You can perform an automated dry-run release to TestPyPI to verify packaging, metadata, and functionality before a production PyPI release.
+1. Navigate to the **Actions** tab in the GitHub repository.
+2. Select the **Release to TestPyPI (Dry-Run)** workflow.
+3. Click **Run workflow**.
+4. You can optionally provide a `version_suffix` (e.g. `rc1`, `b2`) which will be appended to the current version in `pyproject.toml` to avoid conflicts on TestPyPI.
+5. The workflow will build artifacts, publish them to TestPyPI using Trusted Publishing, and execute an automated smoke test (`pip install` into a clean container).
+
+## License
+MIT
+### Discrete Technical Reports
 
 | Task | Domain Area | Technical Report Link | Key Deliverables & Insights |
 |:---|:---|:---|:---|
@@ -372,10 +467,6 @@ An exhaustive audit of the `mcp-fingerprints` codebase and a comparative benchma
 | **Task 3** | Tri-Layer Matcher & Fast Index | [`task3_matcher_search_invariants_report.md`](docs/reports/task3_matcher_search_invariants_report.md) | Layer 1 exact cryptographic lookup, Layer 2 topological Jaccard metrics, Layer 3 composite scoring, and fast index scalability. |
 | **Task 4** | Config Scanner & Drift Detection | [`task4_config_scanner_tamper_drift_report.md`](docs/reports/task4_config_scanner_tamper_drift_report.md) | Multi-client workstation configuration discovery across 8+ agents, lossless JSONC modification, and supply-chain drift alerts. |
 | **Task 5** | Polyglot AST & Zero-Tool Parsers | [`task5_ast_openapi_zero_tool_report.md`](docs/reports/task5_ast_openapi_zero_tool_report.md) | Static AST parameter extraction across 6 languages, OpenAPI v3 endpoint conversion, and CJK Unicode sanitization. |
-| **Task 6** | Runtime Proxies & Policy Engines | [`task6_runtime_proxies_policy_engines_report.md`](docs/reports/task6_runtime_proxies_policy_engines_report.md) | Comparative analysis of Invariant Labs, Lakera Guard, Cisco, and Cloudflare. Delineates offline static identity vs. runtime payload proxying. |
-| **Task 7** | Registries, Hosting & CLI Ergonomics | [`task7_registries_hosting_cli_report.md`](docs/reports/task7_registries_hosting_cli_report.md) | Evaluation of Smithery.ai, Docker MCP Catalog, and PulseMCP. Blueprints 1-click installation mechanics and containerized execution. |
-| **Task 8** | Fuzzing & Security Guardrails | [`task8_fuzzing_guardrails_benchmark_report.md`](docs/reports/task8_fuzzing_guardrails_benchmark_report.md) | Benchmark against Protect AI Guardian, Verity, Garak, and Mindgard. Designs schema-driven fuzzer architecture (`mcp-fuzz`). |
-| **Task 9** | SBOM, Attestation & Supply Chain | [`task9_sbom_attestation_supply_chain_report.md`](docs/reports/task9_sbom_attestation_supply_chain_report.md) | Evaluation of Sigstore Cosign, CycloneDX/SPDX, and SLSA Level 3. Details keyless OIDC passport signing and Rekor transparency logs. |
 
 ### Technical Audit Findings & Remediations
 
@@ -385,19 +476,7 @@ An exhaustive audit of the `mcp-fingerprints` codebase and a comparative benchma
 *   **Finding MED-02 (Remediated): Floating-Point Metric Bounding**  
     *Root Cause*: Jaccard similarity and capability scores could produce floating-point edge representations (e.g. `0.9999999999999999`).  
     *Remedy*: Explicit mathematical clamping ($0.0 \le S \le 1.0$) and delta tolerance assertions in `src/mcp_fingerprints/distance.py`.
-*   **Structural Domain Isolation Guarantee**: Verified that all core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`) strictly isolate structural metadata, discarding transient security flags to preserve clean architectural boundaries.
-
-### Four Strategic Architectural Blueprints
-
-From the ecosystem gap analysis, four concrete architectural blueprints are formulated in [`ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`](docs/reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md):
-1.  **Sidecar Policy Generator**: Translating static AST parameter schemas and protocol hints (`readOnlyHint`, `destructiveHint`) into Open Policy Agent (OPA) / Rego rules for runtime proxies.
-2.  **Schema-Driven Fuzzer (`mcp-fuzz`)**: Generating adversarial boundary payloads derived directly from extracted JSON Schema types and bounds to probe live MCP endpoints for prompt injection and buffer handling.
-3.  **Sigstore OIDC Attestation**: Cryptographically signing passport releases via GitHub Actions OIDC tokens and publishing signed attestations to the public Rekor transparency log.
-4.  **CLI Registry & Sandbox Connectors**: Providing ergonomic 1-click installation commands (`mcp-fingerprints install <server>`) and containerized sandboxed runtime runners.
-
-For complete documentation, index, and report details, see the [**Documentation Hub**](docs/README.md) and [**Reports Catalog**](docs/reports/README.md).
-
----
+*   **Structural Domain Isolation Guarantee**: Verified that all core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`) strictly isolate structural metadata, discarding transient flags to preserve clean architectural boundaries.
 
 ## Fast Consumption
 
@@ -447,7 +526,7 @@ python -m mcp_fingerprints.cli probe <server_command>
 # Validate schema invariants
 python -m mcp_fingerprints.cli validate --dir data/fingerprints
 
-# Run automated invariant verification test suites (5 pillars, 400 passing tests)
+# Run automated invariant verification test suites (400 passing tests)
 pytest tests/test_live_cli_sandbox_invariants.py tests/test_live_canonicalizer_snapshot_invariants.py tests/test_live_matcher_search_invariants.py tests/test_live_config_scanner_tamper_drift.py tests/test_live_ast_openapi_zero_tool_parsers.py
 
 # Build compressed snapshot

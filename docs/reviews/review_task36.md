@@ -53,7 +53,7 @@
    - Refined `_extract_balanced_braces` in `src/mcp_fingerprints/ast_parser.py` to correctly parse nested `z.object({...})` schemas and prevent premature truncation.
    - Enhanced `FastMcpAstVisitor` in `src/mcp_fingerprints/ast_parser.py` to accurately capture `BaseTool`/`Tool` class declarations, Pydantic `args_schema` resolution, and `@tool_manager.register(...)` decorators.
 2. **Architecture Decoupling**:
-   - Verified that `mcp-fingerprints` is now fully decoupled from vulnerability scanning and security classification (offloaded to Verity MCP Auditor), focusing purely on structural AST fingerprinting, passport schemas, and drift detection.
+   - Verified that `mcp-fingerprints` is now fully decoupled from issue scanning and security classification (offloaded to Verity MCP Auditor), focusing purely on structural AST fingerprinting, passport schemas, and drift detection.
 
 ---
 

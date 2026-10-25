@@ -61,12 +61,12 @@ This report documents the orchestration, verification, and integration of Wave 7
   - Added one-click copyable share link button per server card.
 - [x] Security advisory badges in `web/index.html` & `web/app.js`:
   - Renders distinct `badge-advisory` indicator for servers with known vulnerabilities.
-  - Provides direct clickable links to upstream OSV vulnerability advisories (`https://osv.dev/vulnerability/<ID>`).
+  - Provides direct clickable links to upstream OSV issue advisories (`https://osv.dev/issue/<ID>`).
 - [x] Unit test suite in `tests/test_web_catalog.py` passes 100% (7/7 tests).
 
 ### Task 17: Open-Source Community Polish (CONTRIBUTING.md & Release Template)
 - [x] Authored comprehensive `CONTRIBUTING.md`:
-  - Covers project mission, architecture (AST parsing, fingerprinting, vector indexing), development setup (`pip install -e ".[dev]"`), code standards (`ruff`, `pre-commit`), testing with pytest, server passport submission workflow, and security vulnerability reporting.
+  - Covers project mission, architecture (AST parsing, fingerprinting, vector indexing), development setup (`pip install -e ".[dev]"`), code standards (`ruff`, `pre-commit`), testing with pytest, server passport submission workflow, and security issue reporting.
 - [x] Created GitHub Issue Templates in `.github/ISSUE_TEMPLATE/`:
   - `bug_report.md`: structured issue form for bug reports.
   - `feature_request.md`: template for proposing features.
@@ -127,7 +127,7 @@ tests/test_synchronizer_multiregistry.py ....                            [ 87%]
 tests/test_tombstoning.py .....                                          [ 89%]
 tests/test_tui.py ....                                                   [ 91%]
 tests/test_typescript_complex_tools.py .....                             [ 93%]
-tests/test_vulnerability_version_lifecycle.py ........                   [ 96%]
+tests/test_version_lifecycle.py ........                   [ 96%]
 tests/test_web_catalog.py .......                                        [100%]
 
 ======================= 229 passed, 4 skipped in 52.53s ========================

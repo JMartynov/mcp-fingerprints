@@ -56,7 +56,7 @@ flowchart TD
 
 ## 2. System Architecture & Comprehensive Module Map
 
-The `mcp-fingerprints` architecture comprises 43 discrete Python modules organized into seven functional subsystems designed under clean architecture principles, ensuring high cohesion, low coupling, and strict separation between structural identity and external vulnerability risk feeds.
+The `mcp-fingerprints` architecture comprises 43 discrete Python modules organized into seven functional subsystems designed under clean architecture principles, ensuring high cohesion, low coupling, and strict separation between structural identity and external anomaly risk feeds.
 
 ```mermaid
 graph LR
@@ -132,7 +132,7 @@ graph LR
 | Module Path | Primary Responsibility | Critical Invariants Enforced |
 |:---|:---|:---|
 | [`src/mcp_fingerprints/canonicalizer.py`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/canonicalizer.py) | Canonical JSON serialization and toolset SHA-256 digest computation. | Determinism under parameter permutation, whitespace independence, key sorting. |
-| [`src/mcp_fingerprints/models.py`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/models.py) | Immutable dataclasses (`ServerPackageSpec`, `VersionFingerprint`, `ToolContractSignature`). | Pure structural domain isolation; rejection of dynamic vulnerability fields. |
+| [`src/mcp_fingerprints/models.py`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/models.py) | Immutable dataclasses (`ServerPackageSpec`, `VersionFingerprint`, `ToolContractSignature`). | Pure structural domain isolation; rejection of dynamic anomaly fields. |
 | [`src/mcp_fingerprints/schema_validator.py`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/schema_validator.py) | JSON Schema Draft 7/2020-12 tool parameter specification conformance. | Strict type validation, required key integrity, bounds validation. |
 | [`src/mcp_fingerprints/sanitizer.py`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/sanitizer.py) | Unicode scrubbing and control character sanitization. | Byte filtering (`0x00-0x08`, `0x0B-0x0C`, `0x0E-0x1F`, `0x7F`) while preserving I18N UTF-8. |
 | [`src/mcp_fingerprints/runtime_sandbox.py`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/runtime_sandbox.py) | Subprocess execution containment and environment scrubbing. | Credential scrubbing (`AWS_`, `GITHUB_`, `OPENAI_`, `SSH_AUTH_SOCK`), process tree reaping, timeout enforcement. |
@@ -180,7 +180,7 @@ The following matrix documents the verification results across all five technica
 | Domain Area | Target Rule / Invariant Constraint | Test Fixture | Expected Invariant Behavior | Actual Live Result | Status |
 |:---|:---|:---|:---|:---|:---:|
 | **Cryptographic Hashing** | SHA-256 Canonical Hash Determinism under key shuffling & whitespace variations | `test_canonical_hash_determinism` (500 permutations) | Identical SHA-256 hex digest regardless of JSON property order, required key sorting, or trailing whitespace. | Exact identical hash generated across all 500 permutations (`sha256:128b69...`). | ✅ PASS |
-| **Domain Isolation** | Pure Structural Isolation: Rejection of vulnerability / security fields in core models | `test_pure_structural_domain_isolation` | `ServerPackageSpec` and `VersionFingerprint` discard `vulnerabilities`, `cve`, and `security_profile` on instantiation. | Fields omitted from model attributes; dataclass memory remains purely structural. | ✅ PASS |
+| **Domain Isolation** | Pure Structural Isolation: Rejection of anomaly / security fields in core models | `test_pure_structural_domain_isolation` | `ServerPackageSpec` and `VersionFingerprint` discard `anomalies`, `cve`, and `security_profile` on instantiation. | Fields omitted from model attributes; dataclass memory remains purely structural. | ✅ PASS |
 | **Cache Coherency** | Two-Tier Cache Fallback Coherency | `test_two_tier_cache_coherency` | Files with altered `mtime` fall back to Tier 2 SHA-256 content verification, validating data and refreshing `mtime`. | Tier 1 miss immediately triggers Tier 2 SHA-256 match, updating cache timestamp cleanly. | ✅ PASS |
 | **Database Engine** | Ephemeral DB Resilience and Graceful Fallback | Mocking missing `duckdb` module | Ephemeral query engine falls back to SQLite or in-memory dictionary scan without raising uncaught exceptions. | Smooth fallback to SQLite/Dict; queries executed and returned structured records. | ✅ PASS |
 | **Snapshot Engine** | Snapshot Compilation & Gzip Compression Integrity | `build_snapshot()` on 50 synthetic passports | Generates valid `passports.json.gz` with RFC 1952 gzip header and strict JSON payload. | Valid archive containing exactly 50 target passports created and verified via `gzip.decompress()`. | ✅ PASS |
@@ -261,8 +261,8 @@ All core invariants across subprocess containment, protocol compliance, canonica
 
 #### Finding LOW-01: Permissive Dataclass Deserialization in Structural Domain Models
 *   **File Link:** [`src/mcp_fingerprints/models.py#L45-L78`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/models.py#L45-L78)
-*   **Observation:** When deserializing raw dictionary payloads into `ServerPackageSpec` or `VersionFingerprint`, unrecognized keys (such as `vulnerabilities`, `cve`, or `security_profile`) are silently discarded via kwargs filtering rather than raising an explicit `ValueError`.
-*   **Evaluation:** This conforms with the intended "Pure Structural Domain Isolation" pattern, preventing vulnerability data pollution from corrupting the core structural cache. If stricter validation is desired in future releases, a `--strict-schema` flag could optionally reject unknown keys.
+*   **Observation:** When deserializing raw dictionary payloads into `ServerPackageSpec` or `VersionFingerprint`, unrecognized keys (such as `anomalies`, `cve`, or `security_profile`) are silently discarded via kwargs filtering rather than raising an explicit `ValueError`.
+*   **Evaluation:** This conforms with the intended "Pure Structural Domain Isolation" pattern, preventing anomaly data pollution from corrupting the core structural cache. If stricter validation is desired in future releases, a `--strict-schema` flag could optionally reject unknown keys.
 
 #### Finding LOW-02: Non-Blocking Buffer Flushing in Child Subprocess Stdio Probing
 *   **File Link:** [`src/mcp_fingerprints/runtime_sandbox.py#L110-L145`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/runtime_sandbox.py#L110-L145)

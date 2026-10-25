@@ -36,7 +36,7 @@ def test_pyproject_toml_metadata():
     expected_keywords = [
         "mcp",
         "model-context-protocol",
-        "security",
+        "catalog",
         "fingerprints",
         "ai-agents",
         "llm",
@@ -49,7 +49,8 @@ def test_pyproject_toml_metadata():
     expected_classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "Topic :: Security",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Software Distribution",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.10",

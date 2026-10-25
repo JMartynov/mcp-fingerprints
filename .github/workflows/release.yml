@@ -58,26 +58,6 @@ jobs:
           name: dist-artifacts
           path: dist/
 
-      - name: Setup Cosign
-        uses: sigstore/cosign-installer@v3
-        with:
-          cosign-release: 'v2.2.4'
-
-      - name: Sign artifacts with Cosign
-        run: |
-          for f in dist/*; do
-            cosign sign-blob --yes --bundle "${f}.sigstore.json" "$f"
-          done
-          # Also sign passports.json.gz if available
-          if [ -f data/passports.json.gz ]; then
-             cosign sign-blob --yes --bundle "data/passports.json.gz.sigstore.json" "data/passports.json.gz"
-          fi
-          # Note: Attaching to GitHub Release could be done with `gh release upload` if a release event triggers it
-          if [ "${{ github.event_name }}" == "release" ]; then
-             gh release upload ${{ github.event.release.tag_name }} dist/*.sigstore.json data/passports.json.gz.sigstore.json || true
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1

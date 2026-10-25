@@ -1,7 +1,7 @@
 # EULIS Branch Code Review & Proposal: Task 33 (Pure Structural Models & ParameterMetadata Schema)
 
 ## Executive Summary
-This code review proposal evaluates the changes introduced in Task 33 (`jules/review-task33`) relative to `main`. The objective of Task 33 is the total architectural decoupling of `mcp-fingerprints` from legacy mutable security profiles and vulnerability scoring fields, establishing a pure structural schema for MCP server passports.
+This code review proposal evaluates the changes introduced in Task 33 (`jules/review-task33`) relative to `main`. The objective of Task 33 is the total architectural decoupling of `mcp-fingerprints` from legacy mutable security profiles and issue scoring fields, establishing a pure structural schema for MCP server passports.
 
 ---
 
@@ -15,7 +15,7 @@ This code review proposal evaluates the changes introduced in Task 33 (`jules/re
 ### 1.2 Pure Structural `ServerPackageSpec`
 - **Design Review**: `ServerPackageSpec` was purified by stripping the `security_profile` field entirely from the dataclass. The `author` field was introduced to capture package authorship metadata across npm and PyPI registries.
 - **Backward Compatibility**: `ServerPackageSpec.from_dict` gracefully ignores legacy `"security_profile"` dictionary keys found in preexisting passport JSON payloads without failing, while `to_dict` strictly omits `"security_profile"`.
-- **Pass Status**: **PASSED** (Verified by `test_server_package_spec_author_and_no_security_profile` and `test_invariant_legacy_vulnerability_fields_stripped`).
+- **Pass Status**: **PASSED** (Verified by `test_server_package_spec_author_and_no_security_profile` and `test_invariant_legacy_issue_fields_stripped`).
 
 ### 1.3 `VersionFingerprint` & `TransportType`
 - **Design Review**: Expanded `TransportType` literal definition to include `"streamable-http"` alongside `"stdio"`, `"sse"`, and `"websocket"`. Added `required_env_vars: tuple[str, ...]` to track environment variables mandated by servers.
@@ -33,7 +33,7 @@ This code review proposal evaluates the changes introduced in Task 33 (`jules/re
 
 1. **Tuple vs List Consistency**: Ensured all `enum` and `required_env_vars` fields serialize as native JSON arrays in `to_dict()` and restore as immutable `tuple` in dataclasses to maintain frozen immutability.
 2. **Defensive Nested Properties**: Added recursive mapping checks in `from_dict` to prevent `AttributeError` on malformed nested properties.
-3. **Docstring Purification**: Purified docstrings across `models.py`, `canonicalizer.py`, and `validator.py`, replacing references to vulnerability scanners with structural catalog references.
+3. **Docstring Purification**: Purified docstrings across `models.py`, `canonicalizer.py`, and `validator.py`, replacing references to issue scanners with structural catalog references.
 
 ---
 

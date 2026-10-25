@@ -21,7 +21,6 @@ from mcp_fingerprints.drift_detector import (
 )
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
-from mcp_fingerprints.fuzzer import SchemaDrivenFuzzer, FuzzReport
 from mcp_fingerprints.prober import McpProber
 from mcp_fingerprints.schema_validator import PassportSchemaValidator
 from mcp_fingerprints.search import format_search_results, search_passports
@@ -178,16 +177,6 @@ def main() -> None:
         action="store_true",
         help="Clear any existing checkpoint and start from the beginning",
     )
-
-    # Install
-    install_p = subparsers.add_parser("install", help="Turnkey Docker-Sandboxed Server Installer")
-    install_p.add_argument("package_or_passport", help="Package name, passport JSON file, or slug")
-    install_p.add_argument("--client", choices=["claude", "cursor", "windsurf", "zed", "cline", "all"], default="all", help="Target client config")
-    install_p.add_argument("--sandbox", choices=["docker", "none"], default="none", help="Sandboxing mode")
-    install_p.add_argument("--network", choices=["none", "bridge"], default="none", help="Network policy for Docker sandbox")
-    install_p.add_argument("--read-only", action="store_true", help="Enable read-only tmpfs for Docker sandbox")
-    install_p.add_argument("--dry-run", action="store_true", help="Preview install plan and patched JSONC without writing to disk")
-    install_p.add_argument("--config-path", help="Path to a specific config file to patch")
 
     # Match
     match_p = subparsers.add_parser(
@@ -370,7 +359,7 @@ def main() -> None:
 
     # SBOM Exporter
     export_sbom_parser = subparsers.add_parser(
-        "export-sbom", help="Export SBOM (CycloneDX/SPDX) with Sigstore support"
+        "export-sbom", help="Export structural catalog metadata in CycloneDX 1.6 or SPDX 2.3 format"
     )
     export_sbom_group = export_sbom_parser.add_mutually_exclusive_group(required=True)
     export_sbom_group.add_argument("--passport", help="Specific passport to export")
@@ -433,26 +422,6 @@ def main() -> None:
         "--output", help="Optional file path to write output drift report"
     )
 
-    # Fuzz
-    fuzz_p = subparsers.add_parser(
-        "fuzz", help="Run schema-driven JSON-RPC 2.0 conformance fuzzer"
-    )
-    fuzz_p.add_argument(
-        "--passport", default=None, help="Name or path of the passport JSON to use for schemas"
-    )
-    fuzz_p.add_argument(
-        "--iterations", type=int, default=10, help="Number of payload mutations per tool"
-    )
-    fuzz_p.add_argument(
-        "--timeout", type=float, default=5.0, help="Per-request timeout in seconds"
-    )
-    fuzz_p.add_argument(
-        "--output", default=None, help="Path to write the JSON fuzz report"
-    )
-    fuzz_p.add_argument(
-        "fuzz_command", nargs=argparse.REMAINDER, help="Target command to fuzz"
-    )
-
     # Scan Configs
     scan_configs_p = subparsers.add_parser(
         "scan-configs", aliases=["scan"],
@@ -511,19 +480,6 @@ def main() -> None:
         "--no-scan-global", dest="scan_global", action="store_false", help="Disable scanning of global npm/npx packages"
     )
 
-    # Export Policy
-    export_policy_p = subparsers.add_parser(
-        "export-policy", help="Compile MCP passports into sidecar policy configurations (Rego, Envoy)"
-    )
-    export_policy_p.add_argument("--passport", required=True, help="Passport name or file path to compile")
-    export_policy_p.add_argument(
-        "--format", choices=["rego", "envoy", "json"], default="rego", help="Policy format to output"
-    )
-    export_policy_p.add_argument(
-        "--mode", choices=["strict", "read-only", "allowlist"], default="strict", help="Policy enforcement mode"
-    )
-    export_policy_p.add_argument("--output", help="Optional file path to write the compiled policy")
-
     args = parser.parse_args()
 
     if args.command in ("interactive", "hub"):
@@ -541,52 +497,6 @@ def main() -> None:
         print(json.dumps(result, indent=2))
         if not result["is_mcp"]:
              sys.exit(1)
-
-    elif args.command == "fuzz":
-        target_cmd = args.fuzz_command
-        if not target_cmd:
-            print("Error: must provide a command to fuzz")
-            sys.exit(1)
-            
-        if target_cmd[0] == "--":
-            target_cmd = target_cmd[1:]
-            
-        if not target_cmd:
-            print("Error: must provide a command to fuzz")
-            sys.exit(1)
-            
-        fuzzer = SchemaDrivenFuzzer(
-            target_command=target_cmd,
-            passport=args.passport,
-            iterations=args.iterations,
-            timeout=args.timeout,
-        )
-        
-        print(f"\n[Fuzzer] Starting fuzz on {' '.join(target_cmd)}")
-        if args.passport:
-            print(f"[Fuzzer] Using passport schemas from {args.passport}")
-        else:
-            print(f"[Fuzzer] Dynamically querying schemas via tools/list")
-            
-        report = fuzzer.fuzz()
-        
-        if args.output:
-            with open(args.output, "w", encoding="utf-8") as f:
-                f.write(report.to_json())
-            print(f"\n[Fuzzer] Detailed report written to {args.output}")
-            
-        print("\n--- Fuzzing Summary ---")
-        print(f"Target: {' '.join(report.target_command)}")
-        print(f"Total Test Cases      : {report.total_cases}")
-        print(f"Clean Errors (handled): {report.clean_errors}")
-        print(f"Handled Results       : {report.handled_results}")
-        print(f"Protocol Violations   : {report.protocol_violations}")
-        print(f"Timeouts (hangs)      : {report.timeouts}")
-        print(f"Process Crashes       : {report.crashes}")
-        print(f"Overall Status        : {'PASSED' if report.passed else 'FAILED'}")
-        
-        if not report.passed:
-            sys.exit(1)
 
     elif args.command == "scan-configs" or args.command == "scan":
         import mcp_fingerprints.snapshot_diff as snapshot_diff
@@ -952,43 +862,6 @@ def main() -> None:
             print(f"Error: Could not load {script_path}")
             sys.exit(1)
 
-    elif args.command == "install":
-        from mcp_fingerprints.installer import ClientInstaller, SandboxMode, NetworkPolicy
-
-        
-        try:
-            plan = ClientInstaller.install(
-                package_or_passport=args.package_or_passport,
-                client=args.client,
-                sandbox=SandboxMode(args.sandbox),
-                network_policy=NetworkPolicy(args.network),
-                read_only=getattr(args, "read_only", False),
-                dry_run=args.dry_run,
-                config_path=args.config_path
-            )
-            
-            print(f"Install Plan:")
-            print(f"  Server Key: {plan.server_key}")
-            print(f"  Package:    {plan.package_name}")
-            print(f"  Ecosystem:  {plan.ecosystem}")
-            print(f"  Command:    {plan.command}")
-            print(f"  Args:       {plan.args}")
-            print(f"  Env:        {plan.env}")
-            print(f"  Clients:    {plan.target_clients}")
-            
-            print("\nPatched Files:")
-            for path, content in plan.patched_files.items():
-                print(f"--- {path} ---")
-                print(content)
-            
-            if not args.dry_run:
-                print("\nInstallation complete!")
-            else:
-                print("\nDry-run complete. No files were modified.")
-        except Exception as e:
-            print(f"ERROR: {e}")
-            sys.exit(1)
-
     elif args.command == "search":
         if getattr(args, "semantic", False):
             from mcp_fingerprints.semantic_search import semantic_search
@@ -1095,23 +968,6 @@ def main() -> None:
             run_tui(Path(args.dir), args.query)
         except Exception as e:  # noqa: BLE001
             logger.error("TUI exited with error: %s", e)
-            sys.exit(1)
-
-    elif args.command == "export-policy":
-        from mcp_fingerprints.policy_exporter import PolicyExporter, PolicyFormat, PolicyMode
-
-        fmt = PolicyFormat(args.format)
-        mode = PolicyMode(args.mode)
-        
-        try:
-            result = PolicyExporter.export(args.passport, fmt=fmt, mode=mode, output_path=args.output)
-            if not args.output:
-                print(result)
-            else:
-                print(f"Policy successfully compiled and written to {args.output}")
-        except Exception as e:
-            logger.error("Failed to export policy: %s", e)
-            print(f"ERROR: {e}")
             sys.exit(1)
 
     elif args.command == "detect-drift":

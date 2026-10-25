@@ -182,7 +182,7 @@ This triggers false-positive breaking drift alerts in regression pipelines, degr
 
 ---
 
-#### BUG-04 (High): Schema Truncation & Object Flattening Collision Vulnerability
+#### BUG-04 (High): Schema Truncation & Object Flattening Collision structural mismatch
 - **Location:** [`src/mcp_fingerprints/canonicalizer.py#L76-L84`](file:///Users/ivan/Project/3t.tools.intellij/mcp-fingerprints/src/mcp_fingerprints/canonicalizer.py#L76-L84)
 - **Impact:** Different complex tool schemas produce identical structural hashes (Hash Collision).
 
@@ -194,7 +194,7 @@ In JSON Schema, parameters are often rich data structures:
 - Numerical bounds (`minimum`, `maximum`) and defaults
 The canonicalizer loop extracts **only** `type` and `description`, discarding all nested definitions, array element schemas, and enum values.
 Two tools with radically different nested schemas (e.g., `configure(config: { apiKey: string, timeout: int })` vs `configure(config: { databaseUri: string, poolSize: int, ssl: bool })`) are reduced to identical representations: `{"type": "object", "description": ""}`.
-This creates a critical vulnerability where structurally incompatible tools yield identical cryptographic fingerprints.
+This creates a critical structural mismatch where structurally incompatible tools yield identical cryptographic fingerprints.
 
 ---
 
@@ -295,7 +295,7 @@ Fix: The virtualization engine must calculate the item's virtual offset, program
 
 **Forensic Analysis:**
 `ResilientIngestionEngine` provides Tenacity-backed retries and asyncio concurrency semaphores. However, it is never imported or utilized anywhere in `src/mcp_fingerprints/` or `scripts/`.
-`synchronizer.py` implements its own ad-hoc, synchronous HTTP fetching without jitter or exponential backoff, resulting in code duplication and rate limit vulnerability during bulk synchronization.
+`synchronizer.py` implements its own ad-hoc, synchronous HTTP fetching without jitter or exponential backoff, resulting in code duplication and rate limit structural mismatch during bulk synchronization.
 
 ---
 
@@ -318,7 +318,7 @@ In `generate_cyclonedx_sbom()`, the SBOM structure is initialized with:
 ```python
 "components": []
 ```
-Although `VersionFingerprint.dependencies` captures runtime and package dependencies, `sbom.py` never translates them into CycloneDX `component` records. The output is a bare metadata shell that fails third-party vulnerability scanners (e.g., Dependency-Track, Snyk).
+Although `VersionFingerprint.dependencies` captures runtime and package dependencies, `sbom.py` never translates them into CycloneDX `component` records. The output is a bare metadata shell that fails third-party structural mismatch scanners (e.g., Dependency-Track, Snyk).
 
 ---
 

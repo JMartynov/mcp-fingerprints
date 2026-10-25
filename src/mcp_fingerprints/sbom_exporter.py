@@ -19,13 +19,6 @@ class SBOMFormat(str, Enum):
     SPDX = "spdx"
 
 @dataclass
-class AttestationVerificationResult:
-    verified: bool
-    artifact_sha256: str
-    signer_identity: Optional[str] = None
-    rekor_log_index: Optional[int] = None
-    reason: str = ""
-
 class CycloneDXExporter:
     """Exports MCP tool specifications to CycloneDX 1.6 or SPDX 2.3 SBOM formats."""
 
@@ -207,75 +200,4 @@ class CycloneDXExporter:
         if fmt == SBOMFormat.SPDX:
             return CycloneDXExporter._build_spdx(specs)
         return CycloneDXExporter._build_cyclonedx(specs)
-
-class SigstoreBundleVerifier:
-    """Verifies detached Sigstore OIDC keyless signature bundles."""
-
-    @staticmethod
-    def verify(artifact_path: Union[str, Path], bundle_path: Union[str, Path], use_cosign_cli: bool = False) -> AttestationVerificationResult:
-        art_path = Path(artifact_path)
-        bun_path = Path(bundle_path)
-        
-        if not art_path.exists():
-            return AttestationVerificationResult(False, "", reason="Artifact not found")
-        if not bun_path.exists():
-            return AttestationVerificationResult(False, "", reason="Bundle not found")
-            
-        sha256 = hashlib.sha256()
-        with open(art_path, "rb") as f:
-            for chunk in iter(lambda: f.read(8192), b""):
-                sha256.update(chunk)
-        artifact_digest = sha256.hexdigest()
-        
-        try:
-            with open(bun_path, "r", encoding="utf-8") as f:
-                bundle = json.load(f)
-        except json.JSONDecodeError:
-            return AttestationVerificationResult(False, artifact_digest, reason="Malformed bundle JSON")
-            
-        media_type = bundle.get("mediaType", "")
-        if not media_type.startswith("application/vnd.dev.sigstore.bundle"):
-            return AttestationVerificationResult(False, artifact_digest, reason="Invalid bundle mediaType")
-            
-        # Extract digest from messageSignature or dsseEnvelope
-        msg_sig = bundle.get("messageSignature")
-        dsse = bundle.get("dsseEnvelope")
-        
-        digest_found = None
-        if msg_sig:
-            digest_found = msg_sig.get("messageDigest", {}).get("hex") or msg_sig.get("messageDigest", {}).get("hash")
-        elif dsse:
-            # Simplistic check for dsse payload representation in the test context
-            # Real bundles might base64 encode this
-            digest_found = bundle.get("verificationMaterial", {}).get("dsseDigest")
-        else:
-            # Fallback for some basic formats
-            pass
-            
-        # Since the actual bundle format can be complex, for the scope of this verification
-        # we check if any hex digest in the bundle matches the artifact digest, or we manually parse standard places
-        bundle_str = json.dumps(bundle)
-        if artifact_digest not in bundle_str:
-             return AttestationVerificationResult(False, artifact_digest, reason="Mismatched digest")
-             
-        # Extract signer info
-        signer_identity = None
-        rekor_log_index = None
-        
-        cert = bundle.get("verificationMaterial", {}).get("publicKeys", {}).get("certificates", [{}])
-        # Real extraction requires parsing ASN.1 from x509 certs, but for test/mock purposes:
-        # we might look at custom fields or use cosign
-        
-        if use_cosign_cli and shutil.which("cosign"):
-            try:
-                res = subprocess.run(
-                    ["cosign", "verify-blob", "--bundle", str(bun_path), str(art_path)],
-                    capture_output=True, text=True, check=False
-                )
-                if res.returncode != 0:
-                    return AttestationVerificationResult(False, artifact_digest, reason=f"cosign verify-blob failed: {res.stderr}")
-            except Exception as e:
-                return AttestationVerificationResult(False, artifact_digest, reason=f"cosign invocation error: {e}")
-                
-        return AttestationVerificationResult(True, artifact_digest, signer_identity, rekor_log_index, reason="Verified")
 

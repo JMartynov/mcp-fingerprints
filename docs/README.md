@@ -19,10 +19,7 @@ docs/
 │   ├── task3_matcher_search_invariants_report.md      # Task 3: Tri-Layer Matcher & Fast Index
 │   ├── task4_config_scanner_tamper_drift_report.md    # Task 4: Config Scanner & Supply-Chain Drift
 │   ├── task5_ast_openapi_zero_tool_report.md          # Task 5: Polyglot AST, OpenAPI & Zero-Tool Parsers
-│   ├── task6_runtime_proxies_policy_engines_report.md # Task 6: Runtime Proxies & Policy Engines Analysis
-│   ├── task7_registries_hosting_cli_report.md         # Task 7: Registries, Hosting & CLI Ergonomics
-│   ├── task8_fuzzing_guardrails_benchmark_report.md   # Task 8: Fuzzing & Security Guardrails Analysis
-│   └── task9_sbom_attestation_supply_chain_report.md  # Task 9: SBOM, Attestation & Supply Chain
+│   └── task7_registries_hosting_cli_report.md         # Task 7: Registries, Hosting & CLI Ergonomics
 ├── research/                                          # Empirical research audits (1,000 MCP servers across 5 groups)
 │   ├── master_mcp_ecosystem_audit_report.md           # Master Empirical Research Audit Report
 │   └── audit_group_[1-5]_*.md                         # Group audits (Rust, Go, JVM/.NET, Regional, Monorepos)
@@ -41,8 +38,8 @@ docs/
 ### 2. Cumulative Master Reports
 *   [**`WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md`**](reports/WORKFLOW_INVARIANTS_AND_CODE_AUDIT_REPORT.md) — **Workflow Invariants, System Architecture & Code Audit**  
     Consolidates architectural reviews across Tasks 1–5; 43-module map; comprehensive verification matrix of 5 invariant pillars across 400 passed tests; unified technical findings ledger (remediation of MED-01 drift detector empty-hash constant and MED-02 floating-point metric bounding).
-*   [**`ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`**](reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md) — **MCP Ecosystem Benchmark & Strategic Gap Analysis**  
-    Comparative analysis against 14+ industry ecosystems across runtime proxies (Invariant Labs, Lakera, Cisco, Cloudflare), commercial registries (Smithery, Docker, PulseMCP), automated fuzzers & guardrails (Protect AI, Verity, Garak, Mindgard), and supply-chain attestations (Sigstore, CycloneDX, SLSA L3). Defines 4 architectural blueprints: Sidecar Policy Generator, Schema-Driven Fuzzer, Sigstore Keyless Attestation, and CLI Registry Connectors.
+*   [**`ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md`**](reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md) — **MCP Ecosystem Benchmark & Registry Gap Analysis**  
+    Comparative analysis against parallel MCP registries, catalogs, discovery engines, and schema indexers (Smithery, PulseMCP, Official MCP Registry, Glama, Docker MCP Catalog) focusing on structural classification, polyglot AST extraction, canonical toolset hashing, and client configuration exporting.
 
 ---
 
@@ -64,7 +61,7 @@ flowchart LR
 | Pillar | Live Test Suite | Technical Report Link | Verified Invariants |
 |:---|:---|:---|:---|
 | **1. Subprocess Sandboxing & JSON-RPC Protocol** | [`tests/test_live_cli_sandbox_invariants.py`](../tests/test_live_cli_sandbox_invariants.py) | [Task 1 Report](reports/task1_cli_sandbox_protocol_report.md) | Credential scrubbing (`AWS_*`, `OPENAI_*`, `GITHUB_*`, `SSH_AUTH_SOCK`), execution timeout boundaries ($\le 5.0\text{s}$), process tree reaping (SIGTERM/SIGKILL), strict JSON-RPC 2.0 version/ID reflection, error schema validation, and handshake sequencing (`initialize` $\rightarrow$ `notifications/initialized`). |
-| **2. Canonicalizer, Domain Isolation & Snapshots** | [`tests/test_live_canonicalizer_snapshot_invariants.py`](../tests/test_live_canonicalizer_snapshot_invariants.py) | [Task 2 Report](reports/task2_canonicalizer_snapshot_invariants_report.md) | Canonical SHA-256 order-invariance across 500 permutations; pure structural domain isolation (rejection of dynamic vulnerability fields in core models); two-tier cache coherency (`mtime` + SHA-256 fallback); DuckDB ephemeral SQL resilience; deterministic gzip snapshot compilation. |
+| **2. Canonicalizer, Domain Isolation & Snapshots** | [`tests/test_live_canonicalizer_snapshot_invariants.py`](../tests/test_live_canonicalizer_snapshot_invariants.py) | [Task 2 Report](reports/task2_canonicalizer_snapshot_invariants_report.md) | Canonical SHA-256 order-invariance across 500 permutations; pure structural domain isolation (rejection of dynamic issue fields in core models); two-tier cache coherency (`mtime` + SHA-256 fallback); DuckDB ephemeral SQL resilience; deterministic gzip snapshot compilation. |
 | **3. Tri-Layer Matcher, Distance Metrics & Fast Index** | [`tests/test_live_matcher_search_invariants.py`](../tests/test_live_matcher_search_invariants.py) | [Task 3 Report](reports/task3_matcher_search_invariants_report.md) | Layer 1 exact cryptographic hash matching ($O(1)$, confidence 1.0); Layer 2 topological Jaccard distance metric boundaries ($[0.0, 1.0]$, threshold $>0.65$); Layer 3 composite capability matching ($0.7 \cdot \text{Topology} + 0.3 \cdot \text{Capabilities}$); graceful semantic search fallback to lexical BM25; fast multi-index lookup scalability ($<10\text{ms}$ across 2,000 packages). |
 | **4. Config Scanner, Lossless Exporters & Drift** | [`tests/test_live_config_scanner_tamper_drift.py`](../tests/test_live_config_scanner_tamper_drift.py) | [Task 4 Report](reports/task4_config_scanner_tamper_drift_report.md) | Workstation discovery across 8+ clients (Claude, Cursor, Zed, Cline, Roo, Antigravity, OpenHands, Windsurf); lossless in-place JSONC comment and whitespace preserving modification; supply-chain tamper detection escalation (`hash_tamper` $\rightarrow$ CRITICAL, `tool_added` $\rightarrow$ HIGH, empty hash exemption); workstation baseline diffing. |
 | **5. Polyglot AST Extractors, OpenAPI & Zero-Tool Parsers** | [`tests/test_live_ast_openapi_zero_tool_parsers.py`](../tests/test_live_ast_openapi_zero_tool_parsers.py) | [Task 5 Report](reports/task5_ast_openapi_zero_tool_report.md) | Multi-language AST parameter extraction across Python FastMCP decorators, TypeScript Zod schemas, Go `mark3labs/mcp-go` builder patterns, Rust `rmcp` macros, JVM Spring AI `@Tool`, C# .NET `[McpServerTool]`; OpenAPI v3 JSON/YAML endpoint extraction; Markdown README table parsing; international CJK/UTF-8 Unicode sanitization with ASCII control character byte filtering. |
@@ -85,24 +82,11 @@ python3 -m pytest tests/ -v
 
 ---
 
-## 🔬 Industry Benchmarks & Ecosystem Gaps (Tasks 6–9)
+## 🔬 Industry Benchmarks & Registry Comparisons
 
 | Task | Report Link | Domain Area | Strategic Focus |
 |:---|:---|:---|:---|
-| **Task 6** | [**`task6_runtime_proxies_policy_engines_report.md`**](reports/task6_runtime_proxies_policy_engines_report.md) | Runtime Proxies & Policy Engines | Delineates the boundary between offline structural identity and inline runtime inspection (Invariant Labs, Lakera Guard, Cisco, Cloudflare). Blueprints the Sidecar Policy Generator (OPA/Rego). |
-| **Task 7** | [**`task7_registries_hosting_cli_report.md`**](reports/task7_registries_hosting_cli_report.md) | Registries, Hosting & CLI Ergonomics | Evaluates commercial catalogs (Smithery.ai, Docker MCP, PulseMCP), installation ergonomics, and schema synthesis. Blueprints 1-click CLI registry connectors. |
-| **Task 8** | [**`task8_fuzzing_guardrails_benchmark_report.md`**](reports/task8_fuzzing_guardrails_benchmark_report.md) | Fuzzing & Security Guardrails | Investigates AI guardrail solutions (Protect AI Guardian, Verity, Garak, Mindgard). Blueprints schema-driven fuzzer (`mcp-fuzz`) utilizing canonical AST schemas for adversarial payload generation. |
-| **Task 9** | [**`task9_sbom_attestation_supply_chain_report.md`**](reports/task9_sbom_attestation_supply_chain_report.md) | SBOM, Attestation & Supply Chain | Evaluates cryptographic attestations (Sigstore Cosign, CycloneDX/SPDX, SLSA L3). Blueprints keyless OIDC passport signing and Rekor transparency log publication. |
-
----
-
-## 🚀 Strategic Ecosystem Blueprints & Implementation Tasks (Tasks 63–66)
-
-*   [**`IMPLEMENTATION_PLAN_ECOSYSTEM_BLUEPRINTS.md`**](tasks/IMPLEMENTATION_PLAN_ECOSYSTEM_BLUEPRINTS.md) — **Master Architectural & Phased Implementation Plan (Waves 4–6 & Action 5)**
-*   [**`task_63_sidecar_policy_generator_opa_envoy.md`**](tasks/task_63_sidecar_policy_generator_opa_envoy.md) — **Task 63: Sidecar Policy Generator (`mcp-fingerprints export-policy` for OPA Rego v1 & Envoy filters)**
-*   [**`task_64_schema_driven_protocol_fuzzer.md`**](tasks/task_64_schema_driven_protocol_fuzzer.md) — **Task 64: Schema-Driven Active Protocol Fuzzer (`mcp-fingerprints fuzz`)**
-*   [**`task_65_cyclonedx_sbom_export_and_sigstore_attestation.md`**](tasks/task_65_cyclonedx_sbom_export_and_sigstore_attestation.md) — **Task 65: CycloneDX 1.6 AI-Tool SBOM Export & Sigstore Keyless Attestation (`mcp-fingerprints export-sbom`)**
-*   [**`task_66_turnkey_docker_sandboxed_installer.md`**](tasks/task_66_turnkey_docker_sandboxed_installer.md) — **Task 66: Turnkey Docker-Sandboxed Server Installer (`mcp-fingerprints install`)**
+| **Task 7** | [**`task7_registries_hosting_cli_report.md`**](reports/task7_registries_hosting_cli_report.md) | Registries, Hosting & CLI Ergonomics | Evaluates commercial catalogs (Smithery.ai, Docker MCP, PulseMCP), catalog ingestion formats, schema synthesis, and structural client configuration exporting. |
 
 ---
 
