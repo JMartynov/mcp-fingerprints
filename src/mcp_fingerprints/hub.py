@@ -14,6 +14,8 @@ from mcp_fingerprints.detector import detect_mcp
 from mcp_fingerprints.prober import McpStdioProber
 from mcp_fingerprints.search import format_search_results, search_passports
 from mcp_fingerprints.snapshot_diff import DiscoveredServer, InventoryDiffer, InventorySnapshot
+from mcp_fingerprints.models import ServerPackageSpec
+from mcp_fingerprints.sbom_exporter import CycloneDXExporter, SBOMFormat
 
 logger = logging.getLogger("mcp_fingerprints.hub")
 
@@ -318,6 +320,71 @@ def inspect_checkpoints():
     print("Not fully implemented in this stub.")
 
 
+def export_sbom_hub():
+    mode = prompt_choice("Export Mode", ["Single Passport from DB", "Entire Catalog Snapshot"])
+    if not mode:
+        return
+
+    out_path_str = prompt_input(f"Output Filepath (default: ./{'mcp_catalog_sbom.cdx.json' if mode == 'Entire Catalog Snapshot' else '<pkg>_sbom.cdx.json'})")
+    if not out_path_str:
+        if mode == 'Entire Catalog Snapshot':
+            out_path_str = "./mcp_catalog_sbom.cdx.json"
+
+    specs = []
+    
+    if mode == "Single Passport from DB":
+        keyword = prompt_input("Enter exact package name or keyword")
+        if not keyword:
+            return
+        results = search_passports("data/fingerprints", keyword, limit=1)
+        if not results:
+            print("No matching passport found.")
+            return
+        
+        try:
+            spec = ServerPackageSpec.from_dict(results[0])
+            specs.append(spec)
+            if not out_path_str:
+                pkg_name = spec.package_name.replace("/", "_").replace("@", "")
+                out_path_str = f"./{pkg_name}_sbom.cdx.json"
+        except Exception as e:
+            print(f"Failed to load spec: {e}")
+            return
+            
+    elif mode == "Entire Catalog Snapshot":
+        # Load all passports
+        data_dir = Path("data/fingerprints")
+        skip_files = {"sync_state.json", "index.json", ".passport_index.pickle"}
+        for file_path in data_dir.rglob("*.json"):
+            if file_path.name in skip_files:
+                continue
+            try:
+                content = json.loads(file_path.read_text(encoding="utf-8"))
+                if "package_name" in content:
+                    specs.append(ServerPackageSpec.from_dict(content))
+            except Exception:
+                pass
+        
+        if not specs:
+            print("No passports found in catalog.")
+            return
+
+    exporter = CycloneDXExporter()
+    try:
+        sbom = exporter.export(specs, format=SBOMFormat.CYCLONEDX)
+        sbom_str = json.dumps(sbom, indent=2)
+        
+        out_path = Path(out_path_str)
+        out_path.write_text(sbom_str, encoding="utf-8")
+        
+        file_size = len(sbom_str)
+        components = sbom.get("components", [])
+        print(f"✅ Successfully exported CycloneDX 1.6 SBOM to {out_path.absolute()}")
+        print(f"   Component Count: {len(components)}")
+        print(f"   File Size: {file_size} bytes")
+    except Exception as e:
+        print(f"Export failed: {e}")
+
 def setup_default_registry() -> ActionRegistry:
     registry = ActionRegistry()
     registry.register("🖥️ 1. Workstation Discovery & Inventory", "🔍", "Scan All Local AI Agents", scan_all_agents, order=10)
@@ -328,6 +395,7 @@ def setup_default_registry() -> ActionRegistry:
     registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "🔤", "Search Ready Database by Keyword", search_db, order=50)
     registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "📥", "Add Unknown MCP from Local Machine", add_unknown_mcp, order=60)
     registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "📚", "Browse Catalog Passports", browse_passports, order=70)
+    registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "📦", "Export CycloneDX 1.6 SBOM for Server / Catalog", export_sbom_hub, order=75)
 
     registry.register("🧪 3. Live Prober & Generic MCP Detector", "🔬", "Detect if Command/URL is an MCP Server", detect_mcp_cmd, order=80)
     registry.register("🧪 3. Live Prober & Generic MCP Detector", "🩺", "Deep Live Server Probe", deep_probe, order=90)
