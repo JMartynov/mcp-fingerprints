@@ -91,6 +91,18 @@ class DeepZeroToolAuditor:
                      "format": "Custom Decorators",
                      "remedy": "Support alternative Python decorators (@action, @command)"
                  })
+
+        # 5. Check for unresolved explicit tool indicators in Go
+        if filename.endswith(".go"):
+            if "server.AddTool(" in content or "mcp.NewTool" in content or "mcp.Tool{" in content:
+                # If these indicators exist but the parser missed them,
+                # we flag it as an unresolved extraction indicator.
+                tools.append({
+                    "name": "unresolved_go_tool",
+                    "location": f"{filename}",
+                    "format": "Unresolved Extraction",
+                    "remedy": "AST parser failed to resolve explicit tool definition."
+                })
                  
         return tools
 
@@ -210,7 +222,12 @@ class DeepZeroToolAuditor:
                     pass
 
         if all_tools:
-            result["status"] = "TOOLS_FOUND_MISSED_BY_PARSER"
+            unresolved = any(t.get("format") == "Unresolved Extraction" for t in all_tools)
+            if unresolved:
+                result["status"] = "UNRESOLVED_EXTRACTION"
+            else:
+                result["status"] = "TOOLS_FOUND_MISSED_BY_PARSER"
+                
             result["tools_found_count"] = len(all_tools)
             result["tools_found"] = [t["name"] for t in all_tools]
             result["location"] = all_tools[0].get("location")

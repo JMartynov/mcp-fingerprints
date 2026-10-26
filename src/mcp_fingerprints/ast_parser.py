@@ -1195,6 +1195,59 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
     extracted: list[dict[str, Any]] = []
     seen_names: set[str] = set()
 
+    # 1. Parse constants mapping (single and block)
+    constants: dict[str, str] = {}
+    for match in re.finditer(r'const\s+([a-zA-Z0-9_]+)\s*(?:[a-zA-Z0-9_.*]*\s*)?=\s*["\']([^"\']+)["\']', code):
+        constants[match.group(1)] = match.group(2)
+        
+    for match in re.finditer(r'const\s*\(\s*(.*?)\s*\)', code, re.DOTALL):
+        block = match.group(1)
+        for line_match in re.finditer(r'([a-zA-Z0-9_]+)\s*(?:[a-zA-Z0-9_.*]*\s*)?=\s*["\']([^"\']+)["\']', block):
+            constants[line_match.group(1)] = line_match.group(2)
+
+    # 2. Match Official SDK Composite Literals (mcp.Tool{...})
+    tool_pattern = re.compile(
+        r'(?:server\.AddTool\s*\(\s*&?|&?)mcp\.Tool\s*\{([^\}]+)\}',
+        re.DOTALL
+    )
+    for match in tool_pattern.finditer(code):
+        body = match.group(1)
+        
+        name_match = re.search(r'Name\s*:\s*(?:["\']([^"\']+)["\']|([a-zA-Z0-9_]+))', body)
+        name = None
+        if name_match:
+            name = name_match.group(1) if name_match.group(1) else constants.get(name_match.group(2), name_match.group(2))
+            
+        if not name:
+            continue
+            
+        if name in seen_names:
+            continue
+            
+        desc_match = re.search(r'Description\s*:\s*(?:["\']([^"\']+)["\']|([a-zA-Z0-9_]+))', body)
+        desc = None
+        if desc_match:
+            desc = desc_match.group(1) if desc_match.group(1) else constants.get(desc_match.group(2), desc_match.group(2))
+            
+        title_match = re.search(r'Title\s*:\s*(?:["\']([^"\']+)["\']|([a-zA-Z0-9_]+))', body)
+        title = None
+        if title_match:
+            title = title_match.group(1) if title_match.group(1) else constants.get(title_match.group(2), title_match.group(2))
+            
+        if not desc or len(desc) < 3:
+            desc = title if title else name
+            
+        seen_names.add(name)
+        extracted.append({
+            "name": name,
+            "description": desc,
+            "inputSchema": {
+                "type": "object",
+                "properties": {}, # Basic parsing for composite literal properties if any, or keep it open
+                "required": [],
+            }
+        })
+
     for match in re.finditer(r'mcp\.(?:NewTool|NewToolWithRawSchema)\s*\(\s*["\']([^"\']+)["\']', code):
         name = match.group(1)
         if name in seen_names:
