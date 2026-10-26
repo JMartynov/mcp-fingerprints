@@ -266,11 +266,11 @@ def extract_suspicious_cards(catalog_path: str, max_suspicious: int) -> List[Dic
     # For prioritization, we'll sort by some criteria if available, else just take max
     return suspicious_cards[:max_suspicious]
 
-def merge_summary(summary_path: str, today: str, version: str, total_checked: int, match_count: int, discrepancy_count: int, discrepancy_types: Dict[str, int]):
+def merge_summary(summary_path: str, report_filename: str, run_date: str, version: str, total_checked: int, match_count: int, discrepancy_count: int, discrepancy_types: Dict[str, int]):
     if not os.path.exists(summary_path):
         # Create empty summary if it doesn't exist
         with open(summary_path, "w") as f:
-            f.write("# Master Audit Summary: Daily Web Card Quality & Updates Ledger\n\n## Cumulative Quality Metrics\n- **Total Historical Runs**: 0\n- **Total Cards Verified**: 0\n- **Overall Match Rate**: 0.0%\n- **Total Discrepancies Flagged**: 0\n\n---\n\n## Historical Run Ledger\n\n| Date | Web Update Version | Cards Checked | Matches | Discrepancies | Match Rate | Daily Run Report |\n|:---|:---:|:---:|:---:|:---:|:---:|:---|\n\n---\n\n## Top Discrepancy Categories\n- `PARSER_MISSED_DYNAMIC_REGISTRATION`: 0\n- `PARSER_MISSED_SUBDIRECTORY`: 0\n- `PARSER_MISSED_DECORATOR`: 0\n- `DOCSTRING_EXTRACTION_FAILURE`: 0\n- `EMPTY_OR_PLACEHOLDER_DESCRIPTION`: 0\n- `UNREACHABLE_OR_PRIVATE_REPO`: 0\n\n---\n\n## Unresolved Remediation Action Items\n*(Items are populated automatically during daily inspection runs)*\n")
+            f.write("# Master Audit Summary: Daily Web Card Quality & Updates Ledger\n\n## Cumulative Quality Metrics\n- **Total Historical Runs**: 0\n- **Total Cards Verified**: 0\n- **Overall Match Rate**: 0.0%\n- **Total Discrepancies Flagged**: 0\n\n---\n\n## Historical Run Ledger\n\n| Date / Timestamp | Web Update Version | Cards Checked | Matches | Discrepancies | Match Rate | Daily Run Report |\n|:---|:---:|:---:|:---:|:---:|:---:|:---|\n\n---\n\n## Top Discrepancy Categories\n- `PARSER_MISSED_DYNAMIC_REGISTRATION`: 0\n- `PARSER_MISSED_SUBDIRECTORY`: 0\n- `PARSER_MISSED_DECORATOR`: 0\n- `DOCSTRING_EXTRACTION_FAILURE`: 0\n- `EMPTY_OR_PLACEHOLDER_DESCRIPTION`: 0\n- `UNREACHABLE_OR_PRIVATE_REPO`: 0\n\n---\n\n## Unresolved Remediation Action Items\n*(Items are populated automatically during daily inspection runs)*\n")
             
     with open(summary_path, "r") as f:
         content = f.read()
@@ -299,7 +299,7 @@ def merge_summary(summary_path: str, today: str, version: str, total_checked: in
     content = re.sub(r'\*\*Total Discrepancies Flagged\*\*: \d+', f'**Total Discrepancies Flagged**: {total_disc}', content)
 
     ledger_marker = "|:---|:---:|:---:|:---:|:---:|:---:|:---|"
-    new_row = f"\n| {today} | {version} | {total_checked} | {match_count} | {discrepancy_count} | {match_rate}% | [runs/{today}.md](runs/{today}.md) |"
+    new_row = f"\n| {run_date} | {version} | {total_checked} | {match_count} | {discrepancy_count} | {match_rate}% | [runs/{report_filename}](runs/{report_filename}) |"
     
     if ledger_marker in content:
         content = content.replace(ledger_marker, ledger_marker + new_row)
@@ -454,7 +454,10 @@ def main():
     parser.add_argument("--max-suspicious", type=int, default=50, help="Max suspicious cards to process")
     args = parser.parse_args()
     
-    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    # Use full ISO/UTC date-timestamp suffix for unique runs
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    today = now_utc.strftime("%Y-%m-%d")
+    timestamp_suffix = now_utc.strftime("%Y-%m-%d_%H%M%S")
     
     # 1. Candidate Set A
     suspicious = extract_suspicious_cards(args.catalog, args.max_suspicious)
@@ -484,8 +487,9 @@ def main():
         args.output, today, version, results_a, results_b
     )
     
+    report_filename = os.path.basename(args.output)
     merge_summary(
-        args.merge_summary, today, version, total_checked, match_count, discrepancy_count, discrepancy_types
+        args.merge_summary, report_filename, today, version, total_checked, match_count, discrepancy_count, discrepancy_types
     )
     
     print(f"Audit complete: {total_checked} checked, {match_count} matches.")

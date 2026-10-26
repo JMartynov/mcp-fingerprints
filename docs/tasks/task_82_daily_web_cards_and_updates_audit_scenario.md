@@ -18,7 +18,7 @@ This contract defines the exact, sequential, step-by-step instructions for an au
 - Select all cards added or modified in the latest web update (`web/updates/latest_update.json`).
 - Drill down directly into the upstream source repositories (GitHub / npm / PyPI / Crates.io).
 - Verify why discrepancies occurred and verify whether card data matches reality.
-- Generate an isolated daily markdown report in `docs/reports/daily_web_audits/YYYY-MM-DD.md`.
+- Generate an isolated daily markdown report in `docs/reports/daily_web_audits/runs/YYYY-MM-DD_HHMMSS.md`.
 - Automatically merge and maintain the consolidated audit report at `docs/reports/daily_web_audits/master_audit_summary.md`.
 
 ---
@@ -32,11 +32,11 @@ docs/reports/daily_web_audits/
 ├── README.md                          # Directory index and metric ledger
 ├── master_audit_summary.md            # Merged summary across all historical daily runs
 └── runs/
-    ├── 2026-10-26.md                  # Daily run report
-    └── YYYY-MM-DD.md                  # Future daily reports
+    ├── 2026-10-26_174510.md           # Individual audit run report with date-timestamp suffix
+    └── YYYY-MM-DD_HHMMSS.md           # Future daily audit reports
 ```
 
-- **Daily Report File**: `docs/reports/daily_web_audits/runs/YYYY-MM-DD.md` (where `YYYY-MM-DD` is the UTC date of execution).
+- **Daily Report File**: `docs/reports/daily_web_audits/runs/YYYY-MM-DD_HHMMSS.md` (where `YYYY-MM-DD_HHMMSS` is the UTC date-time stamp of execution).
 - **Consolidated Master Report**: `docs/reports/daily_web_audits/master_audit_summary.md`.
 - **Domain Constraint**: This task is purely a catalog metadata, AST validation, and quality audit task. **NEVER** introduce security testing, vulnerability scanning, exploit analysis, or offensive tooling.
 
@@ -98,10 +98,10 @@ For each selected card, the agent MUST clone or inspect the upstream source code
 
 ### Phase 3: Daily Report Authoring
 
-Generate `docs/reports/daily_web_audits/runs/YYYY-MM-DD.md` with the following mandatory markdown template:
+Generate `docs/reports/daily_web_audits/runs/YYYY-MM-DD_HHMMSS.md` with the following mandatory markdown template:
 
 ```markdown
-# Daily Web Card Quality & Source Verification Report — YYYY-MM-DD
+# Daily Web Card Quality & Source Verification Report — YYYY-MM-DD HH:MM:SS UTC
 
 ## Executive Summary
 - **Execution Timestamp**: YYYY-MM-DD HH:MM:SS UTC
@@ -181,16 +181,16 @@ To enable execution via cron or Antigravity `/schedule`, the following CLI entry
 #!/usr/bin/env bash
 set -euo pipefail
 
-TODAY=$(date -u +%F)
-echo "=== Starting Daily MCP Web Card Audit for ${TODAY} ==="
+TIMESTAMP=$(date -u +"%Y-%m-%d_%H%M%S")
+echo "=== Starting Daily MCP Web Card Audit for ${TIMESTAMP} ==="
 mkdir -p docs/reports/daily_web_audits/runs
 
 PYTHONPATH=src python3 -m mcp_fingerprints.deep_zero_tool_auditor \
   --web-updates web/updates/latest_update.json \
   --catalog web/catalog.json \
-  --output "docs/reports/daily_web_audits/runs/${TODAY}.md" \
+  --output "docs/reports/daily_web_audits/runs/${TIMESTAMP}.md" \
   --merge-summary "docs/reports/daily_web_audits/master_audit_summary.md" \
   --max-suspicious 50
 
-echo "=== Audit complete: docs/reports/daily_web_audits/runs/${TODAY}.md ==="
+echo "=== Audit complete: docs/reports/daily_web_audits/runs/${TIMESTAMP}.md ==="
 ```
