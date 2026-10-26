@@ -325,10 +325,19 @@ def export_sbom_hub():
     if not mode:
         return
 
-    out_path_str = prompt_input(f"Output Filepath (default: ./{'mcp_catalog_sbom.cdx.json' if mode == 'Entire Catalog Snapshot' else '<pkg>_sbom.cdx.json'})")
+    format_choice = prompt_choice("Export Format", ["CycloneDX 1.6", "SPDX 2.3"])
+    if not format_choice:
+        return
+
+    is_spdx = format_choice == "SPDX 2.3"
+    ext = ".spdx.json" if is_spdx else ".cdx.json"
+    default_catalog_path = f"mcp_catalog_sbom{ext}"
+    default_single_path = f"<pkg>_sbom{ext}"
+
+    out_path_str = prompt_input(f"Output Filepath (default: ./{default_catalog_path if mode == 'Entire Catalog Snapshot' else default_single_path})")
     if not out_path_str:
         if mode == 'Entire Catalog Snapshot':
-            out_path_str = "./mcp_catalog_sbom.cdx.json"
+            out_path_str = f"./{default_catalog_path}"
 
     specs = []
     
@@ -346,7 +355,7 @@ def export_sbom_hub():
             specs.append(spec)
             if not out_path_str:
                 pkg_name = spec.package_name.replace("/", "_").replace("@", "")
-                out_path_str = f"./{pkg_name}_sbom.cdx.json"
+                out_path_str = f"./{pkg_name}_sbom{ext}"
         except Exception as e:
             print(f"Failed to load spec: {e}")
             return
@@ -371,15 +380,22 @@ def export_sbom_hub():
 
     exporter = CycloneDXExporter()
     try:
-        sbom = exporter.export(specs, format=SBOMFormat.CYCLONEDX)
+        sbom_format = SBOMFormat.SPDX if is_spdx else SBOMFormat.CYCLONEDX
+        sbom = exporter.export(specs, format=sbom_format)
         sbom_str = json.dumps(sbom, indent=2)
         
         out_path = Path(out_path_str)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(sbom_str, encoding="utf-8")
         
         file_size = len(sbom_str)
-        components = sbom.get("components", [])
-        print(f"✅ Successfully exported CycloneDX 1.6 SBOM to {out_path.absolute()}")
+        
+        if is_spdx:
+            components = sbom.get("packages", [])
+            print(f"✅ Successfully exported SPDX 2.3 SBOM to {out_path.absolute()}")
+        else:
+            components = sbom.get("components", [])
+            print(f"✅ Successfully exported CycloneDX 1.6 SBOM to {out_path.absolute()}")
         print(f"   Component Count: {len(components)}")
         print(f"   File Size: {file_size} bytes")
     except Exception as e:
@@ -395,7 +411,7 @@ def setup_default_registry() -> ActionRegistry:
     registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "🔤", "Search Ready Database by Keyword", search_db, order=50)
     registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "📥", "Add Unknown MCP from Local Machine", add_unknown_mcp, order=60)
     registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "📚", "Browse Catalog Passports", browse_passports, order=70)
-    registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "📦", "Export CycloneDX 1.6 SBOM for Server / Catalog", export_sbom_hub, order=75)
+    registry.register("🌐 2. Search Ready Database & Ingest Unknown Local MCPs", "📦", "Export CycloneDX / SPDX SBOM for Server or Catalog", export_sbom_hub, order=75)
 
     registry.register("🧪 3. Live Prober & Generic MCP Detector", "🔬", "Detect if Command/URL is an MCP Server", detect_mcp_cmd, order=80)
     registry.register("🧪 3. Live Prober & Generic MCP Detector", "🩺", "Deep Live Server Probe", deep_probe, order=90)
