@@ -113,3 +113,107 @@ struct FetchTool: ToolDefinition {
     assert len(tools2) == 1
     assert tools2[0]["name"] == "fetch"
 
+def test_swift_class_and_actor_mcp_tool():
+    code = """
+import Foundation
+
+final class DatabaseTool: Tool {
+    let name = "query_db"
+    let description = "Execute a database query."
+    struct Input: Codable {
+        let query: String
+        let limit: Int?
+    }
+}
+
+actor StateTool: MCPTool {
+    let name = "get_state"
+    let description = "Get server state."
+}
+"""
+    tools = parse_swift_mcp_code(code)
+    assert len(tools) == 2
+    t1 = next(t for t in tools if t["name"] == "query_db")
+    assert t1["description"] == "Execute a database query."
+    assert "query" in t1["inputSchema"]["properties"]
+    assert t1["inputSchema"]["required"] == ["query"]
+
+    t2 = next(t for t in tools if t["name"] == "get_state")
+    assert t2["description"] == "Get server state."
+
+def test_swift_docstring_and_macros():
+    code = """
+import Foundation
+
+/// Fetches the latest logs from the remote server.
+#mcpTool(name: "fetch_logs")
+func fetchLogs(serverUrl: URL, since: Date?, id: UUID) -> String {
+    return ""
+}
+"""
+    tools = parse_swift_mcp_code(code)
+    assert len(tools) == 1
+    tool = tools[0]
+    assert tool["name"] == "fetch_logs"
+    assert tool["description"] == "Fetches the latest logs from the remote server."
+    props = tool["inputSchema"]["properties"]
+    assert props["serverUrl"]["type"] == "string"
+    assert props["since"]["type"] == "string"
+    assert props["id"]["type"] == "string"
+    assert set(tool["inputSchema"]["required"]) == {"id", "serverUrl"}
+
+def test_swift_argument_parser_and_docstrings():
+    code = """
+import Foundation
+import ArgumentParser
+
+/// Perform code review and inspection
+final class ReviewTool: ToolDefinition {
+    let name = "code_review"
+
+    struct Arguments: Codable {
+        @Option(name: .shortAndLong, help: "Target path to inspect")
+        var path: FilePath
+
+        @Argument(help: "Unique run identifier")
+        let runId: UUID
+
+        @Flag(help: "Enable debug logging")
+        var verbose: Bool
+    }
+}
+"""
+    tools = parse_swift_mcp_code(code)
+    assert len(tools) == 1
+    tool = tools[0]
+    assert tool["name"] == "code_review"
+    assert tool["description"] == "Perform code review and inspection"
+    props = tool["inputSchema"]["properties"]
+    assert props["path"]["type"] == "string"
+    assert props["path"]["description"] == "Target path to inspect"
+    assert props["runId"]["type"] == "string"
+    assert props["runId"]["description"] == "Unique run identifier"
+    assert props["verbose"]["type"] == "boolean"
+    assert props["verbose"]["description"] == "Enable debug logging"
+    assert set(tool["inputSchema"]["required"]) == {"path", "runId", "verbose"}
+
+def test_swift_switch_dispatch():
+    code = """
+func handleCallTool(request: CallToolRequest) {
+    switch request.params.name {
+    case "list_files":
+        return listFiles()
+    case "read_file":
+        return readFile(request.params.arguments)
+    default:
+        throw Error.unknownTool
+    }
+}
+"""
+    tools = parse_swift_mcp_code(code)
+    assert len(tools) == 2
+    names = [t["name"] for t in tools]
+    assert "list_files" in names
+    assert "read_file" in names
+
+
