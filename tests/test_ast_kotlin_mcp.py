@@ -1,5 +1,66 @@
 import pytest
-from mcp_fingerprints.ast_parser import parse_kotlin_mcp_code, parse_mcp_source_code
+from mcp_fingerprints.ast_parser import parse_kotlin_mcp_code
+
+def test_spring_ai_bean():
+    code = """
+    @Service
+    class MyAiService {
+        @Tool(name = "get_weather", description = "Get current weather")
+        fun getWeather(location: String): String { return "sunny" }
+    }
+    """
+    res = parse_kotlin_mcp_code(code)
+    assert len(res) == 1
+    assert res[0]["name"] == "get_weather"
+    assert res[0]["inputSchema"]["properties"]["location"]["type"] == "string"
+
+def test_param_description():
+    code = """
+    @Tool
+    fun getWeather(
+        @Description("The city name") location: String
+    ): String { return "sunny" }
+    """
+    res = parse_kotlin_mcp_code(code)
+    assert len(res) == 1
+    assert res[0]["name"] == "getWeather"
+    assert "description" in res[0]["inputSchema"]["properties"]["location"]
+    assert res[0]["inputSchema"]["properties"]["location"]["description"] == "The city name"
+
+def test_data_class():
+    code = """
+    data class WeatherRequest(
+        @Description("City name") val city: String,
+        val days: Int = 1
+    )
+
+    @Tool
+    fun getWeather(req: WeatherRequest): String { return "sunny" }
+    """
+    res = parse_kotlin_mcp_code(code)
+    assert len(res) == 1
+    assert res[0]["name"] == "getWeather"
+    assert res[0]["inputSchema"]["properties"]["req"]["type"] == "object"
+    assert "properties" in res[0]["inputSchema"]["properties"]["req"]
+    assert "city" in res[0]["inputSchema"]["properties"]["req"]["properties"]
+    assert res[0]["inputSchema"]["properties"]["req"]["properties"]["city"]["type"] == "string"
+    assert res[0]["inputSchema"]["properties"]["req"]["properties"]["city"]["description"] == "City name"
+
+def test_suspend_complex():
+    code = """
+    @Tool(name="complex_tool")
+    override suspend fun complexTool(
+        config: Map<String, List<Int>>,
+        options: String = "default, with, commas"
+    ) { }
+    """
+    res = parse_kotlin_mcp_code(code)
+    assert len(res) == 1
+    assert res[0]["name"] == "complex_tool"
+    assert res[0]["inputSchema"]["properties"]["config"]["type"] == "object"
+    assert res[0]["inputSchema"]["properties"]["options"]["type"] == "string"
+    assert "options" not in res[0]["inputSchema"]["required"]
+    assert "config" in res[0]["inputSchema"]["required"]
 
 def test_annotation_basic():
     code = """
@@ -41,8 +102,7 @@ def test_class():
     assert res[0]["name"] == "custom_tool"
     assert res[0]["description"] == "A custom tool"
 
-if __name__ == "__main__":
-    pytest.main(["-v", "test_parse_kotlin_mcp.py"])
+from mcp_fingerprints.ast_parser import parse_mcp_source_code
 
 def test_parse_mcp_source_code_dispatcher():
     code = """
