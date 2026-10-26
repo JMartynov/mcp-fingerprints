@@ -38,6 +38,10 @@ docs/reports/daily_web_audits/
 
 - **Daily Report File**: `docs/reports/daily_web_audits/runs/YYYY-MM-DD_HHMMSS.md` (where `YYYY-MM-DD_HHMMSS` is the UTC date-time stamp of execution).
 - **Consolidated Master Report**: `docs/reports/daily_web_audits/master_audit_summary.md`.
+- **Publication & PR Invariant (STRICT)**:
+  - **Publish ONLY reports**: The task is permitted to author temporary scratch scripts during local execution, but intermediate code, scratch modules, or experiment scripts MUST NOT be staged, committed, or published to PR.
+  - **Auto-Merge Reports**: Only `docs/reports/daily_web_audits/` report markdown files and master ledger updates may be committed and auto-merged into `main`.
+  - **Scratch Cleanup**: All temporary scripts created during analysis (e.g., `*.py` in repo root or `/tmp/`) must be cleaned up before staging changes.
 - **Domain Constraint**: This task is purely a catalog metadata, AST validation, and quality audit task. **NEVER** introduce security testing, vulnerability scanning, exploit analysis, or offensive tooling.
 
 ---
@@ -159,17 +163,21 @@ After writing the daily report, update `docs/reports/daily_web_audits/master_aud
 ### Phase 5: Verification & Safety Gates
 
 Before completing the daily task:
-1. Validate that `docs/reports/daily_web_audits/runs/YYYY-MM-DD.md` exists and is non-empty.
+1. Validate that `docs/reports/daily_web_audits/runs/YYYY-MM-DD_HHMMSS.md` exists and is non-empty.
 2. Validate that `docs/reports/daily_web_audits/master_audit_summary.md` was updated.
-3. Run existing test suite to ensure no files were corrupted:
+3. Clean up all intermediate scratch files:
+   - Ensure no temporary `.py`, `.sh`, or scratch log files remain in the repository root or worktree outside of standard `docs/reports/daily_web_audits/`.
+4. Run existing test suite to ensure no files were corrupted:
    ```bash
    PYTHONPATH=src .venv/bin/pytest -q tests/
    ```
-4. Commit report artifacts using git:
+5. Commit and auto-merge ONLY report artifacts:
    ```bash
    git add docs/reports/daily_web_audits/
-   git commit -m "docs(audit): daily web cards quality report for YYYY-MM-DD [skip ci]"
+   git commit -m "docs(audit): daily web cards quality report for $(date -u +%F) [skip ci]"
+   git push origin main
    ```
+   Do NOT stage or publish any intermediate code files.
 
 ---
 
