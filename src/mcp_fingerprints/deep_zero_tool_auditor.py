@@ -223,3 +223,273 @@ class DeepZeroToolAuditor:
             result["status"] = "CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK"
 
         return result
+
+import argparse
+import datetime
+
+def extract_suspicious_cards(catalog_path: str, max_suspicious: int) -> List[Dict]:
+    try:
+        with open(catalog_path, 'r') as f:
+            catalog = json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to read catalog: {e}")
+        return []
+
+    suspicious_cards = []
+
+    for server in catalog:
+        is_suspicious = False
+
+        # 1. tool_count == 0 or len(tools) == 0
+        if server.get("tool_count", 0) == 0 or len(server.get("tools", [])) == 0:
+            is_suspicious = True
+
+        # 2. description is null, "", or < 10 chars
+        desc = server.get("description")
+        if not desc or len(str(desc).strip()) < 10:
+            is_suspicious = True
+
+        # 3. tools contains syntax artifacts
+        tools = server.get("tools", [])
+        for tool in tools:
+            tool_desc = str(tool.get("description", ""))
+            if re.match(r'^(", \}\);|function\(|def |\{)', tool_desc):
+                is_suspicious = True
+                break
+
+        # 4. repository_url is missing while ecosystem is not generic
+        if not server.get("repository_url") and server.get("ecosystem") != "generic":
+            is_suspicious = True
+
+        if is_suspicious:
+            suspicious_cards.append(server)
+
+    # For prioritization, we'll sort by some criteria if available, else just take max
+    return suspicious_cards[:max_suspicious]
+
+def merge_summary(summary_path: str, today: str, version: str, total_checked: int, match_count: int, discrepancy_count: int, discrepancy_types: Dict[str, int]):
+    if not os.path.exists(summary_path):
+        # Create empty summary if it doesn't exist
+        with open(summary_path, "w") as f:
+            f.write("# Master Audit Summary: Daily Web Card Quality & Updates Ledger\n\n## Cumulative Quality Metrics\n- **Total Historical Runs**: 0\n- **Total Cards Verified**: 0\n- **Overall Match Rate**: 0.0%\n- **Total Discrepancies Flagged**: 0\n\n---\n\n## Historical Run Ledger\n\n| Date | Web Update Version | Cards Checked | Matches | Discrepancies | Match Rate | Daily Run Report |\n|:---|:---:|:---:|:---:|:---:|:---:|:---|\n\n---\n\n## Top Discrepancy Categories\n- `PARSER_MISSED_DYNAMIC_REGISTRATION`: 0\n- `PARSER_MISSED_SUBDIRECTORY`: 0\n- `PARSER_MISSED_DECORATOR`: 0\n- `DOCSTRING_EXTRACTION_FAILURE`: 0\n- `EMPTY_OR_PLACEHOLDER_DESCRIPTION`: 0\n- `UNREACHABLE_OR_PRIVATE_REPO`: 0\n\n---\n\n## Unresolved Remediation Action Items\n*(Items are populated automatically during daily inspection runs)*\n")
+
+    with open(summary_path, "r") as f:
+        content = f.read()
+
+    match_rate = round((match_count / total_checked * 100), 1) if total_checked > 0 else 0.0
+
+    total_runs_match = re.search(r'\*\*Total Historical Runs\*\*: (\d+)', content)
+    total_runs = int(total_runs_match.group(1)) if total_runs_match else 0
+    total_runs += 1
+
+    total_cards_match = re.search(r'\*\*Total Cards Verified\*\*: (\d+)', content)
+    total_cards = int(total_cards_match.group(1)) if total_cards_match else 0
+    total_cards += total_checked
+
+    total_disc_match = re.search(r'\*\*Total Discrepancies Flagged\*\*: (\d+)', content)
+    total_disc = int(total_disc_match.group(1)) if total_disc_match else 0
+    total_disc += discrepancy_count
+
+    overall_match_rate = 0.0
+    if total_cards > 0:
+        overall_match_rate = round(( (total_cards - total_disc) / total_cards * 100), 1)
+
+    content = re.sub(r'\*\*Total Historical Runs\*\*: \d+', f'**Total Historical Runs**: {total_runs}', content)
+    content = re.sub(r'\*\*Total Cards Verified\*\*: \d+', f'**Total Cards Verified**: {total_cards}', content)
+    content = re.sub(r'\*\*Overall Match Rate\*\*: [\d\.]+\%', f'**Overall Match Rate**: {overall_match_rate}%', content)
+    content = re.sub(r'\*\*Total Discrepancies Flagged\*\*: \d+', f'**Total Discrepancies Flagged**: {total_disc}', content)
+
+    ledger_marker = "|:---|:---:|:---:|:---:|:---:|:---:|:---|"
+    new_row = f"\n| {today} | {version} | {total_checked} | {match_count} | {discrepancy_count} | {match_rate}% | [runs/{today}.md](runs/{today}.md) |"
+
+    if ledger_marker in content:
+        content = content.replace(ledger_marker, ledger_marker + new_row)
+
+    for cat, count in discrepancy_types.items():
+        pattern = rf'- `{cat}`: (\d+)'
+        match = re.search(pattern, content)
+        if match:
+            current_count = int(match.group(1))
+            content = re.sub(pattern, f"- `{cat}`: {current_count + count}", content)
+
+    with open(summary_path, "w") as f:
+        f.write(content)
+
+
+def generate_report(output_path: str, today: str, version: str, results_a: List[Dict], results_b: List[Dict]):
+    total_checked = len(results_a) + len(results_b)
+
+    match_count = 0
+    discrepancy_count = 0
+    discrepancy_types = {
+        "PARSER_MISSED_DYNAMIC_REGISTRATION": 0,
+        "PARSER_MISSED_SUBDIRECTORY": 0,
+        "PARSER_MISSED_DECORATOR": 0,
+        "DOCSTRING_EXTRACTION_FAILURE": 0,
+        "EMPTY_OR_PLACEHOLDER_DESCRIPTION": 0,
+        "UNREACHABLE_OR_PRIVATE_REPO": 0
+    }
+
+    rows = []
+    analyses = []
+
+    for server in results_a + results_b:
+        is_match = server['match_status'] == 'PERFECT_MATCH'
+        if is_match:
+            match_count += 1
+        else:
+            discrepancy_count += 1
+
+        status_icon = "✅" if is_match else "❌"
+        rows.append(f"| `{server['name']}` | {server['ecosystem']} | {server['card_tools']} | {server['source_tools']} | {status_icon} {server['match_status']} | {server.get('root_cause', 'N/A')} | `{server.get('location', 'N/A')}` |")
+
+        if not is_match:
+            cause_type = server.get('root_cause', 'UNKNOWN')
+            if cause_type in discrepancy_types:
+                discrepancy_types[cause_type] += 1
+
+            analyses.append(f"### {len(analyses)+1}. [{server['name']}]\n"
+                          f"- **Repository**: [{server.get('repository_url', 'N/A')}]({server.get('repository_url', '#')})\n"
+                          f"- **Expected (Source Truth)**: {server['source_tools']} tools.\n"
+                          f"- **Observed (Card Data)**: {server['card_tools']} tools.\n"
+                          f"- **Root Cause**: {server.get('root_cause', 'Unknown')}\n"
+                          f"- **Recommended Remediation**: {server.get('remedy', 'Investigate and update parser/synchronizer.')}\n")
+
+    match_rate = round((match_count / total_checked * 100), 1) if total_checked > 0 else 0.0
+
+    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    report = f"""# Daily Web Card Quality & Source Verification Report — {today}
+
+## Executive Summary
+- **Execution Timestamp**: {timestamp}
+- **Latest Web Update Version Inspected**: {version} (web/updates/latest_update.json)
+- **Total Cards Verified**: {total_checked}
+  - **Category A (Suspicious Catalog Cards)**: {len(results_a)}
+  - **Category B (Latest Web Update Cards)**: {len(results_b)}
+- **Perfect Match Rate**: {match_rate}% ({match_count}/{total_checked})
+- **Discrepancies Identified**: {discrepancy_count}
+
+---
+
+## Detailed Findings Table
+
+| Server Name | Ecosystem | Card Tools | Source Tools | Match Status | Root Cause / Discrepancy | Upstream File & Line |
+|:---|:---|:---:|:---:|:---|:---|:---|
+"""
+    report += "\n".join(rows) + "\n\n---\n\n## In-Depth Analysis of Discrepancies\n\n"
+
+    if analyses:
+        report += "\n---\n\n".join(analyses)
+    else:
+        report += "No discrepancies found.\n"
+
+    report += """
+---
+
+## Action Items for AST & Synchronizer Engine
+- [ ] Investigate and resolve identified parser failures.
+- [ ] Address empty descriptions and metadata gaps.
+"""
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w") as f:
+        f.write(report)
+
+    return total_checked, match_count, discrepancy_count, discrepancy_types
+
+def map_audit_to_status(server: Dict, audit_result: Dict) -> Dict:
+    card_tools = server.get("tool_count", 0)
+
+    res = {
+        "name": server.get("name", "unknown"),
+        "ecosystem": server.get("ecosystem", "generic"),
+        "card_tools": card_tools,
+        "repository_url": server.get("repository_url", "")
+    }
+
+    status = audit_result.get("status", "")
+    if "CONFIRMED_ZERO_TOOLS" in status:
+        if card_tools == 0:
+            res["match_status"] = "PERFECT_MATCH"
+            res["source_tools"] = 0
+            res["root_cause"] = "N/A"
+            res["location"] = "N/A"
+        else:
+            res["match_status"] = "MISMATCH"
+            res["source_tools"] = 0
+            res["root_cause"] = status
+            res["location"] = "N/A"
+    elif "TOOLS_FOUND_MISSED_BY_PARSER" in status:
+        res["match_status"] = "MISSED_TOOLS"
+        res["source_tools"] = audit_result.get("tools_found_count", 0) + card_tools
+        format_type = audit_result.get("unexpected_format", "")
+        if "Dynamic Array Iteration" in format_type or "Dictionary Dispatcher" in format_type:
+            res["root_cause"] = "PARSER_MISSED_DYNAMIC_REGISTRATION"
+        elif "Custom Decorators" in format_type:
+            res["root_cause"] = "PARSER_MISSED_DECORATOR"
+        else:
+            res["root_cause"] = format_type if format_type else "UNKNOWN"
+        res["location"] = audit_result.get("location", "N/A")
+        res["remedy"] = audit_result.get("remedy", "")
+    elif "ERROR" in status:
+        res["match_status"] = "UNREACHABLE_REPO"
+        res["source_tools"] = "?"
+        res["root_cause"] = "UNREACHABLE_OR_PRIVATE_REPO"
+        res["location"] = "N/A"
+    else:
+        # Default
+        res["match_status"] = "PERFECT_MATCH"
+        res["source_tools"] = card_tools
+        res["root_cause"] = "N/A"
+        res["location"] = "N/A"
+
+    return res
+
+def main():
+    parser = argparse.ArgumentParser(description="Daily MCP Web Card Audit")
+    parser.add_argument("--web-updates", required=True, help="Path to latest_update.json")
+    parser.add_argument("--catalog", required=True, help="Path to catalog.json")
+    parser.add_argument("--output", required=True, help="Path to output markdown report")
+    parser.add_argument("--merge-summary", required=True, help="Path to master_audit_summary.md")
+    parser.add_argument("--max-suspicious", type=int, default=50, help="Max suspicious cards to process")
+    args = parser.parse_args()
+
+    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+
+    # 1. Candidate Set A
+    suspicious = extract_suspicious_cards(args.catalog, args.max_suspicious)
+
+    # 2. Candidate Set B
+    latest_updates = []
+    version = "unknown"
+    if os.path.exists(args.web_updates):
+        with open(args.web_updates, 'r') as f:
+            data = json.load(f)
+            latest_updates = data.get("servers", [])
+            version = data.get("version", "unknown")
+
+    auditor = DeepZeroToolAuditor()
+
+    results_a = []
+    for s in suspicious:
+        audit_res = auditor.audit(s.get("repository_url", ""))
+        results_a.append(map_audit_to_status(s, audit_res))
+
+    results_b = []
+    for s in latest_updates:
+        audit_res = auditor.audit(s.get("repository_url", ""))
+        results_b.append(map_audit_to_status(s, audit_res))
+
+    total_checked, match_count, discrepancy_count, discrepancy_types = generate_report(
+        args.output, today, version, results_a, results_b
+    )
+
+    merge_summary(
+        args.merge_summary, today, version, total_checked, match_count, discrepancy_count, discrepancy_types
+    )
+
+    print(f"Audit complete: {total_checked} checked, {match_count} matches.")
+
+if __name__ == "__main__":
+    main()
