@@ -84,3 +84,56 @@ def test_parse_mcp_source_code_routing():
     tools2 = parse_mcp_source_code(code, language='php')
     assert len(tools2) == 1
     assert tools2[0]['name'] == 'router'
+
+def test_php_symfony_attributes_and_docblocks():
+    code = """
+    <?php
+    class SymfonyService {
+        /**
+         * Clears cache for given environment.
+         * @param string $env The environment to clear
+         * @param int|null $timeout Execution timeout in seconds
+         */
+        #[AsTool(name: 'cache_clear', description: 'Clears the cache')]
+        public function clearCache(string $env = 'dev', ?int $timeout = null) {}
+
+        #[AsMcpTool('log_analyzer')]
+        public function analyzeLogs(array $files) {}
+    }
+    """
+    tools = parse_php_mcp_code(code)
+    assert len(tools) == 2
+    
+    t1 = next(t for t in tools if t['name'] == 'cache_clear')
+    assert t1['description'] == 'Clears the cache'
+    assert t1['inputSchema']['properties']['env']['description'] == 'The environment to clear'
+    assert t1['inputSchema']['properties']['timeout']['type'] == 'integer'
+    assert 'env' not in t1['inputSchema']['required'] # has default
+
+    t2 = next(t for t in tools if t['name'] == 'log_analyzer')
+    assert t2['inputSchema']['properties']['files']['type'] == 'array'
+
+def test_php_invokable_action_classes():
+    code = r"""
+    <?php
+    namespace App\Tools;
+
+    /**
+     * Executes arbitrary user database query.
+     */
+    class RunDatabaseQuery implements ToolInterface {
+        /**
+         * @param string $sql Raw SQL query
+         * @param int $limit Maximum rows
+         */
+        public function __invoke(string $sql, int $limit = 50) {}
+    }
+    """
+    tools = parse_php_mcp_code(code)
+    assert len(tools) == 1
+    t = tools[0]
+    assert t['name'] == 'run_database_query'
+    assert t['description'] == 'Executes arbitrary user database query.'
+    assert t['inputSchema']['properties']['sql']['description'] == 'Raw SQL query'
+    assert t['inputSchema']['properties']['limit']['type'] == 'integer'
+    assert t['inputSchema']['required'] == ['sql']
