@@ -1420,7 +1420,29 @@ def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
             })
             seen_names.add(name)
 
-    # Kotlin type to JSON schema mapping
+    def find_data_classes(code_text: str) -> dict[str, str]:
+        classes = {}
+        pattern = r'data\s+class\s+([a-zA-Z0-9_]+)\s*\('
+        for match in re.finditer(pattern, code_text):
+            name = match.group(1)
+            start_idx = match.end()
+            open_parens = 1
+            body_end = -1
+            for i in range(start_idx, len(code_text)):
+                if code_text[i] == '(':
+                    open_parens += 1
+                elif code_text[i] == ')':
+                    open_parens -= 1
+                    if open_parens == 0:
+                        body_end = i
+                        break
+            if body_end != -1:
+                body = code_text[start_idx:body_end]
+                classes[name] = body
+        return classes
+
+    data_classes = find_data_classes(code)
+
     def map_type(kt_type: str) -> str:
         kt_type = kt_type.replace('?', '').strip()
         if kt_type in ('Int', 'Long', 'Short', 'Byte'):
@@ -1440,24 +1462,38 @@ def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
         if not params_str.strip():
             return schema
 
-        # Split by comma but respect generics < >
         params = []
         current = []
         depth = 0
+        in_string = False
         for char in params_str:
-            if char == '<': depth += 1
-            elif char == '>': depth -= 1
-            elif char == ',' and depth == 0:
-                params.append("".join(current).strip())
-                current = []
-                continue
+            if char == '"' and depth == 0:
+                in_string = not in_string
+            if not in_string:
+                if char == '<': depth += 1
+                elif char == '>': depth -= 1
+                elif char == ',' and depth == 0:
+                    params.append("".join(current).strip())
+                    current = []
+                    continue
             current.append(char)
         if current:
             params.append("".join(current).strip())
 
         for p in params:
-            # format: name: Type [= default]
-            m = re.match(r'([a-zA-Z0-9_]+)\s*:\s*([^=]+)(?:=(.*))?', p)
+            desc = None
+            desc_m = re.search(r'@Description\s*\(\s*["\']([^"\']+)["\']\s*\)', p)
+            if desc_m:
+                desc = desc_m.group(1)
+            
+            p_clean = re.sub(r'@[A-Za-z0-9_]+(?:\([^)]*\))?\s*', '', p)
+            p_clean = p_clean.strip()
+            
+            m = re.match(r'(?:val\s+|var\s+)?([a-zA-Z0-9_]+)\s*:\s*([^=]+)(?:=(.*))?', p_clean)
+            if not m:
+                p_clean = re.sub(r'\s+', ' ', p_clean).strip()
+                m = re.match(r'(?:val\s+|var\s+)?([a-zA-Z0-9_]+)\s*:\s*([^=]+)(?:=(.*))?', p_clean)
+                
             if m:
                 p_name = m.group(1).strip()
                 p_type_full = m.group(2).strip()
@@ -1466,18 +1502,26 @@ def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
                 is_nullable = '?' in p_type_full
                 json_type = map_type(p_type_full)
                 
-                schema["properties"][p_name] = {"type": json_type}
+                prop = {"type": json_type}
+                if desc:
+                    prop["description"] = desc
+
+                p_type_base = p_type_full.replace('?', '').strip()
+                if p_type_base in data_classes:
+                    dc_schema = parse_parameters(data_classes[p_type_base])
+                    prop = dc_schema
+                    prop["type"] = "object" 
+
+                schema["properties"][p_name] = prop
                 
-                # It is required if it's not nullable and has no default value
                 if not is_nullable and not p_default:
                     schema["required"].append(p_name)
                     
         return schema
 
 
-    # 1. Annotation-based
     annotation_regex = re.compile(
-        r"@(?:Tool|McpFunction)\s*(?:\((.*?)\))?", re.DOTALL
+        r"@(?:Tool|McpTool|ToolMethod|McpFunction)\s*(?:\((.*?)\))?", re.DOTALL
     )
 
     for match in annotation_regex.finditer(code):
@@ -1486,7 +1530,6 @@ def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
         name = ""
         desc = ""
         
-        # Parse attrs
         name_m = re.search(r'name\s*=\s*["\']([^"\']+)["\']', attrs)
         if name_m:
             name = name_m.group(1)
@@ -1496,12 +1539,9 @@ def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
             desc = desc_m.group(1)
             
         if not name_m and not desc_m and attrs.startswith('"') and attrs.endswith('"'):
-            # @Tool("name") or maybe description if there's no name, let's assume description if no name attribute provided
             if "description" in attrs or "value" in attrs:
                 pass
             else:
-                 # Actually in Kotlin, often @Tool("...") sets the name. Let's look at standard annotations.
-                 # Task says: @Tool("...") -> extract function signature
                  name_m_simple = re.match(r'^["\']([^"\']+)["\']$', attrs)
                  if name_m_simple:
                      name = name_m_simple.group(1)
@@ -1510,23 +1550,32 @@ def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
         chunk = code[start_idx:start_idx + 600]
         
         method_match = re.search(
-            r"(?:public|private|protected|internal)?\s*(?:open|override|final|suspend|inline)?\s*fun\s+(?:<[^>]+>\s+)?(?:[\w.]+\.)?([a-zA-Z0-9_]+)\s*\((.*?)\)",
+            r"(?:public|private|protected|internal)?\s*(?:open|override|final|suspend|inline|\s)*\s*fun\s+(?:<[^>]+>\s+)?(?:[\w.]+\.)?([a-zA-Z0-9_]+)\s*\(",
             chunk, re.DOTALL
         )
         
-        schema = {"type": "object", "properties": {}}
+        schema = {"type": "object", "properties": {}, "required": []}
         if method_match:
             if not name:
                 name = method_match.group(1)
             
-            params_str = method_match.group(2)
-            schema = parse_parameters(params_str)
+            p_start = method_match.end()
+            open_parens = 1
+            p_end = -1
+            for i in range(p_start, len(chunk)):
+                if chunk[i] == '(':
+                    open_parens += 1
+                elif chunk[i] == ')':
+                    open_parens -= 1
+                    if open_parens == 0:
+                        p_end = i
+                        break
+            if p_end != -1:
+                params_str = chunk[p_start:p_end]
+                schema = parse_parameters(params_str)
             
         add_tool(name, desc, schema)
 
-    # 2. Ktor / DSL-based
-    # mcpServer { tool("name") { description = "..."; parameter(...) } }
-    # Or just tool("name", "desc") { ... }
     dsl_regex = re.compile(
         r'tool\s*\(\s*["\']([^"\']+)["\'](?:.*?\{|\))', re.DOTALL
     )
@@ -1534,29 +1583,21 @@ def parse_kotlin_mcp_code(code: str) -> list[dict[str, Any]]:
         name = match.group(1)
         desc = ""
         
-        # Look ahead for description
         start_idx = match.end()
-        # Find closing brace of tool block
-        depth = 1 if start_idx > 0 and code[start_idx-1] == '{' else 0
         chunk = code[start_idx:start_idx + 500]
         
         desc_m = re.search(r'description\s*=\s*["\']([^"\']+)["\']', chunk)
         if desc_m:
             desc = desc_m.group(1)
             
-        # We might not parse fully Ktor DSL parameters here due to complexity, but we can extract tool name and desc
         schema = {"type": "object", "properties": {}}
         add_tool(name, desc, schema)
         
-    # 3. Class-based / Interface implementations
-    # class .*Tool : McpTool or class .*Tool(override val name: String = "...")
     class_regex = re.compile(
         r'class\s+([a-zA-Z0-9_]+Tool)(?:\s*\([^)]*\))?\s*:\s*[a-zA-Z0-9_]*McpTool[a-zA-Z0-9_]*', re.DOTALL
     )
     for match in class_regex.finditer(code):
         class_name = match.group(1)
-        # Convert CamelCase to kebab-case or just use as is if not specified, 
-        # let's try to find name property
         name = class_name
         desc = ""
         
