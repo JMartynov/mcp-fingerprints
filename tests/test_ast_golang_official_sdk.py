@@ -4,6 +4,7 @@ from mcp_fingerprints.ast_parser import parse_golang_mcp_code
 def test_inline_string_literal():
     code = """
     package main
+import "github.com/modelcontextprotocol/go-sdk/mcp"
     func main() {
         server.AddTool(&mcp.Tool{
             Name: "example_tool",
@@ -19,6 +20,7 @@ def test_inline_string_literal():
 def test_constant_name_resolution():
     code = """
     package main
+import "github.com/modelcontextprotocol/go-sdk/mcp"
     const toolName = "assess_service_grant"
     const desc = "Assess the service grant"
     func main() {
@@ -36,6 +38,7 @@ def test_constant_name_resolution():
 def test_block_constants():
     code = """
     package main
+import "github.com/modelcontextprotocol/go-sdk/mcp"
     const (
         ToolName1 = "first_tool"
         ToolName2 = "second_tool"
@@ -67,6 +70,7 @@ def test_block_constants():
 def test_kimjooyoon_gooo_go_ports_reproduction():
     code = """
     package main
+import "github.com/modelcontextprotocol/go-sdk/mcp"
     const (
         AssessServiceGrant = "assess_service_grant"
         AssessServiceGrantDesc = "Assess the service grant"
@@ -97,6 +101,7 @@ def test_kimjooyoon_gooo_go_ports_reproduction():
 def test_existing_newtool_builder():
     code = """
     package main
+import "github.com/modelcontextprotocol/go-sdk/mcp"
     func init() {
         mcp.NewTool("old_tool", mcp.WithDescription("Old description"))
     }

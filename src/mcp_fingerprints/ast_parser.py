@@ -1205,9 +1205,17 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
         for line_match in re.finditer(r'([a-zA-Z0-9_]+)\s*(?:[a-zA-Z0-9_.*]*\s*)?=\s*["\']([^"\']+)["\']', block):
             constants[line_match.group(1)] = line_match.group(2)
 
-    # 2. Match Official SDK Composite Literals (mcp.Tool{...})
+    # 2a. Extract Official SDK Literals (Go SDK parser)
+    from mcp_fingerprints.go_sdk_parser import parse_official_go_tools
+    official_tools = parse_official_go_tools(code)
+    for t in official_tools:
+        if t["name"] not in seen_names:
+            seen_names.add(t["name"])
+            extracted.append(t)
+
+    # 2b. Match Official SDK Composite Literals (mcp.Tool{...}) - legacy for var assignments
     tool_pattern = re.compile(
-        r'(?:server\.AddTool\s*\(\s*&?|&?)mcp\.Tool\s*\{([^\}]+)\}',
+        r'(?:[a-zA-Z0-9_]+\s*(?:=|:=)\s*&?)mcp\.Tool\s*\{([^\}]+)\}',
         re.DOTALL
     )
     for match in tool_pattern.finditer(code):
@@ -1243,11 +1251,11 @@ def parse_golang_mcp_code(code: str) -> list[dict[str, Any]]:
             "description": desc,
             "inputSchema": {
                 "type": "object",
-                "properties": {}, # Basic parsing for composite literal properties if any, or keep it open
+                "properties": {},
                 "required": [],
             }
         })
-
+        
     for match in re.finditer(r'mcp\.(?:NewTool|NewToolWithRawSchema)\s*\(\s*["\']([^"\']+)["\']', code):
         name = match.group(1)
         if name in seen_names:
