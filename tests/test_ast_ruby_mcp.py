@@ -92,3 +92,75 @@ def test_ruby_class_tool_no_mcp_prefix():
     assert t["description"] == "Simple tool"
     assert t["inputSchema"]["properties"]["flag"]["type"] == "boolean"
     assert t["inputSchema"]["required"] == []
+
+def test_ruby_curly_brace_tool():
+    code = """
+    tool(:quick_action) { |id:, force: false|
+      "Done #{id}"
+    }
+    """
+    tools = parse_ruby_mcp_code(code)
+    assert len(tools) == 1
+    t = tools[0]
+    assert t["name"] == "quick_action"
+    assert t["description"] == "quick_action"
+    assert t["inputSchema"]["properties"]["id"]["type"] == "string"
+    assert t["inputSchema"]["properties"]["force"]["type"] == "boolean"
+    assert t["inputSchema"]["required"] == ["id"]
+
+def test_ruby_multiline_heredoc_desc():
+    code = """
+    desc <<~DESC
+      This is a great multiline
+      description for the tool!
+    DESC
+    server.register_tool(:complex_task) do
+      param :retries, type: :integer, required: true
+    end
+    """
+    tools = parse_ruby_mcp_code(code)
+    assert len(tools) == 1
+    t = tools[0]
+    assert t["name"] == "complex_task"
+    assert t["description"] == "This is a great multiline\n      description for the tool!"
+    assert t["inputSchema"]["properties"]["retries"]["type"] == "number"
+
+def test_ruby_dry_types_class_attributes():
+    code = """
+    class DryTool < MCP::Tool
+      name "dry_tool"
+      description <<-EOF
+        A dry tool description
+        multiline
+      EOF
+      
+      attribute :name, Types::String
+      attribute? :count, Types::Integer
+      attribute :flag, Types::Bool
+    end
+    """
+    tools = parse_ruby_mcp_code(code)
+    assert len(tools) == 1
+    t = tools[0]
+    assert t["name"] == "dry_tool"
+    assert "A dry tool description" in t["description"]
+    assert t["inputSchema"]["properties"]["name"]["type"] == "string"
+    assert t["inputSchema"]["properties"]["count"]["type"] == "number"
+    assert t["inputSchema"]["properties"]["flag"]["type"] == "boolean"
+    assert "name" in t["inputSchema"]["required"]
+    assert "flag" in t["inputSchema"]["required"]
+    assert "count" not in t["inputSchema"]["required"]
+
+def test_ruby_inline_desc_declaration():
+    code = """
+    desc "A cool inline description"
+    tool :inline_tool do
+      param :input, type: :string
+    end
+    """
+    tools = parse_ruby_mcp_code(code)
+    assert len(tools) == 1
+    t = tools[0]
+    assert t["name"] == "inline_tool"
+    assert t["description"] == "A cool inline description"
+
