@@ -8,6 +8,11 @@ on:
         required: false
         default: 'rc1'
         type: string
+      dry_run:
+        description: 'Validate build and packaging without uploading to TestPyPI'
+        required: false
+        default: false
+        type: boolean
       skip_smoke_test:
         description: 'Skip post-publish smoke test'
         required: false
@@ -59,6 +64,7 @@ jobs:
   publish:
     name: Publish to TestPyPI
     needs: build
+    if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     environment:
       name: testpypi
@@ -81,7 +87,7 @@ jobs:
   smoke-test:
     name: TestPyPI Smoke Test
     needs: publish
-    if: ${{ !inputs.skip_smoke_test }}
+    if: ${{ !inputs.dry_run && !inputs.skip_smoke_test }}
     runs-on: ubuntu-latest
     container:
       image: python:3.12-slim
