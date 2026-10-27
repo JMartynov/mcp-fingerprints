@@ -1,10 +1,10 @@
 # Master Audit Summary: Daily Web Card Quality & Updates Ledger
 
 ## Cumulative Quality Metrics
-- **Total Historical Runs**: 2
-- **Total Cards Verified**: 174
-- **Overall Match Rate**: 1.1%
-- **Total Discrepancies Flagged**: 172
+- **Total Historical Runs**: 3
+- **Total Cards Verified**: 261
+- **Overall Match Rate**: 0.8%
+- **Total Discrepancies Flagged**: 259
 
 ---
 
@@ -12,6 +12,7 @@
 
 | Date | Web Update Version | Cards Checked | Matches | Discrepancies | Match Rate | Daily Run Report |
 |:---|:---:|:---:|:---:|:---:|:---:|:---|
+| 2026-10-27 | 1.0.21 | 87 | 0 | 87 | 0.0% | [runs/2026-10-27_095530.md](runs/2026-10-27_095530.md) |
 | 2026-10-26 | 1.0.21 | 87 | 1 | 86 | 1.1% | [runs/2026-10-26_175414.md](runs/2026-10-26_175414.md) |
 | 2026-10-26 | 1.0.21 | 87 | 1 | 86 | 1.1% | [runs/2026-10-26.md](runs/2026-10-26.md) |
 
@@ -23,7 +24,7 @@
 - `PARSER_MISSED_DECORATOR`: 0
 - `DOCSTRING_EXTRACTION_FAILURE`: 0
 - `EMPTY_OR_PLACEHOLDER_DESCRIPTION`: 0
-- `UNREACHABLE_OR_PRIVATE_REPO`: 46
+- `UNREACHABLE_OR_PRIVATE_REPO`: 69
 
 ---
 
