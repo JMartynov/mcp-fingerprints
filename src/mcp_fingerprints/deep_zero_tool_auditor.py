@@ -37,33 +37,60 @@ class DeepZeroToolAuditor:
                 
         elif filename.endswith("openapi.json") or filename.endswith("openapi.yaml"):
             if "openapi" in content.lower() or "swagger" in content.lower():
-                 if "paths" in content:
-                      tools.append({
-                            "name": "openapi_endpoints",
-                            "location": f"{filename}",
-                            "format": "OpenAPI / Swagger Spec",
-                            "remedy": "Integrate OpenAPI adapter"
-                      })
+                try:
+                    import yaml
+                    data = yaml.safe_load(content) if filename.endswith(".yaml") else json.loads(content)
+                    if isinstance(data, dict) and "paths" in data:
+                        for path, methods in data["paths"].items():
+                            if isinstance(methods, dict):
+                                for method, details in methods.items():
+                                    if isinstance(details, dict) and "operationId" in details:
+                                        tools.append({
+                                            "name": details["operationId"],
+                                            "location": f"{filename}",
+                                            "format": "OpenAPI / Swagger Spec",
+                                            "remedy": "Integrate OpenAPI adapter"
+                                        })
+                except Exception:
+                     if "paths" in content:
+                          tools.append({
+                                "name": "openapi_endpoints",
+                                "location": f"{filename}",
+                                "format": "OpenAPI / Swagger Spec",
+                                "remedy": "Integrate OpenAPI adapter"
+                          })
                       
         # 2. Markdown tables
         if filename.endswith(".md"):
-            lines = content.split('\n')
-            for i, line in enumerate(lines):
-                if re.match(r'^\|?\s*Tool\s*\|.*', line, re.IGNORECASE):
-                     if i + 1 < len(lines) and re.match(r'^\|?[\s\-]*\|.*', lines[i+1]):
-                         for j in range(i+2, len(lines)):
-                             row = lines[j].strip()
-                             if not row or not row.startswith('|'):
-                                 break
-                             parts = [p.strip() for p in row.split('|') if p.strip()]
-                             if parts:
-                                 tools.append({
-                                     "name": parts[0],
-                                     "location": f"{filename}:{j+1}",
-                                     "format": "Markdown Table",
-                                     "remedy": "Extract tools from documentation tables"
-                                 })
-                         break
+            try:
+                from src.mcp_fingerprints.doc_parser import parse_markdown_tool_docs
+                md_tools = parse_markdown_tool_docs(content)
+                for md_tool in md_tools:
+                    tools.append({
+                        "name": md_tool.get("name", "unknown_tool"),
+                        "location": f"{filename}",
+                        "format": "Markdown Table",
+                        "remedy": "Extract tools from documentation tables"
+                    })
+            except ImportError:
+                # Fallback basic parsing
+                lines = content.split('\n')
+                for i, line in enumerate(lines):
+                    if re.match(r'^\|?\s*Tool\s*\|.*', line, re.IGNORECASE):
+                        if i + 1 < len(lines) and re.match(r'^\|?[\s\-]*\|.*', lines[i+1]):
+                            for j in range(i+2, len(lines)):
+                                row = lines[j].strip()
+                                if not row or not row.startswith('|'):
+                                    break
+                                parts = [p.strip() for p in row.split('|') if p.strip()]
+                                if parts:
+                                    tools.append({
+                                        "name": parts[0],
+                                        "location": f"{filename}:{j+1}",
+                                        "format": "Markdown Table",
+                                        "remedy": "Extract tools from documentation tables"
+                                    })
+                            break
                          
         # 3. TS Dynamic Iteration Patterns
         if filename.endswith((".ts", ".js")):
@@ -106,7 +133,7 @@ class DeepZeroToolAuditor:
                  
         return tools
 
-    def audit(self, repo_url: str) -> Dict[str, Any]:
+    def audit(self, repo_url: str, ecosystem: Optional[str] = None, package_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Audit a repository URL for missed tools.
         """
@@ -119,14 +146,53 @@ class DeepZeroToolAuditor:
             "location": None
         }
 
+        def clean_repo_url(url: str) -> str:
+            if not url:
+                return url
+            if url.startswith("git+"):
+                url = url[4:]
+            if url.startswith("ssh://git@"):
+                url = url.replace("ssh://git@", "https://")
+            elif url.startswith("git@github.com:"):
+                url = url.replace("git@github.com:", "https://github.com/")
+            if url.endswith(".git"):
+                url = url[:-4]
+            return url
+            
+        repo_url = clean_repo_url(repo_url)
+
         if not repo_url or "github.com" not in repo_url:
-            if repo_url and "npmjs.com" in repo_url:
-                result["status"] = "CONFIRMED_ZERO_TOOLS: NPM_PACKAGE"
-            elif repo_url and "pypi.org" in repo_url:
-                result["status"] = "CONFIRMED_ZERO_TOOLS: PYPI_PACKAGE"
+            resolved_url = None
+            if ecosystem == "pypi" and package_name:
+                try:
+                    req = urllib.request.Request(f"https://pypi.org/pypi/{package_name}/json")
+                    with urllib.request.urlopen(req, timeout=5) as response:
+                        data = json.loads(response.read().decode())
+                        project_urls = data.get("info", {}).get("project_urls", {})
+                        if project_urls:
+                            for key in ["Source", "Repository", "Code", "Homepage"]:
+                                if key in project_urls and "github.com" in project_urls[key]:
+                                    resolved_url = clean_repo_url(project_urls[key])
+                                    break
+                except Exception:
+                    pass
+            elif ecosystem == "npm" and package_name:
+                try:
+                    req = urllib.request.Request(f"https://registry.npmjs.org/{package_name}")
+                    with urllib.request.urlopen(req, timeout=5) as response:
+                        data = json.loads(response.read().decode())
+                        repo_info = data.get("repository", {})
+                        if isinstance(repo_info, dict) and "url" in repo_info and "github.com" in repo_info["url"]:
+                            resolved_url = clean_repo_url(repo_info["url"])
+                except Exception:
+                    pass
+            
+            if resolved_url and "github.com" in resolved_url:
+                repo_url = resolved_url
             else:
-                result["status"] = "CONFIRMED_ZERO_TOOLS: UNKNOWN_SOURCE"
-            return result
+                result["status"] = "SOURCE_UNRESOLVED: NO_UPSTREAM_REPOSITORY"
+                result["tools_found_count"] = 0
+                return result
 
         parsed = urllib.parse.urlparse(repo_url)
         parts = [p for p in parsed.path.split('/') if p]
@@ -453,6 +519,11 @@ def map_audit_to_status(server: Dict, audit_result: Dict) -> Dict:
         res["source_tools"] = "?"
         res["root_cause"] = "UNREACHABLE_OR_PRIVATE_REPO"
         res["location"] = "N/A"
+    elif "SOURCE_UNRESOLVED" in status:
+        res["match_status"] = "UNRESOLVED_SOURCE"
+        res["source_tools"] = "?"
+        res["root_cause"] = "UNRESOLVED_OR_MISSING_SOURCE"
+        res["location"] = "N/A"
     else:
         # Default
         res["match_status"] = "PERFECT_MATCH"
@@ -492,12 +563,12 @@ def main():
     
     results_a = []
     for s in suspicious:
-        audit_res = auditor.audit(s.get("repository_url", ""))
+        audit_res = auditor.audit(s.get("repository_url", ""), s.get("ecosystem"), s.get("name"))
         results_a.append(map_audit_to_status(s, audit_res))
         
     results_b = []
     for s in latest_updates:
-        audit_res = auditor.audit(s.get("repository_url", ""))
+        audit_res = auditor.audit(s.get("repository_url", ""), s.get("ecosystem"), s.get("name"))
         results_b.append(map_audit_to_status(s, audit_res))
         
     total_checked, match_count, discrepancy_count, discrepancy_types = generate_report(
