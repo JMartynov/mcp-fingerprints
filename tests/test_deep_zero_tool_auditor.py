@@ -11,10 +11,11 @@ def test_json_manifest():
 
 def test_openapi_spec():
     auditor = DeepZeroToolAuditor()
-    content = '{"openapi": "3.0.0", "paths": {"/test": {}}}'
+    content = '{"openapi": "3.0.0", "paths": {"/test": {"get": {"operationId": "test_op"}}}}'
     tools = auditor.inspect_file("openapi.json", content)
     assert len(tools) == 1
     assert tools[0]["format"] == "OpenAPI / Swagger Spec"
+    assert tools[0]["name"] == "test_op"
 
 def test_markdown_table():
     auditor = DeepZeroToolAuditor()
