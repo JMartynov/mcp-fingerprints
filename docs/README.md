@@ -100,3 +100,12 @@ The `docs/research/` directory hosts empirical data and findings from an extensi
 *   [**`audit_group_3_jvm_dotnet_enterprise.md`**](research/audit_group_3_jvm_dotnet_enterprise.md) — 200 JVM & .NET MCP servers: Spring AI `@Tool`, Quarkus, and C# Semantic Kernel integrations.
 *   [**`audit_group_4_regional_international.md`**](research/audit_group_4_regional_international.md) — 200 Regional MCP servers: Chinese (Dify, WeChat, Bilibili) and Japanese developer ecosystems with CJK character handling.
 *   [**`audit_group_5_monorepo_docker_emerging.md`**](research/audit_group_5_monorepo_docker_emerging.md) — 200 Monorepos & Containerized servers: multi-package workspaces, Docker Hub labels, and PEP 723 `uvx` single-file tools.
+
+---
+
+## 🤖 AI Operational Workflows & Daily Audit Lifecycle
+
+*   [**`task_88_daily_audit_ai_workflow_and_resolution_protocol.md`**](tasks/task_88_daily_audit_ai_workflow_and_resolution_protocol.md) — Operational standard governing how autonomous AI agents triage, verify, plan, implement, and document fixes for daily web card quality audits and registry drift.
+*   [**`master_audit_summary.md`**](reports/daily_web_audits/master_audit_summary.md) — Master historical ledger across all daily automated web card inspection runs.
+*   [**`remediation_plan_pr58_audit.md`**](reports/daily_web_audits/plans/remediation_plan_pr58_audit.md) — Architectural action plan resolving false-positive mismatches via registry fallback.
+*   [**`2026-10-27_pr58_remediation_fix_report.md`**](reports/daily_web_audits/fixes/2026-10-27_pr58_remediation_fix_report.md) — Post-fix summary report with direct source code references.

@@ -571,5 +571,11 @@ You can perform an automated dry-run release to TestPyPI to verify packaging, me
 4. You can optionally provide a `version_suffix` (e.g. `rc1`, `b2`) which will be appended to the current version in `pyproject.toml` to avoid conflicts on TestPyPI.
 5. The workflow will build artifacts, publish them to TestPyPI using Trusted Publishing, and execute an automated smoke test (`pip install` into a clean container).
 
+## Documentation & AI Workflows
+
+- [**Documentation Hub**](docs/README.md): Comprehensive documentation overview, architecture guides, and research audits.
+- [**AI Daily Audit Workflow & Resolution Protocol**](docs/tasks/task_88_daily_audit_ai_workflow_and_resolution_protocol.md): Autonomous protocol for AI agents to triage, verify, plan, and remediate daily web card audits.
+- [**Daily Web Cards Master Audit Ledger**](docs/reports/daily_web_audits/master_audit_summary.md): Live quality tracking across 5,700+ MCP servers.
+
 ## License
 MIT
