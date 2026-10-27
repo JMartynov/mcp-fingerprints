@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 import json
 from pathlib import Path
 
@@ -285,6 +286,7 @@ def test_invariant_historical_version_preservation_on_update(tmp_path: Path) -> 
 # ==============================================================================
 
 
+@pytest.mark.network
 def test_invariant_online_live_registry_connectors() -> None:
     """Invariant: Online connectors successfully retrieve schema definitions without auth errors."""
     import ssl
