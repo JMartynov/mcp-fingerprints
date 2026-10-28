@@ -87,7 +87,12 @@ Author a concrete, prioritized technical plan before writing code:
    - Strictly adhere to clean architecture and zero security keywords.
 2. **Author Unit Tests**:
    - Add unit tests under `tests/` explicitly validating the fixed cases (e.g. `tests/test_audit_remediation.py`).
-3. **Execute Repository Test Suite**:
+3. **Re-Index Affected Passports (Algorithmic Update Mandate)**:
+   - When an AST parser, extraction pattern, or schema connector is upgraded, the agent MUST NOT stop at code edits.
+   - Walk the catalog or `data/` passports to identify all servers using the upgraded language/pattern (e.g., all Go servers when Go AST improves, or all TypeScript servers when dynamic registration patterns are expanded).
+   - Re-extract tool signatures and update affected passport JSON files under `data/`.
+   - Re-sync catalog definitions (`web/catalog.json`) and cache files (`data/.passport_cache.json`) so improved algorithms immediately enrich repository artifacts.
+4. **Execute Repository Test Suite**:
    ```bash
    PYTHONPATH=src .venv/bin/pytest -q tests/
    ```
@@ -108,6 +113,7 @@ Author a concrete, prioritized technical plan before writing code:
        - `[src/.../deep_zero_tool_auditor.py#L120-L165](file:///...)`
        - `[tests/.../test_audit_remediation.py](file:///...)`
      - Cross-references to the Task specification, the Action Plan, and the Review Report.
+     - **Passport Delta Summary**: Number of affected passports re-indexed and net new tools recovered (`+N tools added across M passports`).
      - Before-vs-after metrics table.
 3. **Commit & Auto-Merge**:
    - Commit report artifacts and verified code:
