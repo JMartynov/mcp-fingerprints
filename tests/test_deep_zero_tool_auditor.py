@@ -53,3 +53,33 @@ def my_custom_tool():
     assert len(tools) == 1
     assert tools[0]["name"] == "my_custom_tool"
     assert tools[0]["format"] == "Custom Decorators"
+
+def test_ts_register_tool():
+    auditor = DeepZeroToolAuditor()
+    content = """
+    server.registerTool("myTsTool", "test", ...);
+    """
+    tools = auditor.inspect_file("index.ts", content)
+    assert len(tools) == 1
+    assert tools[0]["name"] == "myTsTool"
+    assert tools[0]["format"] == "Explicit Tool Registration"
+
+def test_ts_server_tool():
+    auditor = DeepZeroToolAuditor()
+    content = """
+    server.tool('myOtherTsTool', ...);
+    """
+    tools = auditor.inspect_file("index.ts", content)
+    assert len(tools) == 1
+    assert tools[0]["name"] == "myOtherTsTool"
+    assert tools[0]["format"] == "Explicit Tool Registration"
+
+def test_py_explicit_tool():
+    auditor = DeepZeroToolAuditor()
+    content = """
+    t = Tool(name="myPyTool", description="test")
+    """
+    tools = auditor.inspect_file("tools.py", content)
+    assert len(tools) == 1
+    assert tools[0]["name"] == "myPyTool"
+    assert tools[0]["format"] == "Explicit Tool Instantiation"
