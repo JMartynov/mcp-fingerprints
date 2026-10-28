@@ -204,7 +204,7 @@
     },
     {
       "version": "3.0.1",
-      "toolset_canonical_hash": "sha256:d5ae13901a7233583b9df77b921d421577b01c1a1c449e20994214f48d338f1f",
+      "toolset_canonical_hash": "sha256:69b37d615d7e7f05e631d607bca05e2583e28abd9390646e8e4274cb4b6533ac",
       "release_date": "2026-10-26T08:27:47.493Z",
       "dependencies": {
         "zod": "^3.23.0",
@@ -227,7 +227,7 @@
         {
           "name": "channel.hints",
           "canonical_hash": "sha256:7c2b59b51fff047258059985f74f20d17e369c752056a9a81ac47237f8e3507f",
-          "description": "Return static per-channel metadata: character limits, Markdown support flags, tag vocabulary, and CTA placement rules. Side effects: read-only; no external HTTP calls; no auth needed. Fully deterministic — returns compile-time adapter constants. Use channel.hints before composing a variant body to understand channel constraints; use post.publish or post.schedule once you have a valid variant.",
+          "description": "Return static per-channel metadata: character limits, Markdown support flags, tag vocabulary, and CTA placement rules. Side effects: read-only; no external HTTP calls; no auth needed. Fully deterministic \u2014 returns compile-time adapter constants. Use channel.hints before composing a variant body to understand channel constraints; use post.publish or post.schedule once you have a valid variant.",
           "is_mutating": false,
           "property_keys": [
             "channel"
@@ -311,7 +311,7 @@
         {
           "name": "post.drain",
           "canonical_hash": "sha256:03005e0e0f1c0421f17c0b5f7ef9be08d5b32b97dfb6a26d67e317310cfce0bf",
-          "description": "Fire all scheduled posts due at or before the given time boundary. Side effects: makes external HTTP requests for each due entry; writes results to the YAML backend. Idempotent — already-published (content.id, channel) pairs are skipped; no-op when no entries are due. Safe to call from cron. Use post.drain on a recurring schedule to flush the queue; use post.publish or post.schedule to add new content; use post.status to inspect results after drain runs.",
+          "description": "Fire all scheduled posts due at or before the given time boundary. Side effects: makes external HTTP requests for each due entry; writes results to the YAML backend. Idempotent \u2014 already-published (content.id, channel) pairs are skipped; no-op when no entries are due. Safe to call from cron. Use post.drain on a recurring schedule to flush the queue; use post.publish or post.schedule to add new content; use post.status to inspect results after drain runs.",
           "is_mutating": false,
           "property_keys": [
             "now"
@@ -424,7 +424,7 @@
         {
           "name": "post.publish",
           "canonical_hash": "sha256:144853e349318071980d5f8f2187966cc6c974aa9aaa19d069b5d6fa4f73c5e1",
-          "description": "Publish one or more channel variants immediately. Side effects: makes external HTTP requests to each channel platform; writes publish state to the local YAML backend; requires valid credentials in the named profile. Idempotent on (content.id, channel) — re-running with the same IDs returns cached state without re-posting. Use post.publish for immediate-only delivery; use post.schedule when any variant needs a future schedule_at; use post.drain to flush a previously built queue.",
+          "description": "Publish one or more channel variants immediately. Side effects: makes external HTTP requests to each channel platform; writes publish state to the local YAML backend; requires valid credentials in the named profile. Idempotent on (content.id, channel) \u2014 re-running with the same IDs returns cached state without re-posting. Use post.publish for immediate-only delivery; use post.schedule when any variant needs a future schedule_at; use post.drain to flush a previously built queue.",
           "is_mutating": false,
           "property_keys": [
             "content",
@@ -1145,7 +1145,7 @@
         {
           "name": "post.unpublish",
           "canonical_hash": "sha256:efe12ab02115e4b4ba964979e0b3ba3ff94c56bb3881742db769421d4b25710e",
-          "description": "Best-effort delete of a published post on the target platform. Side effects: makes an external HTTP DELETE or update request; DEV.to sets published=false (soft delete); platforms without a delete API return success=false without error. Non-idempotent — calling on an already-deleted URL may return a platform 404. Use post.unpublish to retract a live post; use post.status first to obtain the live_url; use post.publish to re-publish after an unpublish.",
+          "description": "Best-effort delete of a published post on the target platform. Side effects: makes an external HTTP DELETE or update request; DEV.to sets published=false (soft delete); platforms without a delete API return success=false without error. Non-idempotent \u2014 calling on an already-deleted URL may return a platform 404. Use post.unpublish to retract a live post; use post.status first to obtain the live_url; use post.publish to re-publish after an unpublish.",
           "is_mutating": false,
           "property_keys": [
             "channel",
@@ -1329,6 +1329,172 @@
             }
           ],
           "annotations": {}
+        },
+        {
+          "name": "post_publish",
+          "description": "Publish one or more channel variants immediately. Side effects: makes external HTTP requests to each channel platform; writes publish state to the local YAML backend; requires valid credentials in the named profile. Idempotent on (content.id, channel) \u2014 re-running with the same IDs returns cached state without re-posting. Use post_publish for immediate-only delivery; use post_schedule when any variant needs a future schedule_at; use post_drain to flush a previously built queue.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string",
+                "description": "Content piece to publish: stable id (idempotency key), title, body_md, tags, and optional cover_image / canonical_url / cta_block / author fields. The id + channel pair is the deduplication key \u2014 the same id will not be re-posted."
+              },
+              "variants": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "profile_name": {
+                "type": "string",
+                "description": "Name of the distribution profile (credentials store). Use profile_list to discover available names."
+              }
+            },
+            "required": [
+              "content",
+              "profile_name",
+              "variants"
+            ]
+          },
+          "canonical_hash": "sha256:f69268b8c05d810b43c16d424f9898c5e339e9dd2a375f95b5276b7b60119b9c"
+        },
+        {
+          "name": "post_schedule",
+          "description": "Enqueue channel variants with schedule_at for future publishing; variants without schedule_at are published immediately. Side effects: writes entries to the local YAML schedule store; makes external HTTP requests for any immediately-published variants; requires credentials in the named profile. Idempotent on (content.id, channel). Use post_schedule when any variant needs a future publish time; use post_publish for all-immediate delivery; use post_drain to process the scheduled queue later.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string",
+                "description": "Content piece to publish: stable id (idempotency key), title, body_md, tags, and optional cover_image / canonical_url / cta_block / author fields. The id + channel pair is the deduplication key \u2014 the same id will not be re-posted."
+              },
+              "variants": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "One or more channel-specific publish targets. Each entry specifies the channel slug, the adapted title and body, and optionally schedule_at (ISO-8601 with timezone) for future delivery. Variants without schedule_at are published immediately; variants with schedule_at are queued for post_drain. Use channel_hints to check per-channel constraints."
+              },
+              "profile_name": {
+                "type": "string",
+                "description": "Name of the distribution profile (credentials store). Use profile_list to discover available names."
+              }
+            },
+            "required": [
+              "content",
+              "profile_name",
+              "variants"
+            ]
+          },
+          "canonical_hash": "sha256:193f5bf11acea929a29ec3f7d7793939ab764da04b4b77505d0e72e7efaba6db"
+        },
+        {
+          "name": "post_drain",
+          "description": "Fire all scheduled posts due at or before the given time boundary. Side effects: makes external HTTP requests for each due entry; writes results to the YAML backend. Idempotent \u2014 already-published (content.id, channel) pairs are skipped; no-op when no entries are due. Safe to call from cron. Use post_drain on a recurring schedule to flush the queue; use post_publish or post_schedule to add new content; use post_status to inspect results after drain runs.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "now": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:79d5073bf832709c45565c3c7a78e03c89d56246c59afb2ac7bf8f604d135dbd"
+        },
+        {
+          "name": "post_status",
+          "description": "Return publish state for content pieces. Filters by content_id, channel, or both; returns all entries when neither is given. Side effects: read-only; no external HTTP calls; no auth needed. Deterministic given unchanged backend state. Use post_status to inspect what has been published, what is queued, or what errored; use post_publish, post_schedule, or post_drain to change state.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Filter to a specific content piece by its stable ID; omit to return state for all content."
+              },
+              "channel": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:28c3910e716bdc17923b19267624bcb3163d9f821b5d31d3928882ed4973dd1f"
+        },
+        {
+          "name": "post_unpublish",
+          "description": "Best-effort delete of a published post on the target platform. Side effects: makes an external HTTP DELETE or update request; DEV.to sets published=false (soft delete); platforms without a delete API return success=false without error. Non-idempotent \u2014 calling on an already-deleted URL may return a platform 404. Use post_unpublish to retract a live post; use post_status first to obtain the live_url; use post_publish to re-publish after an unpublish.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "live_url": {
+                "type": "string"
+              },
+              "channel": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel",
+              "live_url"
+            ]
+          },
+          "canonical_hash": "sha256:7e288654a99d498e4bb4c0c3b794fb4c149d0cc6e1154551d372b81a25c8a414"
+        },
+        {
+          "name": "channel_hints",
+          "description": "Return static per-channel metadata: character limits, Markdown support flags, tag vocabulary, and CTA placement rules. Side effects: read-only; no external HTTP calls; no auth needed. Fully deterministic \u2014 returns compile-time adapter constants. Use channel_hints before composing a variant body to understand channel constraints; use post_publish or post_schedule once you have a valid variant.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channel": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel"
+            ]
+          },
+          "canonical_hash": "sha256:16606e97844572cb61bda3c68cca4ec9d64b6009616da501c7c1d5dea5d88d12"
+        },
+        {
+          "name": "profile_list",
+          "description": "Return all distribution profile names configured in the YAML backend. Side effects: read-only; no external HTTP calls. Deterministic given backend state. Use profile_list to discover available profiles before calling post_publish, post_schedule, or subreddit_list; then pass the chosen name as profile_name.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:8d2b99b3aa678540c4a83d6cc095c4efc7c7868a7aa49daaaae6326e3cf1fbc3"
+        },
+        {
+          "name": "subreddit_list",
+          "description": "Return all subreddits in the Subreddit Catalog with cooldown windows, flair vocabulary, and last-posted metadata. Optionally filtered to subreddits allowed by the named profile. Side effects: read-only; no external HTTP calls. Deterministic given backend state. Use subreddit_list to select a subreddit and obtain flair IDs before composing a reddit: channel variant; pass flair in variant.extras.flair.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "profile_name": {
+                "type": "string",
+                "description": "Optional profile name to filter subreddits to those allowed by that profile; omit to return the full catalog."
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:1c3f944068780f4294cfc7d471b929cddc5260a916aa389b0c24d8ea8a7da9af"
+        },
+        {
+          "name": "default",
+          "description": "Return static per-channel metadata: character limits, Markdown support flags, tag vocabulary, and CTA placement rules. Side effects: read-only; no external HTTP calls; no auth needed. Fully deterministic \u2014 returns compile-time adapter constants. Use channel_hints before composing a variant body to understand channel constraints; use post_publish or post_schedule once you have a valid variant.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channel": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:3e959c6e58bcd9bc0ec17331f44fcaf9959ee7ef9db77a0178cf53e9e0d65b5f"
         }
       ],
       "prompt_signatures": [],
