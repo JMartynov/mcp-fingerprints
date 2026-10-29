@@ -38,8 +38,12 @@ class DeepZeroToolAuditor:
         elif filename.endswith("openapi.json") or filename.endswith("openapi.yaml"):
             if "openapi" in content.lower() or "swagger" in content.lower():
                 try:
-                    import yaml
-                    data = yaml.safe_load(content) if filename.endswith(".yaml") else json.loads(content)
+                    data = None
+                    if filename.endswith(".yaml"):
+                        import yaml
+                        data = yaml.safe_load(content)
+                    else:
+                        data = json.loads(content)
                     if isinstance(data, dict) and "paths" in data:
                         for path, methods in data["paths"].items():
                             if isinstance(methods, dict):
@@ -62,6 +66,9 @@ class DeepZeroToolAuditor:
                       
         # 2. Markdown tables
         if filename.endswith(".md"):
+            secondary_patterns = ["changelog", "migration", "roadmap", "history", "optimizations", ".cursor/", "releases/", "changes/"]
+            if any(pattern in filename.lower() for pattern in secondary_patterns):
+                return tools
             try:
                 from src.mcp_fingerprints.doc_parser import parse_markdown_tool_docs
                 md_tools = parse_markdown_tool_docs(content)
@@ -188,7 +195,7 @@ class DeepZeroToolAuditor:
             
         repo_url = clean_repo_url(repo_url)
 
-        if not repo_url or "github.com" not in repo_url:
+        if not repo_url or "github.com" not in repo_url or "smithery.ai" in repo_url or "glama.ai" in repo_url:
             resolved_url = None
             if ecosystem == "pypi" and package_name:
                 try:

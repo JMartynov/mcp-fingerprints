@@ -83,3 +83,71 @@ def test_py_explicit_tool():
     assert len(tools) == 1
     assert tools[0]["name"] == "myPyTool"
     assert tools[0]["format"] == "Explicit Tool Instantiation"
+
+def test_skip_secondary_markdown_tables():
+    from mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor
+    auditor = DeepZeroToolAuditor()
+    
+    content = """
+## Tools
+| Tool | Description |
+| --- | --- |
+| old_tool | Removed in v2 |
+    """
+    
+    # Should skip
+    tools = auditor.inspect_file("CHANGELOG.md", content)
+    assert len(tools) == 0
+    tools = auditor.inspect_file("MIGRATION.md", content)
+    assert len(tools) == 0
+    tools = auditor.inspect_file(".cursor/skills/test.md", content)
+    assert len(tools) == 0
+    
+    # Should keep
+    tools = auditor.inspect_file("README.md", content)
+    assert len(tools) == 1
+    assert tools[0]["name"] == "old_tool"
+    assert tools[0]["format"] == "Markdown Table"
+
+def test_smithery_url_resolution_pypi(monkeypatch):
+    import urllib.request
+    import json
+    from mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor
+    
+    class MockResponse:
+        def read(self):
+            return json.dumps({
+                "info": {
+                    "project_urls": {
+                        "Source": "https://github.com/mock-owner/mock-repo"
+                    }
+                }
+            }).encode()
+            
+        def __enter__(self):
+            return self
+            
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            pass
+            
+    def mock_urlopen(req, *args, **kwargs):
+        if "pypi.org" in req.full_url:
+            return MockResponse()
+        elif "api.github.com/repos/mock-owner/mock-repo" in req.full_url:
+             class MockGitTree:
+                  def read(self):
+                      return json.dumps({
+                          "tree": []
+                      }).encode()
+                  def __enter__(self): return self
+                  def __exit__(self, *args): pass
+             return MockGitTree()
+        raise urllib.error.URLError("Unexpected URL")
+
+    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    
+    auditor = DeepZeroToolAuditor()
+    result = auditor.audit("https://smithery.ai/servers/mock-package", "pypi", "mock-package")
+    
+    assert result["status"] in ["CONFIRMED_ZERO_TOOLS: NO_TOOLS_FOUND_IN_SOURCE", "CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK"]
+    assert result["tools_found_count"] == 0
