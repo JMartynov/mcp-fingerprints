@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mcp-catalog-v1793271191-grid-fix-1792228500';
+const CACHE_NAME = 'mcp-catalog-v1793357618-grid-fix-1792228500';
 const ASSETS = [
   './',
   './index.html',
