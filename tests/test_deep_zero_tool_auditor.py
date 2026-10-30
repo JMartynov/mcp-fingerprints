@@ -151,3 +151,83 @@ def test_smithery_url_resolution_pypi(monkeypatch):
     
     assert result["status"] in ["CONFIRMED_ZERO_TOOLS: NO_TOOLS_FOUND_IN_SOURCE", "CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK"]
     assert result["tools_found_count"] == 0
+
+def test_markdown_table_tool_extraction():
+    from mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor
+    auditor = DeepZeroToolAuditor()
+    content = """
+# Available Tools
+
+| Tool | Description | Arguments |
+|---|---|---|
+| search_internet | Search the internet | query |
+| read_file | Read a file | filepath |
+    """
+    tools = auditor.inspect_file("README.md", content)
+    assert len(tools) == 2
+    assert tools[0]["format"] == "Markdown Table"
+    assert tools[0]["remedy"] == "Extract tools from documentation tables"
+    assert tools[0]["name"] == "search_internet"
+    assert tools[1]["name"] == "read_file"
+
+def test_smithery_url_fallback_resolution(monkeypatch):
+    import urllib.request
+    import json
+    
+    class MockResponse:
+        def read(self):
+            return json.dumps({
+                "info": {
+                    "project_urls": {
+                        "Source": "https://github.com/mock-owner/mock-repo"
+                    }
+                }
+            }).encode()
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_val, exc_tb): pass
+            
+    def mock_urlopen(req, *args, **kwargs):
+        if "pypi.org/pypi/some-package/json" in req.full_url:
+            return MockResponse()
+        elif "api.github.com/repos/mock-owner/mock-repo" in req.full_url:
+             class MockGitTree:
+                  def read(self):
+                      return json.dumps({"tree": []}).encode()
+                  def __enter__(self): return self
+                  def __exit__(self, *args): pass
+             return MockGitTree()
+        raise urllib.error.URLError("Unexpected URL")
+
+    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    
+    from mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor
+    auditor = DeepZeroToolAuditor()
+    result = auditor.audit("https://smithery.ai/servers/some-package")
+    
+    assert result["status"] == "CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK"
+    assert result["tools_found_count"] == 0
+
+def test_remote_gateway_zero_tool_enforcement():
+    from mcp_fingerprints.deep_zero_tool_auditor import map_audit_to_status
+    
+    server = {
+        "name": "privacyfence",
+        "ecosystem": "npm",
+        "tool_count": 8,
+        "repository_url": "https://smithery.ai/servers/privacyfence"
+    }
+    
+    audit_result = {
+        "status": "CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK",
+        "tools_found_count": 0,
+        "tools_found": [],
+        "unexpected_format": None,
+        "remedy": None,
+        "location": None
+    }
+    
+    res = map_audit_to_status(server, audit_result)
+    assert res["match_status"] == "MISMATCH"
+    assert res["source_tools"] == 0
+    assert res["root_cause"] == "CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK"
+
