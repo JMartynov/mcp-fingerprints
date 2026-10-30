@@ -10,19 +10,19 @@
 This section analyzes the 8 cards explicitly flagged as `MISMATCH` to determine if they are genuine remote gateways/SDK wrappers that have zero local tools, versus active tools.
 
 1. **`api-auto-mcp-server`**: 
-   - Card claims: 2 tools
+   - Card claims: 46 tools
    - Source Truth: 0 tools
-   - **Root Cause**: CONFIRMED_ZERO_TOOLS (Remote Gateway/SDK wrapper). It acts as an integration point, not a local tool provider.
+   - **Root Cause**: CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK. It acts as an integration gateway rather than declaring local tools.
 
 2. **`@covalenthq/goldrush-mcp-server`**:
-   - Card claims: 22 tools
+   - Card claims: 28 tools
    - Source Truth: 0 tools
-   - **Root Cause**: CONFIRMED_ZERO_TOOLS (Remote Gateway/SDK wrapper). 
+   - **Root Cause**: CONFIRMED_ZERO_TOOLS: DEAD_REPO. Upstream repository is dead/empty with 0 tools.
 
 3. **`@fruggr/zendesk-mcp-server`**:
-   - Card claims: 1 tools
+   - Card claims: 144 tools
    - Source Truth: 0 tools
-   - **Root Cause**: CONFIRMED_ZERO_TOOLS (Remote Gateway/SDK wrapper).
+   - **Root Cause**: CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK. Remote Zendesk integration wrapper with 0 local tools.
 
 4. **`privacyfence`**:
    - Card claims: 8 tools
