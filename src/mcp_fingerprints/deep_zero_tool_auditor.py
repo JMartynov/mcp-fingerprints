@@ -70,7 +70,7 @@ class DeepZeroToolAuditor:
             if any(pattern in filename.lower() for pattern in secondary_patterns):
                 return tools
             try:
-                from src.mcp_fingerprints.doc_parser import parse_markdown_tool_docs
+                from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
                 md_tools = parse_markdown_tool_docs(content)
                 for md_tool in md_tools:
                     tools.append({
@@ -197,7 +197,12 @@ class DeepZeroToolAuditor:
 
         if not repo_url or "github.com" not in repo_url or "smithery.ai" in repo_url or "glama.ai" in repo_url:
             resolved_url = None
-            if ecosystem == "pypi" and package_name:
+            if not package_name and repo_url and ("smithery.ai" in repo_url or "glama.ai" in repo_url):
+                parts = [p for p in repo_url.split('/') if p]
+                if parts:
+                    package_name = parts[-1]
+
+            if (ecosystem == "pypi" or not ecosystem) and package_name:
                 try:
                     import ssl
                     req = urllib.request.Request(f"https://pypi.org/pypi/{package_name}/json")
@@ -222,7 +227,7 @@ class DeepZeroToolAuditor:
                                 break
                 except Exception:
                     pass
-            elif ecosystem == "npm" and package_name:
+            if not resolved_url and (ecosystem == "npm" or not ecosystem) and package_name:
                 try:
                     import ssl
                     req = urllib.request.Request(f"https://registry.npmjs.org/{package_name}")
