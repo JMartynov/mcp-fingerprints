@@ -245,7 +245,7 @@ mcp-fingerprints probe --url https://api.example.com/mcp --header "Authorization
 
 **Python SDK:**
 ```python
-from mcp_fingerprints import identify_stdio, identify_http
+from mcp_fingerprints import identify_stdio, identify_http, McpIdentifier, scan_local_configs, scan_config_file
 
 # Identify local subprocess
 report = identify_stdio(["uvx", "mcp-server-git"])
@@ -254,6 +254,18 @@ print(f"Verified: {report.package_name} ({report.repository_url})")
 # Identify remote HTTP/SSE endpoint
 remote = identify_http("https://mcp.internal.acme.com/sse")
 print(f"Remote Server: {remote.package_name} v{remote.version}")
+
+# Use the unified McpIdentifier
+identifier = McpIdentifier()
+probe_report = identifier.prober.probe(target=["uvx", "mcp-server-sqlite", "--db-path", "app.db"])
+print(f"Server identified: {probe_report.package_name}")
+
+# Scan local configurations across known clients
+inventory = scan_local_configs(probe_live=True)
+print(f"Found {len(inventory.servers)} active MCP servers on this workstation.")
+
+# Scan a specific configuration file
+inventory = scan_config_file("~/.claude.json")
 ```
 
 ## Enriched Tool Parameter Schemas & Protocol Annotations
@@ -389,15 +401,15 @@ The CLI provides a focused set of pure structural commands:
 ```bash
 
 # Auto-discover local configs with generic agent detection and baseline drift tracking
-python -m mcp_fingerprints.cli scan --auto --save-baseline baseline.json
-python -m mcp_fingerprints.cli scan --auto --diff baseline.json
+python -m mcp_fingerprints.cli scan-configs --auto --save-baseline baseline.json
+python -m mcp_fingerprints.cli scan-configs --auto --diff baseline.json
 
 # Detect if a generic command or URL is an MCP server
 python -m mcp_fingerprints.cli detect "uvx mcp-server-git"
 python -m mcp_fingerprints.cli detect http://localhost:8000/sse
 
 # Auto-generate passports for locally discovered tools
-python -m mcp_fingerprints.cli scan --auto --auto-passport
+python -m mcp_fingerprints.cli scan-configs --auto --auto-passport
 
 # Sync from registries
 python -m mcp_fingerprints.cli sync --all
@@ -410,123 +422,20 @@ python -m mcp_fingerprints.cli probe <server_command>
 
 # Validate schema invariants
 python -m mcp_fingerprints.cli validate --dir data/fingerprints
+
+# Validate server JSON-RPC 2.0 and MCP Protocol conformance
+python -m mcp_fingerprints.cli validate-protocol "npx -y @modelcontextprotocol/server-postgres postgresql://localhost/mydb"
+
+# Export structural catalog metadata in CycloneDX 1.6 or SPDX 2.3 format
+python -m mcp_fingerprints.cli export-sbom --all --format cyclonedx
+
+# Build semantic embeddings index
+python -m mcp_fingerprints.cli build-index
+
+# Run interactive setup wizard to bootstrap configuration
+python -m mcp_fingerprints.cli init
 
 # Run automated invariant verification test suites (5 pillars, 400 passing tests)
-pytest tests/test_live_cli_sandbox_invariants.py tests/test_live_canonicalizer_snapshot_invariants.py tests/test_live_matcher_search_invariants.py tests/test_live_config_scanner_tamper_drift.py tests/test_live_ast_openapi_zero_tool_parsers.py
-
-# Build compressed snapshot
-python -m mcp_fingerprints.cli snapshot
-
-# Search the catalog
-python -m mcp_fingerprints.cli search "query"
-
-# Browse interactively via TUI
-python -m mcp_fingerprints.cli browse
-
-# Export client configurations (Claude, Cursor, Cline, Zed, Windsurf)
-python -m mcp_fingerprints.cli export-config <server_name> --client claude
-
-# Detect configuration drift against the latest passports
-python -m mcp_fingerprints.cli detect-drift <config_file>
-```
-
-## Reporting & Output Formats
-
-Customize the output verbosity to fit your terminal or CI environment:
-
-```bash
-# Concise 3-line summary for quick checks and CI logs
-mcp-fingerprints probe --format short -- npx -y @modelcontextprotocol/server-sqlite --db app.db
-
-# Exhaustive schema and parameter audit report
-mcp-fingerprints probe --format long -- npx -y @modelcontextprotocol/server-sqlite --db app.db
-
-# Structured JSON output for scripting and automation
-mcp-fingerprints probe --json -- npx -y @modelcontextprotocol/server-sqlite --db app.db
-```
-
-## Releases
-
-### TestPyPI Dry-Run
-
-You can perform an automated dry-run release to TestPyPI to verify packaging, metadata, and functionality before a production PyPI release.
-1. Navigate to the **Actions** tab in the GitHub repository.
-2. Select the **Release to TestPyPI (Dry-Run)** workflow.
-3. Click **Run workflow**.
-4. You can optionally provide a `version_suffix` (e.g. `rc1`, `b2`) which will be appended to the current version in `pyproject.toml` to avoid conflicts on TestPyPI.
-5. The workflow will build artifacts, publish them to TestPyPI using Trusted Publishing, and execute an automated smoke test (`pip install` into a clean container).
-
-## License
-MIT
-### Discrete Technical Reports
-
-| Task | Domain Area | Technical Report Link | Key Deliverables & Insights |
-|:---|:---|:---|:---|
-| **Task 1** | CLI Subprocess Sandbox & Protocol | [`task1_cli_sandbox_protocol_report.md`](docs/reports/task1_cli_sandbox_protocol_report.md) | Subprocess execution containment, credential sanitization, timeout reaping, and JSON-RPC 2.0 handshake validation. |
-| **Task 2** | Canonicalizer & Snapshot Invariants | [`task2_canonicalizer_snapshot_invariants_report.md`](docs/reports/task2_canonicalizer_snapshot_invariants_report.md) | Order-invariant SHA-256 hashing across 500 permutations, pure structural domain isolation, and two-tier cache coherency. |
-| **Task 3** | Tri-Layer Matcher & Fast Index | [`task3_matcher_search_invariants_report.md`](docs/reports/task3_matcher_search_invariants_report.md) | Layer 1 exact cryptographic lookup, Layer 2 topological Jaccard metrics, Layer 3 composite scoring, and fast index scalability. |
-| **Task 4** | Config Scanner & Drift Detection | [`task4_config_scanner_tamper_drift_report.md`](docs/reports/task4_config_scanner_tamper_drift_report.md) | Multi-client workstation configuration discovery across 8+ agents, lossless JSONC modification, and supply-chain drift alerts. |
-| **Task 5** | Polyglot AST & Zero-Tool Parsers | [`task5_ast_openapi_zero_tool_report.md`](docs/reports/task5_ast_openapi_zero_tool_report.md) | Static AST parameter extraction across 6 languages, OpenAPI v3 endpoint conversion, and CJK Unicode sanitization. |
-
-### Technical Audit Findings & Remediations
-
-*   **Finding MED-01 (Remediated): Empty SHA-256 Format in Drift Detector**  
-    *Root Cause*: `src/mcp_fingerprints/drift_detector.py` previously expected the empty-state hash to contain a `sha256:` prefix, whereas canonicalizer records store raw 64-character hexadecimal digests (`e3b0c44...`). This caused initial passport creation to emit false-positive tampering warnings.  
-    *Remedy*: Added dual support for raw hex and prefixed formats (`is_empty_hash`), verified in `tests/test_live_config_scanner_tamper_drift.py`.
-*   **Finding MED-02 (Remediated): Floating-Point Metric Bounding**  
-    *Root Cause*: Jaccard similarity and capability scores could produce floating-point edge representations (e.g. `0.9999999999999999`).  
-    *Remedy*: Explicit mathematical clamping ($0.0 \le S \le 1.0$) and delta tolerance assertions in `src/mcp_fingerprints/distance.py`.
-*   **Structural Domain Isolation Guarantee**: Verified that all core domain dataclasses (`ServerPackageSpec`, `VersionFingerprint`) strictly isolate structural metadata, discarding transient flags to preserve clean architectural boundaries.
-
-## Fast Consumption
-
-You can fetch the latest consolidated database in a single GET request:
-```bash
-curl -sL https://raw.githubusercontent.com/JMartynov/mcp-fingerprints/main/passports.json.gz | gzip -d > passports.json
-```
-
-### Python
-```python
-import gzip, json, urllib.request
-
-url = "https://raw.githubusercontent.com/JMartynov/mcp-fingerprints/main/passports.json.gz"
-with urllib.request.urlopen(url) as resp:
-    with gzip.GzipFile(fileobj=resp) as gz:
-        data = json.load(gz)
-
-print(f"Loaded {data['total_passports']} MCP server passports.")
-```
-
-## CLI Usage
-
-The CLI provides a focused set of pure structural commands:
-
-```bash
-
-# Auto-discover local configs with generic agent detection and baseline drift tracking
-python -m mcp_fingerprints.cli scan --auto --save-baseline baseline.json
-python -m mcp_fingerprints.cli scan --auto --diff baseline.json
-
-# Detect if a generic command or URL is an MCP server
-python -m mcp_fingerprints.cli detect "uvx mcp-server-git"
-python -m mcp_fingerprints.cli detect http://localhost:8000/sse
-
-# Auto-generate passports for locally discovered tools
-python -m mcp_fingerprints.cli scan --auto --auto-passport
-
-# Sync from registries
-python -m mcp_fingerprints.cli sync --all
-
-# Match a toolset hash against the knowledge base
-python -m mcp_fingerprints.cli match <hash>
-
-# Probe a server and extract its fingerprint
-python -m mcp_fingerprints.cli probe <server_command>
-
-# Validate schema invariants
-python -m mcp_fingerprints.cli validate --dir data/fingerprints
-
-# Run automated invariant verification test suites (400 passing tests)
 pytest tests/test_live_cli_sandbox_invariants.py tests/test_live_canonicalizer_snapshot_invariants.py tests/test_live_matcher_search_invariants.py tests/test_live_config_scanner_tamper_drift.py tests/test_live_ast_openapi_zero_tool_parsers.py
 
 # Build compressed snapshot

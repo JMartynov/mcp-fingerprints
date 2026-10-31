@@ -76,6 +76,10 @@ ServerPackageSpec
       ├── dependencies: { string: string }
       ├── connections: [ object, ... ]
       ├── capabilities: { "tools": bool, "prompts": bool, "resources": bool, "logging": bool }
+      ├── remote_endpoint: string | null
+      ├── auth_type: "none" | "bearer" | "api-key" | "oauth2"
+      ├── headers_schema: { string: string }
+      ├── required_env_vars: [ string, ... ]
       ├── tool_signatures: [ ToolContractSignature, ... ]
       │    ├── name: string
       │    ├── canonical_hash: string (SHA-256 hex)
@@ -86,6 +90,7 @@ ServerPackageSpec
       │    ├── required_keys: [ string, ... ]
       │    ├── parameter_types: { key: type_string }
       │    ├── inputSchema: object (JSON Schema)
+      │    ├── annotations: [ string, ... ]
       │    └── outputSchema: object | null
       ├── prompt_signatures: [ PromptSignature, ... ]
       │    ├── name: string
@@ -405,3 +410,43 @@ The formal invariants of this specification are validated across the automated t
 * [**Cumulative Master Report: Ecosystem Benchmark & Strategic Gap Analysis**](reports/ECOSYSTEM_BENCHMARK_AND_GAP_ANALYSIS_REPORT.md): Comparative benchmark against 14+ industry ecosystems and 4 architectural blueprints.
 * [**Documentation Hub & Technical Reports Index**](README.md): Comprehensive navigation hub for all specifications, task reports, and empirical research audits.
 * [**Automated Invariant Verification Suites**](../tests/): Live test fixtures enforcing the 5 core invariant pillars (`tests/test_live_*.py`).
+
+## 9. CLI Tools
+
+The codebase provides several CLI commands for managing and testing passports:
+
+* **`init`**: Run interactive setup wizard to bootstrap configuration.
+* **`sync`**: Synchronize MCP server passports from registries.
+* **`match`**: Match observed runtime tools against the fingerprint knowledge base.
+* **`probe`**: Probe a live MCP server over stdio, extract signatures, and match against passport knowledge base.
+* **`validate`**: Validate passport directory invariants.
+* **`snapshot`**: Compile all passports into consolidated .json.gz.
+* **`build-index`**: Build semantic embeddings index.
+* **`search`**: Fuzzy search MCP servers by keyword or capability.
+* **`browse`**: Interactive TUI browser for the MCP catalog.
+* **`export-config`**: Export client configuration (Claude/Cursor/Cline/Zed/Windsurf/Docker).
+* **`export-sbom`**: Export structural catalog metadata in CycloneDX 1.6 or SPDX 2.3 format.
+* **`validate-protocol`**: Validate server JSON-RPC 2.0 and MCP Protocol conformance.
+* **`detect`**: Generic MCP Server Detection.
+* **`detect-drift`**: Detect supply-chain tampering and hash drift between passport states.
+* **`scan-configs`** (alias **`scan`**): Scan local configuration files, build inventory, and detect schema drift.
+
+
+## 10. Python SDK
+
+The `mcp-fingerprints` package exports several functions for integrating the knowledge base programmatically:
+
+* **`McpIdentifier(passports_dir=None)`**: Top-level unified MCP identifier that wraps `FingerprintMatcher` and `McpProber` for stdio and HTTP.
+* **`identify_stdio(command, timeout=10.0, passports_dir=None, **kwargs)`**: Identifies a local subprocess over stdio.
+* **`identify_http(url, headers=None, timeout=10.0, passports_dir=None, **kwargs)`**: Identifies a remote server over HTTP/SSE.
+* **`scan_local_configs(probe_live=True, scan_global=True, custom_clients_path=None)`**: Scans all standard system paths for known MCP client configurations (Claude Desktop, Cursor, Zed, Cline, etc.).
+* **`scan_config_file(path, probe_live=True)`**: Scans a specific configuration file for MCP server definitions.
+
+```python
+from mcp_fingerprints import McpIdentifier, scan_local_configs
+
+identifier = McpIdentifier()
+probe_report = identifier.prober.probe(target=["uvx", "mcp-server-git"])
+
+inventory = scan_local_configs()
+```
