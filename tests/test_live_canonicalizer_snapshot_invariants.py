@@ -115,6 +115,8 @@ def test_ephemeral_db_engine_fallbacks(tmp_path, monkeypatch):
     # Mock import duckdb to fail
     import sys
     monkeypatch.setitem(sys.modules, "duckdb", None)
+    from mcp_fingerprints import db_engine
+    monkeypatch.setattr(db_engine, "DUCKDB_AVAILABLE", False)
     
     # Create some mock JSONs
     data_dir = tmp_path / "data"
