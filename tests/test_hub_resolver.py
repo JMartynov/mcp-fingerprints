@@ -19,6 +19,7 @@ def test_normalize_github_url():
     assert normalize_github_url("ssh://git@github.com/user/repo.git") == "https://github.com/user/repo"
     assert normalize_github_url("git@github.com:user/repo.git") == "https://github.com/user/repo"
     assert normalize_github_url("https://github.com/user/repo/") == "https://github.com/user/repo"
+    assert normalize_github_url("github:user/repo") == "https://github.com/user/repo"
     assert normalize_github_url("") == ""
 
 @patch("urllib.request.urlopen")
@@ -107,12 +108,12 @@ def test_resolve_npm_repository_string(mock_fetch):
     mock_fetch.return_value = {
         "repository": "github:user/repo-npm2"
     }
-    # Current implementation only catches 'github.com', we might want to update normalization
-    # but based on prompt this is fine if "github.com" is there
-    mock_fetch.return_value = {
-        "repository": "https://github.com/user/repo-npm2"
-    }
     assert resolve_npm_repository("my-npm-pkg") == "https://github.com/user/repo-npm2"
+
+    mock_fetch.return_value = {
+        "repository": "https://github.com/user/repo-npm3"
+    }
+    assert resolve_npm_repository("my-npm-pkg") == "https://github.com/user/repo-npm3"
 
 @patch("mcp_fingerprints.hub_resolver._fetch_json")
 def test_resolve_npm_repository_homepage_fallback(mock_fetch):
