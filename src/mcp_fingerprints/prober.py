@@ -73,22 +73,41 @@ class McpStdioProber:
         if not process.stdout:
             return None
         start = time.time()
+        max_bytes = 10 * 1024 * 1024
+        
+        # Read byte by byte or block to prevent single line OOM, but since readline is used, we can cap lines read length
+        # Python's readline actually reads up to EOF or newline, if a single line is huge it can OOM.
+        # But we can read line chunks with size limit.
         while time.time() - start < timeout:
-            line = process.stdout.readline()
+            # use a max limit for readline
+            line = process.stdout.readline(max_bytes)
             if not line:
                 if process.poll() is not None:
                     break
                 time.sleep(0.05)
                 continue
+            if len(line) >= max_bytes:
+                # Exceeded buffer cap
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+                return None
             line_str = line.decode("utf-8", errors="replace").strip()
             if not line_str:
                 continue
-            try:
-                data = json.loads(line_str)
-                if isinstance(data, dict):
-                    return data
-            except json.JSONDecodeError:
-                continue
+                
+            # Line-by-line prefix log filtering
+            brace_idx = line_str.find('{')
+            if brace_idx != -1:
+                json_part = line_str[brace_idx:]
+                try:
+                    data = json.loads(json_part)
+                    if isinstance(data, dict):
+                        return data
+                except json.JSONDecodeError:
+                    pass
+            continue
         return None
 
     @staticmethod

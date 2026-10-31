@@ -130,6 +130,29 @@ def _parse_yaml_spec_regex(content: str) -> list[dict[str, Any]]:
     return extracted
 
 
+
+def _resolve_ref(spec: dict[str, Any], schema: dict[str, Any], depth: int = 0, max_depth: int = 15) -> dict[str, Any]:
+    """Resolve OpenAPI $ref iteratively up to max_depth to prevent cyclic recursion bombs."""
+    if depth >= max_depth:
+        return schema
+    if not isinstance(schema, dict):
+        return schema
+    ref = schema.get("$ref")
+    if not ref or not isinstance(ref, str) or not ref.startswith("#/"):
+        return schema
+    
+    parts = ref[2:].split("/")
+    current = spec
+    for part in parts:
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+        else:
+            return schema
+            
+    if isinstance(current, dict):
+        return _resolve_ref(spec, current, depth + 1, max_depth)
+    return schema
+
 def parse_openapi_spec(content: str | dict[str, Any]) -> list[dict[str, Any]]:
     """Parse OpenAPI 3.x or Swagger 2.0 document into standardized MCP tool contract dicts."""
     spec = _safe_parse_spec(content)
@@ -184,16 +207,17 @@ def parse_openapi_spec(content: str | dict[str, Any]) -> list[dict[str, Any]]:
                     p_in = param.get("in", "")
 
                     if p_in == "body" and "schema" in param and isinstance(param["schema"], dict):
+                        param_schema = _resolve_ref(spec, param["schema"])
                         # Swagger 2.0 body param
-                        body_props = param["schema"].get("properties", {})
+                        body_props = param_schema.get("properties", {})
                         if isinstance(body_props, dict):
                             for bpname, bpval in body_props.items():
                                 properties[bpname] = bpval if isinstance(bpval, dict) else {"type": "string"}
-                        for req_f in param["schema"].get("required", []):
+                        for req_f in param_schema.get("required", []):
                             if req_f not in required:
                                 required.append(req_f)
                     else:
-                        pschema = param.get("schema", {})
+                        pschema = _resolve_ref(spec, param.get("schema", {}))
                         ptype = pschema.get("type", "string") if isinstance(pschema, dict) else param.get("type", "string")
                         pdesc = param.get("description", "")
                         prop_def: dict[str, Any] = {"type": ptype}
@@ -210,7 +234,7 @@ def parse_openapi_spec(content: str | dict[str, Any]) -> list[dict[str, Any]]:
                 if isinstance(content_map, dict):
                     json_media = content_map.get("application/json", {})
                     if isinstance(json_media, dict):
-                        b_schema = json_media.get("schema", {})
+                        b_schema = _resolve_ref(spec, json_media.get("schema", {}))
                         if isinstance(b_schema, dict):
                             b_props = b_schema.get("properties", {})
                             if isinstance(b_props, dict):
