@@ -63,3 +63,63 @@ def test_update_passport_tools():
             assert updated_data["versions"][0]["capabilities"]["tools"] is True
             assert "canonical_hash" in updated_data["versions"][0]["tool_signatures"][0]
 
+
+@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+def test_extract_tools_from_repo_python(mock_fetch_raw, mock_request):
+    mock_request.side_effect = [
+        {"default_branch": "main"},  # Repo fetch
+        {"tree": [{"path": "main.py", "type": "blob"}]} # Tree fetch
+    ]
+    mock_fetch_raw.return_value = """
+from mcp import Tool
+def get_tools():
+    return [
+        Tool(name="python_tool", description="A python test tool", inputSchema={"type": "object"})
+    ]
+"""
+    
+    tools = extract_tools_from_repo("test-owner", "test-repo")
+    assert len(tools) == 1
+    assert tools[0]["name"] == "python_tool"
+    assert "description" in tools[0]
+
+@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+def test_extract_tools_from_repo_go(mock_fetch_raw, mock_request):
+    mock_request.side_effect = [
+        {"default_branch": "main"},  # Repo fetch
+        {"tree": [{"path": "main.go", "type": "blob"}]} # Tree fetch
+    ]
+    mock_fetch_raw.return_value = '''
+        package main
+        
+        var tool = mcp.NewTool("go_tool",
+            mcp.WithDescription("A go test tool"),
+        )
+    '''
+    
+    tools = extract_tools_from_repo("test-owner", "test-repo")
+    assert len(tools) == 1
+    assert tools[0]["name"] == "go_tool"
+    assert "description" in tools[0]
+
+@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+def test_extract_tools_from_repo_markdown(mock_fetch_raw, mock_request):
+    mock_request.side_effect = [
+        {"default_branch": "main"},  # Repo fetch
+        {"tree": [{"path": "README.md", "type": "blob"}]} # Tree fetch
+    ]
+    mock_fetch_raw.return_value = '''
+        # Tools
+        
+        | Name | Description | Parameters |
+        | --- | --- | --- |
+        | md_tool | A markdown test tool | param1: string |
+    '''
+    
+    tools = extract_tools_from_repo("test-owner", "test-repo")
+    assert len(tools) == 1
+    assert tools[0]["name"] == "md_tool"
+    assert "description" in tools[0]

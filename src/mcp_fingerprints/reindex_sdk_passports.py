@@ -22,6 +22,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from src.mcp_fingerprints.ast_parser import parse_mcp_source_code
+from src.mcp_fingerprints.doc_parser import parse_markdown_tool_docs
 from src.mcp_fingerprints.canonicalizer import canonicalize_json, compute_sha256
 
 # Target Passports for Task 93
@@ -79,10 +80,10 @@ def fetch_github_tree(owner: str, repo: str, branch: str = "main") -> list[str]:
     if not data:
         return []
     
-    # We want TS, JS, and Python files typically.
-    extensions = (".ts", ".js", ".mjs", ".py")
+    # We want TS, JS, Python, Go files and Markdown for docs fallback typically.
+    extensions = (".ts", ".js", ".mjs", ".py", ".go", ".md")
     return [x["path"] for x in data.get("tree", []) 
-            if x.get("type") == "blob" and x["path"].endswith(extensions) and not x["path"].endswith(("_test.py", ".test.ts", ".spec.ts"))]
+            if x.get("type") == "blob" and x["path"].lower().endswith(extensions) and not x["path"].endswith(("_test.py", ".test.ts", ".spec.ts"))]
 
 def fetch_raw_file(owner: str, repo: str, branch: str, path: str) -> Optional[str]:
     url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
@@ -124,7 +125,9 @@ def extract_tools_from_repo(owner: str, repo: str) -> list[dict[str, Any]]:
             return 2
         if "index" in low or "main" in low:
             return 3
-        return 4
+        if "readme" in low:
+            return 4
+        return 5
 
     files.sort(key=priority)
     candidates = files[:30] # Inspect up to 30 top files
@@ -139,14 +142,21 @@ def extract_tools_from_repo(owner: str, repo: str) -> list[dict[str, Any]]:
         
         # Determine language for parser
         ext = fpath.split(".")[-1].lower()
-        if ext in ("py",):
-            lang = "python"
-        elif ext in ("ts", "js", "mjs"):
-            lang = "typescript"
+        
+        if ext == "md":
+            extracted = parse_markdown_tool_docs(code)
         else:
-            lang = None
+            if ext in ("py",):
+                lang = "python"
+            elif ext in ("ts", "js", "mjs"):
+                lang = "typescript"
+            elif ext in ("go",):
+                lang = "go"
+            else:
+                lang = None
 
-        extracted = parse_mcp_source_code(code, language=lang)
+            extracted = parse_mcp_source_code(code, language=lang)
+            
         for t in extracted:
             tname = t.get("name")
             if tname and tname not in seen_names:
