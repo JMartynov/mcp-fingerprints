@@ -37,9 +37,13 @@ def sanitize_environment(env_updates: dict[str, str] | None = None) -> dict[str,
     return safe_env
 
 
-def enqueue_output(out, q):
+def enqueue_output(out, q, max_bytes=10 * 1024 * 1024):
+    total_bytes = 0
     try:
         for line in iter(out.readline, ''):
+            total_bytes += len(line)
+            if total_bytes > max_bytes:
+                break
             q.put(line)
     except Exception:
         pass
