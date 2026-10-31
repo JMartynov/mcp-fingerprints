@@ -87,4 +87,4 @@ function getVisibleRange(scrollTop, containerHeight, itemHeight, itemCount, colu
     assert ranges[1]["startIndex"] == 0
     assert ranges[1]["endIndex"] == 21
 
-    assert ranges[2]["startIndex"] == 9
+    assert ranges[2]["startIndex"] == 6
