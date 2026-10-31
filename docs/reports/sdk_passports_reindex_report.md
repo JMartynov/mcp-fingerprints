@@ -1,9 +1,8 @@
 # SDK Passports Re-Index Audit Report
 
 Generated for Task 93.
-Total passports targeted: 13
-Total passports updated with newly recovered tools: 10
-
+Total passports targeted: 38
+Total passports updated with newly recovered tools: 17
 
 | Passport | Repository | Previous Tools | Discovered Tools | Status |
 |:---|:---|:---:|:---:|:---|
@@ -20,3 +19,28 @@ Total passports updated with newly recovered tools: 10
 | `googleapis_genai-toolbox.json` | `https://github.com/googleapis/genai-toolbox` | 0 | 1 (`For connecting to MCP Toolbox servers`) | `RECOVERED_NEW_TOOLS` |
 | `vakharwalad23_google-mcp.json` | `https://github.com/vakharwalad23/google-mcp` | 35 | 43 (`google_calendar_set_default`, `google_calendar_list_calendars`, `google_calendar_create_event` (+40 more)) | `RECOVERED_NEW_TOOLS` |
 | `github_github-mcp-server.json` | `https://github.com/github/github-mcp-server` | 645 | 27 (`The initial tool file and its corresponding test file will have the //go`, `Old Name`, `add_project_item` (+24 more)) | `RECOVERED_NEW_TOOLS` |
+| `utapyngo_sentry-mcp-rs.json` | `https://github.com/utapyngo/sentry-mcp-rs` | 2 | 0 | `ZERO_TOOLS` |
+| `alexander-zuev_supabase-mcp-server.json` | `https://github.com/alexander-zuev/supabase-mcp-server` | 12 | 0 | `ZERO_TOOLS` |
+| `microsoft_mcp.json` | `https://github.com/microsoft/mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `mcp-server-time.json` | `https://github.com/modelcontextprotocol/servers` | 2 | 0 | `ZERO_TOOLS` |
+| `mcp-server-git.json` | `https://github.com/modelcontextprotocol/servers` | 12 | 0 | `ZERO_TOOLS` |
+| `mcp-server-fetch.json` | `https://github.com/modelcontextprotocol/servers` | 1 | 16 (`fetch`, `-v`, `status` (+13 more)) | `RECOVERED_NEW_TOOLS` |
+| `ckreiling_mcp-server-docker.json` | `https://github.com/ckreiling/mcp-server-docker` | 19 | 19 (`list_containers`, `create_container`, `run_container` (+16 more)) | `ALREADY_UP_TO_DATE` |
+| `xing5_mcp-google-sheets.json` | `https://github.com/xing5/mcp-google-sheets` | 20 | 54 (`get_sheet_data`, `get_sheet_formulas`, `update_cells` (+51 more)) | `RECOVERED_NEW_TOOLS` |
+| `jmrplens_gitlab-mcp-server.json` | `https://github.com/jmrplens/gitlab-mcp-server` | 0 | 27 (`Format for this project`, `The action segment is a verb`, `Be specific` (+24 more)) | `RECOVERED_NEW_TOOLS` |
+| `hechtcarmel_jetbrains-debugger-mcp-plugin.json` | `https://github.com/hechtcarmel/jetbrains-debugger-mcp-plugin` | 24 | 74 (`Parameter`, `project_path`, `name` (+71 more)) | `RECOVERED_NEW_TOOLS` |
+| `arpitbatra123_mcp-googletasks.json` | `https://github.com/justerlex/google-tasks-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `google-measurement-mcp.json` | `https://github.com/jabeer4148-ops/google-measurement-mcp` | 7 | 29 (`gmcp_diagnostics`, `ga4_create_custom_dimension`, `ga4_create_key_event` (+26 more)) | `RECOVERED_NEW_TOOLS` |
+| `MatiousCorp_google-ad-manager-mcp.json` | `https://github.com/MatiousCorp/google-ad-manager-mcp` | 35 | 37 (`list_delivering_orders`, `get_order`, `create_order` (+34 more)) | `RECOVERED_NEW_TOOLS` |
+| `gomarble-ai_google-ads-mcp-server.json` | `https://github.com/gomarble-ai/google-ads-mcp-server` | 3 | 0 | `ZERO_TOOLS` |
+| `dhawalshah_google-tag-manager-mcp.json` | `https://github.com/dhawalshah/google-tag-manager-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `cloudflare_mcp-server-cloudflare.json` | `https://github.com/cloudflare/mcp-server-cloudflare` | 0 | 0 | `ZERO_TOOLS` |
+| `chroma-core_chroma-mcp.json` | `https://github.com/chroma-core/chroma-mcp` | 13 | 0 | `ZERO_TOOLS` |
+| `ai.adramp_google-ads.json` | `https://github.com/ai.adramp/google-ads` | 0 | 0 | `ZERO_TOOLS` |
+| `imran-siddique_agent-os.json` | `https://github.com/microsoft/agent-governance-toolkit` | 0 | 124 (`agt_policy_status`, `agt_policy_check_text`, `Identity Management` (+121 more)) | `RECOVERED_NEW_TOOLS` |
+| `agency.ottobot_licensed-house-painters.json` | `https://github.com/modelcontextprotocol/registry` | 0 | 0 | `ZERO_TOOLS` |
+| `agency.ottobot_contractor-license-changes.json` | `https://github.com/modelcontextprotocol/registry` | 0 | 0 | `ZERO_TOOLS` |
+| `agency.ottobot_business-contact-finder.json` | `https://github.com/modelcontextprotocol/registry` | 0 | 0 | `ZERO_TOOLS` |
+| `L337-org_docker-mcp.json` | `https://github.com/L337-org/docker-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `ChrisGVE_workspace-qdrant-mcp.json` | `https://github.com/ChrisGVE/workspace-qdrant-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `JetBrains_mcpProxy.json` | `https://github.com/JetBrains/mcp-jetbrains` | 0 | 0 | `ZERO_TOOLS` |
