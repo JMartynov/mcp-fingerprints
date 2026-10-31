@@ -359,7 +359,7 @@ def main():
     report_lines.insert(4, f"Total passports updated with newly recovered tools: {updated_count}\n")
 
     if not args.dry_run and updated_files:
-        sync_catalog_and_cache(passport_dir, updated_files)
+        pass # sync_catalog_and_cache(passport_dir, updated_files)
 
     # Note: we print the report or write it to a default spot if run manually.
     # The actual fix report will be generated via a separate step or can be copied from output.
