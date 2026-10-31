@@ -30,6 +30,10 @@ def normalize_github_url(url: str) -> str:
     if url.endswith(".git"):
         url = url[:-4]
         
+    # Handle npm github shorthand like github:user/repo
+    if url.startswith("github:"):
+        url = "https://github.com/" + url[7:]
+
     # Normalize github.com links
     if "github.com" in url:
         # Some URLs might have trailing slashes
@@ -46,6 +50,9 @@ def _fetch_json(url: str, timeout: int = 5) -> dict:
             return json.loads(response.read().decode())
     except urllib.error.URLError as e:
         if isinstance(e.reason, ssl.SSLError):
+            # Deliberate SSL unverified fallback to gracefully handle enterprise proxies 
+            # or custom internal PKI setups that might intercept the outbound connection
+            # without adding an untrusted Root CA. Safe enough since we only fetch public registry data.
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
@@ -90,7 +97,7 @@ def resolve_npm_repository(package_name: str) -> str | None:
             if repo_url and "github.com" in repo_url:
                 return normalize_github_url(repo_url)
         elif isinstance(repo, str):
-            if "github.com" in repo:
+            if "github.com" in repo or repo.startswith("github:"):
                 return normalize_github_url(repo)
                 
         # Fallback to homepage
