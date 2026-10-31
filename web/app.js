@@ -10,10 +10,10 @@ const cardActiveVersions = new Map();
 const openDrawers = new Set();
 const drawerQueries = new Map();
 
-// Infinite Batch Rendering
-const BATCH_SIZE = 48;
-let renderedCount = 0;
-let sentinelObserver = null;
+// DOM Virtualization
+let ticking = false;
+let ITEM_HEIGHT = 160; // Estimated height of a card
+let COLUMNS = 3;
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -31,13 +31,28 @@ function getSafeId(name) {
 
 function getVisibleRange(scrollTop, containerHeight, itemHeight, itemCount, columns) {
   const buffer = 2;
-  const GAP = 20;
+  const GAP = 24; // 1.5rem gap
   const totalItemHeight = itemHeight + GAP;
   const startRow = Math.max(0, Math.floor(scrollTop / totalItemHeight) - buffer);
   const visibleRows = Math.ceil(containerHeight / totalItemHeight) + (buffer * 2);
   const startIndex = startRow * columns;
   const endIndex = Math.min(itemCount, startIndex + (visibleRows * columns));
   return { startIndex, endIndex };
+}
+
+function updateVirtualizationMetrics() {
+  const grid = document.getElementById("serverGrid");
+  if (!grid) return;
+  const gridWidth = grid.clientWidth;
+  
+  // Calculate columns based on minmax(360px, 1fr) and gap 1.5rem (24px)
+  COLUMNS = Math.max(1, Math.floor((gridWidth + 24) / (360 + 24)));
+  
+  // Update item height based on first rendered card if available
+  const firstCard = grid.querySelector('.card');
+  if (firstCard) {
+    ITEM_HEIGHT = firstCard.getBoundingClientRect().height;
+  }
 }
 
 function getActiveVersionForServer(item) {
@@ -69,27 +84,26 @@ function getVersionData(item, versionStr) {
 
 // Initialize on Load
 window.addEventListener("DOMContentLoaded", () => {
-  setupSentinelObserver();
+  setupVirtualization();
   initFromURL();
   loadCatalog();
 });
 
-function setupSentinelObserver() {
-  const sentinel = document.getElementById("scrollSentinel");
-  if (!sentinel) return;
-
-  sentinelObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && renderedCount < filteredCatalog.length) {
-          renderNextBatch();
-        }
+function setupVirtualization() {
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        renderVirtual();
+        ticking = false;
       });
-    },
-    { rootMargin: "400px" },
-  );
+      ticking = true;
+    }
+  });
 
-  sentinelObserver.observe(sentinel);
+  window.addEventListener("resize", () => {
+    updateVirtualizationMetrics();
+    renderVirtual();
+  });
 }
 
 async function loadCatalog() {
@@ -179,43 +193,73 @@ function render() {
     metrics.innerHTML = `Showing <strong>${filteredCatalog.length.toLocaleString()}</strong> of <strong>${catalog.length.toLocaleString()}</strong> verified MCP servers`;
   }
 
-  const grid = document.getElementById("serverGrid");
-  if (grid) {
-    grid.innerHTML = "";
-  }
-
-  renderedCount = 0;
-  renderNextBatch();
+  updateVirtualizationMetrics();
+  renderVirtual();
 }
 
-function renderNextBatch() {
+function renderVirtual() {
   const grid = document.getElementById("serverGrid");
   if (!grid) return;
 
-  const nextItems = filteredCatalog.slice(
-    renderedCount,
-    renderedCount + BATCH_SIZE,
-  );
-  if (nextItems.length === 0) return;
+  const scrollTop = window.scrollY;
+  const containerHeight = window.innerHeight;
+  const itemCount = filteredCatalog.length;
+  
+  if (itemCount === 0) {
+    grid.innerHTML = "";
+    grid.style.paddingTop = "0px";
+    grid.style.paddingBottom = "0px";
+    const sentinel = document.getElementById("scrollSentinel");
+    if (sentinel) sentinel.textContent = "No servers matching filter criteria.";
+    return;
+  }
 
+  const { startIndex, endIndex } = getVisibleRange(
+    scrollTop,
+    containerHeight,
+    ITEM_HEIGHT,
+    itemCount,
+    COLUMNS
+  );
+
+  const GAP = 24;
+  const totalItemHeight = ITEM_HEIGHT + GAP;
+  
+  const startRow = Math.floor(startIndex / COLUMNS);
+  const totalRows = Math.ceil(itemCount / COLUMNS);
+  const endRow = Math.ceil(endIndex / COLUMNS);
+  
+  const paddingTop = startRow * totalItemHeight;
+  const paddingBottom = Math.max(0, (totalRows - endRow) * totalItemHeight);
+  
+  grid.style.paddingTop = `${paddingTop}px`;
+  grid.style.paddingBottom = `${paddingBottom}px`;
+
+  const visibleItems = filteredCatalog.slice(startIndex, endIndex);
+  
   const fragment = document.createDocumentFragment();
-  nextItems.forEach((item) => {
+  visibleItems.forEach((item) => {
     const card = buildCardElement(item);
     fragment.appendChild(card);
   });
 
+  grid.innerHTML = "";
   grid.appendChild(fragment);
-  renderedCount += nextItems.length;
-
+  
   const sentinel = document.getElementById("scrollSentinel");
   if (sentinel) {
-    if (renderedCount >= filteredCatalog.length) {
-      sentinel.textContent =
-        filteredCatalog.length > 0
-          ? "✓ All servers displayed"
-          : "No servers matching filter criteria.";
-    } else {
-      sentinel.textContent = "Loading more servers...";
+    sentinel.textContent = "✓ All servers displayed";
+  }
+  
+  // Refresh height after first render
+  if (startIndex === 0 && visibleItems.length > 0) {
+    const firstCard = grid.querySelector('.card');
+    if (firstCard) {
+      const newHeight = firstCard.getBoundingClientRect().height;
+      if (Math.abs(newHeight - ITEM_HEIGHT) > 5) {
+         ITEM_HEIGHT = newHeight;
+         // Avoid infinite loop by not immediately re-rendering
+      }
     }
   }
 }
@@ -930,34 +974,36 @@ function renderInspectorModalTools(targetToolName) {
       let paramsTable = "";
       if (t.parameters && t.parameters.length > 0) {
         paramsTable = `
-        <table class="schema-table">
-          <thead>
-            <tr>
-              <th>Parameter</th>
-              <th>Type</th>
-              <th>Required</th>
-              <th>Default</th>
-              <th>Enum</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${t.parameters
-              .map(
-                (p) => `
+        <div class="schema-table-wrapper">
+          <table class="schema-table">
+            <thead>
               <tr>
-                <td class="param-name">${escapeHtml(p.name)}</td>
-                <td>${escapeHtml(p.type || "string")}${p.items_type ? ` of ${escapeHtml(p.items_type)}` : ""}</td>
-                <td>${p.required ? '<span style="color:#f87171; font-weight:700;">Yes</span>' : '<span style="color:var(--text-dim);">No</span>'}</td>
-                <td>${p.default !== undefined && p.default !== null ? `<code>${escapeHtml(JSON.stringify(p.default))}</code>` : "-"}</td>
-                <td>${p.enum && p.enum.length > 0 ? escapeHtml(p.enum.join(", ")) : "-"}</td>
-                <td>${escapeHtml(p.description || "-")}</td>
+                <th>Parameter</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default</th>
+                <th>Enum</th>
+                <th>Description</th>
               </tr>
-            `,
-              )
-              .join("")}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${t.parameters
+                .map(
+                  (p) => `
+                <tr>
+                  <td class="param-name">${escapeHtml(p.name)}</td>
+                  <td>${escapeHtml(p.type || "string")}${p.items_type ? ` of ${escapeHtml(p.items_type)}` : ""}</td>
+                  <td>${p.required ? '<span style="color:#f87171; font-weight:700;">Yes</span>' : '<span style="color:var(--text-dim);">No</span>'}</td>
+                  <td>${p.default !== undefined && p.default !== null ? `<code>${escapeHtml(JSON.stringify(p.default))}</code>` : "-"}</td>
+                  <td>${p.enum && p.enum.length > 0 ? escapeHtml(p.enum.join(", ")) : "-"}</td>
+                  <td>${escapeHtml(p.description || "-")}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
       `;
       } else {
         paramsTable = `<div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.4rem;">No parameters required for this tool.</div>`;
