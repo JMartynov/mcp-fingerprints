@@ -2,6 +2,27 @@
 
 All notable changes to the `mcp-fingerprints` project will be documented in this file.
 
+# Release Notes - v1.2.0
+
+> **Release Version**: `v1.2.0`  
+> **Release Date**: 2026-10-31  
+> **Status**: Production Release  
+> **Package**: [`mcp-fingerprints`](https://pypi.org/project/mcp-fingerprints/)
+
+---
+
+## 🌟 Overview & Highlights
+
+`v1.2.0` delivers system-wide hardening, enterprise resilience, and deep architectural alignment across all 5 core pillars:
+1. **Data Pipeline & Registry Link Enrichment**: Upstream repository links populated for 82 passports via PyPI/NPM APIs; 51 dead repositories tagged `status: "unreachable_or_private"`.
+2. **Web App PWA & Virtualization**: On-demand stale-while-revalidate caching in `web/sw.js`; windowed DOM recycling in `web/app.js` with capped memory footprints; mobile horizontal scroll guards.
+3. **Core Toolset Hardening**: `max_depth=15` cyclic `$ref` guard in `openapi_parser.py`; line-by-line plaintext stdout log filtering in `prober.py`; 10MB subprocess buffer caps.
+4. **Fault Injection Testing**: New test suite in `tests/test_fault_injection.py` testing mid-stream network drops and malformed JSON-RPC payloads.
+5. **Documentation & Specification Parity**: All 7 CLI commands, SDK exports, and extended passport schema fields documented in `docs/SPECIFICATION.md` and `README.md`.
+6. **Verified via Google Jules Mode 2 Review**: Complete audit and verification in Session `8394579379504931713` (Issue #92) with 505 tests passing offline.
+
+---
+
 # Release Notes - v1.1.7
 
 > **Release Version**: `v1.1.7`  
