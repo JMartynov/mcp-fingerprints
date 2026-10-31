@@ -54,6 +54,9 @@ def _get_ssl_context() -> ssl.SSLContext:
         return ssl._create_unverified_context()
 
 def get_repo_owner_name(url: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """
+    Extracts the repository owner and name from a given GitHub URL.
+    """
     if not url:
         return None, None
     m = re.search(r"github\.com/([^/]+)/([^/#?]+)", url)
@@ -64,6 +67,10 @@ def get_repo_owner_name(url: Optional[str]) -> tuple[Optional[str], Optional[str
     return None, None
 
 def _request_with_backoff(url: str) -> Optional[dict]:
+    """
+    Performs a standard GET request with timeout and SSL fallback.
+    Returns parsed JSON on success, None on failure.
+    """
     req = urllib.request.Request(url, headers={"User-Agent": "mcp-fingerprints-reindexer"})
     if "GITHUB_TOKEN" in os.environ:
          req.add_header("Authorization", f"Bearer {os.environ['GITHUB_TOKEN']}")
@@ -97,6 +104,10 @@ def fetch_raw_file(owner: str, repo: str, branch: str, path: str) -> Optional[st
         return None
 
 def extract_tools_from_repo(owner: str, repo: str) -> list[dict[str, Any]]:
+    """
+    Coordinates fetching the AST file tree from GitHub and extracting
+    MCP tools using polyglot parsers. Inspects up to 30 top candidate files.
+    """
     # 1. Fetch repo data to get default branch
     repo_url = f"https://api.github.com/repos/{owner}/{repo}"
     repo_data = _request_with_backoff(repo_url)
