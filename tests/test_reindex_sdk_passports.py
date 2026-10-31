@@ -123,3 +123,58 @@ def test_extract_tools_from_repo_markdown(mock_fetch_raw, mock_request):
     assert len(tools) == 1
     assert tools[0]["name"] == "md_tool"
     assert "description" in tools[0]
+
+@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+def test_extract_tools_from_repo_empty_tree(mock_request):
+    # Mocking repo fetch to return a default branch, but tree fetch to return no valid files or empty tree
+    mock_request.side_effect = [
+        {"default_branch": "main"},
+        {"tree": []}, # For main
+        {"tree": []}, # For master fallback
+    ]
+    tools = extract_tools_from_repo("test-owner", "test-repo")
+    assert tools == []
+
+@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+def test_extract_tools_from_repo_missing_fields(mock_fetch_raw, mock_request):
+    mock_request.side_effect = [
+        {"default_branch": "main"},
+        {"tree": [{"path": "main.py", "type": "blob"}]}
+    ]
+    # In this snippet, there's no explicit inputSchema, should fallback gracefully
+    mock_fetch_raw.return_value = """
+from mcp import Tool
+def get_tools():
+    return [
+        Tool(name="minimal_tool")
+    ]
+"""
+    tools = extract_tools_from_repo("test-owner", "test-repo")
+    assert len(tools) == 1
+    assert tools[0]["name"] == "minimal_tool"
+
+def test_update_passport_tools_missing_schema():
+    dummy_passport = {
+        "versions": [{
+            "version": "1.0.0",
+            "tool_signatures": [],
+            "capabilities": {"tools": False}
+        }]
+    }
+    
+    dummy_tools = [{
+        "name": "extracted_tool",
+        # missing inputSchema and description
+    }]
+    
+    with patch("builtins.open", mock_open(read_data=json.dumps(dummy_passport))) as m:
+        with patch("json.dump") as mock_dump:
+            res = update_passport_tools(Path("dummy.json"), dummy_tools)
+            assert res is True
+            args, kwargs = mock_dump.call_args
+            updated_data = args[0]
+            sig = updated_data["versions"][0]["tool_signatures"][0]
+            assert sig["name"] == "extracted_tool"
+            assert sig["description"] == ""
+            assert sig["inputSchema"] == {"type": "object", "properties": {}, "required": []}
