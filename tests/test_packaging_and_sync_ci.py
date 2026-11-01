@@ -18,8 +18,15 @@ def test_sdist_and_wheel_generation():
         shutil.rmtree("dist")
             
     # Run the build command
+    import sys
+    
+    if shutil.which("uv"):
+        cmd = ["uv", "build"]
+    else:
+        cmd = [sys.executable, "-m", "build"]
+        
     result = subprocess.run(
-        ["uv", "build"], 
+        cmd, 
         capture_output=True, 
         text=True
     )
