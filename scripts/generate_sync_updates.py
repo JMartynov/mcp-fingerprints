@@ -16,9 +16,31 @@ def load_snapshot(path: Path) -> dict[str, Any]:
         return {}
     if path.suffix == ".gz":
         with gzip.open(path, "rt", encoding="utf-8") as f:
-            return json.load(f).get("passports", {})
+            data = json.load(f)
     else:
-        return json.loads(path.read_text(encoding="utf-8")).get("passports", {})
+        data = json.loads(path.read_text(encoding="utf-8"))
+
+    if isinstance(data, list):
+        result = {}
+        for item in data:
+            if isinstance(item, dict):
+                pkg = item.get("package_name") or item.get("name")
+                if pkg:
+                    result[pkg] = item
+        return result
+    elif isinstance(data, dict):
+        passports = data.get("passports", data)
+        if isinstance(passports, dict):
+            return passports
+        elif isinstance(passports, list):
+            result = {}
+            for item in passports:
+                if isinstance(item, dict):
+                    pkg = item.get("package_name") or item.get("name")
+                    if pkg:
+                        result[pkg] = item
+            return result
+    return {}
 
 try:
     from packaging.version import InvalidVersion, parse as parse_version
