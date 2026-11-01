@@ -27,7 +27,7 @@ def test_e2e_workflow_syntax():
     
     assert any("setup-python" in use for use in step_uses)
     assert any("uv run playwright install --with-deps chromium" in cmd for cmd in step_commands)
-    assert any("uv run pytest tests/test_web_pwa_e2e.py -v" in cmd for cmd in step_commands)
+    assert any("uv run pytest tests/test_web_pwa_e2e.py -v -m \"integration\"" in cmd for cmd in step_commands)
     
     upload_step = next(step for step in steps if "upload-artifact" in step.get("uses", ""))
     assert upload_step["if"] == "failure()"
