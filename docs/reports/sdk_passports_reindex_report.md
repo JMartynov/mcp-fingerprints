@@ -1,8 +1,8 @@
 # SDK Passports Re-Index Audit Report
 
 Generated for Task 93.
-Total passports targeted: 63
-Total passports updated with newly recovered tools: 20
+Total passports targeted: 75
+Total passports updated with newly recovered tools: 28
 
 | Passport | Repository | Previous Tools | Discovered Tools | Status |
 |:---|:---|:---:|:---:|:---|
@@ -69,3 +69,15 @@ Total passports updated with newly recovered tools: 20
 | `nuget/m/Microsoft.FluentUI.AspNetCore.McpServer.json` | `https://github.com/microsoft/fluentui-blazor` | 1 | 20 (`VS Code`, `Visual Studio`, `Aspect` (+17 more)) | `RECOVERED_NEW_TOOLS` |
 | `nuget/m/Microsoft.AgentGovernance.Extensions.ModelContextProtocol.json` | `https://github.com/microsoft/agent-governance-toolkit` | 1 | 0 | `ZERO_TOOLS` |
 | `nuget/l/Lifter.ModelContextProtocol.WatsonWebserver.json` | `https://github.com/mrdevrobot/Lifter.ModelContextProtocol.WatsonWebserver` | 1 | 0 | `ZERO_TOOLS` |
+| `friendlygeorge_docker-mcp-server.json` | `https://github.com/friendlygeorge/docker-mcp-server` | 22 | 52 (`compose_up`, `compose_down`, `compose_ps` (+49 more)) | `RECOVERED_NEW_TOOLS` |
+| `davidmosiah_google-health-mcp.json` | `https://github.com/davidmosiah/google-health-mcp` | 26 | 26 (`google_health_data_inventory`, `google_health_list_data_types`, `google_health_data_type_coverage` (+23 more)) | `ALREADY_UP_TO_DATE` |
+| `cablate_mcp-google-map.json` | `https://github.com/cablate/mcp-google-map` | 1 | 1 (`address`) | `RECOVERED_NEW_TOOLS` |
+| `acamolese_google-search-console-mcp.json` | `https://github.com/acamolese/google-search-console-mcp` | 0 | 17 (`gsc_query`, `gsc_performance_overview`, `gsc_compare_periods` (+14 more)) | `RECOVERED_NEW_TOOLS` |
+| `tadas-github_a2asearch-mcp.json` | `https://github.com/tadas-github/a2asearch-mcp` | 0 | 5 (`get_agent`, `get_setup`, `search_agents` (+2 more)) | `RECOVERED_NEW_TOOLS` |
+| `MAG-Cie_mcp-microsoft-todo.json` | `https://github.com/MAG-Cie/mcp-microsoft-todo` | 0 | 28 (`list_task_lists`, `list_tasks`, `get_task` (+25 more)) | `RECOVERED_NEW_TOOLS` |
+| `M-Yamashita01_cloudflare-mcp-go.json` | `https://github.com/M-Yamashita01/cloudflare-mcp-go` | 216 | 0 | `ZERO_TOOLS` |
+| `takumi0706_google-calendar-mcp.json` | `https://github.com/takumi0706/google-calendar-mcp` | 0 | 12 (`calendarId (optional)`, `timeMin (optional)`, `timeMax (optional)` (+9 more)) | `RECOVERED_NEW_TOOLS` |
+| `puspoaditya_cloudflare-workers-ai-mcp.json` | `https://github.com/puspoaditya/cloudflare-workers-ai-mcp` | 4 | 4 (`list_models`, `chat_completion`, `embed_text` (+1 more)) | `ALREADY_UP_TO_DATE` |
+| `@park-sang-gwon_google-flow-mcp.json` | `https://github.com/ParkSangGwon/google-flow-mcp` | 11 | 11 (`[flow_connect](#flow_connect)`, `[flow_status](#flow_status)`, `[flow_screenshot](#flow_screenshot)` (+8 more)) | `RECOVERED_NEW_TOOLS` |
+| `@mseep_flux-cloudflare-mcp.json` | `https://github.com/Hzzy2O/flux-cloudflare-mcp` | 1 | 0 | `ZERO_TOOLS` |
+| `@modelcontextprotocol/server-filesystem.json` | `https://github.com/modelcontextprotocol/servers` | 0 | 14 (`read_file`, `write_file`, `list_directory` (+11 more)) | `RECOVERED_NEW_TOOLS` |
