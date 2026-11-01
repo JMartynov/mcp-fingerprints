@@ -15,6 +15,8 @@ let ticking = false;
 let ITEM_HEIGHT = 160; // Estimated height of a card
 let COLUMNS = 3;
 
+
+
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
@@ -68,14 +70,24 @@ function getActiveVersionForServer(item) {
 }
 
 function getVersionData(item, versionStr) {
+  let found = null;
   if (item.versions && item.versions.length > 0) {
-    const found = item.versions.find((v) => v.version === versionStr);
-    if (found) return found;
+    found = item.versions.find((v) => v.version === versionStr);
   }
+  
+  const rawTools = (found && found.tool_signatures) || (found && found.tools) || item.tool_signatures || item.tools || [];
+
+  if (found) {
+    return Object.assign({}, found, {
+      tools: rawTools,
+      tool_count: rawTools.length
+    });
+  }
+
   return {
     version: versionStr || item.version || "1.0.0",
-    tools: item.tools || [],
-    tool_count: (item.tools || []).length,
+    tools: rawTools,
+    tool_count: rawTools.length,
     command: item.command || item.name,
     required_env_vars: item.required_env_vars || [],
     transports: item.transports || [],
@@ -171,13 +183,20 @@ function render() {
     if (item.name.toLowerCase().includes(q)) return true;
     if (item.description && item.description.toLowerCase().includes(q)) return true;
     // Check tools
-    if (item.tools && item.tools.some((t) => t.name.toLowerCase().includes(q))) {
+    let searchTools = item.tool_signatures || item.tools || [];
+    const activeVerForSearch = getActiveVersionForServer(item);
+    const vDataForSearch = getVersionData(item, activeVerForSearch);
+    
+    if (vDataForSearch.tools && searchTools !== vDataForSearch.tools) {
+        searchTools = searchTools.concat(vDataForSearch.tools);
+    }
+    
+    if (searchTools.some((t) => t.name.toLowerCase().includes(q))) {
       return true;
     }
     // Check parameters
     if (
-      item.tools &&
-      item.tools.some(
+      searchTools.some(
         (t) =>
           t.parameters &&
           t.parameters.some((p) => p.name.toLowerCase().includes(q)),
