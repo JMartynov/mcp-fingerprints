@@ -2,6 +2,26 @@
 
 All notable changes to the `mcp-fingerprints` project will be documented in this file.
 
+# Release Notes - v1.3.0
+
+> **Release Version**: `v1.3.0`  
+> **Release Date**: 2026-11-01  
+> **Status**: Production Release  
+> **Package**: [`mcp-fingerprints`](https://pypi.org/project/mcp-fingerprints/)
+
+---
+
+## 🌟 Overview & Highlights
+
+`v1.3.0` delivers full web catalog tool signature integration, automated Playwright headless browser CI workflows, PyPI packaging verification, and extensive tool extraction across 6 parallel Google Jules waves:
+1. **Web App Tool Signature Bridge & Catalog Normalizer**: Bridged 74,793 tool signatures into `web/app.js` across 3,998 servers, enabled deep tool search, and added `scripts/normalize_catalog_tools.py`.
+2. **Automated Playwright Headless Browser CI**: Created `.github/workflows/e2e.yml` and authored `tests/test_web_pwa_e2e.py` validating offline PWA caching, windowed DOM virtualization, and search responsiveness.
+3. **Packaging & Daily Sync CI Verification**: Added `MANIFEST.in` and authored `tests/test_packaging_and_sync_ci.py`.
+4. **Scaled Tool Extraction (Waves 1-6)**: Extracted AST tool schemas and recomputed canonical SHA-256 hashes across 80+ top MCP servers, updating `passports.json.gz` and `web/catalog.json`.
+5. **Full Offline Test Suite**: 517 passed, 5 skipped (100% green).
+
+---
+
 # Release Notes - v1.2.0
 
 > **Release Version**: `v1.2.0`  
