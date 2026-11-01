@@ -35,12 +35,12 @@
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:6603afabad6f2df18a8e0b8aa8435fe86c9ac1b616c34fef796e4cc0af87262a",
       "release_date": null,
       "dependencies": {},
       "connections": [],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
         "resources": false,
         "is_unpublished": true,
@@ -52,7 +52,521 @@
       "auth_type": "none",
       "headers_schema": {},
       "required_env_vars": [],
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "list_boards",
+          "description": "List every Mapache board (mind maps and whiteboards). Start here: it returns one line per board with its title, id, folder, number of nodes, items and open comments, last change, and which board is open in the app, plus the list of folders. Read-only. Use read_board next to see a board\\",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "folder": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:963add82125e1103260aae515c9c7a99cf71a7b56623f078f8d03d112082a30d"
+        },
+        {
+          "name": "read_board",
+          "description": "Read a whole board. Returns its mind maps as indented outlines, then its notes, shapes, tables, charts, connectors, images and open comments, each with the id the editing tools need (to see what the images show, use view_images). Read-only. Call it before changing a board you have not read in this conversation; use list_comments for the full comment threads.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string"
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:149eaa36c73a368f584931f1bc210060103ce0817c488ec2ca8ac28a5659c1a7"
+        },
+        {
+          "name": "view_images",
+          "description": "See the images placed on a board (screenshots, slides, photos, diagrams), so you can read and describe what they show; read_board only lists them. Returns each image as image content, preceded by its id, position and size, in reading order (top to bottom, then left to right). Read-only. Pass item ids from read_board to see specific ones; without ids it returns the first ones up to the limit, and tells you which ids remain so you can ask for them in the next call.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "board"
+            ]
+          },
+          "canonical_hash": "sha256:928baeef0945260d5e2195bbe202cdbea9771197e8c4168bca93a4e23afa4155"
+        },
+        {
+          "name": "search_boards",
+          "description": "Search text across all boards: titles, mind map nodes, notes, shapes, tables, sections, connector labels and comments. Case and accents are ignored. Returns, for each board with matches, its title and id and up to 30 hits with their ids. Read-only. Use it to find which board talks about something; use read_board to see one board in full.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ]
+          },
+          "canonical_hash": "sha256:8e2e8ffb82a0e03602b9ef00c632e83879549b49a266ed4c586739d2d743604b"
+        },
+        {
+          "name": "create_board",
+          "description": "Create a new board with a mind map. Give an outline to fill it: if the outline has one top line it becomes the central idea; otherwise the title is the central idea and each top line a branch. Always creates a new board (calling it twice makes two). Returns the board id, the central idea id and the address to open it. To add to an existing board use add_nodes, add_mindmap or add_items instead.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "folder": {
+                "type": "string"
+              },
+              "layout": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          },
+          "canonical_hash": "sha256:d7561aed2fda0feba2e9ca4ae984ebd1e48c72b8132f20dd53014c1e7c694dac"
+        },
+        {
+          "name": "update_board",
+          "description": "Rename a board, move it to a folder, or change its color or icon in the sidebar. Only the fields you pass change; the content of the board is untouched (to edit content use update_nodes or update_items). Returns a confirmation and the board address.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "folder": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "board"
+            ]
+          },
+          "canonical_hash": "sha256:b1c57295138b57141a50b498ef29f8b3e8761a82b71fae1e561d371557068f54"
+        },
+        {
+          "name": "delete_board",
+          "description": "Move a whole board to the trash. It disappears from the app; it can be restored with",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": [
+              "board"
+            ]
+          },
+          "canonical_hash": "sha256:8f80a46c74c890139e3215b9c8e262f2b333b159b81251dacf7ae5f8d6a7df2a"
+        },
+        {
+          "name": "create_folder",
+          "description": "Create a folder in the sidebar to organize boards, optionally inside another folder. Always creates a new folder, even if one with the same name exists; returns its id. You rarely need it: create_board and update_board create missing folders by themselves when you pass a folder path.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "parent": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "canonical_hash": "sha256:1fd17bc47777feb1b8f00dcd31b3f880f0387cd6e213f5885382ad12aa74e185"
+        },
+        {
+          "name": "add_nodes",
+          "description": "Add child nodes under an existing node of a mind map, from an indented outline (nested branches) or a flat list of texts. ${LIVE} Returns each new node with its id. Use it to grow a map; use add_mindmap for a separate new map and create_board for a new board.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "string"
+              },
+              "position": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "board",
+              "parent"
+            ]
+          },
+          "canonical_hash": "sha256:d20b27c4ca5db4d00e937af84598830080bfb3a4402cd3b3f66a40cdcc6d7791"
+        },
+        {
+          "name": "update_nodes",
+          "description": "Change existing mind map nodes: text, branch color, icon, folded state or checkbox. Several nodes in one call; in each update only the fields you pass change. ${LIVE} Returns how many nodes changed. To add nodes use add_nodes, to move them move_node, to remove them delete_nodes.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "collapsed": {
+                "type": "boolean"
+              },
+              "checked": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "node"
+            ]
+          },
+          "canonical_hash": "sha256:fce3e3ecba31e671884002da56aa6e3f6e0045aed020ee9ac7709d2b83b109e1"
+        },
+        {
+          "name": "move_node",
+          "description": "Move a node, with its whole branch, under another parent (in the same board), or reorder it among its siblings by giving its current parent and a new position. A node cannot go under itself or its own children. ${LIVE} Returns a confirmation.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "board",
+              "node",
+              "parent"
+            ]
+          },
+          "canonical_hash": "sha256:af9737e766dd99e98b294ae12f8d19ac4754dba89d9252d7c6823ecaafee2d56"
+        },
+        {
+          "name": "delete_nodes",
+          "description": "Delete mind map nodes and every node under them, plus the connectors attached to them (comments pinned to them stay, unpinned). The central idea of the main map cannot be deleted. Only when the person asks; they can undo it in the app with Ctrl+Z. Returns how many nodes were removed. To change a node instead use update_nodes.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "board",
+              "nodes"
+            ]
+          },
+          "canonical_hash": "sha256:c8438588c8ca722eb098e5b8341283daeb9e55f70260a339bc557b56e8147074"
+        },
+        {
+          "name": "add_mindmap",
+          "description": "Add another, separate mind map to an existing board (a board can hold several). The first line of the outline is its central idea and the indented lines its branches. It is placed in free space unless you give x and y. ${LIVE} Returns the id of its central idea. To grow a map that already exists use add_nodes.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "layout": {
+                "type": "string"
+              },
+              "lines": {
+                "type": "string"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "board",
+              "outline"
+            ]
+          },
+          "canonical_hash": "sha256:73aa1827a02aff1fbf5bdb0b08efd6a9f189fe327228a669e2debbd58b992789"
+        },
+        {
+          "name": "add_items",
+          "description": "Add sticky notes, text, shapes, sections, stickers, tables, charts or video embeds to a board. They are laid out together in free space unless each has x and y. To chart data, add a table first, then a chart with its id. ${LIVE} Returns each new item with its type and id (use the ids with connect, update_items or a chart",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "board",
+              "items"
+            ]
+          },
+          "canonical_hash": "sha256:7fb6b875c2968be9765025f81d17d65e841debe8642efa10d62e16cc1c765404"
+        },
+        {
+          "name": "update_items",
+          "description": "Change existing items (notes, text, shapes, sections, tables, charts, connectors): text, color, position, size, table cells, chart type and more. Several items in one call; in each update only the fields you pass change, and fields that do not apply to that item type are ignored. A wrong color for the type returns an error listing the valid ones. ${LIVE} Returns how many items changed. For mind map nodes use update_nodes.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "shape": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "w": {
+                "type": "number"
+              },
+              "h": {
+                "type": "number"
+              },
+              "locked": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "item"
+            ]
+          },
+          "canonical_hash": "sha256:a4b6907808d00cc9531f33ba86dec6ef587a2031ae0d5308981630f9e25ec18d"
+        },
+        {
+          "name": "delete_items",
+          "description": "Delete notes, shapes, tables, charts, connectors or other items, plus the connectors attached to them (comments pinned to them stay, unpinned). Only when the person asks; they can undo it in the app with Ctrl+Z. Returns how many items were removed. For mind map nodes use delete_nodes.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "board",
+              "items"
+            ]
+          },
+          "canonical_hash": "sha256:940f4acc3a269fa80a376ee9a59b5f5849e206b9ffb0c7271d7d034496e2e70d"
+        },
+        {
+          "name": "connect",
+          "description": "Draw connectors (arrows) between nodes and/or items, optionally with a label, for flowcharts and relations. Several in one call; each call adds new connectors (it does not replace existing ones). The path routes itself around other objects. ${LIVE} Returns how many connectors were added. To change a connector later use update_items with its id.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "style": {
+                "type": "string"
+              },
+              "route": {
+                "type": "string"
+              },
+              "endCap": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ]
+          },
+          "canonical_hash": "sha256:e91d83baef7875b5709665ea31c313ec963a533506eba4407af40be63c444cca"
+        },
+        {
+          "name": "list_comments",
+          "description": "List the comment threads on a board. Returns, for each thread, its id, author, date, what it is pinned to, its text and its replies, oldest first. Read-only. Use it when the person asks you to review a board or answer comments; then reply_comment and resolve_comment.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "include_resolved": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "board"
+            ]
+          },
+          "canonical_hash": "sha256:58983149dd3ebb81e93e7007aa97e909a8c917397dd0e8039c62ee391bbc30cc"
+        },
+        {
+          "name": "add_comment",
+          "description": "Leave a comment on a board, pinned to a node or item (",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "on": {
+                "type": "string"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "board",
+              "text"
+            ]
+          },
+          "canonical_hash": "sha256:541555991af9d1deab9caae5d5bf604e1b2fabb2e2ce714b0f93f3818a49e978"
+        },
+        {
+          "name": "reply_comment",
+          "description": "Reply in an existing comment thread (find it with list_comments). The reply is signed with your agent name and shows up live. Replying to a resolved comment reopens it. Write @Name to mention someone. Returns which thread you replied to and who was mentioned. To start a new thread use add_comment.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "comment": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "board",
+              "comment",
+              "text"
+            ]
+          },
+          "canonical_hash": "sha256:ec75c9c101dfe91f681f71f444b045fe964e028a5d3f528a5ce343b09467d3b2"
+        },
+        {
+          "name": "resolve_comment",
+          "description": "Mark a comment thread as resolved once you have done what it asked, or reopen it with reopen: true. Resolved threads stay on the board, hidden from the open list; nothing is deleted. Returns the comment id. To answer before resolving use reply_comment.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "comment": {
+                "type": "string"
+              },
+              "reopen": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "board",
+              "comment"
+            ]
+          },
+          "canonical_hash": "sha256:d9d81cb6d0a6439e982d818491585cbc5f39404763f98563126edecafd48b8a7"
+        },
+        {
+          "name": "export_board",
+          "description": "Save a board as a file the person can share:",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "format": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "board"
+            ]
+          },
+          "canonical_hash": "sha256:821a7e294754c890fa1be3d5d1399910e37bf16d99bd874fca8b9a2959dc9f0a"
+        },
+        {
+          "name": "open_board",
+          "description": "Open a board in Mapache in the person\\",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "launch": {
+                "type": "boolean"
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:102f7456113a89ba83012ae62ac6d23143eab98e18db485d5fc449a177e08e93"
+        },
+        {
+          "name": "New content is placed in free space",
+          "description": "right of or below what is there, whichever keeps the board closest to a",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:ef5c98ac657490af1e7d777c6b7720aaef37a61c4426a4d137f5e766173d7889"
+        },
+        {
+          "name": "Ana",
+          "description": "Execute Ana",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:295ae031cefb7b980e8152100a30d0dec2dbeb8d338592436c4d3520e2022c9c"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

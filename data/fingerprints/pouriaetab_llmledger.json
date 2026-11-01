@@ -21,12 +21,12 @@
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:f1e0eb3c9c7bdb5f9ba95ee5056bc77bdf5fad6bb9926491adfe25e97aa792a7",
       "release_date": null,
       "dependencies": {},
       "connections": [],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
         "resources": false,
         "is_unpublished": true,
@@ -38,7 +38,456 @@
       "auth_type": "none",
       "headers_schema": {},
       "required_env_vars": [],
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "find_models",
+          "description": "List the highest rated models for a kind of work within price, prompt size, ability and maker limits, each",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "task": {
+                "type": "string",
+                "description": "The kind of work, as Arena rates it",
+                "default": "overall"
+              },
+              "max_output_price": {
+                "type": "string",
+                "description": "Highest answer price, dollars per 1M tokens",
+                "default": null
+              },
+              "min_context": {
+                "type": "string",
+                "description": "Smallest prompt size the model must take, in tokens",
+                "default": null
+              },
+              "needs": {
+                "type": "array",
+                "description": "What the model must be able to do",
+                "default": []
+              },
+              "maker": {
+                "type": "string",
+                "description": "Only this maker, for example anthropic or openai",
+                "default": null
+              },
+              "limit": {
+                "type": "integer",
+                "description": "How many models to list (up to 200 for the whole catalogue)",
+                "default": 5
+              },
+              "name": {
+                "type": "string",
+                "description": "Look up one model by name instead of browsing: all its listings",
+                "default": null
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:0b9148c6aa55f2c9ff9c4799aead6ee98dc58d7581da6dde28df30582ec1dace"
+        },
+        {
+          "name": "compare_models",
+          "description": "Compare 2 to 6 named models for a kind of work: rating, prices, cost per task (or how fast each uses a",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "models": {
+                "type": "array",
+                "description": "2 to 6 model names, for example claude-opus-5.5, gpt-6.1-sol"
+              },
+              "task": {
+                "type": "string",
+                "description": "The kind of work, as Arena rates it",
+                "default": "overall"
+              },
+              "input_tokens": {
+                "type": "integer",
+                "description": "Prompt tokens per task",
+                "default": 1000
+              },
+              "output_tokens": {
+                "type": "integer",
+                "description": "Answer tokens per task, including hidden thinking",
+                "default": 800
+              },
+              "answer_tokens": {
+                "type": "string",
+                "description": "Answer tokens per model when they differ, by the names given",
+                "default": null
+              },
+              "pay": {
+                "type": "string",
+                "description": "api: dollars; claude or chatgpt: how fast each uses that plan",
+                "default": "api"
+              }
+            },
+            "required": [
+              "models"
+            ]
+          },
+          "canonical_hash": "sha256:68cbe1a95dd6a45a32bf4494a75ede49d0c2e1b4d45717a3b4a763b1fd7c6a38"
+        },
+        {
+          "name": "estimate_cost",
+          "description": "Price a workload on 1 to 10 models at each one's cheapest listing: dollars per call, per day and per 30",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "models": {
+                "type": "array",
+                "description": "1 to 10 model names"
+              },
+              "input_tokens": {
+                "type": "integer",
+                "description": "Prompt tokens per call"
+              },
+              "output_tokens": {
+                "type": "integer",
+                "description": "Answer tokens per call, including hidden thinking"
+              },
+              "cached_tokens": {
+                "type": "integer",
+                "description": "How many of the prompt tokens are read from the cache",
+                "default": 0
+              },
+              "calls_per_day": {
+                "type": "number",
+                "description": "Calls per day",
+                "default": 1
+              },
+              "cache_write_tokens": {
+                "type": "integer",
+                "description": "How many of the prompt tokens are written to the cache",
+                "default": 0
+              }
+            },
+            "required": [
+              "input_tokens",
+              "models",
+              "output_tokens"
+            ]
+          },
+          "canonical_hash": "sha256:8bb6742b6570b221585df4e81e49ac06cbea6977dd41ecd2fd883dcf9620b05a"
+        },
+        {
+          "name": "price_history",
+          "description": "Show one model's price history: every price and retirement date change since 2023 on every host, each",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "A model name, for example claude-opus-5.5, or one listing such as bedrock/anthropic.claude-opus-5-5"
+              },
+              "date": {
+                "type": "string",
+                "description": "A day as YYYY-MM-DD: each listing's prices that day and the change that set them",
+                "default": null
+              }
+            },
+            "required": [
+              "model"
+            ]
+          },
+          "canonical_hash": "sha256:164ebd7c9ee866816f091fb5f247b783d3aa0a6f8a919fdc8099a3680747e3d7"
+        },
+        {
+          "name": "suggest_for_project",
+          "description": "Suggest a model and effort level for a prompt or a described project: it guesses the kind of work and",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "prompt": {
+                "type": "string",
+                "description": "The project's starting prompt, or a description of the work"
+              },
+              "pay": {
+                "type": "string",
+                "description": "api: dollars; claude or chatgpt: compare within that plan",
+                "default": "api"
+              },
+              "answer": {
+                "type": "string",
+                "description": "Typical answer length",
+                "default": "medium"
+              }
+            },
+            "required": [
+              "prompt"
+            ]
+          },
+          "canonical_hash": "sha256:5fc825eb3c4480224e6007e597c2a897f142d00faa3029449ef72570468909e7"
+        },
+        {
+          "name": "not_yet_priced",
+          "description": "List the models Arena has rated that LiteLLM's catalogue does not price yet, with how soon the catalogue",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "maker": {
+                "type": "string",
+                "description": "Only this maker, for example meta or ibm",
+                "default": null
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:1530db2c45d3ff8ec14915415d414961efba8854453ac539eec6ff1da44721c1"
+        },
+        {
+          "name": "estimate_time",
+          "description": "Estimate how long one call and a whole job take, as a usual time and a slow day, from the user's own timed",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "A model name, as the catalogue or Ollama names it"
+              },
+              "input_tokens": {
+                "type": "integer",
+                "description": "Prompt tokens per call"
+              },
+              "output_tokens": {
+                "type": "integer",
+                "description": "Answer tokens per call, including hidden thinking"
+              },
+              "calls": {
+                "type": "integer",
+                "description": "How many calls the job makes",
+                "default": 1
+              },
+              "way": {
+                "type": "string",
+                "description": "How the model is called",
+                "default": "api"
+              },
+              "thinking": {
+                "type": "boolean",
+                "description": "Thinking turned on",
+                "default": false
+              },
+              "concurrency": {
+                "type": "integer",
+                "description": "Calls running at once",
+                "default": 1
+              }
+            },
+            "required": [
+              "input_tokens",
+              "model",
+              "output_tokens"
+            ]
+          },
+          "canonical_hash": "sha256:689a5077eed794e0a3a3d8f2ae8a65fba22540cdba86b2d2214c57d53c1ee5b1"
+        },
+        {
+          "name": "log_run",
+          "description": "Record a timed run (model, tokens, seconds, how it was called), or every result of a promptfoo results",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "The model that ran",
+                "default": null
+              },
+              "input_tokens": {
+                "type": "string",
+                "description": "Prompt tokens of the call",
+                "default": null
+              },
+              "output_tokens": {
+                "type": "string",
+                "description": "Answer tokens of the call, hidden thinking included",
+                "default": null
+              },
+              "seconds": {
+                "type": "string",
+                "description": "How long the call took",
+                "default": null
+              },
+              "way": {
+                "type": "string",
+                "description": "How the model was called (default api; for a promptfoo file, read from each provider)",
+                "default": null
+              },
+              "thinking": {
+                "type": "boolean",
+                "description": "Thinking was on (a promptfoo result that counts thinking tokens is marked on by itself)",
+                "default": false
+              },
+              "task": {
+                "type": "string",
+                "description": "The kind of work, if known",
+                "default": null
+              },
+              "promptfoo_results": {
+                "type": "string",
+                "description": "Path of a promptfoo results file (promptfoo eval -o results.json): every result becomes a run",
+                "default": null
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:ac558b9e6744a8649399da23518dfeceb355bf52c823fc66a33ec247e57ab795"
+        },
+        {
+          "name": "forecast_job",
+          "description": "Estimate a whole job's time, cost and accuracy from a promptfoo run of a sample of it: for each model in",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "promptfoo_results": {
+                "type": "string",
+                "description": "Path of a promptfoo results file from a sample of the job (promptfoo eval --filter-sample 20 -o sample.json)"
+              },
+              "items": {
+                "type": "integer",
+                "description": "How many tests the whole job has"
+              },
+              "concurrency": {
+                "type": "string",
+                "description": "Calls running at once in the whole job (default: as the sample ran)",
+                "default": null
+              },
+              "way": {
+                "type": "string",
+                "description": "How the models are called (default: read from each provider)",
+                "default": null
+              },
+              "thinking": {
+                "type": "boolean",
+                "description": "Thinking turned on",
+                "default": false
+              },
+              "wrong_answer_cost": {
+                "type": "string",
+                "description": "Dollars a wrong answer costs you to catch and fix; the pick then counts it",
+                "default": null
+              }
+            },
+            "required": [
+              "items",
+              "promptfoo_results"
+            ]
+          },
+          "canonical_hash": "sha256:5d5272d89384fc81a1b88ebbb368d8173feebbdcb1f82c5ce91c267e43ec1c6b"
+        },
+        {
+          "name": "local_or_cloud",
+          "description": "Compare running an open model on a computer you buy with paying a cloud model per call: the cost a month",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "local_model": {
+                "type": "string",
+                "description": "The open model you would run at home, as Ollama names it, for example llama3.1:8b"
+              },
+              "cloud_models": {
+                "type": "array",
+                "description": "1 to 5 cloud models to compare with"
+              },
+              "input_tokens": {
+                "type": "integer",
+                "description": "Prompt tokens per call"
+              },
+              "output_tokens": {
+                "type": "integer",
+                "description": "Answer tokens per call, including hidden thinking"
+              },
+              "calls_per_month": {
+                "type": "number",
+                "description": "Calls a month"
+              },
+              "hardware_price": {
+                "type": "number",
+                "description": "What the computer costs you, in dollars"
+              },
+              "watts": {
+                "type": "string",
+                "description": "Power the computer draws while it answers, in watts",
+                "default": null
+              },
+              "electricity_price": {
+                "type": "string",
+                "description": "Your electricity price, dollars per kWh (default: EIA's average for homes)",
+                "default": null
+              },
+              "state": {
+                "type": "string",
+                "description": "A US state, for EIA's average there, for example Texas",
+                "default": null
+              },
+              "months": {
+                "type": "integer",
+                "description": "How many months to compare over",
+                "default": 36
+              },
+              "cached_tokens": {
+                "type": "integer",
+                "description": "Prompt tokens read from the cloud model's cache",
+                "default": 0
+              },
+              "local_way": {
+                "type": "string",
+                "description": "How the local model is called",
+                "default": "ollama"
+              },
+              "thinking": {
+                "type": "boolean",
+                "description": "Thinking turned on for the local model",
+                "default": false
+              }
+            },
+            "required": [
+              "calls_per_month",
+              "cloud_models",
+              "hardware_price",
+              "input_tokens",
+              "local_model",
+              "output_tokens"
+            ]
+          },
+          "canonical_hash": "sha256:1fc774122ca3d98ca00b50d760c56be9822bb41c1ffe9e010d510d7803392d0b"
+        },
+        {
+          "name": "price_my_usage",
+          "description": "Price the user's own past coding agent usage, from a ccusage or codeburn export, on every rated model:",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "export": {
+                "type": "string",
+                "description": "Path of a token export on this computer: `ccusage daily --json > f.json`, `ccusage session --json > f.json`, or `codeburn export -f json -o f.json`",
+                "default": null
+              },
+              "mix": {
+                "type": "string",
+                "description": "Instead of a file: token mixes as {model, date, input, output, cache_read, cache_write, session?}",
+                "default": null
+              },
+              "task": {
+                "type": "string",
+                "description": "The kind of work the sessions were (default: codeburn's categories, else coding)",
+                "default": null
+              },
+              "compare": {
+                "type": "string",
+                "description": "Two models to test against each other on the same sessions",
+                "default": null
+              },
+              "limit": {
+                "type": "integer",
+                "description": "How many models to list in every_model (the cheapest first)",
+                "default": 25
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:546f4edf9615c91f299fd78b77ca9df01f64b6cffc62983830bb5a5687c26b31"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }

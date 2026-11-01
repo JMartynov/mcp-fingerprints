@@ -5,7 +5,7 @@
   "ecosystem": "npm",
   "display_name": "postsider",
   "description": "PostSider - open-source social media scheduler for 30+ platforms (backend monorepo)",
-  "author": "Lumi Zone Łukasz Blania <lukasz@postsider.com>",
+  "author": "Lumi Zone \u0141ukasz Blania <lukasz@postsider.com>",
   "repository_url": "https://github.com/lumizone/postsider",
   "homepage_url": null,
   "license": "AGPL-3.0",
@@ -28,12 +28,12 @@
   "versions": [
     {
       "version": "1.0.0",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:6c3d438dbe7753ee89fc2197c12dfd6ef639c39ada68af9c162e2b5e01d7570b",
       "release_date": null,
       "dependencies": {},
       "connections": [],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
         "resources": false,
         "is_unpublished": true,
@@ -45,7 +45,819 @@
       "auth_type": "none",
       "headers_schema": {},
       "required_env_vars": [],
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "postsider_list_channels",
+          "description": "List the social channels (integrations) connected to this PostSider organization. Returns each channel id, name and platform. Call this first to get the channel ids needed by postsider_create_post.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:ba1d05fdfb8dfb7451428e51dfaebf4f057514e856373d89fd7bf53c415fc737"
+        },
+        {
+          "name": "postsider_get_agency_overview",
+          "description": "Get an organization-wide operational overview for an agency: clients, channels, queued posts, drafts, published posts, errors, recent errors and pending approvals. Useful for morning checks and client reporting.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "days": {
+                "type": "number",
+                "description": "Window for recent errors, in days.",
+                "default": 30
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:30573601532472a387c646d2e7b9f94a5fc930400de70a8afb69b79b3a61dc12"
+        },
+        {
+          "name": "postsider_get_customer_report",
+          "description": "Get a customer-scoped agency report with channels, queued, draft, published, error and pending approval counts.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "customerId": {
+                "type": "string",
+                "description": "Customer id from postsider_list_groups."
+              },
+              "days": {
+                "type": "number",
+                "description": "Window for recent errors, in days.",
+                "default": 30
+              }
+            },
+            "required": [
+              "customerId"
+            ]
+          },
+          "canonical_hash": "sha256:265dcba03e25ea9180bdaf078b605405f5c7d78881f90d98bfaa8ae4d80ada49"
+        },
+        {
+          "name": "postsider_list_groups",
+          "description": "List configured channel groups. In PostSider a group is a customer, so an id returned here is the customerId expected by postsider_get_customer_report and by the customer filter of postsider_list_posts.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:398f69b459a6eb2095a47f517e9b9f14d34a22a0d74154d459bb5921405a77b2"
+        },
+        {
+          "name": "postsider_find_slot",
+          "description": "Return the next free scheduling date-time (UTC) for a channel, based on its configured posting queue. Use the returned value as the ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel (integration) id, from postsider_list_channels."
+              }
+            },
+            "required": [
+              "channelId"
+            ]
+          },
+          "canonical_hash": "sha256:8e5f7b53287fa66e82758c7a458472d5a33de13d0c98b3e8c95de7354161e02d"
+        },
+        {
+          "name": "postsider_list_posts",
+          "description": "List posts scheduled or published within a date range (UTC), newest page first as stored. Filter with ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "startDate": {
+                "type": "string",
+                "description": "Range start, ISO 8601 (e.g. 2026-06-01T00:00:00Z)."
+              },
+              "endDate": {
+                "type": "string",
+                "description": "Range end, ISO 8601 (e.g. 2026-06-30T23:59:59Z)."
+              },
+              "customer": {
+                "type": "string",
+                "description": "Optional customer id to filter by."
+              },
+              "state": {
+                "type": "string",
+                "description": "Only posts in this state. ERROR = failed to publish.",
+                "enum": [
+                  "QUEUE",
+                  "DRAFT",
+                  "PUBLISHED",
+                  "ERROR",
+                  "APPROVAL"
+                ]
+              },
+              "channelId": {
+                "type": "string",
+                "description": "Only posts for this channel (id from postsider_list_channels)."
+              },
+              "page": {
+                "type": "number",
+                "description": "Page number, starting at 1.",
+                "default": 1
+              },
+              "limit": {
+                "type": "string",
+                "description": "Posts per page (default 50, max 200).",
+                "default": 50
+              }
+            },
+            "required": [
+              "endDate",
+              "startDate"
+            ]
+          },
+          "canonical_hash": "sha256:da56204f638996052e70a6baf697998b7e10403ce9df904cd2476a2f2877f4c2"
+        },
+        {
+          "name": "postsider_get_channel_rules",
+          "description": "For one channel, return its platform rules, the maximum post length, the provider-specific ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel (integration) id, from postsider_list_channels."
+              }
+            },
+            "required": [
+              "channelId"
+            ]
+          },
+          "canonical_hash": "sha256:f2819aeb2d94858015f4f1827aa830b69e064c72a567092a33fa1516a167e7d4"
+        },
+        {
+          "name": "postsider_get_post_missing_fields",
+          "description": "Return per-channel validation problems / missing required fields for a post, so they can be fixed before publishing.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Post id."
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:008bc08cd9ef3950cab3ed2cdf9128b64ce3e6338f9803b7bd825c268e31037e"
+        },
+        {
+          "name": "postsider_get_post",
+          "description": "Get the full organization-scoped post group, including current state, scheduled time, media, channel and publish error. Use this to inspect the result of an asynchronous create or publish operation.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Post id returned by postsider_create_post."
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:ed0c05b815ae7895983cf66b470a75be50167c2cfac6cc3deaf57bea8b60583c"
+        },
+        {
+          "name": "postsider_get_post_analytics",
+          "description": "Get performance analytics for a single post over the last N days (where the provider supports it).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Post id."
+              },
+              "days": {
+                "type": "string",
+                "description": "Look-back window in days (default 7).",
+                "default": 7
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:af8ccd52b909b2454631701919e67a09f75719f40a3b37c43b26aa05ca159bb2"
+        },
+        {
+          "name": "postsider_get_channel_analytics",
+          "description": "Get account-level analytics for a connected channel (where the provider supports it).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel (integration) id, from postsider_list_channels."
+              },
+              "date": {
+                "type": "string",
+                "description": "Provider-specific date/range parameter, if required."
+              }
+            },
+            "required": [
+              "channelId"
+            ]
+          },
+          "canonical_hash": "sha256:acc0f353211415dab82906f42e2d3a711fe690effc1debd0e7ee652e5c0bfae1"
+        },
+        {
+          "name": "postsider_get_notifications",
+          "description": "List recent notifications for the organization (e.g. publish failures, channels needing reconnection).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:a8f46b40680bffe2e55c14245eac03aa11788e5ab6b33ef7292098c41edc3f78"
+        },
+        {
+          "name": "postsider_pause_publishing",
+          "description": "Immediately halt ALL publishing for this organization (kill switch): no ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "Optional reason, recorded in the audit trail and shown to the team."
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:567e4ffafc631c728d6f8ff22794351cc4a56a87b6171db241fe5bf722d8aa68"
+        },
+        {
+          "name": "postsider_get_publishing_state",
+          "description": "Check whether publishing is active or paused for this organization. Useful before scheduling (a paused org rejects new posts with publishing_paused), and to confirm a kill switch is on.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:d8f7f294ed26a60b41dca95a1a26c7e6b8c30e0d27a1592334961b5db5400b5d"
+        },
+        {
+          "name": "postsider_upload_media_from_url",
+          "description": "Download an image or video from a public URL and store it in the PostSider media library. Accepts images (jpeg, png, gif, webp, avif, bmp, tiff; up to 10 MB) and MP4 video (up to 500 MB). Returns a media object ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "Public HTTPS URL of the image or video to import."
+              }
+            },
+            "required": [
+              "url"
+            ]
+          },
+          "canonical_hash": "sha256:83cc8b5b9fbd4cec01ed599d50fe9e493218234adc94873e6f9c5028203ec8ca"
+        },
+        {
+          "name": "postsider_upload_media_base64",
+          "description": "Store an image or MP4 video you hold as bytes (no public URL needed). ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "string",
+                "description": "Base64-encoded file content (optionally a data: URL)."
+              },
+              "filename": {
+                "type": "string",
+                "description": "Original file name, shown in the media library."
+              }
+            },
+            "required": [
+              "data"
+            ]
+          },
+          "canonical_hash": "sha256:0c38a75d2f529c3be7d5b7559a2c9f5c424d3a10cb5d34a0d2f7aed56ee82238"
+        },
+        {
+          "name": "postsider_upload_media_from_file",
+          "description": "Upload an image or MP4 video from a file path on the machine running this MCP server (your own computer). Supports large videos (up to 500 MB; images up to 10 MB). Returns a media object ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Absolute path of the image or MP4 file on this machine."
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "canonical_hash": "sha256:415e4b3743278491a9fc8e1cb4afb0ba6d8196783c971bcddd91a2a3b37c9421"
+        },
+        {
+          "name": "postsider_list_media",
+          "description": "Browse files already in the PostSider media library (newest first, 18 per page) so they can be reused without uploading again. Each item has ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number",
+                "description": "Page number, starting at 1.",
+                "default": 1
+              },
+              "search": {
+                "type": "string",
+                "description": "Filter by original file name."
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:ffee7300ef36c8f23bed71a2d2f49055f981b2853276c03839baad31fff82b42"
+        },
+        {
+          "name": "postsider_create_post",
+          "description": "Create a post across one or more channels. ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:c43f568321bb95a57f6f8870feb582c05a5874bddad4008111aa7e4d63908667"
+        },
+        {
+          "name": "postsider_update_post",
+          "description": "Edit a post in place instead of deleting and recreating it. Send only what changes: ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Id of the post to edit."
+              },
+              "content": {
+                "type": "string",
+                "description": "New post text (replaces the current text)."
+              },
+              "images": {
+                "type": "string",
+                "description": "Complete new media list from the upload tools or postsider_list_media. Use [] to remove all media. Omit to keep current media."
+              },
+              "date": {
+                "type": "string",
+                "description": "New publish date, ISO 8601 UTC. Must not be in the past for scheduled posts."
+              },
+              "settings": {
+                "type": "string",
+                "description": "Provider-specific settings; replaces the current settings object entirely, so start from postsider_get_post."
+              },
+              "firstComment": {
+                "type": "string",
+                "description": "New first comment. Empty string removes it."
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:7c179dfd2f757faee434d891f338ebc4caee8022b3cb94b554654ca5002953fe"
+        },
+        {
+          "name": "postsider_update_post_status",
+          "description": "Change the status of an existing post (e.g. move between draft and queue).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Post id."
+              },
+              "status": {
+                "type": "string",
+                "description": "New status value: draft or schedule.",
+                "enum": [
+                  "draft",
+                  "schedule"
+                ]
+              }
+            },
+            "required": [
+              "postId",
+              "status"
+            ]
+          },
+          "canonical_hash": "sha256:f81ef869e5eaf320dd40f7538c447480c1f1010ddde3d08819615c56ff5b1e0a"
+        },
+        {
+          "name": "postsider_delete_post",
+          "description": "Permanently delete a post and every other channel version of it. The id may be any post in a group: PostSider stores a multi-channel post as one group, and a single id deletes the whole group. Read the post first (postsider_get_post) and confirm the full set of channel versions with the user before calling this.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Post id to delete."
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:89155759010c8ce1afd976ec818e87992f234a09ca672bd308d207f7116b0823"
+        },
+        {
+          "name": "postsider_request_approval",
+          "description": "Push a draft post into the human approval queue for review, instead of publishing or scheduling it directly. The post must already exist as a draft (see postsider_create_post with type ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Draft post id to submit for approval."
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:5293323de64ba504ad979f3beddbeba208b441d5b67f7b6138fe36aa0d730acc"
+        },
+        {
+          "name": "postsider_get_approval_status",
+          "description": "Check whether a post submitted via postsider_request_approval has been approved, rejected (with the reviewer\\",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Post id to check."
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:76b5f736b74a3b6cd78e9bf11b4cc0b90de8b1e6604a40d3eda66f8547f1f78a"
+        },
+        {
+          "name": "postsider_connect_channel",
+          "description": "Get the one-time sign-in link that connects a social account to PostSider. The user must open the link and approve access on the platform (an agent cannot do that step). Pass ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "type": "string",
+                "description": "Platform identifier, e.g. x, linkedin, linkedin-page, instagram, facebook, tiktok, youtube, threads, pinterest, bluesky."
+              },
+              "reconnectChannelId": {
+                "type": "string",
+                "description": "Existing channel id to renew."
+              }
+            },
+            "required": [
+              "platform"
+            ]
+          },
+          "canonical_hash": "sha256:886717b84e1f5d99e5d017f80993774f853034ed61c2e0a4e4549aa28b3558ce"
+        },
+        {
+          "name": "postsider_set_channel_enabled",
+          "description": "Switch a channel off (no posts are published to it, its slot is released) or back on. Enabling can fail when the plan\\",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel id from postsider_list_channels."
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "true to enable, false to disable."
+              }
+            },
+            "required": [
+              "channelId",
+              "enabled"
+            ]
+          },
+          "canonical_hash": "sha256:7102ec7f8d3cbae386e638603c63d61fa5d215a3a84f3b625e646067fbee1b2f"
+        },
+        {
+          "name": "postsider_disconnect_channel",
+          "description": "Disconnect a channel from PostSider. Its unpublished posts are kept as drafts (not deleted) and published history stays, but nothing is published to it until it is connected again. Confirm with the user first.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel id from postsider_list_channels."
+              }
+            },
+            "required": [
+              "channelId"
+            ]
+          },
+          "canonical_hash": "sha256:bc640cbce30b6c12e2b4de232d4c5cd906bb41661278e3e8b3378d99f238de8a"
+        },
+        {
+          "name": "postsider_get_queue_plan",
+          "description": "Read the recurring posting slots of a channel (the queue that postsider_find_slot draws from) and the timezone they are expressed in. Each slot time is minutes from midnight in that timezone.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel id from postsider_list_channels."
+              }
+            },
+            "required": [
+              "channelId"
+            ]
+          },
+          "canonical_hash": "sha256:57a4e7d4760181acc6621bc5820a5d6b3bdf9685fa87d1c74b6bf59f7b1510c4"
+        },
+        {
+          "name": "postsider_set_queue_plan",
+          "description": "Replace the recurring posting slots of a channel. Each slot is ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel id from postsider_list_channels."
+              },
+              "slots": {
+                "type": "object",
+                "properties": {
+                  "time": {
+                    "type": "number"
+                  },
+                  "days": {
+                    "type": "number",
+                    "description": "Weekdays 0 (Sunday) to 6 (Saturday). Omit for every day."
+                  }
+                },
+                "description": "The complete list of slots. An empty list clears the plan."
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA timezone, e.g. Europe/Warsaw. Omit to keep the current one."
+              }
+            },
+            "required": [
+              "channelId",
+              "slots"
+            ]
+          },
+          "canonical_hash": "sha256:af83515575291b4c1b447e27dd9becc1633c5a10ecec6ac80c2b303d30189a76"
+        },
+        {
+          "name": "postsider_get_smart_slots",
+          "description": "Suggest the best upcoming publish times for a channel, scored from platform peak hours and the channel\\",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel id from postsider_list_channels."
+              },
+              "count": {
+                "type": "number",
+                "description": "How many suggestions (1-10).",
+                "default": 3
+              }
+            },
+            "required": [
+              "channelId"
+            ]
+          },
+          "canonical_hash": "sha256:40fc7d3ff6d77424747f568538fbebb28fdf73a29f013ff571ca9ad0e246cdcb"
+        },
+        {
+          "name": "postsider_set_channel_customer",
+          "description": "Assign a channel to a client (customer) by name; the client is created if it does not exist. Pass an empty name to remove the assignment. Clients are what postsider_list_groups returns and what reports and filters use. Needs an admin or owner role.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channelId": {
+                "type": "string",
+                "description": "Channel id from postsider_list_channels."
+              },
+              "customerName": {
+                "type": "string",
+                "description": "Client name, or an empty string to unassign."
+              }
+            },
+            "required": [
+              "channelId",
+              "customerName"
+            ]
+          },
+          "canonical_hash": "sha256:fddb6c31a65dd466a782698be9727db7e15f226e65cb1e4b81ccd5e7461ce2f9"
+        },
+        {
+          "name": "postsider_get_content_library",
+          "description": "List the reusable content the workspace has saved: hashtag groups (",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:db03faaa85314f1a67cc703b0de16b0ecea99502ed8f24ccc404bfe8aaef8633"
+        },
+        {
+          "name": "postsider_save_library_item",
+          "description": "Create (no ",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "hashtag-groups",
+                  "caption-templates",
+                  "utm-presets"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "description": "Item id to update. Omit to create."
+              },
+              "name": {
+                "type": "string"
+              },
+              "hashtags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "platform": {
+                "type": "string",
+                "description": "hashtag-groups only."
+              },
+              "content": {
+                "type": "string",
+                "description": "caption-templates only."
+              },
+              "utmSource": {
+                "type": "string"
+              },
+              "utmMedium": {
+                "type": "string"
+              },
+              "utmCampaign": {
+                "type": "string"
+              },
+              "utmContent": {
+                "type": "string"
+              },
+              "utmTerm": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "name"
+            ]
+          },
+          "canonical_hash": "sha256:86b99628218827a6ca03cf97f6f00c88c58fc86233bacec06a2a9b55555522ad"
+        },
+        {
+          "name": "postsider_delete_library_item",
+          "description": "Permanently delete a hashtag group, caption template or UTM preset. Posts already created from it are not affected. Confirm with the user first.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "hashtag-groups",
+                  "caption-templates",
+                  "utm-presets"
+                ]
+              },
+              "id": {
+                "type": "string",
+                "description": "Item id from postsider_get_content_library."
+              }
+            },
+            "required": [
+              "id",
+              "kind"
+            ]
+          },
+          "canonical_hash": "sha256:4d1a4df826f98560f37524b5c3089bb60dfd4ec17db3f1c3fe1105bb7b0b3965"
+        },
+        {
+          "name": "postsider_duplicate_post",
+          "description": "Copy a post (text, media, first comment) as a NEW DRAFT, optionally onto another channel (",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "postId": {
+                "type": "string",
+                "description": "Id of the post to copy."
+              },
+              "channelId": {
+                "type": "string",
+                "description": "Target channel. Omit to copy onto the same channel."
+              },
+              "date": {
+                "type": "string",
+                "description": "Date for the copy, ISO 8601 UTC. Omit for the next free slot."
+              }
+            },
+            "required": [
+              "postId"
+            ]
+          },
+          "canonical_hash": "sha256:e394295711eef9ff5e0e34490ceab175aa3f02d1b5038ba826d7b5ee7c5bdc68"
+        },
+        {
+          "name": "postsider_check_post",
+          "description": "Run PostSider\\",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "platforms": {
+                "type": "string"
+              },
+              "hasMedia": {
+                "type": "boolean",
+                "default": false
+              },
+              "mediaType": {
+                "type": "string",
+                "enum": [
+                  "image",
+                  "video",
+                  "mixed"
+                ]
+              }
+            },
+            "required": [
+              "content",
+              "platforms"
+            ]
+          },
+          "canonical_hash": "sha256:af557b5f2ef431ef4d7b256d0710f1ce23b8a9dd122c01165c973c2fdeee2266"
+        },
+        {
+          "name": "postsider_rewrite_post",
+          "description": "Get up to 5 alternative versions of a post text in a chosen tone, optionally tuned to one platform. Returns suggestions only; nothing is saved. Counts against the plan\\",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "tone": {
+                "type": "string",
+                "enum": [
+                  "rephrase",
+                  "shorten",
+                  "formal",
+                  "casual",
+                  "punchy"
+                ]
+              },
+              "count": {
+                "type": "number",
+                "default": 3
+              },
+              "platform": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "content"
+            ]
+          },
+          "canonical_hash": "sha256:b52ec8210e65b9ba83f9386a656c133ca866303c0807137ead36fe8be40686b6"
+        },
+        {
+          "name": "postsider_delete_media",
+          "description": "Permanently delete a file from the media library and storage. Posts that still use it will lose the image or video, so check where it is used first and confirm with the user.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mediaId": {
+                "type": "string",
+                "description": "Media id from postsider_list_media."
+              }
+            },
+            "required": [
+              "mediaId"
+            ]
+          },
+          "canonical_hash": "sha256:a91b028c91b4aa96368251b8240580f833908ad6c748999105a1a3c90ec59f31"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
