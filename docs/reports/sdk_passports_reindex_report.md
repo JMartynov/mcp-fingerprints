@@ -1,83 +1,34 @@
 # SDK Passports Re-Index Audit Report
 
 Generated for Task 93.
-Total passports targeted: 75
-Total passports updated with newly recovered tools: 28
+Total passports targeted: 25
+Total passports updated with newly recovered tools: 15
+
 
 | Passport | Repository | Previous Tools | Discovered Tools | Status |
 |:---|:---|:---:|:---:|:---|
-| `ofershap_mcp-server-docker.json` | `https://github.com/ofershap/mcp-server-docker` | 0 | 10 (`list_containers`, `container_logs`, `start_container` (+7 more)) | `RECOVERED_NEW_TOOLS` |
-| `ofershap_mcp-server-cloudflare.json` | `https://github.com/ofershap/mcp-server-cloudflare` | 0 | 13 (`cf_zones`, `cf_dns_list`, `cf_dns_create` (+10 more)) | `RECOVERED_NEW_TOOLS` |
-| `ni-c_google-search-console-mcp.json` | `https://github.com/ni-c/google-search-console-mcp` | 3 | 49 (`Argument`, `site_url`, `method` (+46 more)) | `RECOVERED_NEW_TOOLS` |
-| `neoninnovationlab_neon-mcp-gateway.json` | `https://github.com/neoninnovationlab/neon-mcp-gateway` | 1 | 1 (`execute_query`) | `ALREADY_UP_TO_DATE` |
-| `neondatabase_mcp-server-neon.json` | `https://github.com/neondatabase/mcp-server-neon` | 20 | 127 (`add_auth_oauth_provider`, `add_auth_trusted_domain`, `compare_database_schema` (+124 more)) | `RECOVERED_NEW_TOOLS` |
-| `mshegolev_gitlab-ci-mcp.json` | `https://github.com/mshegolev/gitlab-ci-mcp` | 19 | 23 (`gitlab_list_branches`, `gitlab_list_tags`, `gitlab_compare_branches` (+20 more)) | `RECOVERED_NEW_TOOLS` |
-| `microsoft_playwright-mcp.json` | `https://github.com/microsoft/playwright-mcp` | 434 | 99 (`Title`, `Description`, `Parameters` (+96 more)) | `RECOVERED_NEW_TOOLS` |
-| `henilcalagiya_google-sheets-mcp.json` | `https://github.com/henilcalagiya/google-sheets-mcp` | 24 | 0 | `ZERO_TOOLS` |
-| `helbertparanhos_cloudflare-mcp-pro.json` | `https://github.com/helbertparanhos/cloudflare-mcp-pro` | 0 | 69 (`verify_token`, `list_accounts`, `list_zones` (+66 more)) | `RECOVERED_NEW_TOOLS` |
-| `googledrive.json` | `https://github.com/rndomhack/node-googledrive` | 18 | 0 | `ZERO_TOOLS` |
-| `googleapis_genai-toolbox.json` | `https://github.com/googleapis/genai-toolbox` | 0 | 1 (`For connecting to MCP Toolbox servers`) | `RECOVERED_NEW_TOOLS` |
-| `vakharwalad23_google-mcp.json` | `https://github.com/vakharwalad23/google-mcp` | 35 | 43 (`google_calendar_set_default`, `google_calendar_list_calendars`, `google_calendar_create_event` (+40 more)) | `RECOVERED_NEW_TOOLS` |
-| `github_github-mcp-server.json` | `https://github.com/github/github-mcp-server` | 645 | 27 (`The initial tool file and its corresponding test file will have the //go`, `Old Name`, `add_project_item` (+24 more)) | `RECOVERED_NEW_TOOLS` |
-| `utapyngo_sentry-mcp-rs.json` | `https://github.com/utapyngo/sentry-mcp-rs` | 2 | 0 | `ZERO_TOOLS` |
-| `alexander-zuev_supabase-mcp-server.json` | `https://github.com/alexander-zuev/supabase-mcp-server` | 12 | 0 | `ZERO_TOOLS` |
-| `microsoft_mcp.json` | `https://github.com/microsoft/mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `mcp-server-time.json` | `https://github.com/modelcontextprotocol/servers` | 2 | 0 | `ZERO_TOOLS` |
-| `mcp-server-git.json` | `https://github.com/modelcontextprotocol/servers` | 12 | 0 | `ZERO_TOOLS` |
-| `mcp-server-fetch.json` | `https://github.com/modelcontextprotocol/servers` | 1 | 16 (`fetch`, `-v`, `status` (+13 more)) | `RECOVERED_NEW_TOOLS` |
-| `ckreiling_mcp-server-docker.json` | `https://github.com/ckreiling/mcp-server-docker` | 19 | 19 (`list_containers`, `create_container`, `run_container` (+16 more)) | `ALREADY_UP_TO_DATE` |
-| `xing5_mcp-google-sheets.json` | `https://github.com/xing5/mcp-google-sheets` | 20 | 54 (`get_sheet_data`, `get_sheet_formulas`, `update_cells` (+51 more)) | `RECOVERED_NEW_TOOLS` |
-| `jmrplens_gitlab-mcp-server.json` | `https://github.com/jmrplens/gitlab-mcp-server` | 0 | 27 (`Format for this project`, `The action segment is a verb`, `Be specific` (+24 more)) | `RECOVERED_NEW_TOOLS` |
-| `hechtcarmel_jetbrains-debugger-mcp-plugin.json` | `https://github.com/hechtcarmel/jetbrains-debugger-mcp-plugin` | 24 | 74 (`Parameter`, `project_path`, `name` (+71 more)) | `RECOVERED_NEW_TOOLS` |
-| `arpitbatra123_mcp-googletasks.json` | `https://github.com/justerlex/google-tasks-mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `google-measurement-mcp.json` | `https://github.com/jabeer4148-ops/google-measurement-mcp` | 7 | 29 (`gmcp_diagnostics`, `ga4_create_custom_dimension`, `ga4_create_key_event` (+26 more)) | `RECOVERED_NEW_TOOLS` |
-| `MatiousCorp_google-ad-manager-mcp.json` | `https://github.com/MatiousCorp/google-ad-manager-mcp` | 35 | 37 (`list_delivering_orders`, `get_order`, `create_order` (+34 more)) | `RECOVERED_NEW_TOOLS` |
-| `gomarble-ai_google-ads-mcp-server.json` | `https://github.com/gomarble-ai/google-ads-mcp-server` | 3 | 0 | `ZERO_TOOLS` |
-| `dhawalshah_google-tag-manager-mcp.json` | `https://github.com/dhawalshah/google-tag-manager-mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `cloudflare_mcp-server-cloudflare.json` | `https://github.com/cloudflare/mcp-server-cloudflare` | 0 | 0 | `ZERO_TOOLS` |
-| `chroma-core_chroma-mcp.json` | `https://github.com/chroma-core/chroma-mcp` | 13 | 0 | `ZERO_TOOLS` |
-| `ai.adramp_google-ads.json` | `https://github.com/ai.adramp/google-ads` | 0 | 0 | `ZERO_TOOLS` |
-| `imran-siddique_agent-os.json` | `https://github.com/microsoft/agent-governance-toolkit` | 0 | 124 (`agt_policy_status`, `agt_policy_check_text`, `Identity Management` (+121 more)) | `RECOVERED_NEW_TOOLS` |
-| `agency.ottobot_licensed-house-painters.json` | `https://github.com/modelcontextprotocol/registry` | 0 | 0 | `ZERO_TOOLS` |
-| `agency.ottobot_contractor-license-changes.json` | `https://github.com/modelcontextprotocol/registry` | 0 | 0 | `ZERO_TOOLS` |
-| `agency.ottobot_business-contact-finder.json` | `https://github.com/modelcontextprotocol/registry` | 0 | 0 | `ZERO_TOOLS` |
-| `L337-org_docker-mcp.json` | `https://github.com/L337-org/docker-mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `ChrisGVE_workspace-qdrant-mcp.json` | `https://github.com/ChrisGVE/workspace-qdrant-mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `JetBrains_mcpProxy.json` | `https://github.com/JetBrains/mcp-jetbrains` | 0 | 0 | `ZERO_TOOLS` |
-| `weaviate_mcp-server-weaviate.json` | `https://github.com/weaviate/mcp-server-weaviate` | 0 | 0 | `ZERO_TOOLS` |
-| `timescale_rsigma.json` | `https://github.com/timescale/rsigma` | 0 | 0 | `ZERO_TOOLS` |
-| `supabase-community_supabase-mcp.json` | `https://github.com/supabase-community/supabase-mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `rmcp-macros.json` | `https://github.com/modelcontextprotocol/rust-sdk` | 5 | 0 | `ZERO_TOOLS` |
-| `pinecone-io_assistant-mcp.json` | `https://github.com/pinecone-io/assistant-mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `microsoft_markitdown.json` | `https://github.com/microsoft/markitdown` | 0 | 0 | `ZERO_TOOLS` |
-| `inspizzz_jetbrains-datalore-mcp.json` | `https://github.com/inspizzz/jetbrains-datalore-mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `hechtcarmel_jetbrains-index-mcp-plugin.json` | `https://github.com/hechtcarmel/jetbrains-index-mcp-plugin` | 0 | 0 | `ZERO_TOOLS` |
-| `giuseppe-coco_Google-Workspace-MCP-Server.json` | `https://github.com/giuseppe-coco/Google-Workspace-MCP-Server` | 0 | 0 | `ZERO_TOOLS` |
-| `github_modelcontextprotocol_rust-sdk.json` | `https://github.com/modelcontextprotocol/rust-sdk` | 1 | 0 | `ZERO_TOOLS` |
-| `github_microsoft_wassette.json` | `https://github.com/microsoft/wassette` | 1 | 0 | `ZERO_TOOLS` |
-| `github_github_github-mcp-server.json` | `https://github.com/github/github-mcp-server` | 645 | 0 | `ZERO_TOOLS` |
-| `golang/d/docker-mcp.json` | `https://github.com/test/docker-mcp` | 1 | 0 | `ZERO_TOOLS` |
-| `awslabs_mcp.json` | `https://github.com/awslabs/mcp` | 0 | 0 | `ZERO_TOOLS` |
-| `nuget/m/Microsoft.Template.Mcp.json` | `https://github.com/microsoft/mcp` | 1 | 0 | `ZERO_TOOLS` |
-| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.win-x64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
-| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.win-arm64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
-| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.osx-arm64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
-| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.linux-x64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
-| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.linux-musl-x64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
-| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.linux-arm64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 116 (`Skill`, `Host contract`, `Known-good sample` (+113 more)) | `RECOVERED_NEW_TOOLS` |
-| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 116 (`Skill`, `Host contract`, `Known-good sample` (+113 more)) | `RECOVERED_NEW_TOOLS` |
-| `nuget/m/Microsoft.FluentUI.AspNetCore.McpServer.json` | `https://github.com/microsoft/fluentui-blazor` | 1 | 20 (`VS Code`, `Visual Studio`, `Aspect` (+17 more)) | `RECOVERED_NEW_TOOLS` |
-| `nuget/m/Microsoft.AgentGovernance.Extensions.ModelContextProtocol.json` | `https://github.com/microsoft/agent-governance-toolkit` | 1 | 0 | `ZERO_TOOLS` |
-| `nuget/l/Lifter.ModelContextProtocol.WatsonWebserver.json` | `https://github.com/mrdevrobot/Lifter.ModelContextProtocol.WatsonWebserver` | 1 | 0 | `ZERO_TOOLS` |
-| `friendlygeorge_docker-mcp-server.json` | `https://github.com/friendlygeorge/docker-mcp-server` | 22 | 52 (`compose_up`, `compose_down`, `compose_ps` (+49 more)) | `RECOVERED_NEW_TOOLS` |
-| `davidmosiah_google-health-mcp.json` | `https://github.com/davidmosiah/google-health-mcp` | 26 | 26 (`google_health_data_inventory`, `google_health_list_data_types`, `google_health_data_type_coverage` (+23 more)) | `ALREADY_UP_TO_DATE` |
-| `cablate_mcp-google-map.json` | `https://github.com/cablate/mcp-google-map` | 1 | 1 (`address`) | `RECOVERED_NEW_TOOLS` |
-| `acamolese_google-search-console-mcp.json` | `https://github.com/acamolese/google-search-console-mcp` | 0 | 17 (`gsc_query`, `gsc_performance_overview`, `gsc_compare_periods` (+14 more)) | `RECOVERED_NEW_TOOLS` |
-| `tadas-github_a2asearch-mcp.json` | `https://github.com/tadas-github/a2asearch-mcp` | 0 | 5 (`get_agent`, `get_setup`, `search_agents` (+2 more)) | `RECOVERED_NEW_TOOLS` |
-| `MAG-Cie_mcp-microsoft-todo.json` | `https://github.com/MAG-Cie/mcp-microsoft-todo` | 0 | 28 (`list_task_lists`, `list_tasks`, `get_task` (+25 more)) | `RECOVERED_NEW_TOOLS` |
-| `M-Yamashita01_cloudflare-mcp-go.json` | `https://github.com/M-Yamashita01/cloudflare-mcp-go` | 216 | 0 | `ZERO_TOOLS` |
-| `takumi0706_google-calendar-mcp.json` | `https://github.com/takumi0706/google-calendar-mcp` | 0 | 12 (`calendarId (optional)`, `timeMin (optional)`, `timeMax (optional)` (+9 more)) | `RECOVERED_NEW_TOOLS` |
-| `puspoaditya_cloudflare-workers-ai-mcp.json` | `https://github.com/puspoaditya/cloudflare-workers-ai-mcp` | 4 | 4 (`list_models`, `chat_completion`, `embed_text` (+1 more)) | `ALREADY_UP_TO_DATE` |
-| `@park-sang-gwon_google-flow-mcp.json` | `https://github.com/ParkSangGwon/google-flow-mcp` | 11 | 11 (`[flow_connect](#flow_connect)`, `[flow_status](#flow_status)`, `[flow_screenshot](#flow_screenshot)` (+8 more)) | `RECOVERED_NEW_TOOLS` |
-| `@mseep_flux-cloudflare-mcp.json` | `https://github.com/Hzzy2O/flux-cloudflare-mcp` | 1 | 0 | `ZERO_TOOLS` |
-| `@modelcontextprotocol/server-filesystem.json` | `https://github.com/modelcontextprotocol/servers` | 0 | 14 (`read_file`, `write_file`, `list_directory` (+11 more)) | `RECOVERED_NEW_TOOLS` |
+| `seinun-ai_maestro-career-studio.json` | `https://github.com/seinun-ai/maestro-career-studio` | 0 | 113 (`get_job_search_brief`, `sync_now`, `find_job_by_url` (+110 more)) | `RECOVERED_NEW_TOOLS` |
+| `fclairamb_solidping.json` | `https://github.com/fclairamb/solidping` | 0 | 0 | `ZERO_TOOLS` |
+| `edycutjong_BagOS.json` | `https://github.com/edycutjong/bagos` | 0 | 14 (`bags_authenticate`, `bags_get_claimable_fees`, `bags_get_creators` (+11 more)) | `RECOVERED_NEW_TOOLS` |
+| `bkraad47_ramen.json` | `https://github.com/bkraad47/ramen` | 0 | 0 | `ZERO_TOOLS` |
+| `zanaat-dev_baron.json` | `https://github.com/zanaat-dev/baron` | 0 | 0 | `ZERO_TOOLS` |
+| `yagobski_agentleak.json` | `https://github.com/yagobski/agentleak` | 0 | 1 (`my-agent`) | `RECOVERED_NEW_TOOLS` |
+| `yxs1640-png_xflux.json` | `https://github.com/arqex/xFlux` | 0 | 0 | `ZERO_TOOLS` |
+| `withgrokbot_verified-catalog.json` | `https://github.com/withgrokbot/verified-catalog` | 0 | 0 | `ZERO_TOOLS` |
+| `wiltodelta_remove-ai-watermarks.json` | `https://github.com/wiltodelta/remove-ai-watermarks` | 0 | 3 (`identify`, `remove`, `batch`) | `RECOVERED_NEW_TOOLS` |
+| `vinayvobbili_jobwatch.json` | `https://github.com/vinayvobbili/jobwatch` | 0 | 31 (`find_board`, `list_boards`, `add_board` (+28 more)) | `RECOVERED_NEW_TOOLS` |
+| `tunahanaliozturk_derbent.json` | `https://github.com/tunahanaliozturk/derbent` | 0 | 9 (`A pin is the SHA-256 of the tool's definition as the gate receives it from the MCP SDK`, `Trust on first use`, `The same holds for a tool that an update adds to a server already pinned` (+6 more)) | `RECOVERED_NEW_TOOLS` |
+| `thyn-ai_telys-sdk.json` | `https://github.com/thyn-ai/telys-sdk` | 0 | 0 | `ZERO_TOOLS` |
+| `inth3shadows_terse.json` | `https://github.com/inth3shadows/terse` | 0 | 12 (`keep_first`, `retract_after`, `Everything is recoverable, and the gate proves it` (+9 more)) | `RECOVERED_NEW_TOOLS` |
+| `tenatarika_vex.json` | `https://github.com/tenatarika/vex` | 0 | 57 (`Symbol mode reports a per-match status`, `Clusters are computed by vex index and carried, frozen, across vex update. After an update the JSON has stale`, `--limit must be at least 1; with a SYMBOL it caps the matched symbols (JSON symbols_total reports the uncapped count) and --min-size is ignored. Exit codes` (+54 more)) | `RECOVERED_NEW_TOOLS` |
+| `Strategiumfinancepartner_AgentNexus.json` | `https://github.com/Strategiumfinancepartner/AgentNexus` | 0 | 14 (`submit_entry`, `discover_capabilities`, `get_entry` (+11 more)) | `RECOVERED_NEW_TOOLS` |
+| `assoujojo82-coder_synergieloc-mcp.json` | `https://github.com/assoujojo82-coder/synergieloc-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `anshulyadav1976_synapse.json` | `https://github.com/anshulyadav1976/synapse` | 0 | 7 (`search`, `read_page`, `read_note` (+4 more)) | `RECOVERED_NEW_TOOLS` |
+| `symbionix-sl_airstrings-cli.json` | `https://github.com/symbionix-sl/airstrings-cli` | 0 | 16 (`airstrings_login`, `airstrings_init`, `airstrings_status` (+13 more)) | `RECOVERED_NEW_TOOLS` |
+| `sunsatosolutions_Vulcanus.json` | `https://github.com/sunsatosolutions/Vulcanus` | 0 | 0 | `ZERO_TOOLS` |
+| `tufantunc_ssh-mcp.json` | `https://github.com/tufantunc/ssh-mcp` | 0 | 24 (`read-command`, `run-command`, `privileged-command` (+21 more)) | `RECOVERED_NEW_TOOLS` |
+| `FidelisMM_shipstores.json` | `https://github.com/FidelisMM/shipstores` | 0 | 0 | `ZERO_TOOLS` |
+| `saxonnicholls_super-log.json` | `https://github.com/saxonnicholls/super-log` | 0 | 6 (`hub_status`, `list_streams`, `tail_logs` (+3 more)) | `RECOVERED_NEW_TOOLS` |
+| `sadayamuthu_mergelock.json` | `https://github.com/sadayamuthu/mergelock` | 0 | 0 | `ZERO_TOOLS` |
+| `rootSunc_CNEquity.json` | `https://github.com/rootSunc/CNEquity` | 0 | 4 (`--run-id`, `--apply`, `--reconcile-after-seconds` (+1 more)) | `RECOVERED_NEW_TOOLS` |
+| `robyroro_mcp-latchpoint.json` | `https://github.com/robyroro/mcp-latchpoint` | 0 | 2 (`list_rules`, `scan`) | `RECOVERED_NEW_TOOLS` |
