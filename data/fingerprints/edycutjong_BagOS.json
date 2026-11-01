@@ -4,7 +4,7 @@
   "purl": "pkg:generic/edycutjong%2FBagOS",
   "ecosystem": "generic",
   "display_name": "edycutjong/BagOS",
-  "description": "**BagOS gates every AI-initiated Solana spend: token-gated, SOL-capped, confirmed on chain.**\n\nAn MCP server that can move money hands an AI assistant a signing key. The assistant decides, and the transaction is already on chain by the time a human reads about it. BagOS makes it pause.\n\nThe first call to a write tool **signs nothing**. It returns a preview and a single-use confirmation token fingerprinted to the exact arguments, so a token issued for a 0.01 SOL swap cannot authorize a 10 SOL one. Nothing reaches the chain until you call again with that token.\n\n### Every write goes through this — in order\n\n`token gate → spend caps → confirmation → simulate → sign → send → confirm`\n\n- **Hard caps** — 0.1 SOL per transaction, 1 SOL per session, enforced before the Bags SDK is called\n- **Single-use tokens** — expire in 5 minutes and are bound to exact arguments\n- **Simulate before signing** — a failed simulation aborts the write\n- **Confirmed, or it throws** — never a success message for a transaction that did not land\n- **Devnet by default** — writes are mainnet-only, so an unconfigured install cannot spend real money\n\n### 14 tools\n\n**11 read** — never sign, never spend: heartbeat, authenticate, trade quotes, token analytics, top creators, per-token creators, claim stats, claim events, claimable fees, partner stats, social-handle → launch-wallet resolution.\n\n**1 gated** — `bags_prepare_token_metadata` reserves a mint and uploads metadata, then says plainly that nothing was launched. Completing a launch needs a Meteora fee-share split, which is your decision rather than a model's.\n\n**2 write** — `bags_execute_trade` and `bags_claim_fees`. Mainnet only, off unless you configure them.\n\n### Proof\n\n345 tests at 100% coverage — statements, branches, functions and lines — enforced in CI. Published from CI with SLSA provenance. Listed in the official MCP registry.\n\nDocs and live demo: https://bagos.edycu.dev\n",
+  "description": "**BagOS gates every AI-initiated Solana spend: token-gated, SOL-capped, confirmed on chain.**\n\nAn MCP server that can move money hands an AI assistant a signing key. The assistant decides, and the transaction is already on chain by the time a human reads about it. BagOS makes it pause.\n\nThe first call to a write tool **signs nothing**. It returns a preview and a single-use confirmation token fingerprinted to the exact arguments, so a token issued for a 0.01 SOL swap cannot authorize a 10 SOL one. Nothing reaches the chain until you call again with that token.\n\n### Every write goes through this \u2014 in order\n\n`token gate \u2192 spend caps \u2192 confirmation \u2192 simulate \u2192 sign \u2192 send \u2192 confirm`\n\n- **Hard caps** \u2014 0.1 SOL per transaction, 1 SOL per session, enforced before the Bags SDK is called\n- **Single-use tokens** \u2014 expire in 5 minutes and are bound to exact arguments\n- **Simulate before signing** \u2014 a failed simulation aborts the write\n- **Confirmed, or it throws** \u2014 never a success message for a transaction that did not land\n- **Devnet by default** \u2014 writes are mainnet-only, so an unconfigured install cannot spend real money\n\n### 14 tools\n\n**11 read** \u2014 never sign, never spend: heartbeat, authenticate, trade quotes, token analytics, top creators, per-token creators, claim stats, claim events, claimable fees, partner stats, social-handle \u2192 launch-wallet resolution.\n\n**1 gated** \u2014 `bags_prepare_token_metadata` reserves a mint and uploads metadata, then says plainly that nothing was launched. Completing a launch needs a Meteora fee-share split, which is your decision rather than a model's.\n\n**2 write** \u2014 `bags_execute_trade` and `bags_claim_fees`. Mainnet only, off unless you configure them.\n\n### Proof\n\n345 tests at 100% coverage \u2014 statements, branches, functions and lines \u2014 enforced in CI. Published from CI with SLSA provenance. Listed in the official MCP registry.\n\nDocs and live demo: https://bagos.edycu.dev\n",
   "author": null,
   "repository_url": "https://github.com/edycutjong/bagos",
   "homepage_url": null,
@@ -24,7 +24,7 @@
   "versions": [
     {
       "version": "3.0.7",
-      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "toolset_canonical_hash": "sha256:69e6c3ba35901c67efd452ac60baa002bc54151f49ccaeb1efa265522f679c9f",
       "release_date": null,
       "dependencies": {},
       "connections": [
@@ -40,14 +40,14 @@
                 "type": "string",
                 "title": "Bags API key",
                 "x-order": 0,
-                "description": "Needed before any tool can return data — every call fails without it. Left optional so the server installs and lists its tools first, and you can add the key once you have one. Create one at https://dev.bags.fm under API Keys."
+                "description": "Needed before any tool can return data \u2014 every call fails without it. Left optional so the server installs and lists its tools first, and you can add the key once you have one. Create one at https://dev.bags.fm under API Keys."
               },
               "bags_network": {
                 "type": "string",
                 "title": "Solana cluster",
                 "default": "devnet",
                 "x-order": 1,
-                "description": "devnet or mainnet. Bags has no devnet deployment, so trading and fee claims require mainnet — but devnet is the default so an unconfigured install cannot spend real money."
+                "description": "devnet or mainnet. Bags has no devnet deployment, so trading and fee claims require mainnet \u2014 but devnet is the default so an unconfigured install cannot spend real money."
               },
               "bos_token_mint": {
                 "type": "string",
@@ -87,7 +87,7 @@
         }
       ],
       "capabilities": {
-        "tools": false,
+        "tools": true,
         "prompts": false,
         "resources": false
       },
@@ -96,7 +96,246 @@
       "auth_type": "none",
       "headers_schema": {},
       "required_env_vars": [],
-      "tool_signatures": [],
+      "tool_signatures": [
+        {
+          "name": "bags_authenticate",
+          "description": "Authenticate with Bags API utilizing the V2 signature challenge flow. Uses the wallet at BAGS_KEYPAIR_PATH (default ~/.config/bags/keypair.json).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:d9da0f4923e079087ef57dae58da2f91a4c735a2cfcfd871910714a5c4c3ef30"
+        },
+        {
+          "name": "bags_get_claimable_fees",
+          "description": "Query all claimable creator/LP fees for a wallet. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "walletAddress": {
+                "type": "string",
+                "description": "Wallet address to check. Defaults to the local keypair wallet if omitted."
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:952278aa1dbd602896a37b5271aad42352b55b2293dc675d9de77645913f8e85"
+        },
+        {
+          "name": "bags_get_creators",
+          "description": "Query top creators by lifetime fees on Bags. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Amount of creators to return (default 10)"
+              },
+              "offset": {
+                "type": "number",
+                "description": "Pagination offset (default 0)"
+              }
+            },
+            "required": []
+          },
+          "canonical_hash": "sha256:540b3dce39ff7a1dbae9a3497a14c55e7e2fdef516e237f79bc0fb8a278d19f1"
+        },
+        {
+          "name": "bags_get_partner_stats",
+          "description": "View partner referral earnings for the configured wallet. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "partnerId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "partnerId"
+            ]
+          },
+          "canonical_hash": "sha256:56ed05704ee4c2e445c461874e4869f11611f66888a590ca97abf2a9597822ef"
+        },
+        {
+          "name": "bags_get_token_analytics",
+          "description": "Get pool info, claim stats, and bonding curve progress for a token. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenMint": {
+                "type": "string",
+                "description": "The token mint address to analyze"
+              }
+            },
+            "required": [
+              "tokenMint"
+            ]
+          },
+          "canonical_hash": "sha256:43a342153f2b8120b406564649b6179ebdc91d386fb8fa992a4b78e4235fcd2b"
+        },
+        {
+          "name": "bags_get_token_claim_events",
+          "description": "Get the fee-claim audit trail for a token: who claimed, how much, when, and the transaction signature. Paginated via limit/offset. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenMint": {
+                "type": "string",
+                "description": "The token mint address to get claim events for"
+              },
+              "limit": {
+                "type": "number",
+                "description": "Maximum number of events to return (default 100)"
+              },
+              "offset": {
+                "type": "number",
+                "description": "Pagination offset (default 0)"
+              }
+            },
+            "required": [
+              "tokenMint"
+            ]
+          },
+          "canonical_hash": "sha256:c7008d0e69e90a424da0f5850f652c8fdce7a4a7de5d22cabd2051f0baa2b3ef"
+        },
+        {
+          "name": "bags_get_token_claim_stats",
+          "description": "Get per-creator claim totals for a token: each fee-share creator with their royalty split and total claimed amount. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenMint": {
+                "type": "string",
+                "description": "The token mint address to get claim stats for"
+              }
+            },
+            "required": [
+              "tokenMint"
+            ]
+          },
+          "canonical_hash": "sha256:d97f06ba83174698e09d09ba3b69bd18cc4f2c37069cbadbd715376ab8dc5bc1"
+        },
+        {
+          "name": "bags_get_token_creators",
+          "description": "Get the royalty split for a token: every creator sharing its fees, their wallet, social provider, and share in basis points. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "tokenMint": {
+                "type": "string",
+                "description": "The token mint address to look up creators for"
+              }
+            },
+            "required": [
+              "tokenMint"
+            ]
+          },
+          "canonical_hash": "sha256:42227b8108c710c3e051346be882948abfdb641e56aaf6005ab97960bda8c13b"
+        },
+        {
+          "name": "bags_get_trade_quote",
+          "description": "Get a swap quote to trade SOL and any Bags ecosystem token. Free read-only tier. SOL mint: ${SOL_MINT}. Default BOS token mint: ${bosMint}.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputMint": {
+                "type": "string",
+                "description": "Input token mint address. Defaults to SOL: ${SOL_MINT}"
+              },
+              "outputMint": {
+                "type": "string",
+                "description": "Output token mint address. Defaults to BOS: ${bosMint}"
+              },
+              "amount": {
+                "type": "number",
+                "description": "Amount of input token to swap in human-readable units (e.g., 0.1 for 0.1 SOL)."
+              },
+              "side": {
+                "type": "string",
+                "description": "Is this a buy or sell action?",
+                "enum": [
+                  "buy",
+                  "sell"
+                ]
+              }
+            },
+            "required": [
+              "amount",
+              "side"
+            ]
+          },
+          "canonical_hash": "sha256:82a83cedbdbde8233ff1670c73e3abc9629ecccb583f9ae96fc848e732a28e96"
+        },
+        {
+          "name": "bags_heartbeat",
+          "description": "Periodic health check combining basic node status with an earnings/balance summary. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:967d5a6241acc2c7d0a7ec28a87b021388a3d7efe4cd95857c0b2356ff44c95f"
+        },
+        {
+          "name": "bags_resolve_launch_wallet",
+          "description": "Resolve a social handle (twitter, tiktok, kick, or github) to its Bags fee-share launch wallet. Free read-only tier.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string",
+                "description": "The username to resolve (a leading @ is stripped automatically)"
+              },
+              "provider": {
+                "type": "string",
+                "description": "The social platform the username belongs to",
+                "enum": [
+                  "twitter",
+                  "tiktok",
+                  "kick",
+                  "github"
+                ]
+              }
+            },
+            "required": [
+              "provider",
+              "username"
+            ]
+          },
+          "canonical_hash": "sha256:154d18309fce08f7b455691e2cec475fe38c4f3fe859b663d6ae870e5e6c846a"
+        },
+        {
+          "name": "bags_execute_trade",
+          "description": "createSwapTransaction() result discarded; returned \"\u2705 Trade Execution Signed!\" regardless",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:5a4e77147e35a1d521708f88c3256469afa92a5fa74655667f0a7693f701942f"
+        },
+        {
+          "name": "bags_claim_fees",
+          "description": "getClaimTransactions() result discarded; returned \"\u2705 Action execution signed successfully.\"",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:b34220f566f692ce2555f6c1e0a3bdf709d687462d8ecba0f5ba33618bfea586"
+        },
+        {
+          "name": "bags_launch_token",
+          "description": "Called only createTokenInfoAndMetadata(); initialBuySOL accepted and silently ignored; never launched anything",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "canonical_hash": "sha256:7bbd1c85c40654ee0fcf6f8d3d8adeb5f32631d8f85eb1c536411c63143b5cf9"
+        }
+      ],
       "prompt_signatures": [],
       "resource_signatures": []
     }
