@@ -1,8 +1,8 @@
 # SDK Passports Re-Index Audit Report
 
 Generated for Task 93.
-Total passports targeted: 38
-Total passports updated with newly recovered tools: 17
+Total passports targeted: 63
+Total passports updated with newly recovered tools: 20
 
 | Passport | Repository | Previous Tools | Discovered Tools | Status |
 |:---|:---|:---:|:---:|:---|
@@ -44,3 +44,28 @@ Total passports updated with newly recovered tools: 17
 | `L337-org_docker-mcp.json` | `https://github.com/L337-org/docker-mcp` | 0 | 0 | `ZERO_TOOLS` |
 | `ChrisGVE_workspace-qdrant-mcp.json` | `https://github.com/ChrisGVE/workspace-qdrant-mcp` | 0 | 0 | `ZERO_TOOLS` |
 | `JetBrains_mcpProxy.json` | `https://github.com/JetBrains/mcp-jetbrains` | 0 | 0 | `ZERO_TOOLS` |
+| `weaviate_mcp-server-weaviate.json` | `https://github.com/weaviate/mcp-server-weaviate` | 0 | 0 | `ZERO_TOOLS` |
+| `timescale_rsigma.json` | `https://github.com/timescale/rsigma` | 0 | 0 | `ZERO_TOOLS` |
+| `supabase-community_supabase-mcp.json` | `https://github.com/supabase-community/supabase-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `rmcp-macros.json` | `https://github.com/modelcontextprotocol/rust-sdk` | 5 | 0 | `ZERO_TOOLS` |
+| `pinecone-io_assistant-mcp.json` | `https://github.com/pinecone-io/assistant-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `microsoft_markitdown.json` | `https://github.com/microsoft/markitdown` | 0 | 0 | `ZERO_TOOLS` |
+| `inspizzz_jetbrains-datalore-mcp.json` | `https://github.com/inspizzz/jetbrains-datalore-mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `hechtcarmel_jetbrains-index-mcp-plugin.json` | `https://github.com/hechtcarmel/jetbrains-index-mcp-plugin` | 0 | 0 | `ZERO_TOOLS` |
+| `giuseppe-coco_Google-Workspace-MCP-Server.json` | `https://github.com/giuseppe-coco/Google-Workspace-MCP-Server` | 0 | 0 | `ZERO_TOOLS` |
+| `github_modelcontextprotocol_rust-sdk.json` | `https://github.com/modelcontextprotocol/rust-sdk` | 1 | 0 | `ZERO_TOOLS` |
+| `github_microsoft_wassette.json` | `https://github.com/microsoft/wassette` | 1 | 0 | `ZERO_TOOLS` |
+| `github_github_github-mcp-server.json` | `https://github.com/github/github-mcp-server` | 645 | 0 | `ZERO_TOOLS` |
+| `golang/d/docker-mcp.json` | `https://github.com/test/docker-mcp` | 1 | 0 | `ZERO_TOOLS` |
+| `awslabs_mcp.json` | `https://github.com/awslabs/mcp` | 0 | 0 | `ZERO_TOOLS` |
+| `nuget/m/Microsoft.Template.Mcp.json` | `https://github.com/microsoft/mcp` | 1 | 0 | `ZERO_TOOLS` |
+| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.win-x64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
+| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.win-arm64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
+| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.osx-arm64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
+| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.linux-x64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
+| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.linux-musl-x64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 0 | `ZERO_TOOLS` |
+| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.linux-arm64.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 116 (`Skill`, `Host contract`, `Known-good sample` (+113 more)) | `RECOVERED_NEW_TOOLS` |
+| `nuget/m/Microsoft.PowerApps.CanvasAuthoring.McpServer.json` | `https://github.com/microsoft/power-platform-skills` | 1 | 116 (`Skill`, `Host contract`, `Known-good sample` (+113 more)) | `RECOVERED_NEW_TOOLS` |
+| `nuget/m/Microsoft.FluentUI.AspNetCore.McpServer.json` | `https://github.com/microsoft/fluentui-blazor` | 1 | 20 (`VS Code`, `Visual Studio`, `Aspect` (+17 more)) | `RECOVERED_NEW_TOOLS` |
+| `nuget/m/Microsoft.AgentGovernance.Extensions.ModelContextProtocol.json` | `https://github.com/microsoft/agent-governance-toolkit` | 1 | 0 | `ZERO_TOOLS` |
+| `nuget/l/Lifter.ModelContextProtocol.WatsonWebserver.json` | `https://github.com/mrdevrobot/Lifter.ModelContextProtocol.WatsonWebserver` | 1 | 0 | `ZERO_TOOLS` |
