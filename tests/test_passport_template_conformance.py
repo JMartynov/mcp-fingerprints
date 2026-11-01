@@ -211,8 +211,11 @@ def test_template_conformance_snapshot_payload():
     with gzip.open(SNAPSHOT_FILE, "rt", encoding="utf-8") as f:
         snapshot = json.load(f)
 
-    assert snapshot.get("version") == "1.0.0"
-    passports = snapshot.get("passports", {})
+    if isinstance(snapshot, dict):
+        assert snapshot.get("version") == "1.0.0"
+        passports = snapshot.get("passports", {})
+    else:
+        passports = {p.get("package_name"): p for p in snapshot if isinstance(p, dict) and p.get("package_name")}
     assert len(passports) >= 3000
 
     all_errors: list[str] = []

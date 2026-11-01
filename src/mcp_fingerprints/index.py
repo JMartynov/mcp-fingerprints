@@ -167,6 +167,12 @@ class FingerprintFastIndex:
                             spec = ServerPackageSpec.from_dict(pkg_data)
                             self.register_package(spec)
                             count += 1
+            elif isinstance(data, list):
+                for pkg_data in data:
+                    if isinstance(pkg_data, dict) and "package_name" in pkg_data:
+                        spec = ServerPackageSpec.from_dict(pkg_data)
+                        self.register_package(spec)
+                        count += 1
         return count
 
     def get_candidate_packages_for_tools(self, tool_names: list[str]) -> set[str]:

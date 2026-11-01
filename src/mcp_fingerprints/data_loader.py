@@ -100,5 +100,10 @@ def load_passports(download_if_missing: bool = True) -> Dict[str, ServerPackageS
                     if isinstance(pkg_data, dict) and "package_name" in pkg_data:
                         spec = ServerPackageSpec.from_dict(pkg_data)
                         passports[spec.package_name] = spec
+        elif isinstance(data, list):
+            for pkg_data in data:
+                if isinstance(pkg_data, dict) and "package_name" in pkg_data:
+                    spec = ServerPackageSpec.from_dict(pkg_data)
+                    passports[spec.package_name] = spec
 
     return passports
