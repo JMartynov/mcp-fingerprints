@@ -123,7 +123,13 @@ async function loadCatalog() {
   try {
     const resp = await fetch("catalog.json");
     if (!resp.ok) throw new Error("Catalog file not found");
-    catalog = await resp.json();
+    const raw = await resp.json();
+    catalog = raw.filter((it) => it.package_name || it.name || it.display_name);
+    catalog.forEach((item) => {
+      if (!item.name) {
+        item.name = item.package_name || item.display_name || "unknown";
+      }
+    });
   } catch (err) {
     console.warn("Could not load catalog.json, using fallback data:", err);
     catalog = [
@@ -176,7 +182,7 @@ function render() {
       const vData = getVersionData(item, activeVer);
       if (!vData.tools || vData.tools.length === 0) return false;
     }
-    if (activeEco !== "all" && item.ecosystem.toLowerCase() !== activeEco) {
+    if (activeEco !== "all" && (!item.ecosystem || item.ecosystem.toLowerCase() !== activeEco)) {
       return false;
     }
     if (!q) return true;
@@ -191,7 +197,7 @@ function render() {
         searchTools = searchTools.concat(vDataForSearch.tools);
     }
     
-    if (searchTools.some((t) => t.name.toLowerCase().includes(q))) {
+    if (searchTools.some((t) => t.name && t.name.toLowerCase().includes(q))) {
       return true;
     }
     // Check parameters
