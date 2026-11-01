@@ -23,7 +23,11 @@ def test_sdist_and_wheel_generation():
     if shutil.which("uv"):
         cmd = ["uv", "build"]
     else:
-        cmd = [sys.executable, "-m", "build"]
+        try:
+            import build
+            cmd = [sys.executable, "-m", "build"]
+        except ImportError:
+            pytest.skip("Neither uv nor python-build module is installed in environment")
         
     result = subprocess.run(
         cmd, 
