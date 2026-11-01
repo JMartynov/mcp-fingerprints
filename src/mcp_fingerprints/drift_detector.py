@@ -89,14 +89,22 @@ def load_passports_map(
 
             with gzip.open(p, "rt", encoding="utf-8") as gz_f:
                 snapshot = json.load(gz_f)
-                passports = snapshot.get("passports", {})
-                if isinstance(passports, dict):
-                    result.update(passports)
-                elif isinstance(passports, list):
-                    for pass_data in passports:
-                        pkg = pass_data.get("package_name")
-                        if pkg:
-                            result[pkg] = pass_data
+                if isinstance(snapshot, list):
+                    for pass_data in snapshot:
+                        if isinstance(pass_data, dict):
+                            pkg = pass_data.get("package_name") or pass_data.get("name")
+                            if pkg:
+                                result[pkg] = pass_data
+                elif isinstance(snapshot, dict):
+                    passports = snapshot.get("passports", snapshot)
+                    if isinstance(passports, dict):
+                        result.update(passports)
+                    elif isinstance(passports, list):
+                        for pass_data in passports:
+                            if isinstance(pass_data, dict):
+                                pkg = pass_data.get("package_name") or pass_data.get("name")
+                                if pkg:
+                                    result[pkg] = pass_data
         else:
             with open(p, "r", encoding="utf-8") as json_f:
                 data = json.load(json_f)
