@@ -66,7 +66,7 @@ class DeepZeroToolAuditor:
                       
         # 2. Markdown tables
         if filename.endswith(".md"):
-            secondary_patterns = ["changelog", "migration", "roadmap", "history", "optimizations", ".cursor/", "releases/", "changes/"]
+            secondary_patterns = ["changelog", "migration", "roadmap", "history", "optimizations", ".cursor/", "releases/", "changes/", "adr", "dev-docs", "features"]
             if any(pattern in filename.lower() for pattern in secondary_patterns):
                 return tools
             try:
@@ -264,6 +264,14 @@ class DeepZeroToolAuditor:
             return result
         
         owner, repo = parts[0], parts[1]
+
+        # Framework / SDK Early Classification
+        sdk_keywords = ["framework", "sdk", "toolkit", "fastmcp"]
+        is_sdk = False
+        if package_name and any(kw in package_name.lower() for kw in sdk_keywords):
+            is_sdk = True
+        elif any(kw in repo.lower() for kw in sdk_keywords) or any(kw in owner.lower() for kw in sdk_keywords):
+            is_sdk = True
         
         api_url = f"https://api.github.com/repos/{owner}/{repo}"
         
@@ -306,6 +314,11 @@ class DeepZeroToolAuditor:
                 result["status"] = "CONFIRMED_ZERO_TOOLS: DEAD_REPO"
                 return result
             default_branch = repo_data.get("default_branch", "main")
+            
+            # Check topics and descriptions for framework/SDK keywords
+            desc_topics = (repo_data.get("description") or "").lower() + " " + " ".join(repo_data.get("topics", [])).lower()
+            if any(kw in desc_topics for kw in sdk_keywords):
+                is_sdk = True
         except urllib.error.HTTPError as e:
             if e.code == 403:
                  result["status"] = "ERROR: GitHub API Rate Limit Exceeded"
@@ -374,6 +387,12 @@ class DeepZeroToolAuditor:
                             all_tools.extend(file_tools)
                 except Exception:
                     pass
+
+        if is_sdk:
+            result["status"] = "CONFIRMED_ZERO_TOOLS: FRAMEWORK_OR_SDK"
+            result["tools_found_count"] = 0
+            result["tools_found"] = []
+            return result
 
         if all_tools:
             unresolved = any(t.get("format") == "Unresolved Extraction" for t in all_tools)
