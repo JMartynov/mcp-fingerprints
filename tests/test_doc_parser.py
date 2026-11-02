@@ -136,3 +136,39 @@ def test_fallback_integration_capability_tagging(tmp_path):
     assert len(updated_version.tool_signatures) == 1
     assert updated_version.tool_signatures[0].name == "fake_tool"
     assert updated_version.capabilities.get("documentation_extracted_tools") is True
+
+def test_parse_markdown_adr_and_roadmap_ignored():
+    content = """
+# Architecture Decision Record
+
+## Evaluated Tools
+
+| Name | Description | Scope | Status |
+| --- | --- | --- | --- |
+| mcp-db | Database | Backend | Accepted |
+| mcp-auth | Auth service | Security | Rejected |
+
+# Features Roadmap
+
+## Planned Tools
+
+| Name | Description | Priority | Milestone |
+| --- | --- | --- | --- |
+| tool_v2 | New tool | High | 1.1 |
+"""
+    tools = parse_markdown_tool_docs(content)
+    assert len(tools) == 0, f"Expected 0 tools from ADR/Roadmap, but got {len(tools)}"
+
+def test_parse_markdown_valid_tool_table():
+    content = """
+# Documentation
+
+## Available Tools
+
+| Name | Description | Schema |
+| --- | --- | --- |
+| valid_tool | A valid tool | type: object |
+"""
+    tools = parse_markdown_tool_docs(content)
+    assert len(tools) == 1
+    assert tools[0]["name"] == "valid_tool"

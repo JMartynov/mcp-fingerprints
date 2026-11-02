@@ -231,3 +231,54 @@ def test_remote_gateway_zero_tool_enforcement():
     assert res["source_tools"] == 0
     assert res["root_cause"] == "CONFIRMED_ZERO_TOOLS: REMOTE_GATEWAY_OR_SDK"
 
+
+def test_framework_sdk_classification_override(monkeypatch):
+    import urllib.request
+    import json
+    
+    class MockResponse:
+        def __init__(self, data):
+            self.data = data
+        def read(self):
+            return self.data
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_val, exc_tb): pass
+
+    def mock_urlopen(req, *args, **kwargs):
+        url = req.full_url if hasattr(req, 'full_url') else req
+        if "api.github.com/repos/mock-owner/fastmcp-test" in url:
+            if "tree" not in url:
+                return MockResponse(json.dumps({
+                    "default_branch": "main",
+                    "description": "FastMCP sdk framework",
+                    "topics": ["ai", "sdk"]
+                }).encode())
+            else:
+                return MockResponse(json.dumps({
+                    "tree": [
+                        {"path": "README.md", "type": "blob", "size": 100},
+                    ]
+                }).encode())
+        raise urllib.error.URLError("Unexpected URL")
+
+    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    
+    from mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor
+    auditor = DeepZeroToolAuditor()
+    result = auditor.audit("https://github.com/mock-owner/fastmcp-test", "pypi", "fastmcp-test")
+    
+    assert result["status"] == "CONFIRMED_ZERO_TOOLS: FRAMEWORK_OR_SDK"
+    assert result["tools_found_count"] == 0
+
+def test_adr_markdown_ignored():
+    from mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor
+    auditor = DeepZeroToolAuditor()
+    content = """
+# ADR Tools
+| Name | Description |
+|---|---|
+| db | Database |
+    """
+    tools = auditor.inspect_file("docs/adr/001-tools.md", content)
+    assert len(tools) == 0
+
