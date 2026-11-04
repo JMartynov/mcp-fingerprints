@@ -48,7 +48,11 @@ def parse_markdown_tool_docs(content: str) -> list[dict[str, Any]]:
                     if not table_headers and re.match(r'^[a-zA-Z0-9\s_]+$', name_clean):
                         lower_parts = [p.lower() for p in parts]
                         # Must contain at least one tool-related keyword and avoid generic ADR/roadmap keywords
-                        tool_keywords = {'name', 'tool', 'function', 'schema', 'parameters', 'description', 'desc'}
+                        tool_keywords = {
+                            'name', 'tool', 'function', 'schema', 'parameters',
+                            'params', 'arguments', 'args', 'description', 'desc',
+                            'summary', 'details'
+                        }
                         forbidden_keywords = {'scope', 'priority', 'status', 'milestone', 'owner', 'stage', 'progress', 'evaluation', 'metric', 'result', 'expected', 'actual'}
                         if sum(1 for x in lower_parts if any(tk in x for tk in tool_keywords)) >= 2 and not any(fk in x for fk in forbidden_keywords for x in lower_parts):
                             table_headers = [clean_markdown(p).lower() for p in parts]

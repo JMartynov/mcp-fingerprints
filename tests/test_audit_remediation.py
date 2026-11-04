@@ -96,3 +96,14 @@ def test_inspect_file_markdown_valid_table(auditor):
 """
     tools = auditor.inspect_file("README.md", md_content)
     assert len(tools) == 1, "Table should be parsed as it has valid tool headers"
+
+    # Also test synonyms: Function, Params, Summary, Details
+    md_synonyms = """
+# Available Tools
+| Function | Params | Summary |
+|---|---|---|
+| get_user | id: int | Fetches user details |
+"""
+    tools_syn = auditor.inspect_file("README.md", md_synonyms)
+    assert len(tools_syn) == 1, "Table with Function, Params, Summary should be parsed"
+
