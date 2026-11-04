@@ -52,3 +52,47 @@ paths:
     assert len(tools) == 1
     assert tools[0]["name"] == "test_operation"
     assert tools[0]["format"] == "OpenAPI / Swagger Spec"
+
+def test_inspect_file_markdown_excluded_paths(auditor):
+    md_content = """
+# Available Tools
+| Name | Description |
+|---|---|
+| test_tool | A test tool |
+"""
+    # These paths should be excluded and return 0 tools
+    excluded_paths = [
+        ".agents/skills/create-mcp-tool/SKILL.md",
+        ".claude/skills/tool-definition-review/SKILL.md",
+        "configs/autoloop-coder-prompt.md",
+        "eval/RESULTS.md",
+        "evals/test.md",
+        "results.md",
+        "release_notes.md",
+        "contributing.md",
+        "LICENSE.md"
+    ]
+    for path in excluded_paths:
+        tools = auditor.inspect_file(path, md_content)
+        assert len(tools) == 0, f"Expected 0 tools for {path}, but found {len(tools)}"
+
+def test_inspect_file_markdown_ignored_table(auditor):
+    md_content = """
+# Available Tools
+| Metric | Expected | Actual | Status |
+|---|---|---|---|
+| Tool Detection | 100% | 50% | Fail |
+"""
+    # Even if path is allowed, this table should not be parsed as tools because of headers
+    tools = auditor.inspect_file("README.md", md_content)
+    assert len(tools) == 0, "Table should be ignored based on headers"
+
+def test_inspect_file_markdown_valid_table(auditor):
+    md_content = """
+# Available Tools
+| Tool Name | Description | Parameters |
+|---|---|---|
+| my_tool | Does something | a (string) |
+"""
+    tools = auditor.inspect_file("README.md", md_content)
+    assert len(tools) == 1, "Table should be parsed as it has valid tool headers"
