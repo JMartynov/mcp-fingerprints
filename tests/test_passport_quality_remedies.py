@@ -135,7 +135,7 @@ def test_markdown_doc_parser_flexibility():
 ## Tools (5)
 Here are some tools:
 
-| Function | Params | Summary |
+| Function | Params | Description |
 |---|---|---|
 | my_tool | arg1: string | Does something |
     """
