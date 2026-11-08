@@ -1382,3 +1382,82 @@ Enrich `ProbeReport` with actionable package metadata from `ServerPackageSpec` (
 - [ ] `--format long` provides complete tool schemas and protocol annotations.
 - [ ] `--format table` formats clean ASCII tables of capabilities.
 - [ ] Unit tests in `tests/test_reporter.py` pass.
+
+---
+
+## 101. Interactive Sandboxed `demo.sh` for All 16 CLI Commands & Env Vars
+- **Category**: Developer Experience & CLI Tooling
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Build an interactive, fully sandboxed Bash executable script (`demo.sh`) that sets up an ephemeral `mktemp -d` sandbox, launches mock stdio and HTTP/SSE MCP servers, provides an interactive menu as well as a non-interactive `--all` mode, and guarantees 100% clean teardown on exit.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: Developers and evaluators lack a single self-contained command to test and experience all 16 CLI commands without modifying local configurations, requiring external API keys, or contacting remote network endpoints.
+- **What it Demonstrates**: All 16 commands (`interactive`/`hub`, `init`, `sync`, `match`, `probe`, `validate`, `snapshot`, `build-index`, `search`, `browse`, `export-config`, `export-sbom`, `validate-protocol`, `detect`, `detect-drift`, `scan-configs`) and core environment variable overrides (`MCP_FINGERPRINTS_*`, `NO_COLOR`).
+- **How it Solves It**: Provides an ephemeral sandbox with trap cleanup and built-in lightweight Python mock servers.
+
+### 3. Target Files & Documentation to Update
+- `demo.sh`
+- `tests/test_demo_script.py`
+- `docs/tasks/task_101_interactive_sandboxed_demo_script.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] `demo.sh` is executable and runs on macOS and Linux.
+- [ ] Ephemeral sandbox created via `mktemp -d` and cleaned up on EXIT/INT/TERM.
+- [ ] All 16 CLI commands demonstrated in interactive menu and automated `--all` mode.
+- [ ] Mock stdio and HTTP/SSE MCP servers start on-demand with zero external dependencies.
+- [ ] Automated tests in `tests/test_demo_script.py` pass.
+
+---
+
+## 102. Live Verification of All CLI Commands, Options & Exit Codes
+- **Category**: Quality Assurance & Invariant Verification
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Author and execute a comprehensive live test suite that verifies every one of the 16 CLI subcommands, their argument combinations, formatting flags (`--format text`, `--format json`, `--format short`, `--format long`), and expected exit codes against real sandboxed processes and mock servers.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: Frequent refactoring and option additions can introduce subtle discrepancies between CLI argument definitions and documentation or tests.
+- **What it Verifies**: Every single subcommand argument combination, formatting output validity, error exit codes, and environment variable overrides.
+- **How it Solves It**: Implements end-to-end subprocess testing matrix in `tests/test_demo_script.py` and `tests/test_cli_live_sandbox.py`.
+
+### 3. Target Files & Documentation to Update
+- `tests/test_demo_script.py`
+- `tests/test_cli_live_sandbox.py`
+- `docs/tasks/task_102_live_verification_cli_commands_and_exit_codes.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] Automated tests execute and assert all 16 CLI subcommands.
+- [ ] Formatting flags (`text`, `json`, `short`, `long`) produce valid schemas.
+- [ ] Normal (0) and error (1, 2) exit codes systematically asserted.
+- [ ] Environment variable overrides verified in live execution.
+- [ ] Zero background processes or temporary files leaked.
+
+---
+
+## 103. Update `README.md` with Complete CLI Options, Environment Variables & Real Outputs
+- **Category**: Documentation & Developer Experience
+- **Status**: Todo
+
+### 1. Architectural Context & Technical Objective
+Update `README.md` and `docs/SPECIFICATION.md` with an exhaustive, 100% verified CLI reference covering all 16 subcommands, resolving existing option discrepancies, documenting all environment variables, and embedding real terminal output snippets captured directly from live sandbox runs.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: Discrepancies exist in `README.md` for `match` (hash vs input-file), `detect-drift` (config vs passport states), and `validate`, creating confusion for developers. Output snippets are also not synchronised with recent output format upgrades.
+- **What it Fixes**: Corrects all CLI syntax errors, adds complete option tables, documents environment variables, and embeds live verified terminal output.
+- **How it Solves It**: Captures real terminal outputs from Task 101/102 and embeds verified blocks into `README.md`.
+
+### 3. Target Files & Documentation to Update
+- `README.md`
+- `docs/SPECIFICATION.md`
+- `docs/tasks/task_103_readme_cli_reference_and_live_outputs.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] All 16 CLI commands accurately documented with current syntax and options.
+- [ ] Discrepancies in `match`, `detect-drift`, `validate`, and `probe` corrected.
+- [ ] Environment variables (`MCP_FINGERPRINTS_*`, `NO_COLOR`) fully documented.
+- [ ] Real terminal outputs from sandbox execution embedded in README code blocks.
+- [ ] Quickstart section added for `demo.sh`.
+
