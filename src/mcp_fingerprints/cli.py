@@ -66,6 +66,30 @@ def print_ecosystem_health_report(data_dir: str | Path) -> None:
     print("==================================================")
 
 
+
+def format_detect_report(target: str | list[str], result: dict[str, Any]) -> str:
+    target_str = " ".join(target) if isinstance(target, list) else str(target)
+    is_mcp = result.get("is_mcp", False)
+    transport = result.get("transport", "unknown")
+    server_info = result.get("server_info") or {}
+    name = server_info.get("name", "unknown")
+    version = server_info.get("version", "")
+    server_str = f"{name} v{version}".strip() if version else name
+    protocol = result.get("protocol_version") or "unknown"
+    capabilities = result.get("capabilities") or {}
+    cap_count = len(capabilities) if isinstance(capabilities, dict) else 0
+    lines = [
+        f"Target:    {target_str}",
+        f"Is MCP:    {'Yes (verified)' if is_mcp else 'No'}",
+        f"Transport: {transport}",
+        f"Server:    {server_str}",
+        f"Protocol:  {protocol}",
+        f"Tools:     {cap_count} capabilities advertised",
+    ]
+    if result.get("error"):
+        lines.append(f"Error:     {result['error']}")
+    return "\n".join(lines)
+
 def main() -> None:
     import mcp_fingerprints
 
@@ -393,6 +417,12 @@ def main() -> None:
     detect_p.add_argument(
         "--timeout", type=float, default=3.0, help="Connection timeout in seconds"
     )
+    detect_p.add_argument(
+        "--format",
+        choices=["json", "text"],
+        default="json",
+        help="Output format: 'json' (default) or human-readable 'text'",
+    )
 
     # Detect Drift
     drift_p = subparsers.add_parser(
@@ -494,7 +524,10 @@ def main() -> None:
         from mcp_fingerprints.detector import detect_mcp
         target = args.target[0] if len(args.target) == 1 and args.target[0].startswith("http") else args.target
         result = detect_mcp(target=target, transport=args.transport, timeout=args.timeout)
-        print(json.dumps(result, indent=2))
+        if getattr(args, "format", "json") == "text":
+            print(format_detect_report(target, result))
+        else:
+            print(json.dumps(result, indent=2))
         if not result["is_mcp"]:
              sys.exit(1)
 
@@ -1090,6 +1123,7 @@ def main() -> None:
                 is_discover_unsupported_error,
                 LATEST_PROTOCOL_VERSION,
                 LEGACY_PROTOCOL_VERSION,
+    INTERMEDIATE_PROTOCOL_VERSION,
             )
 
             # 1. Valid handshake
@@ -1098,7 +1132,7 @@ def main() -> None:
             resp = read_msg()
             
             if resp and is_discover_unsupported_error(resp):
-                init_req = build_initialize_request(req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="validator")
+                init_req = build_initialize_request(req_id=2, protocol_version=INTERMEDIATE_PROTOCOL_VERSION, client_name="validator")
                 send_msg(init_req)
                 init_resp = read_msg()
                 if not init_resp:

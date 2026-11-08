@@ -7,6 +7,7 @@ SUPPORTED_PROTOCOL_VERSIONS: tuple[str, ...] = (
     "2024-11-05",
 )
 LATEST_PROTOCOL_VERSION = "2026-07-28"
+INTERMEDIATE_PROTOCOL_VERSION = "2025-11-25"
 LEGACY_PROTOCOL_VERSION = "2024-11-05"
 
 
@@ -24,7 +25,7 @@ def build_discover_request(req_id: int = 1, client_name: str = "mcp-fingerprints
 
 def build_initialize_request(
     req_id: int = 2,
-    protocol_version: str = LEGACY_PROTOCOL_VERSION,
+    protocol_version: str = INTERMEDIATE_PROTOCOL_VERSION,
     client_name: str = "mcp-fingerprints",
 ) -> dict[str, Any]:
     return {

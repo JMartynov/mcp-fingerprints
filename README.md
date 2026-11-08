@@ -152,10 +152,10 @@ The newly created passport immediately participates in validation, canonical has
 * **How It Works**: The `detect` command runs an active JSON-RPC 2.0 `initialize` handshake with a fast 3-second timeout:
 ```bash
 # Test an arbitrary command line (stdio)
-mcp-fingerprints detect "docker run -i --rm -e CS_ACCESS_TOKEN=$TOKEN codescene/codescene-mcp"
+mcp-fingerprints detect --format text "docker run -i --rm -e CS_ACCESS_TOKEN=$TOKEN codescene/codescene-mcp"
 
 # Test a local or remote HTTP/SSE streaming endpoint
-mcp-fingerprints detect http://127.0.0.1:64342/stream
+mcp-fingerprints detect --format text http://127.0.0.1:64342/stream
 ```
 **Sample Output:**
 ```text

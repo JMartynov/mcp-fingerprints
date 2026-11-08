@@ -2,6 +2,7 @@ import pytest
 from mcp_fingerprints.protocol_validator import (
     SUPPORTED_PROTOCOL_VERSIONS,
     LATEST_PROTOCOL_VERSION,
+    INTERMEDIATE_PROTOCOL_VERSION,
     LEGACY_PROTOCOL_VERSION,
     build_discover_request,
     build_initialize_request,
@@ -22,6 +23,7 @@ import urllib.request
 
 
 def test_constants():
+    assert INTERMEDIATE_PROTOCOL_VERSION == "2025-11-25"
     assert LATEST_PROTOCOL_VERSION == "2026-07-28"
     assert LEGACY_PROTOCOL_VERSION == "2024-11-05"
     assert "2026-07-28" in SUPPORTED_PROTOCOL_VERSIONS
@@ -35,6 +37,8 @@ def test_build_requests():
 
     init = build_initialize_request(req_id=20, protocol_version="123", client_name="test")
     assert init["method"] == "initialize"
+    init_default = build_initialize_request()
+    assert init_default["params"]["protocolVersion"] == "2025-11-25"
     assert init["id"] == 20
     assert init["params"]["protocolVersion"] == "123"
 
@@ -206,3 +210,83 @@ def test_cli_validate_protocol(capsys):
             assert e.code == 0
         captured = capsys.readouterr()
         assert "PASS: Valid sequence" in captured.out
+
+MOCK_SERVER_FALLBACK = """
+import sys, json
+
+def read_msg():
+    line = sys.stdin.readline()
+    if not line: return None
+    return json.loads(line)
+
+def write_msg(msg):
+    sys.stdout.write(json.dumps(msg) + "\\n")
+    sys.stdout.flush()
+
+msg1 = read_msg()
+write_msg({
+    "jsonrpc": "2.0",
+    "id": msg1["id"],
+    "error": {"code": -32601, "message": "Method not found"}
+})
+
+msg2 = read_msg()
+write_msg({
+    "jsonrpc": "2.0",
+    "id": msg2["id"],
+    "result": {
+        "protocolVersion": "2025-11-25",
+        "capabilities": {},
+        "serverInfo": {"name": "MockFallback", "version": "1"}
+    }
+})
+"""
+
+def test_detect_mcp_stdio_fallback():
+    res = detect_mcp_stdio([sys.executable, "-c", MOCK_SERVER_FALLBACK], timeout=1.0)
+    assert res["is_mcp"] is True
+    assert res["protocol_version"] == "2025-11-25"
+    
+def test_cli_detect_format(capsys):
+    with patch("sys.argv", ["mcp-fingerprints", "detect", "--format", "json", "http://example.com/mcp"]):
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.read.return_value = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+                "protocolVersion": "2026-07-28",
+                "capabilities": {"logging": {}},
+                "serverInfo": {"name": "Mock", "version": "1"}
+            }
+        }).encode("utf-8")
+        mock_response.headers = MagicMock()
+        mock_response.headers.get.return_value = "application/json"
+        
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_ctx = MagicMock()
+            mock_ctx.__enter__.return_value = mock_response
+            mock_urlopen.return_value = mock_ctx
+            try:
+                cli_main()
+            except SystemExit as e:
+                pass
+            captured = capsys.readouterr()
+            out = json.loads(captured.out)
+            assert out["protocol_version"] == "2026-07-28"
+
+    with patch("sys.argv", ["mcp-fingerprints", "detect", "--format", "text", "http://example.com/mcp"]):
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_ctx = MagicMock()
+            mock_ctx.__enter__.return_value = mock_response
+            mock_urlopen.return_value = mock_ctx
+            try:
+                cli_main()
+            except SystemExit as e:
+                pass
+            captured = capsys.readouterr()
+            assert "Target:    http://example.com/mcp" in captured.out
+            assert "Is MCP:    Yes (verified)" in captured.out
+            assert "Server:    Mock v1" in captured.out
+            assert "Protocol:  2026-07-28" in captured.out
+            assert "Tools:     1 capabilities advertised" in captured.out

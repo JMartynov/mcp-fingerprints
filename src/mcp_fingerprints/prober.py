@@ -24,6 +24,7 @@ from mcp_fingerprints.models import FingerprintMatchResult
 from mcp_fingerprints.protocol_validator import (
     LATEST_PROTOCOL_VERSION,
     LEGACY_PROTOCOL_VERSION,
+    INTERMEDIATE_PROTOCOL_VERSION,
     build_discover_request,
     build_initialize_request,
     is_discover_unsupported_error,
@@ -185,7 +186,7 @@ class McpStdioProber:
             
             negotiated_version = None
             if handshake_resp and is_discover_unsupported_error(handshake_resp):
-                init_req = build_initialize_request(req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="mcp-fingerprints-prober")
+                init_req = build_initialize_request(req_id=2, protocol_version=INTERMEDIATE_PROTOCOL_VERSION, client_name="mcp-fingerprints-prober")
                 proc.stdin.write(json.dumps(init_req).encode("utf-8") + b"\n")
                 proc.stdin.flush()
                 handshake_resp = self._read_jsonrpc_response(proc, timeout=timeout)
@@ -418,7 +419,7 @@ class McpHttpProber:
 
             negotiated_version = None
             if handshake_resp and is_discover_unsupported_error(handshake_resp):
-                init_req = build_initialize_request(req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="mcp-fingerprints-prober")
+                init_req = build_initialize_request(req_id=2, protocol_version=INTERMEDIATE_PROTOCOL_VERSION, client_name="mcp-fingerprints-prober")
                 handshake_resp = send_post(post_url, init_req)
                 if is_sse and not handshake_resp:
                     handshake_resp = get_response(2, wait_timeout=timeout)

@@ -8,6 +8,7 @@ from typing import Any
 
 from mcp_fingerprints.protocol_validator import (
     LEGACY_PROTOCOL_VERSION,
+    INTERMEDIATE_PROTOCOL_VERSION,
     build_discover_request,
     build_initialize_request,
     is_discover_unsupported_error,
@@ -152,7 +153,7 @@ def probe_mcp_server_stdio(
             
             if msg.get("id") == 1 and is_discover_unsupported_error(msg):
                 init_req = build_initialize_request(
-                    req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="McpFingerprints"
+                    req_id=2, protocol_version=INTERMEDIATE_PROTOCOL_VERSION, client_name="McpFingerprints"
                 )
                 process.stdin.write(json.dumps(init_req) + "\n")
                 process.stdin.flush()

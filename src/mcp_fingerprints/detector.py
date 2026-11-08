@@ -10,6 +10,7 @@ from typing import Any
 from mcp_fingerprints.protocol_validator import (
     LATEST_PROTOCOL_VERSION,
     LEGACY_PROTOCOL_VERSION,
+    INTERMEDIATE_PROTOCOL_VERSION,
     build_discover_request,
     build_initialize_request,
     is_discover_unsupported_error,
@@ -65,11 +66,24 @@ def detect_mcp_stdio(command: list[str], timeout: float = 3.0) -> dict[str, Any]
                         break
                 elif data.get("id") == 1 and is_discover_unsupported_error(data):
                     init_req = build_initialize_request(
-                        req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="detector"
+                        req_id=2, protocol_version=INTERMEDIATE_PROTOCOL_VERSION, client_name="detector"
                     )
                     proc.stdin.write(json.dumps(init_req) + "\n")
                     proc.stdin.flush()
                 elif data.get("id") == 2 and "result" in data:
+                    res = data["result"]
+                    if "serverInfo" in res and "capabilities" in res:
+                        result["is_mcp"] = True
+                        result["server_info"] = res["serverInfo"]
+                        result["capabilities"] = res["capabilities"]
+                        result["protocol_version"] = res.get("protocolVersion", INTERMEDIATE_PROTOCOL_VERSION)
+                        break
+                elif data.get("id") == 2 and "error" in data:
+                    # Retry with LEGACY_PROTOCOL_VERSION
+                    init_req = build_initialize_request(req_id=3, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="detector")
+                    proc.stdin.write(json.dumps(init_req) + "\n")
+                    proc.stdin.flush()
+                elif data.get("id") == 3 and "result" in data:
                     res = data["result"]
                     if "serverInfo" in res and "capabilities" in res:
                         result["is_mcp"] = True
@@ -115,7 +129,7 @@ def detect_mcp_http(url: str, timeout: float = 3.0) -> dict[str, Any]:
                 
                 if is_discover_unsupported_error(data):
                     init_req = build_initialize_request(
-                        req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="detector"
+                        req_id=2, protocol_version=INTERMEDIATE_PROTOCOL_VERSION, client_name="detector"
                     )
                     req2 = urllib.request.Request(
                         url,
@@ -126,7 +140,20 @@ def detect_mcp_http(url: str, timeout: float = 3.0) -> dict[str, Any]:
                     with urllib.request.urlopen(req2, timeout=timeout) as response2:
                         if response2.status == 200:
                             data = json.loads(response2.read().decode("utf-8"))
-                            response = response2
+                            if "error" in data:
+                                init_req3 = build_initialize_request(req_id=3, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="detector")
+                                req3 = urllib.request.Request(
+                                    url,
+                                    method="POST",
+                                    data=json.dumps(init_req3).encode("utf-8"),
+                                    headers={"Content-Type": "application/json"},
+                                )
+                                with urllib.request.urlopen(req3, timeout=timeout) as response3:
+                                    if response3.status == 200:
+                                        data = json.loads(response3.read().decode("utf-8"))
+                                        response = response3
+                            else:
+                                response = response2
 
                 if "result" in data:
                     res = data["result"]
@@ -136,7 +163,7 @@ def detect_mcp_http(url: str, timeout: float = 3.0) -> dict[str, Any]:
                         result["capabilities"] = res["capabilities"]
                         result["protocol_version"] = res.get(
                             "protocolVersion", 
-                            LATEST_PROTOCOL_VERSION if data.get("id") == 1 else LEGACY_PROTOCOL_VERSION
+                            LATEST_PROTOCOL_VERSION if data.get("id") == 1 else (LEGACY_PROTOCOL_VERSION if data.get("id") == 3 else INTERMEDIATE_PROTOCOL_VERSION)
                         )
                         # Could be SSE or streamable-http, general is http
                         if "text/event-stream" in response.headers.get("Content-Type", ""):
