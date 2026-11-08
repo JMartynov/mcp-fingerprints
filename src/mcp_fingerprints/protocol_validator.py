@@ -1,5 +1,52 @@
 from typing import Any, Dict, List, Optional, Union
 
+SUPPORTED_PROTOCOL_VERSIONS: tuple[str, ...] = (
+    "2026-07-28",
+    "2025-11-25",
+    "2025-06-18",
+    "2024-11-05",
+)
+LATEST_PROTOCOL_VERSION = "2026-07-28"
+LEGACY_PROTOCOL_VERSION = "2024-11-05"
+
+
+def build_discover_request(req_id: int = 1, client_name: str = "mcp-fingerprints") -> dict[str, Any]:
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "method": "server/discover",
+        "params": {
+            "protocolVersion": LATEST_PROTOCOL_VERSION,
+            "clientInfo": {"name": client_name, "version": "1.1.0"},
+        },
+    }
+
+
+def build_initialize_request(
+    req_id: int = 2,
+    protocol_version: str = LEGACY_PROTOCOL_VERSION,
+    client_name: str = "mcp-fingerprints",
+) -> dict[str, Any]:
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": protocol_version,
+            "capabilities": {},
+            "clientInfo": {"name": client_name, "version": "1.1.0"},
+        },
+    }
+
+
+def is_discover_unsupported_error(msg: dict[str, Any]) -> bool:
+    """Detect legacy MCP 1.x servers that reject server/discover with -32601 or -32602."""
+    error = msg.get("error")
+    if not isinstance(error, dict):
+        return False
+    return error.get("code") in (-32601, -32602)
+
+
 class ProtocolViolationError(Exception):
     pass
 
@@ -37,7 +84,40 @@ def validate_mcp_handshake(messages: List[Dict[str, Any]]) -> None:
     1. Client initialize request
     2. Server initialize response
     3. Client notifications/initialized
+    Or for newer versions:
+    1. Client server/discover request
+    2. Server server/discover response
     """
+    if not messages:
+        raise ProtocolViolationError("Handshake requires at least 3 messages: initialize request, response, and notifications/initialized.")
+        
+    req = messages[0]
+    if req.get("method") == "server/discover":
+        if len(messages) < 2:
+            raise ProtocolViolationError("Handshake requires at least 2 messages for server/discover or 3 messages: initialize request, response, and notifications/initialized.")
+        resp = messages[1]
+        validate_jsonrpc_message(req)
+        validate_jsonrpc_message(resp, request_id=req.get("id"))
+        
+        if "params" not in req or not isinstance(req["params"], dict):
+            raise ProtocolViolationError("server/discover request missing 'params'.")
+        if "protocolVersion" not in req["params"]:
+            raise ProtocolViolationError("server/discover request params missing 'protocolVersion'.")
+        if "clientInfo" not in req["params"]:
+            raise ProtocolViolationError("server/discover request params missing 'clientInfo'.")
+            
+        if "result" not in resp or not isinstance(resp["result"], dict):
+            raise ProtocolViolationError("server/discover response missing 'result' field.")
+        result = resp["result"]
+        if "protocolVersion" not in result:
+            raise ProtocolViolationError("server/discover response result missing 'protocolVersion'.")
+        if "capabilities" not in result:
+            raise ProtocolViolationError("server/discover response result missing 'capabilities'.")
+        if "serverInfo" not in result:
+            raise ProtocolViolationError("server/discover response result missing 'serverInfo'.")
+        
+        return
+        
     if len(messages) < 3:
         raise ProtocolViolationError("Handshake requires at least 3 messages: initialize request, response, and notifications/initialized.")
 

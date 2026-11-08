@@ -21,6 +21,13 @@ from packaging.version import parse as parse_version
 
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import FingerprintMatchResult
+from mcp_fingerprints.protocol_validator import (
+    LATEST_PROTOCOL_VERSION,
+    LEGACY_PROTOCOL_VERSION,
+    build_discover_request,
+    build_initialize_request,
+    is_discover_unsupported_error,
+)
 
 logger = logging.getLogger("mcp_fingerprints.prober")
 
@@ -42,6 +49,7 @@ class ProbeReport:
     author: str | None = None
     latest_version: str | None = None
     is_outdated: bool = False
+    protocol_version: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -58,6 +66,7 @@ class ProbeReport:
             "author": self.author,
             "latest_version": self.latest_version,
             "is_outdated": self.is_outdated,
+            "protocol_version": self.protocol_version,
         }
 
 
@@ -167,49 +176,59 @@ class McpStdioProber:
                 env=merged_env,
             )
 
-            # 1. Initialize
-            init_req = json.dumps({
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {},
-                    "clientInfo": {"name": "mcp-fingerprints-prober", "version": "1.0.0"},
-                },
-            }) + "\n"
-            proc.stdin.write(init_req.encode("utf-8"))
+            # 1. Discover
+            discover_req = build_discover_request(req_id=1, client_name="mcp-fingerprints-prober")
+            proc.stdin.write(json.dumps(discover_req).encode("utf-8") + b"\n")
             proc.stdin.flush()
 
-            init_resp = self._read_jsonrpc_response(proc, timeout=timeout)
-            if not init_resp or "result" not in init_resp:
+            handshake_resp = self._read_jsonrpc_response(proc, timeout=timeout)
+            
+            negotiated_version = None
+            if handshake_resp and is_discover_unsupported_error(handshake_resp):
+                init_req = build_initialize_request(req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="mcp-fingerprints-prober")
+                proc.stdin.write(json.dumps(init_req).encode("utf-8") + b"\n")
+                proc.stdin.flush()
+                handshake_resp = self._read_jsonrpc_response(proc, timeout=timeout)
+                if not handshake_resp or "result" not in handshake_resp:
+                    return ProbeReport(
+                        server_command=command,
+                        connection_successful=False,
+                        error=f"Failed to receive valid initialize response: {handshake_resp}",
+                    )
+                negotiated_version = handshake_resp["result"].get("protocolVersion", LEGACY_PROTOCOL_VERSION)
+                # Initialized notification for legacy
+                notif = json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n"
+                proc.stdin.write(notif.encode("utf-8"))
+                proc.stdin.flush()
+            elif handshake_resp and "result" in handshake_resp:
+                negotiated_version = handshake_resp["result"].get("protocolVersion", LATEST_PROTOCOL_VERSION)
+                # Send notifications/initialized anyway just in case for compatibility 
+                notif = json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n"
+                proc.stdin.write(notif.encode("utf-8"))
+                proc.stdin.flush()
+            else:
                 return ProbeReport(
                     server_command=command,
                     connection_successful=False,
-                    error=f"Failed to receive valid initialize response: {init_resp}",
+                    error=f"Failed to receive valid handshake response: {handshake_resp}",
                 )
 
-            # 2. Initialized notification
-            notif = json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}) + "\n"
-            proc.stdin.write(notif.encode("utf-8"))
-            proc.stdin.flush()
-
             # 3. Query tools
-            tools_req = json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}) + "\n"
+            tools_req = json.dumps({"jsonrpc": "2.0", "id": 3, "method": "tools/list", "params": {}}) + "\n"
             proc.stdin.write(tools_req.encode("utf-8"))
             proc.stdin.flush()
             tools_resp = self._read_jsonrpc_response(proc, timeout=timeout)
             tools = (tools_resp.get("result", {}).get("tools", [])) if tools_resp else []
 
             # 4. Query prompts
-            prompts_req = json.dumps({"jsonrpc": "2.0", "id": 3, "method": "prompts/list", "params": {}}) + "\n"
+            prompts_req = json.dumps({"jsonrpc": "2.0", "id": 4, "method": "prompts/list", "params": {}}) + "\n"
             proc.stdin.write(prompts_req.encode("utf-8"))
             proc.stdin.flush()
             prompts_resp = self._read_jsonrpc_response(proc, timeout=timeout)
             prompts = (prompts_resp.get("result", {}).get("prompts", [])) if prompts_resp else []
 
             # 5. Query resources
-            res_req = json.dumps({"jsonrpc": "2.0", "id": 4, "method": "resources/list", "params": {}}) + "\n"
+            res_req = json.dumps({"jsonrpc": "2.0", "id": 5, "method": "resources/list", "params": {}}) + "\n"
             proc.stdin.write(res_req.encode("utf-8"))
             proc.stdin.flush()
             res_resp = self._read_jsonrpc_response(proc, timeout=timeout)
@@ -245,6 +264,7 @@ class McpStdioProber:
             prompts_observed=prompts,
             resources_observed=resources,
             match_result=match_result,
+            protocol_version=negotiated_version,
         )
 
         if match_result.matched and match_result.package_name:
@@ -286,7 +306,10 @@ class McpHttpProber:
         min_confidence_threshold: float = 0.65,
     ) -> ProbeReport:
         """Connect to HTTP endpoint, conduct MCP handshake, and query capabilities."""
-        req_headers = {"Content-Type": "application/json"}
+        req_headers = {
+            "Content-Type": "application/json", 
+            "MCP-Protocol-Version": LATEST_PROTOCOL_VERSION
+        }
         if headers:
             req_headers.update(headers)
 
@@ -386,54 +409,60 @@ class McpHttpProber:
                     except queue.Empty:
                         pass
                         
-            # 1. Initialize
-            init_req = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {},
-                    "clientInfo": {"name": "mcp-fingerprints-prober", "version": "1.0.0"},
-                },
-            }
+            # 1. Discover
+            discover_req = build_discover_request(req_id=1, client_name="mcp-fingerprints-prober")
             
-            init_resp = send_post(post_url, init_req)
-            if is_sse:
-                init_resp = get_response(1, timeout)
-            
-            if not init_resp or "result" not in init_resp:
+            handshake_resp = send_post(post_url, discover_req)
+            if is_sse and not handshake_resp:
+                 handshake_resp = get_response(1, wait_timeout=timeout)
+
+            negotiated_version = None
+            if handshake_resp and is_discover_unsupported_error(handshake_resp):
+                init_req = build_initialize_request(req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="mcp-fingerprints-prober")
+                handshake_resp = send_post(post_url, init_req)
+                if is_sse and not handshake_resp:
+                    handshake_resp = get_response(2, wait_timeout=timeout)
+                if not handshake_resp or "result" not in handshake_resp:
+                    return ProbeReport(
+                        server_command=[url],
+                        connection_successful=False,
+                        error=f"Failed to receive valid initialize response via HTTP. Response: {handshake_resp}",
+                    )
+                negotiated_version = handshake_resp["result"].get("protocolVersion", LEGACY_PROTOCOL_VERSION)
+                notif = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+                send_post(post_url, notif)
+            elif handshake_resp and "result" in handshake_resp:
+                negotiated_version = handshake_resp["result"].get("protocolVersion", LATEST_PROTOCOL_VERSION)
+                notif = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+                send_post(post_url, notif)
+            else:
                 return ProbeReport(
                     server_command=[url],
                     connection_successful=False,
-                    error=f"Failed to receive valid initialize response: {init_resp}",
+                    error=f"Failed to receive valid handshake response via HTTP. Response: {handshake_resp}",
                 )
 
-            # 2. Initialized notification
-            notif = {"jsonrpc": "2.0", "method": "notifications/initialized"}
-            send_post(post_url, notif)
-
-            # 3. Query tools
-            tools_req = {"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
+            # 2. Query tools
+            tools_req = {"jsonrpc": "2.0", "id": 3, "method": "tools/list", "params": {}}
             tools_resp = send_post(post_url, tools_req)
             if is_sse:
-                tools_resp = get_response(2, timeout)
+                tools_resp = get_response(3, timeout)
             if tools_resp:
                 tools = tools_resp.get("result", {}).get("tools", [])
 
             # 4. Query prompts
-            prompts_req = {"jsonrpc": "2.0", "id": 3, "method": "prompts/list", "params": {}}
+            prompts_req = {"jsonrpc": "2.0", "id": 4, "method": "prompts/list", "params": {}}
             prompts_resp = send_post(post_url, prompts_req)
             if is_sse:
-                prompts_resp = get_response(3, timeout)
+                prompts_resp = get_response(4, timeout)
             if prompts_resp:
                 prompts = prompts_resp.get("result", {}).get("prompts", [])
 
             # 5. Query resources
-            res_req = {"jsonrpc": "2.0", "id": 4, "method": "resources/list", "params": {}}
+            res_req = {"jsonrpc": "2.0", "id": 5, "method": "resources/list", "params": {}}
             res_resp = send_post(post_url, res_req)
             if is_sse:
-                res_resp = get_response(4, timeout)
+                 res_resp = get_response(5, timeout)
             if res_resp:
                 resources = res_resp.get("result", {}).get("resources", [])
 
@@ -463,6 +492,7 @@ class McpHttpProber:
             prompts_observed=prompts,
             resources_observed=resources,
             match_result=match_result,
+            protocol_version=negotiated_version,
         )
 
     def probe_http(self, url: str, headers: dict[str, str] | None = None, timeout: float = 10.0, **kwargs: Any) -> ProbeReport:

@@ -7,6 +7,15 @@ import urllib.request
 import urllib.error
 from typing import Any
 
+from mcp_fingerprints.protocol_validator import (
+    LATEST_PROTOCOL_VERSION,
+    LEGACY_PROTOCOL_VERSION,
+    build_discover_request,
+    build_initialize_request,
+    is_discover_unsupported_error,
+)
+
+
 def detect_mcp_stdio(command: list[str], timeout: float = 3.0) -> dict[str, Any]:
     """Detect if a local stdio command is an MCP server."""
     result = {
@@ -14,7 +23,8 @@ def detect_mcp_stdio(command: list[str], timeout: float = 3.0) -> dict[str, Any]
         "transport": "stdio",
         "server_info": {},
         "capabilities": {},
-        "error": None
+        "protocol_version": None,
+        "error": None,
     }
     try:
         proc = subprocess.Popen(
@@ -23,48 +33,56 @@ def detect_mcp_stdio(command: list[str], timeout: float = 3.0) -> dict[str, Any]
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            bufsize=1
+            bufsize=1,
         )
-        
+
         q = queue.Queue()
+
         def reader_thread():
             for line in proc.stdout:
                 q.put(line)
 
         t = threading.Thread(target=reader_thread, daemon=True)
         t.start()
-        
-        init_req = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "detector", "version": "1.0"}
-            }
-        }
-        
-        proc.stdin.write(json.dumps(init_req) + "\n")
+
+        discover_req = build_discover_request(req_id=1, client_name="detector")
+        proc.stdin.write(json.dumps(discover_req) + "\n")
         proc.stdin.flush()
-        
+
         start_time = time.time()
         while time.time() - start_time < timeout:
             try:
                 line = q.get(timeout=0.1)
                 data = json.loads(line)
+                
                 if data.get("id") == 1 and "result" in data:
                     res = data["result"]
                     if "serverInfo" in res and "capabilities" in res:
                         result["is_mcp"] = True
                         result["server_info"] = res["serverInfo"]
                         result["capabilities"] = res["capabilities"]
+                        result["protocol_version"] = res.get("protocolVersion", LATEST_PROTOCOL_VERSION)
                         break
+                elif data.get("id") == 1 and is_discover_unsupported_error(data):
+                    init_req = build_initialize_request(
+                        req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="detector"
+                    )
+                    proc.stdin.write(json.dumps(init_req) + "\n")
+                    proc.stdin.flush()
+                elif data.get("id") == 2 and "result" in data:
+                    res = data["result"]
+                    if "serverInfo" in res and "capabilities" in res:
+                        result["is_mcp"] = True
+                        result["server_info"] = res["serverInfo"]
+                        result["capabilities"] = res["capabilities"]
+                        result["protocol_version"] = res.get("protocolVersion", LEGACY_PROTOCOL_VERSION)
+                        break
+
             except queue.Empty:
                 continue
             except json.JSONDecodeError:
                 continue
-                
+
         proc.kill()
         
     except Exception as e:
@@ -79,33 +97,47 @@ def detect_mcp_http(url: str, timeout: float = 3.0) -> dict[str, Any]:
         "transport": "http",
         "server_info": {},
         "capabilities": {},
-        "error": None
+        "protocol_version": None,
+        "error": None,
     }
     try:
+        discover_req = build_discover_request(req_id=1, client_name="detector")
         req = urllib.request.Request(
             url,
             method="POST",
-            data=json.dumps({
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {},
-                    "clientInfo": {"name": "detector", "version": "1.0"}
-                }
-            }).encode("utf-8"),
-            headers={"Content-Type": "application/json"}
+            data=json.dumps(discover_req).encode("utf-8"),
+            headers={"Content-Type": "application/json", "MCP-Protocol-Version": LATEST_PROTOCOL_VERSION},
         )
+        
         with urllib.request.urlopen(req, timeout=timeout) as response:
             if response.status == 200:
                 data = json.loads(response.read().decode("utf-8"))
-                if data.get("id") == 1 and "result" in data:
+                
+                if is_discover_unsupported_error(data):
+                    init_req = build_initialize_request(
+                        req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="detector"
+                    )
+                    req2 = urllib.request.Request(
+                        url,
+                        method="POST",
+                        data=json.dumps(init_req).encode("utf-8"),
+                        headers={"Content-Type": "application/json"},
+                    )
+                    with urllib.request.urlopen(req2, timeout=timeout) as response2:
+                        if response2.status == 200:
+                            data = json.loads(response2.read().decode("utf-8"))
+                            response = response2
+
+                if "result" in data:
                     res = data["result"]
                     if "serverInfo" in res and "capabilities" in res:
                         result["is_mcp"] = True
                         result["server_info"] = res["serverInfo"]
                         result["capabilities"] = res["capabilities"]
+                        result["protocol_version"] = res.get(
+                            "protocolVersion", 
+                            LATEST_PROTOCOL_VERSION if data.get("id") == 1 else LEGACY_PROTOCOL_VERSION
+                        )
                         # Could be SSE or streamable-http, general is http
                         if "text/event-stream" in response.headers.get("Content-Type", ""):
                              result["transport"] = "sse"

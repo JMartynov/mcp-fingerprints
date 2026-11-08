@@ -6,6 +6,13 @@ import time
 import queue
 from typing import Any
 
+from mcp_fingerprints.protocol_validator import (
+    LEGACY_PROTOCOL_VERSION,
+    build_discover_request,
+    build_initialize_request,
+    is_discover_unsupported_error,
+)
+
 
 def sanitize_environment(env_updates: dict[str, str] | None = None) -> dict[str, str]:
     """
@@ -108,22 +115,15 @@ def probe_mcp_server_stdio(
     try:
         start_time = time.time()
         
-        # 1. Request initialize
-        init_req = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {},
-                "clientInfo": {"name": "McpFingerprints", "version": "1.0"},
-            },
-        }
-        process.stdin.write(json.dumps(init_req) + "\n")
+        # 1. Request discover
+        discover_req = build_discover_request(req_id=1, client_name="McpFingerprints")
+        process.stdin.write(json.dumps(discover_req) + "\n")
         process.stdin.flush()
 
-        # Wait for initialize response
+        # Wait for handshake response
         initialized = False
+        used_legacy = False
+        
         while True:
             elapsed = time.time() - start_time
             if elapsed > timeout_seconds:
@@ -147,6 +147,20 @@ def probe_mcp_server_stdio(
                 
             if msg.get("id") == 1 and "result" in msg:
                 initialized = True
+                used_legacy = False
+                break
+            
+            if msg.get("id") == 1 and is_discover_unsupported_error(msg):
+                init_req = build_initialize_request(
+                    req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="McpFingerprints"
+                )
+                process.stdin.write(json.dumps(init_req) + "\n")
+                process.stdin.flush()
+                continue
+                
+            if msg.get("id") == 2 and "result" in msg:
+                initialized = True
+                used_legacy = True
                 break
 
         if not initialized:
@@ -162,9 +176,10 @@ def probe_mcp_server_stdio(
         process.stdin.flush()
 
         # 3. Request tools/list
+        tools_req_id = 3 if used_legacy else 2
         tools_req = {
             "jsonrpc": "2.0",
-            "id": 2,
+            "id": tools_req_id,
             "method": "tools/list",
             "params": {}
         }
@@ -192,7 +207,7 @@ def probe_mcp_server_stdio(
             except json.JSONDecodeError:
                 continue
                 
-            if msg.get("id") == 2 and "result" in msg:
+            if msg.get("id") == tools_req_id and "result" in msg:
                 result = msg["result"]
                 if "tools" in result and isinstance(result["tools"], list):
                     for tool in result["tools"]:

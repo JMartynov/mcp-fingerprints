@@ -1085,34 +1085,52 @@ def main() -> None:
             from mcp_fingerprints.protocol_validator import (
                 validate_mcp_handshake,
                 validate_jsonrpc_message,
+                build_discover_request,
+                build_initialize_request,
+                is_discover_unsupported_error,
+                LATEST_PROTOCOL_VERSION,
+                LEGACY_PROTOCOL_VERSION,
             )
 
             # 1. Valid handshake
-            init_req = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {},
-                    "clientInfo": {"name": "validator", "version": "1.0"},
-                },
-            }
-            send_msg(init_req)
-
-            init_resp = read_msg()
-            if not init_resp:
-                print("FAIL: No response to initialize request")
+            discover_req = build_discover_request(req_id=1, client_name="validator")
+            send_msg(discover_req)
+            resp = read_msg()
+            
+            if resp and is_discover_unsupported_error(resp):
+                init_req = build_initialize_request(req_id=2, protocol_version=LEGACY_PROTOCOL_VERSION, client_name="validator")
+                send_msg(init_req)
+                init_resp = read_msg()
+                if not init_resp:
+                    print("FAIL: No response to initialize request")
+                    proc.kill()
+                    sys.exit(1)
+                init_notif = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+                send_msg(init_notif)
+                messages = [init_req, init_resp, init_notif]
+                negotiated_version = init_resp.get("result", {}).get("protocolVersion", LEGACY_PROTOCOL_VERSION) if isinstance(init_resp.get("result"), dict) else LEGACY_PROTOCOL_VERSION
+                next_id = 3
+            elif resp:
+                if "result" in resp and resp.get("result", {}).get("protocolVersion") == LATEST_PROTOCOL_VERSION:
+                    messages = [discover_req, resp]
+                    negotiated_version = resp["result"].get("protocolVersion", LATEST_PROTOCOL_VERSION)
+                    next_id = 2
+                elif "result" in resp:
+                    messages = [discover_req, resp]
+                    negotiated_version = resp["result"].get("protocolVersion", LATEST_PROTOCOL_VERSION) if isinstance(resp.get("result"), dict) else LATEST_PROTOCOL_VERSION
+                    next_id = 2
+                else:
+                    messages = [discover_req, resp]
+                    negotiated_version = LATEST_PROTOCOL_VERSION
+                    next_id = 2
+            else:
+                print("FAIL: No response to discover/initialize request")
                 proc.kill()
                 sys.exit(1)
-
-            init_notif = {"jsonrpc": "2.0", "method": "notifications/initialized"}
-            send_msg(init_notif)
-
-            messages = [init_req, init_resp, init_notif]
+            
             try:
                 validate_mcp_handshake(messages)
-                print("PASS: Valid sequence")
+                print(f"PASS: Valid sequence (Protocol: {negotiated_version})")
             except ProtocolViolationError as e:
                 print(f"FAIL: Handshake validation failed: {e}")
                 proc.kill()
@@ -1121,7 +1139,7 @@ def main() -> None:
             # 2. Intentional invalid method to test error object structure
             bad_req = {
                 "jsonrpc": "2.0",
-                "id": 2,
+                "id": next_id,
                 "method": "invalid/method/does/not/exist",
                 "params": {},
             }
@@ -1135,7 +1153,7 @@ def main() -> None:
 
             try:
                 # Should have jsonrpc, id matching, and valid error object
-                validate_jsonrpc_message(bad_resp, request_id=2)
+                validate_jsonrpc_message(bad_resp, request_id=next_id)
                 if "error" not in bad_resp:
                     print("FAIL: Invalid request did not return an error object")
                     proc.kill()
