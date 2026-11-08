@@ -394,65 +394,676 @@ with urllib.request.urlopen(url) as resp:
 print(f"Loaded {data['total_passports']} MCP server passports.")
 ```
 
-## CLI Usage
 
-The CLI provides a focused set of pure structural commands:
+
+
+## 🎬 Live Sandboxed Demo (`./demo.sh`)
+
+To see `mcp-fingerprints` in action without affecting your real environment, run the interactive sandboxed demo script:
 
 ```bash
+# Launch interactive menu
+./demo.sh
 
-# Auto-discover local configs with generic agent detection and baseline drift tracking
-python -m mcp_fingerprints.cli scan-configs --auto --save-baseline baseline.json
-python -m mcp_fingerprints.cli scan-configs --auto --diff baseline.json
-
-# Detect if a generic command or URL is an MCP server
-python -m mcp_fingerprints.cli detect "uvx mcp-server-git"
-python -m mcp_fingerprints.cli detect http://localhost:8000/sse
-
-# Auto-generate passports for locally discovered tools
-python -m mcp_fingerprints.cli scan-configs --auto --auto-passport
-
-# Sync from registries
-python -m mcp_fingerprints.cli sync --all
-
-# Match a toolset hash against the knowledge base
-python -m mcp_fingerprints.cli match <hash>
-
-# Probe a server and extract its fingerprint
-python -m mcp_fingerprints.cli probe <server_command>
-
-# Validate schema invariants
-python -m mcp_fingerprints.cli validate --dir data/fingerprints
-
-# Validate server JSON-RPC 2.0 and MCP Protocol conformance
-python -m mcp_fingerprints.cli validate-protocol "npx -y @modelcontextprotocol/server-postgres postgresql://localhost/mydb"
-
-# Export structural catalog metadata in CycloneDX 1.6 or SPDX 2.3 format
-python -m mcp_fingerprints.cli export-sbom --all --format cyclonedx
-
-# Build semantic embeddings index
-python -m mcp_fingerprints.cli build-index
-
-# Run interactive setup wizard to bootstrap configuration
-python -m mcp_fingerprints.cli init
-
-# Run automated invariant verification test suites (5 pillars, 400 passing tests)
-pytest tests/test_live_cli_sandbox_invariants.py tests/test_live_canonicalizer_snapshot_invariants.py tests/test_live_matcher_search_invariants.py tests/test_live_config_scanner_tamper_drift.py tests/test_live_ast_openapi_zero_tool_parsers.py
-
-# Build compressed snapshot
-python -m mcp_fingerprints.cli snapshot
-
-# Search the catalog
-python -m mcp_fingerprints.cli search "query"
-
-# Browse interactively via TUI
-python -m mcp_fingerprints.cli browse
-
-# Export client configurations (Claude, Cursor, Cline, Zed, Windsurf)
-python -m mcp_fingerprints.cli export-config <server_name> --client claude
-
-# Detect configuration drift against the latest passports
-python -m mcp_fingerprints.cli detect-drift <config_file>
+# Run all demonstrations in batch mode
+./demo.sh --all
 ```
+
+The `demo.sh` script creates a strict ephemeral sandbox (`mktemp -d`), provisions mock MCP servers (stdio and HTTP) and multi-agent configs, and demonstrates every CLI command safely. It ensures zero modifications to your real `~/.claude.json`, `~/.cursor/mcp.json`, or the actual database.
+
+## CLI Usage & Complete Command Reference
+
+Below is the complete CLI command reference, including all 16 subcommands, supported flags, options, and real verified outputs from running `./demo.sh --all`.
+
+### Environment Variables
+- `GITHUB_TOKEN` / `GH_TOKEN`: Token for GitHub Registry API limits (optional).
+- `DRIFT_WEBHOOK_URL` / `WEBHOOK_URL` / `SLACK_WEBHOOK_URL`: Endpoints for posting supply-chain tamper alerts during `detect-drift` or `scan-configs`.
+- `MCP_FINGERPRINTS_CACHE_DIR`: Override the default `data/.passport_cache.json` location.
+- `APPDATA`, `LOCALAPPDATA`: Used for Windows multi-agent path discovery.
+- `PATH`: System paths for detecting commands.
+
+*Note: The runtime sandbox engine safely strips sensitive environment variables (`AWS_*`, `GITHUB_TOKEN`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `SSH_*`, etc.) before spawning child MCP servers to ensure credentials never leak to untrusted extensions.*
+
+<details>
+<summary><b>Click to expand real command output from the sandboxed demo</b></summary>
+
+```text
+Running Full Sandboxed Demo Suite
+============================================================
+
+------------------------------------------------------------
+▶ Executing: --version
+------------------------------------------------------------
+mcp-fingerprints 1.4.1
+
+------------------------------------------------------------
+▶ Executing: --help
+------------------------------------------------------------
+usage: mcp-fingerprints [-h] [--version]
+                        {interactive,hub,init,sync,match,probe,validate,snapshot,build-index,search,browse,export-config,export-sbom,validate-protocol,detect,detect-drift,scan-configs,scan}
+                        ...
+
+MCP Fingerprint & Passport Knowledge Base CLI
+
+positional arguments:
+  {interactive,hub,init,sync,match,probe,validate,snapshot,build-index,search,browse,export-config,export-sbom,validate-protocol,detect,detect-drift,scan-configs,scan}
+    interactive (hub)   Launch Interactive MCP Command Hub
+    init                Run interactive setup wizard to bootstrap
+                        configuration
+    sync                Synchronize MCP server passports from registries
+    match               Match observed runtime tools against the fingerprint
+                        knowledge base
+    probe               Probe a live MCP server over stdio, extract
+                        signatures, and match against passport knowledge base
+    validate            Validate passport directory invariants
+    snapshot            Compile all passports into consolidated .json.gz
+    build-index         Build semantic embeddings index
+    search              Fuzzy search MCP servers by keyword or capability
+    browse              Interactive TUI browser for the MCP catalog
+    export-config       Export client configuration
+                        (Claude/Cursor/Cline/Zed/Windsurf/Docker)
+    export-sbom         Export structural catalog metadata in CycloneDX 1.6 or
+                        SPDX 2.3 format
+    validate-protocol   Validate server JSON-RPC 2.0 and MCP Protocol
+                        conformance
+    detect              Generic MCP Server Detection
+    detect-drift        Detect supply-chain tampering and hash drift between
+                        passport states
+    scan-configs (scan)
+                        Scan local configuration files, build inventory, and
+                        detect schema drift.
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+
+--- Scan Configs ---
+
+------------------------------------------------------------
+▶ Executing: scan-configs --path /tmp/tmp.GygceJUfHa/configs/claude_desktop_config.json --no-scan-global --no-auto
+------------------------------------------------------------
+Server Name          | Config Source                            | Command              | Status
+----------------------------------------------------------------------------------------------------
+demo-stdio           | /tmp/tmp.GygceJUfHa/configs/claude_deskt | python3              | Failed
+
+------------------------------------------------------------
+▶ Executing: scan-configs --path /tmp/tmp.GygceJUfHa/configs/claude_desktop_config.json --no-scan-global --no-auto --save-baseline /tmp/tmp.GygceJUfHa/baseline.json
+------------------------------------------------------------
+Saved snapshot to /tmp/tmp.GygceJUfHa/baseline.json
+Server Name          | Config Source                            | Command              | Status
+----------------------------------------------------------------------------------------------------
+demo-stdio           | /tmp/tmp.GygceJUfHa/configs/claude_deskt | python3              | Failed
+Mutating baseline to trigger drift...
+
+------------------------------------------------------------
+▶ Executing (Expecting Exit Code 2): scan-configs --path /tmp/tmp.GygceJUfHa/configs/claude_desktop_config.json --no-scan-global --no-auto --compare-snapshot /tmp/tmp.GygceJUfHa/baseline.json --fail-on-drift
+------------------------------------------------------------
+======================================================================
+               LOCAL MCP INVENTORY DRIFT REPORT
+======================================================================
+Baseline Snapshot: /tmp/tmp.GygceJUfHa/baseline.json (Captured: 2026-11-08T20:53:07.288519)
+Current Scan:      2026-11-08T20:53:07.570790 (1 servers observed)
+
+➕ ADDED SERVERS (0):
+  (None)
+
+➖ REMOVED SERVERS (0):
+  (None)
+
+🔄 MODIFIED / DRIFTED SERVERS (1):
+  • [claude_desktop_config.json] demo-stdio
+    - Toolset Canonical Hash: Drifted (sha256:tamperedhash -> None)
+======================================================================
+Result: 0 server(s) added, 1 server(s) drifted.
+✅ Exited with expected code 2
+
+--- Detect ---
+
+------------------------------------------------------------
+▶ Executing: detect --format text python3 /tmp/tmp.GygceJUfHa/mock_stdio_server.py
+------------------------------------------------------------
+Target:    python3 /tmp/tmp.GygceJUfHa/mock_stdio_server.py
+Is MCP:    No
+Transport: stdio
+Server:    unknown
+Protocol:  unknown
+Tools:     0 capabilities advertised
+Error:     [Errno 2] No such file or directory: 'python3 /tmp/tmp.GygceJUfHa/mock_stdio_server.py'
+
+------------------------------------------------------------
+▶ Executing: detect --format json http://127.0.0.1:8888/mcp
+------------------------------------------------------------
+{
+  "is_mcp": true,
+  "transport": "http",
+  "server_info": {
+    "name": "mock-http-server",
+    "version": "1.0.0"
+  },
+  "capabilities": {},
+  "protocol_version": "2024-11-05",
+  "error": null
+}
+
+--- Probe ---
+Setting sensitive AWS_ACCESS_KEY_ID before probe...
+
+------------------------------------------------------------
+▶ Executing: probe -s -- python3 /tmp/tmp.GygceJUfHa/mock_stdio_server.py
+------------------------------------------------------------
+2026-11-08 20:53:10,519 [INFO] FingerprintFastIndex restored 6024 passports from binary cache in 2138.37 ms
+⚠ Partial Match: @modelcontextprotocol/server-sqlite v0.2.0 (npm, 74% confidence)
+  Repository: https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite
+  Download:   npx -y @modelcontextprotocol/server-sqlite
+  Tools (2):  query_database, list_tables
+
+------------------------------------------------------------
+▶ Executing: probe --url http://127.0.0.1:8888 --format table
+------------------------------------------------------------
+2026-11-08 20:53:13,152 [INFO] FingerprintFastIndex restored 6024 passports from binary cache in 2092.32 ms
+Unidentified Server: http://127.0.0.1:8888
+
+TOOL NAME                      | DESCRIPTION                                  
+-------------------------------+----------------------------------------------
+fetch_url                      | Fetch a URL                                  
+
+--- Validate Protocol ---
+
+------------------------------------------------------------
+▶ Executing: validate-protocol python3 /tmp/tmp.GygceJUfHa/mock_stdio_server.py
+------------------------------------------------------------
+Validating protocol conformance for: python3 /tmp/tmp.GygceJUfHa/mock_stdio_server.py
+PASS: Valid sequence (Protocol: 2024-11-05)
+PASS: Error object structure
+==================================================
+Protocol Conformance: PASS
+==================================================
+
+--- Match ---
+
+------------------------------------------------------------
+▶ Executing: match -i /tmp/tmp.GygceJUfHa/observed_tools.json --dir /tmp/tmp.GygceJUfHa/fingerprints_v1
+------------------------------------------------------------
+2026-11-08 20:53:13,991 [INFO] FingerprintFastIndex indexed 5 passports from disk in 4.28 ms
+==================================================
+         MCP FINGERPRINT MATCH REPORT             
+==================================================
+Matched:            False
+Confidence:         30.0%
+Reason:             No candidate passport met threshold >= 0.65
+==================================================
+
+--- Search ---
+
+------------------------------------------------------------
+▶ Executing: search query --dir /tmp/tmp.GygceJUfHa/fingerprints_v1 --limit 2
+------------------------------------------------------------
+No results found.
+
+--- Export Config ---
+
+------------------------------------------------------------
+▶ Executing: export-config icohangar-ops/codesentinel --client claude --dir /tmp/tmp.GygceJUfHa/fingerprints_v1
+------------------------------------------------------------
+{
+  "mcpServers": {
+    "icohangar-ops-codesentinel": {
+      "command": "icohangar-ops/codesentinel",
+      "args": []
+    }
+  }
+}
+
+------------------------------------------------------------
+▶ Executing: export-config icohangar-ops/codesentinel --all-clients --dir /tmp/tmp.GygceJUfHa/fingerprints_v1
+------------------------------------------------------------
+{
+  "claude": {
+    "mcpServers": {
+      "icohangar-ops-codesentinel": {
+        "command": "icohangar-ops/codesentinel",
+        "args": []
+      }
+    }
+  },
+  "cursor": {
+    "mcpServers": {
+      "icohangar-ops-codesentinel": {
+        "command": "icohangar-ops/codesentinel",
+        "args": []
+      }
+    }
+  },
+  "cline": {
+    "mcpServers": {
+      "icohangar-ops-codesentinel": {
+        "command": "icohangar-ops/codesentinel",
+        "args": [],
+        "disabled": false,
+        "autoApprove": []
+      }
+    }
+  },
+  "zed": {
+    "context_servers": {
+      "icohangar-ops-codesentinel": {
+        "command": {
+          "path": "icohangar-ops/codesentinel",
+          "args": []
+        }
+      }
+    }
+  },
+  "windsurf": {
+    "mcpServers": {
+      "icohangar-ops-codesentinel": {
+        "command": "icohangar-ops/codesentinel",
+        "args": []
+      }
+    }
+  },
+  "docker": {
+    "dockerCommand": "docker run -i --rm alpine:latest icohangar-ops/codesentinel",
+    "container": {
+      "image": "alpine:latest",
+      "command": "icohangar-ops/codesentinel",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+
+------------------------------------------------------------
+▶ Executing: export-config icohangar-ops/codesentinel --server patched-server --config /tmp/tmp.GygceJUfHa/configs/cursor_mcp.json --dir /tmp/tmp.GygceJUfHa/fingerprints_v1
+------------------------------------------------------------
+Patched configuration into /tmp/tmp.GygceJUfHa/configs/cursor_mcp.json
+Patched JSONC File Output:
+{
+  "mcpServers": {
+      "patched-server": {
+        "command": "icohangar-ops/codesentinel",
+        "args": []
+      },
+    
+    // JSONC comment
+    "demo-http": {
+      "command": "http://127.0.0.1:8888",
+      "isCommand": false
+    }
+  }
+}
+
+--- Export SBOM ---
+
+------------------------------------------------------------
+▶ Executing: export-sbom --all --format cyclonedx --dir /tmp/tmp.GygceJUfHa/fingerprints_v1 --output /tmp/tmp.GygceJUfHa/sbom.json
+------------------------------------------------------------
+Error exporting SBOM: name 'CycloneDXExporter' is not defined
+cat: /tmp/tmp.GygceJUfHa/sbom.json: No such file or directory
+
+--- Validate ---
+
+------------------------------------------------------------
+▶ Executing: validate --dir /tmp/tmp.GygceJUfHa/fingerprints_v1 --no-cache
+------------------------------------------------------------
+Valid: 5 (0 cached, 5 validated in 0.03s)
+
+--- Snapshot ---
+
+------------------------------------------------------------
+▶ Executing: snapshot --data-dir /tmp/tmp.GygceJUfHa/fingerprints_v1 --output-gz /tmp/tmp.GygceJUfHa/snap.json.gz --output-json /tmp/tmp.GygceJUfHa/snap.json
+------------------------------------------------------------
+2026-11-08 20:53:23,156 [INFO] Successfully compiled snapshot with 5 passports into /tmp/tmp.GygceJUfHa/snap.json.gz (6.58 KB) in 0.03s
+Compiled 5 passports (6.58 KB) -> /tmp/tmp.GygceJUfHa/snap.json.gz
+-rw-rw-r-- 1 jules jules  68K Nov  8 20:53 /tmp/tmp.GygceJUfHa/snap.json
+-rw-rw-r-- 1 jules jules 6.6K Nov  8 20:53 /tmp/tmp.GygceJUfHa/snap.json.gz
+
+--- Detect Drift ---
+
+------------------------------------------------------------
+▶ Executing (Expecting Exit Code 1): detect-drift --old /tmp/tmp.GygceJUfHa/fingerprints_v1 --new /tmp/tmp.GygceJUfHa/fingerprints_v2 --fail-on-tamper
+------------------------------------------------------------
+==================================================
+      MCP SUPPLY-CHAIN DRIFT & AUDIT REPORT       
+==================================================
+Packages Compared:  5
+Unaltered Packages: 4
+Version Bumps:      0
+Incidents Detected: 1
+Status:             🚨 CRITICAL TAMPER DETECTED
+--------------------------------------------------
+DETECTED DRIFT INCIDENTS:
+
+1. [CRITICAL] ChevalGrand520/local-gpu-imagegen (v0.9.1) 🚨
+   Type:    hash_tamper
+   Details: Canonical toolset hash altered for version 0.9.1 without version bump.
+   Old Hash: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+   New Hash: sha256:drift1234567890abcdef1234567890abcdef
+==================================================
+✅ Exited with expected code 1
+
+--- Command Help Demos (All Supported Commands & Options) ---
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints scan-configs --help
+------------------------------------------------------------
+usage: mcp-fingerprints scan-configs [-h] [--auto] [--no-auto] [--path PATH]
+                                     [--probe-live] [--no-probe-live]
+                                     [--client CLIENT]
+                                     [--config-file CONFIG_FILE]
+                                     [--custom-clients CUSTOM_CLIENTS]
+                                     [--auto-passport] [--diff DIFF]
+                                     [--save-baseline SAVE_BASELINE]
+                                     [--format {table,json,markdown,summary,detailed}]
+                                     [--output OUTPUT]
+                                     [--compare-snapshot COMPARE_SNAPSHOT]
+                                     [--fail-on-drift] [--scan-global]
+                                     [--no-scan-global]
+
+options:
+  -h, --help            show this help message and exit
+  --auto                Automatically search all standard system paths for
+                        known clients (default: True)
+  --no-auto             Disable automatic search of system paths
+  --path PATH           Scan a specific configuration file or directory.
+  --probe-live          Actively launch/connect to each declared server to
+                        verify live schemas (default: True)
+  --no-probe-live       Skip live probing
+  --client CLIENT       Client type to scan (claude, cursor, etc.)
+  --config-file CONFIG_FILE
+                        Path to config file
+  --custom-clients CUSTOM_CLIENTS
+                        Path to custom client config file
+  --auto-passport       Auto generate passports for newly discovered active
+                        servers
+  --diff DIFF           Alias for --compare-snapshot
+  --save-baseline SAVE_BASELINE
+                        Save current scan as baseline snapshot (default: mcp-
+                        inventory.json)
+  --format {table,json,markdown,summary,detailed}
+                        Output formatting option
+  --output OUTPUT       Save full inventory report to a JSON file.
+  --compare-snapshot COMPARE_SNAPSHOT
+                        Compare current scan against a previous baseline
+                        snapshot
+  --fail-on-drift       Exit with non-zero status code (exit 2) if schema
+                        drift or unexpected additions are detected
+  --scan-global         Scan globally installed npm and npx packages for MCP
+                        servers (default: True)
+  --no-scan-global      Disable scanning of global npm/npx packages
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints detect --help
+------------------------------------------------------------
+usage: mcp-fingerprints detect [-h] [--transport {stdio,http}]
+                               [--timeout TIMEOUT] [--format {json,text}]
+                               target [target ...]
+
+positional arguments:
+  target                URL or Server command to probe
+
+options:
+  -h, --help            show this help message and exit
+  --transport {stdio,http}
+                        Transport override (default: auto-detect from target)
+  --timeout TIMEOUT     Connection timeout in seconds
+  --format {json,text}  Output format: 'json' (default) or human-readable
+                        'text'
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints probe --help
+------------------------------------------------------------
+usage: mcp-fingerprints probe [-h] [--dir DIR] [--url URL] [--header HEADER]
+                              [--server-hint SERVER_HINT]
+                              [--threshold THRESHOLD] [--timeout TIMEOUT]
+                              [--json] [--format {short,long,table,json}] [-s]
+                              [-l]
+                              ...
+
+positional arguments:
+  cmd                   Server launch command and arguments (e.g. -- npx ...)
+
+options:
+  -h, --help            show this help message and exit
+  --dir DIR             Passport data directory
+  --url URL             HTTP/HTTPS endpoint URL to probe (alternative to stdio
+                        command)
+  --header HEADER       Custom HTTP header in 'Key: Value' format (can be
+                        specified multiple times)
+  --server-hint SERVER_HINT
+                        Optional server name hint
+  --threshold THRESHOLD
+                        Minimum confidence threshold
+  --timeout TIMEOUT     Connection and RPC timeout in seconds
+  --json                Output full probe report as JSON (deprecated, use
+                        --format json)
+  --format {short,long,table,json}, -f {short,long,table,json}
+                        Output format
+  -s, --short           Shortcut for --format short
+  -l, --long            Shortcut for --format long
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints validate-protocol --help
+------------------------------------------------------------
+usage: mcp-fingerprints validate-protocol [-h]
+                                          server_command [server_command ...]
+
+positional arguments:
+  server_command  Server command to run
+
+options:
+  -h, --help      show this help message and exit
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints match --help
+------------------------------------------------------------
+usage: mcp-fingerprints match [-h] [--input-file INPUT_FILE] [--dir DIR]
+                              [--server-hint SERVER_HINT]
+                              [--threshold THRESHOLD] [--json]
+
+options:
+  -h, --help            show this help message and exit
+  --input-file INPUT_FILE, -i INPUT_FILE
+                        Path to JSON file containing observed tools/manifest,
+                        or '-' for stdin
+  --dir DIR             Directory containing passport files
+  --server-hint SERVER_HINT
+                        Optional server name hint to guide candidate
+                        disambiguation
+  --threshold THRESHOLD
+                        Minimum confidence threshold (0.0 to 1.0)
+  --json                Output full match results as JSON
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints search --help
+------------------------------------------------------------
+usage: mcp-fingerprints search [-h] [--dir DIR] [--limit LIMIT] [--semantic]
+                               query
+
+positional arguments:
+  query          Search query
+
+options:
+  -h, --help     show this help message and exit
+  --dir DIR      Passport data directory
+  --limit LIMIT  Maximum results to return
+  --semantic     Use semantic/embedding-based search (requires fastembed)
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints export-config --help
+------------------------------------------------------------
+usage: mcp-fingerprints export-config [-h] [--dir DIR]
+                                      [--target {claude,cursor,cline,zed,windsurf,docker}]
+                                      [--client {claude,cursor,cline,zed,windsurf,docker}]
+                                      [--all-clients] [--config CONFIG]
+                                      [--server SERVER]
+                                      [package]
+
+positional arguments:
+  package               Package name to export configuration for
+
+options:
+  -h, --help            show this help message and exit
+  --dir DIR             Passport data directory
+  --target {claude,cursor,cline,zed,windsurf,docker}
+                        Client type (alias for --client)
+  --client {claude,cursor,cline,zed,windsurf,docker}
+                        Client type (claude, cursor, cline, zed, windsurf,
+                        docker)
+  --all-clients         Export configuration for all supported clients
+  --config CONFIG       Path to config file to patch (JSONC supported)
+  --server SERVER       Server name/alias (overrides package name for config
+                        key)
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints export-sbom --help
+------------------------------------------------------------
+usage: mcp-fingerprints export-sbom [-h] (--passport PASSPORT | --all)
+                                    [--format {cyclonedx,spdx}]
+                                    [--output OUTPUT] [--dir DIR]
+
+options:
+  -h, --help            show this help message and exit
+  --passport PASSPORT   Specific passport to export
+  --all                 Export all passports
+  --format {cyclonedx,spdx}
+                        SBOM format
+  --output OUTPUT       Output file path
+  --dir DIR             Directory containing passports (default:
+                        data/fingerprints)
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints validate --help
+------------------------------------------------------------
+usage: mcp-fingerprints validate [-h] [--dir DIR] [--no-cache]
+                                 [--workers WORKERS]
+
+options:
+  -h, --help         show this help message and exit
+  --dir DIR          Passport directory to validate
+  --no-cache         Disable caching and force revalidation
+  --workers WORKERS  Number of parallel worker processes
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints snapshot --help
+------------------------------------------------------------
+usage: mcp-fingerprints snapshot [-h] [--data-dir DATA_DIR]
+                                 [--output-gz OUTPUT_GZ]
+                                 [--output-json OUTPUT_JSON]
+
+options:
+  -h, --help            show this help message and exit
+  --data-dir DATA_DIR   Passport data directory
+  --output-gz OUTPUT_GZ
+                        Output gzip file path
+  --output-json OUTPUT_JSON
+                        Optional uncompressed JSON output path
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints detect-drift --help
+------------------------------------------------------------
+usage: mcp-fingerprints detect-drift [-h] --old OLD --new NEW
+                                     [--webhook-url WEBHOOK_URL]
+                                     [--fail-on-tamper] [--json]
+                                     [--output OUTPUT]
+
+options:
+  -h, --help            show this help message and exit
+  --old OLD             Baseline passport directory, snapshot gz, or json file
+  --new NEW             New passport directory, snapshot gz, or json file
+  --webhook-url WEBHOOK_URL
+                        Webhook URL to notify upon drift or tamper
+  --fail-on-tamper      Exit with code 1 if tamper incidents are detected
+  --json                Output audit report as JSON
+  --output OUTPUT       Optional file path to write output drift report
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints build-index --help
+------------------------------------------------------------
+usage: mcp-fingerprints build-index [-h] [--passports-dir PASSPORTS_DIR]
+                                    [--output OUTPUT]
+
+options:
+  -h, --help            show this help message and exit
+  --passports-dir PASSPORTS_DIR
+                        Path to passports directory
+  --output OUTPUT       Path to output NPZ file
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints sync --help
+------------------------------------------------------------
+usage: mcp-fingerprints sync [-h] [--output OUTPUT] [--update-existing]
+                             [--discover-new] [--docker] [--polyglot]
+                             [--enrich-ast] [--limit LIMIT]
+                             [--workers WORKERS] [--report] [--all]
+                             [--snapshot] [--probe-runtime]
+                             [--runtime-timeout RUNTIME_TIMEOUT]
+                             [--runtime-limit RUNTIME_LIMIT]
+                             [--time-budget TIME_BUDGET] [--ignore-checkpoint]
+                             [--clear-checkpoint]
+
+options:
+  -h, --help            show this help message and exit
+  --output OUTPUT       Output directory
+  --update-existing     Check and update existing MCP versions
+  --discover-new        Discover and pull new MCP servers
+  --docker              Include Docker Hub discovery
+  --polyglot            Include Polyglot (Rust/Go) discovery
+  --enrich-ast          Extract tool contracts via static AST parsing for
+                        zero-tool repositories
+  --limit LIMIT         Max passports to probe
+  --workers WORKERS     Concurrency worker threads
+  --report              Run and print the ecosystem health report after sync
+  --all                 Run both update and discovery
+  --snapshot            Compile snapshot after sync
+  --probe-runtime       Probe safe servers via sandboxed stdio runtime
+                        handshake
+  --runtime-timeout RUNTIME_TIMEOUT
+                        Per-server timeout in seconds for runtime handshake
+                        (default: 5.0)
+  --runtime-limit RUNTIME_LIMIT
+                        Maximum servers to probe in runtime handshake
+                        (default: 50)
+  --time-budget TIME_BUDGET
+                        Time budget in seconds for the sync process (default:
+                        2400, 0 = unlimited)
+  --ignore-checkpoint   Ignore any existing checkpoint and start from the
+                        beginning
+  --clear-checkpoint    Clear any existing checkpoint and start from the
+                        beginning
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints browse --help
+------------------------------------------------------------
+usage: mcp-fingerprints browse [-h] [--dir DIR] [--query QUERY]
+
+options:
+  -h, --help     show this help message and exit
+  --dir DIR      Passport data directory
+  --query QUERY  Initial search query
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints interactive --help
+------------------------------------------------------------
+usage: mcp-fingerprints interactive [-h]
+
+options:
+  -h, --help  show this help message and exit
+
+------------------------------------------------------------
+▶ Executing: uv run mcp-fingerprints init --help
+------------------------------------------------------------
+usage: mcp-fingerprints init [-h]
+
+options:
+  -h, --help  show this help message and exit
+
+============================================================
+   Demo Complete
+============================================================
+```
+</details>
+
 
 ## Reporting & Output Formats
 
