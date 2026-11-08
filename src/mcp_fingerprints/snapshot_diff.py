@@ -42,8 +42,8 @@ class DiscoveredServer:
     def from_dict(cls, data: dict[str, Any]) -> DiscoveredServer:
         tools = [ToolContractSignature.from_dict(t) for t in data.get("tools", [])]
         return cls(
-            server_name=data["server_name"],
-            client_name=data["client_name"],
+            server_name=data.get("server_name", "unknown"),
+            client_name=data.get("client_name", "unknown"),
             package_name=data.get("package_name"),
             version=data.get("version"),
             tools=tools,

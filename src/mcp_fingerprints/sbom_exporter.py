@@ -195,7 +195,12 @@ class CycloneDXExporter:
 
     @staticmethod
     def export(spec_or_specs: Union[ServerPackageSpec, Iterable[ServerPackageSpec]], format: Union[str, SBOMFormat] = SBOMFormat.CYCLONEDX) -> dict[str, Any]:
-        specs = [spec_or_specs] if isinstance(spec_or_specs, ServerPackageSpec) else list(spec_or_specs)
+        if isinstance(spec_or_specs, ServerPackageSpec):
+            specs = [spec_or_specs]
+        elif isinstance(spec_or_specs, dict):
+            specs = list(spec_or_specs.values())
+        else:
+            specs = list(spec_or_specs)
         fmt = SBOMFormat(format)
         if fmt == SBOMFormat.SPDX:
             return CycloneDXExporter._build_spdx(specs)

@@ -291,6 +291,9 @@ def main() -> None:
         "--no-cache", action="store_true", help="Disable caching and force revalidation"
     )
     val_p.add_argument(
+        "--force", dest="no_cache", action="store_true", help="Alias for --no-cache"
+    )
+    val_p.add_argument(
         "--workers", type=int, default=None, help="Number of parallel worker processes"
     )
 
@@ -533,23 +536,42 @@ def main() -> None:
 
     elif args.command == "scan-configs" or args.command == "scan":
         import mcp_fingerprints.snapshot_diff as snapshot_diff
-        from mcp_fingerprints.config_scanner import LocalInventoryReport
+        from mcp_fingerprints.config_scanner import LocalInventoryReport, ConfigScanner
 
-        paths = None
-        if args.path:
-            paths = [Path(args.path)]
-        elif not args.auto:
-            logger.error("Must specify --path if --no-auto is used.")
+        target = args.config_file or args.path
+        if not target and not args.auto:
+            logger.error("Must specify --path or --config-file if --no-auto is used.")
             sys.exit(1)
 
-        if args.path:
-            from mcp_fingerprints import scan_config_file
+        scanner = ConfigScanner()
+        if args.custom_clients:
+            scanner.registry.load_custom_config(args.custom_clients)
 
-            report = scan_config_file(args.path, probe_live=args.probe_live)
+        if target:
+            p = Path(target)
+            if p.is_dir():
+                found_files = sorted(
+                    [f for f in p.glob("*.json") if f.is_file() and not f.name.endswith(".tmp") and f.name not in ("baseline.json", "scan.json", "custom_clients.json")]
+                    + [f for f in p.glob("*.yaml") if f.is_file()]
+                    + [f for f in p.glob("*.yml") if f.is_file()]
+                )
+                report = scanner.scan(
+                    paths=found_files,
+                    probe_live=args.probe_live,
+                    client=args.client,
+                    custom_clients_path=args.custom_clients,
+                    scan_global=getattr(args, "scan_global", False),
+                )
+            else:
+                report = scanner.scan_file(p, probe_live=args.probe_live)
         else:
             from mcp_fingerprints import scan_local_configs
 
-            report = scan_local_configs(probe_live=args.probe_live, scan_global=args.scan_global, custom_clients_path=args.custom_clients)
+            report = scan_local_configs(
+                probe_live=args.probe_live,
+                scan_global=getattr(args, "scan_global", False),
+                custom_clients_path=args.custom_clients,
+            )
 
         if isinstance(report, snapshot_diff.InventorySnapshot):
             inventory = report
@@ -1045,7 +1067,7 @@ def main() -> None:
                     spec = ServerPackageSpec.from_dict(json.load(f))
                     specs.append(spec)
             else:
-                for spec in passports:
+                for spec in passports.values():
                     if spec.package_name == args.passport or spec.package_name in args.passport:
                         specs.append(spec)
                         break
@@ -1053,7 +1075,7 @@ def main() -> None:
                     print(f"Error: Passport {args.passport} not found.")
                     sys.exit(1)
         else:
-            specs = passports
+            specs = list(passports.values())
 
         try:
             sbom_data = CycloneDXExporter.export(specs, format=args.format)

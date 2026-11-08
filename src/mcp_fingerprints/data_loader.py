@@ -67,9 +67,19 @@ def get_passports_path(download_if_missing: bool = True) -> Path:
     )
 
 
-def load_passports(download_if_missing: bool = True) -> Dict[str, ServerPackageSpec]:
+def load_passports(
+    target_dir_or_path: Path | str | bool | None = None,
+    download_if_missing: bool = True,
+) -> Dict[str, ServerPackageSpec]:
     """Load all server passports into an in-memory dictionary of ServerPackageSpec."""
-    target_path = get_passports_path(download_if_missing=download_if_missing)
+    if isinstance(target_dir_or_path, bool):
+        download_if_missing = target_dir_or_path
+        target_path = get_passports_path(download_if_missing=download_if_missing)
+    elif target_dir_or_path is not None:
+        target_path = Path(target_dir_or_path)
+    else:
+        target_path = get_passports_path(download_if_missing=download_if_missing)
+
     passports: Dict[str, ServerPackageSpec] = {}
 
     if target_path.is_dir():

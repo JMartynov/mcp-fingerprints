@@ -5,6 +5,21 @@
 set -e
 
 # ==============================================================================
+# Help check
+# ==============================================================================
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    echo "Usage: ./demo.sh [OPTIONS]"
+    echo ""
+    echo "Sandboxed demonstration of all mcp-fingerprints CLI commands."
+    echo ""
+    echo "Options:"
+    echo "  --all, --non-interactive  Run all command demonstrations non-interactively"
+    echo "  --command <name>          Run a specific command demo (e.g. --command probe)"
+    echo "  --help, -h                Show this help message and exit"
+    exit 0
+fi
+
+# ==============================================================================
 # 1. Ephemeral Sandbox Setup
 # ==============================================================================
 export SANDBOX_DIR=$(mktemp -d)
@@ -12,12 +27,14 @@ export BACKGROUND_PIDS=""
 
 cleanup() {
     echo -e "\n🧹 Cleaning up sandbox at $SANDBOX_DIR..."
-    rm -rf "$SANDBOX_DIR"
     if [ -n "$BACKGROUND_PIDS" ]; then
         for pid in $BACKGROUND_PIDS; do
             kill $pid 2>/dev/null || true
+            wait $pid 2>/dev/null || true
         done
     fi
+    pkill -f "$SANDBOX_DIR/mock_http_server.py" 2>/dev/null || true
+    rm -rf "$SANDBOX_DIR"
     echo "✨ Cleanup complete."
 }
 trap cleanup EXIT INT TERM
@@ -121,12 +138,16 @@ class MCPHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
-server = HTTPServer(('127.0.0.1', 8888), MCPHandler)
+class ReusableHTTPServer(HTTPServer):
+    allow_reuse_address = True
+
+server = ReusableHTTPServer(('127.0.0.1', 8888), MCPHandler)
 server.serve_forever()
 MOCK_HTTP
 
 # Start background HTTP server
-python3 "$SANDBOX_DIR/mock_http_server.py" &
+pkill -f mock_http_server.py 2>/dev/null || true
+python3 "$SANDBOX_DIR/mock_http_server.py" >/dev/null 2>&1 </dev/null &
 BACKGROUND_PIDS="$BACKGROUND_PIDS $!"
 sleep 1 # Wait for server to bind
 
@@ -167,6 +188,8 @@ mkdir -p "$SANDBOX_DIR/fingerprints_v1"
 mkdir -p "$SANDBOX_DIR/fingerprints_v2"
 # Copy up to 5 real passports to v1
 find data/fingerprints -name "*.json" -type f | head -n 5 | xargs -I {} cp {} "$SANDBOX_DIR/fingerprints_v1/"
+# Ensure icohangar-ops_codesentinel.json is present for export-config and export-sbom demos
+[ -f "data/fingerprints/icohangar-ops_codesentinel.json" ] && cp "data/fingerprints/icohangar-ops_codesentinel.json" "$SANDBOX_DIR/fingerprints_v1/"
 # Copy them to v2
 cp "$SANDBOX_DIR/fingerprints_v1"/* "$SANDBOX_DIR/fingerprints_v2/"
 # Mutate one in v2 to simulate drift (tamper hash and add tool)
@@ -360,6 +383,23 @@ run_all() {
 
 if [[ "$1" == "--all" || "$1" == "--non-interactive" ]]; then
     run_all
+elif [[ "$1" == "--command" ]]; then
+    case "$2" in
+        version|help) demo_1 ;;
+        scan-configs|scan) demo_2 ;;
+        detect) demo_3 ;;
+        probe) demo_4 ;;
+        validate-protocol) demo_5 ;;
+        match) demo_6 ;;
+        search) demo_7 ;;
+        export-config) demo_8 ;;
+        export-sbom) demo_9 ;;
+        validate) demo_10 ;;
+        snapshot) demo_11 ;;
+        detect-drift) demo_12 ;;
+        safe|extra) demo_13 ;;
+        *) echo "Unknown command: $2"; exit 1 ;;
+    esac
 else
     while true; do
         echo -e "\n======================================="

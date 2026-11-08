@@ -186,7 +186,7 @@ mcp-fingerprints scan-configs --diff workstation_baseline.json --fail-on-drift
 mcp-fingerprints validate --workers 8
 
 # Force re-validation bypassing cache
-mcp-fingerprints validate --no-cache --force
+mcp-fingerprints validate --no-cache
 ```
 *Warm validation runs drop from ~30 seconds to < 0.5 seconds (98.3% speedup).*
 
