@@ -1,5 +1,4 @@
 import re
-import re
 import pytest
 import subprocess
 import time
@@ -69,7 +68,6 @@ def web_server_url():
     yield url
     server.stop()
 
-import pytest
 from playwright.sync_api import Page, expect
 
 @pytest.mark.integration
@@ -136,7 +134,6 @@ def test_dom_virtualization_windowing(page: Page, web_server_url: str):
 
 
 @pytest.mark.integration
-@pytest.mark.xfail
 def test_search_filtering_and_interactions(page: Page, web_server_url: str):
     page.goto(web_server_url)
     page.wait_for_function("document.getElementById('metricsDisplay').innerText.includes('MCP servers') || document.getElementById('metricsDisplay').innerText.includes('passports')", timeout=10000)
@@ -211,65 +208,6 @@ def test_search_filtering_and_interactions(page: Page, web_server_url: str):
 
 
 @pytest.mark.integration
-@pytest.mark.xfail
-def test_index_advanced_filtering_sorting_and_url_sync(page: Page, web_server_url: str):
-    page.goto(f"{web_server_url}/index.html?eco=github&sort=name-asc")
-    page.wait_for_function("document.getElementById('metricsDisplay').innerText.includes('MCP servers') || document.getElementById('metricsDisplay').innerText.includes('passports')", timeout=10000)
-    
-    # Check initial loaded state from URL
-    # checking bypassed
-    expect(page.locator("#sortSelect")).to_have_value("name-asc")
-    
-    # Change sort and check URL
-    page.locator("#sortSelect").select_option("tools-desc")
-    page.wait_for_url(re.compile(r".*eco=github.*sort=tools-desc.*"))
-    
-    # Check reset button visibility
-    expect(page.locator("#resetFiltersBtn")).to_be_visible()
-    
-    # Check checkbox logic
-    page.locator("#filterVerifiedOnly").check()
-    page.wait_for_url(re.compile(r".*verified=1.*"))
-    
-    # Click reset
-    page.locator("#resetFiltersBtn").click()
-    page.wait_for_url(re.compile(r".*index\.html(?:\?.*)?"))
-    expect(page.locator(".filter-btn[data-val='all']")).to_have_class(re.compile(r".*active.*"))
-    expect(page.locator("#sortSelect")).to_have_value("tools-desc")
-    expect(page.locator("#filterVerifiedOnly")).not_to_be_checked()
-    expect(page.locator("#resetFiltersBtn")).not_to_be_visible()
-
-@pytest.mark.integration
-@pytest.mark.xfail
-def test_updates_page_filtering_and_sorting(page: Page, web_server_url: str):
-    page.goto(f"{web_server_url}/updates.html")
-    page.wait_for_selector("#metricsDisplay", timeout=10000)
-    
-    # Test searching
-    page.locator("#updateSearchInput").fill("test")
-    page.locator("#updateSearchInput").press("Enter")
-    page.wait_for_timeout(500)
-    page.wait_for_url(re.compile(r".*q=test.*"))
-    
-    # Test badge filtering
-    page.locator(".badge-filter-btn[data-badge='new-server']").click()
-    page.wait_for_url(re.compile(r".*badge=new-server.*"))
-    
-    # Test sorting
-    page.locator("#updateSortSelect").select_option("name-asc")
-    page.wait_for_url(re.compile(r".*sort=name-asc.*"))
-    
-    # Test reset button
-    expect(page.locator("#resetUpdateFiltersBtn")).to_be_visible()
-    page.locator("#resetUpdateFiltersBtn").click()
-    
-    page.wait_for_url(re.compile(r".*updates\.html(?:\?.*)?"))
-    expect(page.locator("#updateSearchInput")).to_have_value("")
-    expect(page.locator(".badge-filter-btn[data-badge='all']")).to_have_class(re.compile(r".*active.*"))
-    expect(page.locator("#updateSortSelect")).to_have_value("default")
-
-@pytest.mark.integration
-@pytest.mark.xfail
 def test_index_advanced_filtering_sorting_and_url_sync(page: Page, web_server_url: str):
     page.goto(f"{web_server_url}/index.html?eco=github&sort=name-asc")
     # Wait for JS to initialize
@@ -298,15 +236,15 @@ def test_index_advanced_filtering_sorting_and_url_sync(page: Page, web_server_ur
     expect(page.locator("#filterVerifiedOnly")).not_to_be_checked()
     expect(page.locator("#resetFiltersBtn")).not_to_be_visible()
 
+
 @pytest.mark.integration
-@pytest.mark.xfail
 def test_updates_page_filtering_and_sorting(page: Page, web_server_url: str):
     page.goto(f"{web_server_url}/updates.html")
     page.wait_for_selector("#metricsDisplay", timeout=10000)
     
     # Test searching
     page.locator("#updateSearchInput").fill("test")
-    # checking bypassed
+    expect(page).to_have_url(re.compile(r".*q=test.*"))
     
     # Test badge filtering
     page.locator(".badge-filter-btn[data-badge='new-server']").click()
