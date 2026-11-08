@@ -1,9 +1,1105 @@
 let catalog = [];
+let activeTransport = "all";
+let activeSort = "tools-desc";
 let filteredCatalog = [];
 let activeEco = "all";
 let activeQuery = "";
+let activeTransport = "all";
+let activeSort = "tools-desc";
 let selectedServers = new Map();
 let activeModalClient = "claude";
+
+
+function parseSearchQuery(rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  const result = {
+    freeTextTokens: [],
+    toolTerms: [],
+    paramTerms: [],
+    authorTerms: [],
+    licenseTerms: [],
+    envTerms: [],
+    minTools: null
+  };
+  
+  if (!q) return result;
+  
+  const tokens = q.split(/\s+/);
+  for (const token of tokens) {
+    if (token.startsWith("tool:")) {
+      result.toolTerms.push(token.substring(5));
+    } else if (token.startsWith("param:")) {
+      result.paramTerms.push(token.substring(6));
+    } else if (token.startsWith("author:")) {
+      result.authorTerms.push(token.substring(7));
+    } else if (token.startsWith("license:")) {
+      result.licenseTerms.push(token.substring(8));
+    } else if (token.startsWith("env:")) {
+      result.envTerms.push(token.substring(4));
+    } else if (token.startsWith("min-tools:")) {
+      const val = parseInt(token.substring(10), 10);
+      if (!isNaN(val)) result.minTools = val;
+    } else {
+      result.freeTextTokens.push(token);
+    }
+  }
+  return result;
+}
+
+if (typeof window !== 'undefined') window.parseSearchQuery = parseSearchQuery;
+
+
+
+
+function parseSearchQuery(rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  const result = {
+    freeTextTokens: [],
+    toolTerms: [],
+    paramTerms: [],
+    authorTerms: [],
+    licenseTerms: [],
+    envTerms: [],
+    minTools: null
+  };
+  
+  if (!q) return result;
+  
+  const tokens = q.split(/\s+/);
+  for (const token of tokens) {
+    if (token.startsWith("tool:")) {
+      result.toolTerms.push(token.substring(5));
+    } else if (token.startsWith("param:")) {
+      result.paramTerms.push(token.substring(6));
+    } else if (token.startsWith("author:")) {
+      result.authorTerms.push(token.substring(7));
+    } else if (token.startsWith("license:")) {
+      result.licenseTerms.push(token.substring(8));
+    } else if (token.startsWith("env:")) {
+      result.envTerms.push(token.substring(4));
+    } else if (token.startsWith("min-tools:")) {
+      const val = parseInt(token.substring(10), 10);
+      if (!isNaN(val)) result.minTools = val;
+    } else {
+      result.freeTextTokens.push(token);
+    }
+  }
+  return result;
+}
+
+if (typeof window !== 'undefined') window.parseSearchQuery = parseSearchQuery;
+
+
+
+// Version & Drawer State
+const cardActiveVersions = new Map();
+const openDrawers = new Set();
+const drawerQueries = new Map();
+
+// DOM Virtualization
+let ticking = false;
+let ITEM_HEIGHT = 160; // Estimated height of a card
+let COLUMNS = 3;
+
+
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getSafeId(name) {
+  return "server-" + name.replace(/[^a-zA-Z0-9_-]/g, "-");
+}
+
+function getVisibleRange(scrollTop, containerHeight, itemHeight, itemCount, columns) {
+  const buffer = 2;
+  const GAP = 24; // 1.5rem gap
+  const totalItemHeight = itemHeight + GAP;
+  const startRow = Math.max(0, Math.floor(scrollTop / totalItemHeight) - buffer);
+  const visibleRows = Math.ceil(containerHeight / totalItemHeight) + (buffer * 2);
+  const startIndex = startRow * columns;
+  const endIndex = Math.min(itemCount, startIndex + (visibleRows * columns));
+  return { startIndex, endIndex };
+}
+
+function updateVirtualizationMetrics() {
+  const grid = document.getElementById("serverGrid");
+  if (!grid) return;
+  const gridWidth = grid.clientWidth;
+  
+  // Calculate columns based on minmax(360px, 1fr) and gap 1.5rem (24px)
+  COLUMNS = Math.max(1, Math.floor((gridWidth + 24) / (360 + 24)));
+  
+  // Update item height based on first rendered card if available
+  const firstCard = grid.querySelector('.card');
+  if (firstCard) {
+    ITEM_HEIGHT = firstCard.getBoundingClientRect().height;
+  }
+}
+
+function getActiveVersionForServer(item) {
+  if (cardActiveVersions.has(item.name)) {
+    return cardActiveVersions.get(item.name);
+  }
+  const defaultVer =
+    item.latest_version ||
+    item.version ||
+    (item.versions && item.versions[0] ? item.versions[0].version : "1.0.0");
+  cardActiveVersions.set(item.name, defaultVer);
+  return defaultVer;
+}
+
+function getVersionData(item, versionStr) {
+  let found = null;
+  if (item.versions && item.versions.length > 0) {
+    found = item.versions.find((v) => v.version === versionStr);
+  }
+  
+  const rawTools = (found && found.tool_signatures) || (found && found.tools) || item.tool_signatures || item.tools || [];
+
+  if (found) {
+    return Object.assign({}, found, {
+      tools: rawTools,
+      tool_count: rawTools.length
+    });
+  }
+
+  return {
+    version: versionStr || item.version || "1.0.0",
+    tools: rawTools,
+    tool_count: rawTools.length,
+    command: item.command || item.name,
+    required_env_vars: item.required_env_vars || [],
+    transports: item.transports || [],
+  };
+}
+
+// Initialize on Load
+window.addEventListener("DOMContentLoaded", () => {
+  setupVirtualization();
+  initFromURL();
+  loadCatalog();
+});
+
+function setupVirtualization() {
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        renderVirtual();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    updateVirtualizationMetrics();
+    renderVirtual();
+  });
+}
+
+async function loadCatalog() {
+  const metrics = document.getElementById("metricsDisplay");
+  try {
+    const resp = await fetch("catalog.json");
+    if (!resp.ok) throw new Error("Catalog file not found");
+    const raw = await resp.json();
+    catalog = raw.filter((it) => it.package_name || it.name || it.display_name);
+    catalog.forEach((item) => {
+      if (!item.name) {
+        item.name = item.package_name || item.display_name || "unknown";
+      }
+    });
+  } catch (err) {
+    console.warn("Could not load catalog.json, using fallback data:", err);
+    catalog = [
+      {
+        name: "@modelcontextprotocol/server-filesystem",
+        ecosystem: "npm",
+        version: "1.0.0",
+        description:
+          "Direct local filesystem reader and writer toolset for AI coding assistants.",
+        tool_count: 3,
+        tools: [
+          {
+            name: "read_file",
+            description: "Read file contents from filesystem",
+            parameters: [
+              { name: "path", type: "string", required: true, description: "Path to file" },
+            ],
+          },
+          {
+            name: "write_file",
+            description: "Write contents to local file",
+            parameters: [
+              { name: "path", type: "string", required: true, description: "Path to file" },
+              { name: "content", type: "string", required: true, description: "File content" },
+            ],
+          },
+          {
+            name: "list_directory",
+            description: "List directory files and subdirectories",
+            parameters: [
+              { name: "path", type: "string", required: true, description: "Directory path" },
+            ],
+          },
+        ],
+        command: "npx -y @modelcontextprotocol/server-filesystem",
+      },
+    ];
+  }
+
+  render();
+}
+
+
+function updateEcosystemCounts(baseMatchedItems) {
+  const counts = { all: baseMatchedItems.length, npm: 0, pypi: 0, github: 0, golang: 0, generic: 0 };
+  for (const item of baseMatchedItems) {
+    const eco = (item.ecosystem || "").toLowerCase();
+    if (counts.hasOwnProperty(eco)) {
+      counts[eco]++;
+    } else {
+      counts.generic++;
+    }
+  }
+  
+  document.querySelectorAll(".filter-btn[data-filter='eco']").forEach((btn) => {
+    const val = btn.getAttribute("data-val");
+    const count = counts[val] || 0;
+    
+    // update label text but keep original data-val
+    const labelMap = { all: "All", npm: "NPM", pypi: "PyPI", github: "GitHub", golang: "Go", generic: "Generic" };
+    btn.innerHTML = `${labelMap[val]} <span class="filter-count">(${count.toLocaleString()})</span>`;
+  });
+}
+
+function matchesServer(item, parsedQuery, options) {
+  const activeVer = getActiveVersionForServer(item);
+  const vData = getVersionData(item, activeVer);
+
+  if (options.filterToolsOnly && (!vData.tools || vData.tools.length === 0)) return false;
+  if (options.filterVerifiedOnly && !item.is_verified) return false;
+  if (options.filterZeroConf && vData.required_env_vars && vData.required_env_vars.length > 0) return false;
+  if (options.filterHasExtras && !((item.prompts && item.prompts.length > 0) || (item.resources && item.resources.length > 0))) return false;
+  
+  if (options.activeTransport !== "all") {
+    const transports = (vData.transports || []).map(t => t.toLowerCase());
+    const connType = (item.connection_type || "").toLowerCase();
+    
+    if (options.activeTransport === "stdio") {
+      if (!transports.includes("stdio") && connType !== "stdio") return false;
+    } else if (options.activeTransport === "sse") {
+      const isRemote = (t) => ["sse", "http", "streamable-http"].includes(t);
+      if (!transports.some(isRemote) && !isRemote(connType)) return false;
+    }
+  }
+
+  if (options.activeEco !== "all" && (!item.ecosystem || item.ecosystem.toLowerCase() !== options.activeEco)) {
+    return false;
+  }
+
+  if (!parsedQuery.freeTextTokens.length && !parsedQuery.toolTerms.length && !parsedQuery.paramTerms.length && 
+      !parsedQuery.authorTerms.length && !parsedQuery.licenseTerms.length && !parsedQuery.envTerms.length && 
+      parsedQuery.minTools === null) {
+    return true; // No query
+  }
+
+  const name = (item.name || "").toLowerCase();
+  const desc = (item.description || "").toLowerCase();
+  const author = (item.author || "").toLowerCase();
+  const license = (item.license || "").toLowerCase();
+  const envVars = (vData.required_env_vars || []).map(e => e.toLowerCase());
+  
+  let searchTools = item.tool_signatures || item.tools || [];
+  if (vData.tools && searchTools !== vData.tools) {
+    searchTools = searchTools.concat(vData.tools);
+  }
+
+  if (parsedQuery.minTools !== null && searchTools.length < parsedQuery.minTools) return false;
+
+  for (const term of parsedQuery.authorTerms) {
+    if (!author.includes(term)) return false;
+  }
+  for (const term of parsedQuery.licenseTerms) {
+    if (!license.includes(term)) return false;
+  }
+  for (const term of parsedQuery.envTerms) {
+    if (!envVars.some(e => e.includes(term))) return false;
+  }
+  for (const term of parsedQuery.toolTerms) {
+    if (!searchTools.some(t => (t.name || "").toLowerCase().includes(term))) return false;
+  }
+  for (const term of parsedQuery.paramTerms) {
+    if (!searchTools.some(t => t.parameters && t.parameters.some(p => (p.name || "").toLowerCase().includes(term)))) return false;
+  }
+
+  for (const token of parsedQuery.freeTextTokens) {
+    let match = false;
+    if (name.includes(token) || desc.includes(token) || author.includes(token)) match = true;
+    else if (searchTools.some(t => 
+      (t.name || "").toLowerCase().includes(token) || 
+      (t.description || "").toLowerCase().includes(token) || 
+      (t.parameters && t.parameters.some(p => (p.name || "").toLowerCase().includes(token)))
+    )) {
+      match = true;
+    }
+    if (!match) return false;
+  }
+
+  return true;
+}
+
+function sortCatalogItems(items, sortKey, rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  return items.sort((a, b) => {
+    const aVer = getActiveVersionForServer(a);
+    const bVer = getActiveVersionForServer(b);
+    const aData = getVersionData(a, aVer);
+    const bData = getVersionData(b, bVer);
+    const aTools = (aData.tools || []).length;
+    const bTools = (bData.tools || []).length;
+
+    if (sortKey === "tools-desc") {
+      if (aTools > 0 && bTools === 0) return -1;
+      if (aTools === 0 && bTools > 0) return 1;
+      if (aTools !== bTools) return bTools - aTools;
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "tools-asc") {
+      if (aTools > 0 && bTools === 0) return -1; // 0 tools goes last as per tools-desc convention "first ascending, then 0"
+      if (aTools === 0 && bTools > 0) return 1;
+      if (aTools !== bTools) return aTools - bTools;
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "name-asc") {
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "name-desc") {
+      return b.name.localeCompare(a.name);
+    } else if (sortKey === "newest") {
+      const aDate = a.release_date || "";
+      const bDate = b.release_date || "";
+      if (aDate && !bDate) return -1;
+      if (!aDate && bDate) return 1;
+      if (aDate !== bDate) return bDate.localeCompare(aDate);
+      return bTools - aTools;
+    } else if (sortKey === "versions-desc") {
+      const aVers = a.versions ? a.versions.length : (a.total_versions || 1);
+      const bVers = b.versions ? b.versions.length : (b.total_versions || 1);
+      if (aVers !== bVers) return bVers - aVers;
+      return bTools - aTools;
+    } else if (sortKey === "relevance") {
+      const score = (item, tools) => {
+        let s = 0;
+        const n = (item.name || "").toLowerCase();
+        if (n === q) s += 100;
+        else if (n.startsWith(q)) s += 80;
+        else if (n.includes(q)) s += 50;
+        
+        for (const t of tools) {
+          const tn = (t.name || "").toLowerCase();
+          if (tn === q) s += 70;
+          else if (tn.includes(q)) s += 40;
+          else if ((t.description || "").toLowerCase().includes(q)) s += 10;
+          
+          if (t.parameters) {
+            for (const p of t.parameters) {
+              if ((p.name || "").toLowerCase().includes(q)) s += 25;
+            }
+          }
+        }
+        return s;
+      };
+      const aScore = score(a, aData.tools || []);
+      const bScore = score(b, bData.tools || []);
+      if (aScore !== bScore) return bScore - aScore;
+      return bTools - aTools;
+    }
+    return 0; // Default fallback
+  });
+}
+
+
+function updateEcosystemCounts(baseMatchedItems) {
+  const counts = { all: baseMatchedItems.length, npm: 0, pypi: 0, github: 0, golang: 0, generic: 0 };
+  for (const item of baseMatchedItems) {
+    const eco = (item.ecosystem || "").toLowerCase();
+    if (counts.hasOwnProperty(eco)) {
+      counts[eco]++;
+    } else {
+      counts.generic++;
+    }
+  }
+  
+  document.querySelectorAll(".filter-btn[data-filter='eco']").forEach((btn) => {
+    const val = btn.getAttribute("data-val");
+    const count = counts[val] || 0;
+    
+    // update label text but keep original data-val
+    const labelMap = { all: "All", npm: "NPM", pypi: "PyPI", github: "GitHub", golang: "Go", generic: "Generic" };
+    btn.innerHTML = `${labelMap[val]} <span class="filter-count">(${count.toLocaleString()})</span>`;
+  });
+}
+
+function matchesServer(item, parsedQuery, options) {
+  const activeVer = getActiveVersionForServer(item);
+  const vData = getVersionData(item, activeVer);
+
+  if (options.filterToolsOnly && (!vData.tools || vData.tools.length === 0)) return false;
+  if (options.filterVerifiedOnly && !item.is_verified) return false;
+  if (options.filterZeroConf && vData.required_env_vars && vData.required_env_vars.length > 0) return false;
+  if (options.filterHasExtras && !((item.prompts && item.prompts.length > 0) || (item.resources && item.resources.length > 0))) return false;
+  
+  if (options.activeTransport !== "all") {
+    const transports = (vData.transports || []).map(t => t.toLowerCase());
+    const connType = (item.connection_type || "").toLowerCase();
+    
+    if (options.activeTransport === "stdio") {
+      if (!transports.includes("stdio") && connType !== "stdio") return false;
+    } else if (options.activeTransport === "sse") {
+      const isRemote = (t) => ["sse", "http", "streamable-http"].includes(t);
+      if (!transports.some(isRemote) && !isRemote(connType)) return false;
+    }
+  }
+
+  if (options.activeEco !== "all" && (!item.ecosystem || item.ecosystem.toLowerCase() !== options.activeEco)) {
+    return false;
+  }
+
+  if (!parsedQuery.freeTextTokens.length && !parsedQuery.toolTerms.length && !parsedQuery.paramTerms.length && 
+      !parsedQuery.authorTerms.length && !parsedQuery.licenseTerms.length && !parsedQuery.envTerms.length && 
+      parsedQuery.minTools === null) {
+    return true; // No query
+  }
+
+  const name = (item.name || "").toLowerCase();
+  const desc = (item.description || "").toLowerCase();
+  const author = (item.author || "").toLowerCase();
+  const license = (item.license || "").toLowerCase();
+  const envVars = (vData.required_env_vars || []).map(e => e.toLowerCase());
+  
+  let searchTools = item.tool_signatures || item.tools || [];
+  if (vData.tools && searchTools !== vData.tools) {
+    searchTools = searchTools.concat(vData.tools);
+  }
+
+  if (parsedQuery.minTools !== null && searchTools.length < parsedQuery.minTools) return false;
+
+  for (const term of parsedQuery.authorTerms) {
+    if (!author.includes(term)) return false;
+  }
+  for (const term of parsedQuery.licenseTerms) {
+    if (!license.includes(term)) return false;
+  }
+  for (const term of parsedQuery.envTerms) {
+    if (!envVars.some(e => e.includes(term))) return false;
+  }
+  for (const term of parsedQuery.toolTerms) {
+    if (!searchTools.some(t => (t.name || "").toLowerCase().includes(term))) return false;
+  }
+  for (const term of parsedQuery.paramTerms) {
+    if (!searchTools.some(t => t.parameters && t.parameters.some(p => (p.name || "").toLowerCase().includes(term)))) return false;
+  }
+
+  for (const token of parsedQuery.freeTextTokens) {
+    let match = false;
+    if (name.includes(token) || desc.includes(token) || author.includes(token)) match = true;
+    else if (searchTools.some(t => 
+      (t.name || "").toLowerCase().includes(token) || 
+      (t.description || "").toLowerCase().includes(token) || 
+      (t.parameters && t.parameters.some(p => (p.name || "").toLowerCase().includes(token)))
+    )) {
+      match = true;
+    }
+    if (!match) return false;
+  }
+
+  return true;
+}
+
+function sortCatalogItems(items, sortKey, rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  return items.sort((a, b) => {
+    const aVer = getActiveVersionForServer(a);
+    const bVer = getActiveVersionForServer(b);
+    const aData = getVersionData(a, aVer);
+    const bData = getVersionData(b, bVer);
+    const aTools = (aData.tools || []).length;
+    const bTools = (bData.tools || []).length;
+
+    if (sortKey === "tools-desc") {
+      if (aTools > 0 && bTools === 0) return -1;
+      if (aTools === 0 && bTools > 0) return 1;
+      if (aTools !== bTools) return bTools - aTools;
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "tools-asc") {
+      if (aTools > 0 && bTools === 0) return -1; // 0 tools goes last as per tools-desc convention "first ascending, then 0"
+      if (aTools === 0 && bTools > 0) return 1;
+      if (aTools !== bTools) return aTools - bTools;
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "name-asc") {
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "name-desc") {
+      return b.name.localeCompare(a.name);
+    } else if (sortKey === "newest") {
+      const aDate = a.release_date || "";
+      const bDate = b.release_date || "";
+      if (aDate && !bDate) return -1;
+      if (!aDate && bDate) return 1;
+      if (aDate !== bDate) return bDate.localeCompare(aDate);
+      return bTools - aTools;
+    } else if (sortKey === "versions-desc") {
+      const aVers = a.versions ? a.versions.length : (a.total_versions || 1);
+      const bVers = b.versions ? b.versions.length : (b.total_versions || 1);
+      if (aVers !== bVers) return bVers - aVers;
+      return bTools - aTools;
+    } else if (sortKey === "relevance") {
+      const score = (item, tools) => {
+        let s = 0;
+        const n = (item.name || "").toLowerCase();
+        if (n === q) s += 100;
+        else if (n.startsWith(q)) s += 80;
+        else if (n.includes(q)) s += 50;
+        
+        for (const t of tools) {
+          const tn = (t.name || "").toLowerCase();
+          if (tn === q) s += 70;
+          else if (tn.includes(q)) s += 40;
+          else if ((t.description || "").toLowerCase().includes(q)) s += 10;
+          
+          if (t.parameters) {
+            for (const p of t.parameters) {
+              if ((p.name || "").toLowerCase().includes(q)) s += 25;
+            }
+          }
+        }
+        return s;
+      };
+      const aScore = score(a, aData.tools || []);
+      const bScore = score(b, bData.tools || []);
+      if (aScore !== bScore) return bScore - aScore;
+      return bTools - aTools;
+    }
+    return 0; // Default fallback
+  });
+}
+
+function render() {
+  const parsedQuery = parseSearchQuery(activeQuery);
+  const filterToolsOnly = document.getElementById("filterToolsOnly")?.checked;
+  const filterVerifiedOnly = document.getElementById("filterVerifiedOnly")?.checked;
+  const filterZeroConf = document.getElementById("filterZeroConf")?.checked;
+  const filterHasExtras = document.getElementById("filterHasExtras")?.checked;
+  
+  const options = {
+    activeEco, activeTransport, filterToolsOnly, filterVerifiedOnly, filterZeroConf, filterHasExtras
+  };
+  
+  // Calculate ecosystem counts based on everything EXCEPT activeEco
+  const baseOptions = { ...options, activeEco: "all" };
+  const baseMatchedItems = catalog.filter(item => matchesServer(item, parsedQuery, baseOptions));
+  updateEcosystemCounts(baseMatchedItems);
+
+  filteredCatalog = catalog.filter(item => matchesServer(item, parsedQuery, options));
+  filteredCatalog = sortCatalogItems(filteredCatalog, activeSort, activeQuery);
+
+  let catalog = [];
+let activeTransport = "all";
+let activeSort = "tools-desc";
+let filteredCatalog = [];
+let activeEco = "all";
+let activeQuery = "";
+let activeTransport = "all";
+let activeSort = "tools-desc";
+let selectedServers = new Map();
+let activeModalClient = "claude";
+
+
+function parseSearchQuery(rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  const result = {
+    freeTextTokens: [],
+    toolTerms: [],
+    paramTerms: [],
+    authorTerms: [],
+    licenseTerms: [],
+    envTerms: [],
+    minTools: null
+  };
+  
+  if (!q) return result;
+  
+  const tokens = q.split(/\s+/);
+  for (const token of tokens) {
+    if (token.startsWith("tool:")) {
+      result.toolTerms.push(token.substring(5));
+    } else if (token.startsWith("param:")) {
+      result.paramTerms.push(token.substring(6));
+    } else if (token.startsWith("author:")) {
+      result.authorTerms.push(token.substring(7));
+    } else if (token.startsWith("license:")) {
+      result.licenseTerms.push(token.substring(8));
+    } else if (token.startsWith("env:")) {
+      result.envTerms.push(token.substring(4));
+    } else if (token.startsWith("min-tools:")) {
+      const val = parseInt(token.substring(10), 10);
+      if (!isNaN(val)) result.minTools = val;
+    } else {
+      result.freeTextTokens.push(token);
+    }
+  }
+  return result;
+}
+
+if (typeof window !== 'undefined') window.parseSearchQuery = parseSearchQuery;
+
+
+
+
+function parseSearchQuery(rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  const result = {
+    freeTextTokens: [],
+    toolTerms: [],
+    paramTerms: [],
+    authorTerms: [],
+    licenseTerms: [],
+    envTerms: [],
+    minTools: null
+  };
+  
+  if (!q) return result;
+  
+  const tokens = q.split(/\s+/);
+  for (const token of tokens) {
+    if (token.startsWith("tool:")) {
+      result.toolTerms.push(token.substring(5));
+    } else if (token.startsWith("param:")) {
+      result.paramTerms.push(token.substring(6));
+    } else if (token.startsWith("author:")) {
+      result.authorTerms.push(token.substring(7));
+    } else if (token.startsWith("license:")) {
+      result.licenseTerms.push(token.substring(8));
+    } else if (token.startsWith("env:")) {
+      result.envTerms.push(token.substring(4));
+    } else if (token.startsWith("min-tools:")) {
+      const val = parseInt(token.substring(10), 10);
+      if (!isNaN(val)) result.minTools = val;
+    } else {
+      result.freeTextTokens.push(token);
+    }
+  }
+  return result;
+}
+
+if (typeof window !== 'undefined') window.parseSearchQuery = parseSearchQuery;
+
+
+
+// Version & Drawer State
+const cardActiveVersions = new Map();
+const openDrawers = new Set();
+const drawerQueries = new Map();
+
+// DOM Virtualization
+let ticking = false;
+let ITEM_HEIGHT = 160; // Estimated height of a card
+let COLUMNS = 3;
+
+
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getSafeId(name) {
+  return "server-" + name.replace(/[^a-zA-Z0-9_-]/g, "-");
+}
+
+function getVisibleRange(scrollTop, containerHeight, itemHeight, itemCount, columns) {
+  const buffer = 2;
+  const GAP = 24; // 1.5rem gap
+  const totalItemHeight = itemHeight + GAP;
+  const startRow = Math.max(0, Math.floor(scrollTop / totalItemHeight) - buffer);
+  const visibleRows = Math.ceil(containerHeight / totalItemHeight) + (buffer * 2);
+  const startIndex = startRow * columns;
+  const endIndex = Math.min(itemCount, startIndex + (visibleRows * columns));
+  return { startIndex, endIndex };
+}
+
+function updateVirtualizationMetrics() {
+  const grid = document.getElementById("serverGrid");
+  if (!grid) return;
+  const gridWidth = grid.clientWidth;
+  
+  // Calculate columns based on minmax(360px, 1fr) and gap 1.5rem (24px)
+  COLUMNS = Math.max(1, Math.floor((gridWidth + 24) / (360 + 24)));
+  
+  // Update item height based on first rendered card if available
+  const firstCard = grid.querySelector('.card');
+  if (firstCard) {
+    ITEM_HEIGHT = firstCard.getBoundingClientRect().height;
+  }
+}
+
+function getActiveVersionForServer(item) {
+  if (cardActiveVersions.has(item.name)) {
+    return cardActiveVersions.get(item.name);
+  }
+  const defaultVer =
+    item.latest_version ||
+    item.version ||
+    (item.versions && item.versions[0] ? item.versions[0].version : "1.0.0");
+  cardActiveVersions.set(item.name, defaultVer);
+  return defaultVer;
+}
+
+function getVersionData(item, versionStr) {
+  let found = null;
+  if (item.versions && item.versions.length > 0) {
+    found = item.versions.find((v) => v.version === versionStr);
+  }
+  
+  const rawTools = (found && found.tool_signatures) || (found && found.tools) || item.tool_signatures || item.tools || [];
+
+  if (found) {
+    return Object.assign({}, found, {
+      tools: rawTools,
+      tool_count: rawTools.length
+    });
+  }
+
+  return {
+    version: versionStr || item.version || "1.0.0",
+    tools: rawTools,
+    tool_count: rawTools.length,
+    command: item.command || item.name,
+    required_env_vars: item.required_env_vars || [],
+    transports: item.transports || [],
+  };
+}
+
+// Initialize on Load
+window.addEventListener("DOMContentLoaded", () => {
+  setupVirtualization();
+  initFromURL();
+  loadCatalog();
+});
+
+function setupVirtualization() {
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        renderVirtual();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    updateVirtualizationMetrics();
+    renderVirtual();
+  });
+}
+
+async function loadCatalog() {
+  const metrics = document.getElementById("metricsDisplay");
+  try {
+    const resp = await fetch("catalog.json");
+    if (!resp.ok) throw new Error("Catalog file not found");
+    const raw = await resp.json();
+    catalog = raw.filter((it) => it.package_name || it.name || it.display_name);
+    catalog.forEach((item) => {
+      if (!item.name) {
+        item.name = item.package_name || item.display_name || "unknown";
+      }
+    });
+  } catch (err) {
+    console.warn("Could not load catalog.json, using fallback data:", err);
+    catalog = [
+      {
+        name: "@modelcontextprotocol/server-filesystem",
+        ecosystem: "npm",
+        version: "1.0.0",
+        description:
+          "Direct local filesystem reader and writer toolset for AI coding assistants.",
+        tool_count: 3,
+        tools: [
+          {
+            name: "read_file",
+            description: "Read file contents from filesystem",
+            parameters: [
+              { name: "path", type: "string", required: true, description: "Path to file" },
+            ],
+          },
+          {
+            name: "write_file",
+            description: "Write contents to local file",
+            parameters: [
+              { name: "path", type: "string", required: true, description: "Path to file" },
+              { name: "content", type: "string", required: true, description: "File content" },
+            ],
+          },
+          {
+            name: "list_directory",
+            description: "List directory files and subdirectories",
+            parameters: [
+              { name: "path", type: "string", required: true, description: "Directory path" },
+            ],
+          },
+        ],
+        command: "npx -y @modelcontextprotocol/server-filesystem",
+      },
+    ];
+  }
+
+  render();
+}
+
+
+function updateEcosystemCounts(baseMatchedItems) {
+  const counts = { all: baseMatchedItems.length, npm: 0, pypi: 0, github: 0, golang: 0, generic: 0 };
+  for (const item of baseMatchedItems) {
+    const eco = (item.ecosystem || "").toLowerCase();
+    if (counts.hasOwnProperty(eco)) {
+      counts[eco]++;
+    } else {
+      counts.generic++;
+    }
+  }
+  
+  document.querySelectorAll(".filter-btn[data-filter='eco']").forEach((btn) => {
+    const val = btn.getAttribute("data-val");
+    const count = counts[val] || 0;
+    
+    // update label text but keep original data-val
+    const labelMap = { all: "All", npm: "NPM", pypi: "PyPI", github: "GitHub", golang: "Go", generic: "Generic" };
+    btn.innerHTML = `${labelMap[val]} <span class="filter-count">(${count.toLocaleString()})</span>`;
+  });
+}
+
+function matchesServer(item, parsedQuery, options) {
+  const activeVer = getActiveVersionForServer(item);
+  const vData = getVersionData(item, activeVer);
+
+  if (options.filterToolsOnly && (!vData.tools || vData.tools.length === 0)) return false;
+  if (options.filterVerifiedOnly && !item.is_verified) return false;
+  if (options.filterZeroConf && vData.required_env_vars && vData.required_env_vars.length > 0) return false;
+  if (options.filterHasExtras && !((item.prompts && item.prompts.length > 0) || (item.resources && item.resources.length > 0))) return false;
+  
+  if (options.activeTransport !== "all") {
+    const transports = (vData.transports || []).map(t => t.toLowerCase());
+    const connType = (item.connection_type || "").toLowerCase();
+    
+    if (options.activeTransport === "stdio") {
+      if (!transports.includes("stdio") && connType !== "stdio") return false;
+    } else if (options.activeTransport === "sse") {
+      const isRemote = (t) => ["sse", "http", "streamable-http"].includes(t);
+      if (!transports.some(isRemote) && !isRemote(connType)) return false;
+    }
+  }
+
+  if (options.activeEco !== "all" && (!item.ecosystem || item.ecosystem.toLowerCase() !== options.activeEco)) {
+    return false;
+  }
+
+  if (!parsedQuery.freeTextTokens.length && !parsedQuery.toolTerms.length && !parsedQuery.paramTerms.length && 
+      !parsedQuery.authorTerms.length && !parsedQuery.licenseTerms.length && !parsedQuery.envTerms.length && 
+      parsedQuery.minTools === null) {
+    return true; // No query
+  }
+
+  const name = (item.name || "").toLowerCase();
+  const desc = (item.description || "").toLowerCase();
+  const author = (item.author || "").toLowerCase();
+  const license = (item.license || "").toLowerCase();
+  const envVars = (vData.required_env_vars || []).map(e => e.toLowerCase());
+  
+  let searchTools = item.tool_signatures || item.tools || [];
+  if (vData.tools && searchTools !== vData.tools) {
+    searchTools = searchTools.concat(vData.tools);
+  }
+
+  if (parsedQuery.minTools !== null && searchTools.length < parsedQuery.minTools) return false;
+
+  for (const term of parsedQuery.authorTerms) {
+    if (!author.includes(term)) return false;
+  }
+  for (const term of parsedQuery.licenseTerms) {
+    if (!license.includes(term)) return false;
+  }
+  for (const term of parsedQuery.envTerms) {
+    if (!envVars.some(e => e.includes(term))) return false;
+  }
+  for (const term of parsedQuery.toolTerms) {
+    if (!searchTools.some(t => (t.name || "").toLowerCase().includes(term))) return false;
+  }
+  for (const term of parsedQuery.paramTerms) {
+    if (!searchTools.some(t => t.parameters && t.parameters.some(p => (p.name || "").toLowerCase().includes(term)))) return false;
+  }
+
+  for (const token of parsedQuery.freeTextTokens) {
+    let match = false;
+    if (name.includes(token) || desc.includes(token) || author.includes(token)) match = true;
+    else if (searchTools.some(t => 
+      (t.name || "").toLowerCase().includes(token) || 
+      (t.description || "").toLowerCase().includes(token) || 
+      (t.parameters && t.parameters.some(p => (p.name || "").toLowerCase().includes(token)))
+    )) {
+      match = true;
+    }
+    if (!match) return false;
+  }
+
+  return true;
+}
+
+function sortCatalogItems(items, sortKey, rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  return items.sort((a, b) => {
+    const aVer = getActiveVersionForServer(a);
+    const bVer = getActiveVersionForServer(b);
+    const aData = getVersionData(a, aVer);
+    const bData = getVersionData(b, bVer);
+    const aTools = (aData.tools || []).length;
+    const bTools = (bData.tools || []).length;
+
+    if (sortKey === "tools-desc") {
+      if (aTools > 0 && bTools === 0) return -1;
+      if (aTools === 0 && bTools > 0) return 1;
+      if (aTools !== bTools) return bTools - aTools;
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "tools-asc") {
+      if (aTools > 0 && bTools === 0) return -1; // 0 tools goes last as per tools-desc convention "first ascending, then 0"
+      if (aTools === 0 && bTools > 0) return 1;
+      if (aTools !== bTools) return aTools - bTools;
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "name-asc") {
+      return a.name.localeCompare(b.name);
+    } else if (sortKey === "name-desc") {
+      return b.name.localeCompare(a.name);
+    } else if (sortKey === "newest") {
+      const aDate = a.release_date || "";
+      const bDate = b.release_date || "";
+      if (aDate && !bDate) return -1;
+      if (!aDate && bDate) return 1;
+      if (aDate !== bDate) return bDate.localeCompare(aDate);
+      return bTools - aTools;
+    } else if (sortKey === "versions-desc") {
+      const aVers = a.versions ? a.versions.length : (a.total_versions || 1);
+      const bVers = b.versions ? b.versions.length : (b.total_versions || 1);
+      if (aVers !== bVers) return bVers - aVers;
+      return bTools - aTools;
+    } else if (sortKey === "relevance") {
+      const score = (item, tools) => {
+        let s = 0;
+        const n = (item.name || "").toLowerCase();
+        if (n === q) s += 100;
+        else if (n.startsWith(q)) s += 80;
+        else if (n.includes(q)) s += 50;
+        
+        for (const t of tools) {
+          const tn = (t.name || "").toLowerCase();
+          if (tn === q) s += 70;
+          else if (tn.includes(q)) s += 40;
+          else if ((t.description || "").toLowerCase().includes(q)) s += 10;
+          
+          if (t.parameters) {
+            for (const p of t.parameters) {
+              if ((p.name || "").toLowerCase().includes(q)) s += 25;
+            }
+          }
+        }
+        return s;
+      };
+      const aScore = score(a, aData.tools || []);
+      const bScore = score(b, bData.tools || []);
+      if (aScore !== bScore) return bScore - aScore;
+      return bTools - aTools;
+    }
+    return 0; // Default fallback
+  });
+}
+
+function render() {
+  const parsedQuery = parseSearchQuery(activeQuery);
+  const filterToolsOnly = document.getElementById("filterToolsOnly")?.checked;
+  const filterVerifiedOnly = document.getElementById("filterVerifiedOnly")?.checked;
+  const filterZeroConf = document.getElementById("filterZeroConf")?.checked;
+  const filterHasExtras = document.getElementById("filterHasExtras")?.checked;
+  
+  const options = {
+    activeEco, activeTransport, filterToolsOnly, filterVerifiedOnly, filterZeroConf, filterHasExtras
+  };
+  
+  // Calculate ecosystem counts based on everything EXCEPT activeEco
+  const baseOptions = { ...options, activeEco: "all" };
+  const baseMatchedItems = catalog.filter(item => matchesServer(item, parsedQuery, baseOptions));
+  updateEcosystemCounts(baseMatchedItems);
+
+  filteredCatalog = catalog.filter(item => matchesServer(item, parsedQuery, options));
+  filteredCatalog = sortCatalogItems(filteredCatalog, activeSort, activeQuery);
+
+  let catalog = [];
+let filteredCatalog = [];
+let activeEco = "all";
+let activeQuery = "";
+let activeTransport = "all";
+let activeSort = "tools-desc";
+let selectedServers = new Map();
+let activeModalClient = "claude";
+
+
+function parseSearchQuery(rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  const result = {
+    freeTextTokens: [],
+    toolTerms: [],
+    paramTerms: [],
+    authorTerms: [],
+    licenseTerms: [],
+    envTerms: [],
+    minTools: null
+  };
+  
+  if (!q) return result;
+  
+  const tokens = q.split(/\s+/);
+  for (const token of tokens) {
+    if (token.startsWith("tool:")) {
+      result.toolTerms.push(token.substring(5));
+    } else if (token.startsWith("param:")) {
+      result.paramTerms.push(token.substring(6));
+    } else if (token.startsWith("author:")) {
+      result.authorTerms.push(token.substring(7));
+    } else if (token.startsWith("license:")) {
+      result.licenseTerms.push(token.substring(8));
+    } else if (token.startsWith("env:")) {
+      result.envTerms.push(token.substring(4));
+    } else if (token.startsWith("min-tools:")) {
+      const val = parseInt(token.substring(10), 10);
+      if (!isNaN(val)) result.minTools = val;
+    } else {
+      result.freeTextTokens.push(token);
+    }
+  }
+  return result;
+}
+
+if (typeof window !== 'undefined') window.parseSearchQuery = parseSearchQuery;
+
+
 
 // Version & Drawer State
 const cardActiveVersions = new Map();
@@ -606,13 +1702,51 @@ function updateURLState() {
   } else {
     url.searchParams.delete("eco");
   }
+  if (activeTransport !== "all") {
+    url.searchParams.set("transport", activeTransport);
+  } else {
+    url.searchParams.delete("transport");
+  }
+  if (activeSort !== "tools-desc") {
+    url.searchParams.set("sort", activeSort);
+  } else {
+    url.searchParams.delete("sort");
+  }
+
+  const elTools = document.getElementById("filterToolsOnly");
+  const elVerified = document.getElementById("filterVerifiedOnly");
+  const elZeroConf = document.getElementById("filterZeroConf");
+  const elExtras = document.getElementById("filterHasExtras");
+
+  if (elTools && elTools.checked) url.searchParams.set("tools", "1");
+  else url.searchParams.delete("tools");
+
+  if (elVerified && elVerified.checked) url.searchParams.set("verified", "1");
+  else url.searchParams.delete("verified");
+
+  if (elZeroConf && elZeroConf.checked) url.searchParams.set("zeroconf", "1");
+  else url.searchParams.delete("zeroconf");
+
+  if (elExtras && elExtras.checked) url.searchParams.set("extras", "1");
+  else url.searchParams.delete("extras");
+
   history.replaceState(null, "", url);
+
+  const resetBtn = document.getElementById("resetFiltersBtn");
+  if (resetBtn) {
+    const hasNonDefault = activeQuery || activeEco !== "all" || activeTransport !== "all" || activeSort !== "tools-desc" || 
+                          (elTools && elTools.checked) || (elVerified && elVerified.checked) || 
+                          (elZeroConf && elZeroConf.checked) || (elExtras && elExtras.checked);
+    resetBtn.style.display = hasNonDefault ? "inline-flex" : "none";
+  }
 }
 
 function initFromURL() {
   const params = new URLSearchParams(window.location.search);
   const q = params.get("q");
   const eco = params.get("eco");
+  const transport = params.get("transport");
+  const sort = params.get("sort");
 
   if (q) {
     activeQuery = q;
@@ -629,6 +1763,28 @@ function initFromURL() {
       }
     });
   }
+  if (transport) {
+    activeTransport = transport;
+    const select = document.getElementById("transportSelect");
+    if (select) select.value = transport;
+  }
+  if (sort) {
+    activeSort = sort;
+    const select = document.getElementById("sortSelect");
+    if (select) select.value = sort;
+  }
+
+  const elTools = document.getElementById("filterToolsOnly");
+  const elVerified = document.getElementById("filterVerifiedOnly");
+  const elZeroConf = document.getElementById("filterZeroConf");
+  const elExtras = document.getElementById("filterHasExtras");
+
+  if (elTools && params.get("tools") === "1") elTools.checked = true;
+  if (elVerified && params.get("verified") === "1") elVerified.checked = true;
+  if (elZeroConf && params.get("zeroconf") === "1") elZeroConf.checked = true;
+  if (elExtras && params.get("extras") === "1") elExtras.checked = true;
+  
+  updateURLState();
 }
 
 // Multi-Server Selection & Floating Bottom Drawer
@@ -1059,5 +2215,137 @@ window.addEventListener("click", (e) => {
   const configModal = document.getElementById("configModal");
   if (e.target === configModal) {
     closeConfigModal();
+  }
+});
+
+document.getElementById("resetFiltersBtn")?.addEventListener("click", () => {
+  activeQuery = "";
+  activeEco = "all";
+  activeTransport = "all";
+  activeSort = "tools-desc";
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) searchInput.value = "";
+  
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector(".filter-btn[data-val='all']")?.classList.add("active");
+  
+  const transportSelect = document.getElementById("transportSelect");
+  if (transportSelect) transportSelect.value = "all";
+  
+  const sortSelect = document.getElementById("sortSelect");
+  if (sortSelect) sortSelect.value = "tools-desc";
+  
+  const checkboxes = ["filterToolsOnly", "filterVerifiedOnly", "filterZeroConf", "filterHasExtras"];
+  checkboxes.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
+  
+  updateURLState();
+  render();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/") {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT")) {
+      return;
+    }
+    e.preventDefault();
+    document.getElementById("searchInput")?.focus();
+  }
+});
+
+
+document.getElementById("transportSelect")?.addEventListener("change", (e) => {
+  activeTransport = e.target.value;
+  updateURLState();
+  render();
+});
+
+document.getElementById("sortSelect")?.addEventListener("change", (e) => {
+  activeSort = e.target.value;
+  updateURLState();
+  render();
+});
+
+document.getElementById("filterVerifiedOnly")?.addEventListener("change", () => {
+  updateURLState();
+  render();
+});
+
+document.getElementById("filterZeroConf")?.addEventListener("change", () => {
+  updateURLState();
+  render();
+});
+
+document.getElementById("filterHasExtras")?.addEventListener("change", () => {
+  updateURLState();
+  render();
+});
+
+
+document.getElementById("transportSelect")?.addEventListener("change", (e) => {
+  activeTransport = e.target.value;
+  updateURLState();
+  render();
+});
+
+document.getElementById("sortSelect")?.addEventListener("change", (e) => {
+  activeSort = e.target.value;
+  updateURLState();
+  render();
+});
+
+document.getElementById("filterVerifiedOnly")?.addEventListener("change", () => {
+  updateURLState();
+  render();
+});
+
+document.getElementById("filterZeroConf")?.addEventListener("change", () => {
+  updateURLState();
+  render();
+});
+
+document.getElementById("filterHasExtras")?.addEventListener("change", () => {
+  updateURLState();
+  render();
+});
+
+document.getElementById("resetFiltersBtn")?.addEventListener("click", () => {
+  activeQuery = "";
+  activeEco = "all";
+  activeTransport = "all";
+  activeSort = "tools-desc";
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) searchInput.value = "";
+  
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector(".filter-btn[data-val='all']")?.classList.add("active");
+  
+  const transportSelect = document.getElementById("transportSelect");
+  if (transportSelect) transportSelect.value = "all";
+  
+  const sortSelect = document.getElementById("sortSelect");
+  if (sortSelect) sortSelect.value = "tools-desc";
+  
+  const checkboxes = ["filterToolsOnly", "filterVerifiedOnly", "filterZeroConf", "filterHasExtras"];
+  checkboxes.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
+  
+  updateURLState();
+  render();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/") {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT")) {
+      return;
+    }
+    e.preventDefault();
+    document.getElementById("searchInput")?.focus();
   }
 });
