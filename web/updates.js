@@ -1,77 +1,472 @@
-const serverGrid = document.getElementById('serverGrid');
-const metricsDisplay = document.getElementById('metricsDisplay');
-const releaseSelect = document.getElementById('releaseSelect');
-
-let currentRelease = null;
-let updateData = [];
-let expandedServers = new Set();
-
-// Initialize
-async function init() {
-  await loadHistory();
-}
-
-async function loadHistory() {
-  try {
-    const res = await fetch('updates/updates_history.json');
-    if (!res.ok) throw new Error('History not found');
-    const history = await res.json();
-    
-    releaseSelect.innerHTML = '';
-    history.forEach((h, index) => {
-      const opt = document.createElement('option');
-      opt.value = h.version;
-      opt.textContent = `v${h.version} (${h.count} updates)`;
-      releaseSelect.appendChild(opt);
-    });
-    
-    if (history.length > 0) {
-      loadRelease(history[0].version);
-    } else {
-      metricsDisplay.textContent = 'No updates available.';
-    }
-  } catch (err) {
-    console.error('Failed to load history', err);
-    metricsDisplay.textContent = 'Failed to load update history.';
-    releaseSelect.innerHTML = '<option value="">No releases found</option>';
-  }
-}
-
-releaseSelect.addEventListener('change', (e) => {
-  if (e.target.value) {
-    loadRelease(e.target.value);
-  }
-});
-
-document.getElementById('filterToolsOnly')?.addEventListener('change', () => {
-  renderGrid(updateData);
-});
-
-window.toggleToolsExpand = function(safeName) {
-  if (expandedServers.has(safeName)) expandedServers.delete(safeName);
-  else expandedServers.add(safeName);
-  renderGrid(updateData);
-}
-
-async function loadRelease(version) {
-  currentRelease = version;
-  metricsDisplay.textContent = `Loading v${version}...`;
-  serverGrid.innerHTML = '';
-  
-  try {
-    const res = await fetch(`updates/v${version}.json`);
-    if (!res.ok) throw new Error('Release data not found');
-    updateData = await res.json();
-    
-    metricsDisplay.innerHTML = `<strong>v${version}</strong> &mdash; ${updateData.length} servers updated in this release.`;
-    renderGrid(updateData);
-  } catch (err) {
-    console.error(err);
-    metricsDisplay.textContent = `Failed to load v${version}.`;
-  }
-}
-
 function renderGrid(servers) {
+  const filterToolsOnly = document.getElementById("filterToolsOnly")?.checked;
+  const filterVerifiedOnly = document.getElementById("filterVerifiedOnly")?.checked;
+  const pq = parseUpdateSearchQuery(activeUpdateQuery);
+
+  const filterServer = (server) => {
+    if (filterToolsOnly && (!server.tools || server.tools.length === 0)) return false;
+    if (filterVerifiedOnly && !server.is_verified) return false;
+    if (activeUpdateEco !== "all" && (!server.ecosystem || server.ecosystem.toLowerCase() !== activeUpdateEco)) return false;
+
+    if (activeBadgeFilter === "new-server" && !server.badges.includes("NEW SERVER")) return false;
+    if (activeBadgeFilter === "new-version" && !server.badges.includes("NEW VERSION")) return false;
+    if (activeBadgeFilter === "tools-added" && !server.badges.some(b => b.includes("TOOLS ADDED"))) return false;
+    if (activeBadgeFilter === "params-updated" && !server.badges.includes("PARAMETERS UPDATED")) return false;
+
+    if (pq.minTools !== null && (!server.tools || server.tools.length < pq.minTools)) return false;
+
+    for (const term of pq.toolTerms) {
+      if (!server.tools || !server.tools.some(t => (t.name || "").toLowerCase().includes(term))) return false;
+    }
+
+    for (const token of pq.freeTextTokens) {
+      let match = false;
+      if ((server.name || "").toLowerCase().includes(token) || 
+          (server.description || "").toLowerCase().includes(token) ||
+          (server.command || "").toLowerCase().includes(token)) {
+        match = true;
+      } else if (server.tools && server.tools.some(t => 
+          (t.name || "").toLowerCase().includes(token) || 
+          (t.desc || t.description || "").toLowerCase().includes(token))) {
+        match = true;
+      }
+      if (!match) return false;
+    }
+    return true;
+  };
+
+  const getToolsAddedDelta = (s) => {
+    if (s.badges.includes("NEW SERVER")) return s.tools?.length || 0;
+    const addedBadge = s.badges.find(b => b.includes("TOOLS ADDED"));
+    if (addedBadge) {
+      const match = addedBadge.match(/\+(\d+)/);
+      if (match) return parseInt(match[1], 10);
+    }
+    return 0;
+  };
+
+  // Calculate badge counts
+  const badgeCounts = { "new-server": 0, "new-version": 0, "tools-added": 0, "params-updated": 0 };
+  
+  // Calculate based on search, eco, and checkbox filters (NOT badge filter)
+  const serversForCounts = servers.filter(s => {
+    const tempBadgeFilter = activeBadgeFilter;
+    activeBadgeFilter = "all";
+    const result = filterServer(s);
+    activeBadgeFilter = tempBadgeFilter;
+    return result;
+  });
+
+  serversForCounts.forEach(s => {
+    if (s.badges.includes("NEW SERVER")) badgeCounts["new-server"]++;
+    if (s.badges.includes("NEW VERSION")) badgeCounts["new-version"]++;
+    if (s.badges.some(b => b.includes("TOOLS ADDED"))) badgeCounts["tools-added"]++;
+    if (s.badges.includes("PARAMETERS UPDATED")) badgeCounts["params-updated"]++;
+  });
+
+  document.querySelectorAll(".badge-filter-btn").forEach(btn => {
+    const b = btn.getAttribute("data-badge");
+    if (b === "all") btn.innerHTML = `All Updates <span class="filter-count">(${serversForCounts.length})</span>`;
+    else if (b === "new-server") btn.innerHTML = `New Server <span class="filter-count">(${badgeCounts["new-server"]})</span>`;
+    else if (b === "new-version") btn.innerHTML = `New Version <span class="filter-count">(${badgeCounts["new-version"]})</span>`;
+    else if (b === "tools-added") btn.innerHTML = `+Tools Added <span class="filter-count">(${badgeCounts["tools-added"]})</span>`;
+    else if (b === "params-updated") btn.innerHTML = `Params Updated <span class="filter-count">(${badgeCounts["params-updated"]})</span>`;
+  });
+
+  let displayServers = servers.filter(filterServer);
+
+  displayServers.sort((a, b) => {
+    const aTools = a.tools?.length || 0;
+    const bTools = b.tools?.length || 0;
+    const aName = a.name || "";
+    const bName = b.name || "";
+    
+    if (activeUpdateSort === "default") {
+      const aNew = a.badges.includes("NEW SERVER") ? 1 : 0;
+      const bNew = b.badges.includes("NEW SERVER") ? 1 : 0;
+      if (aNew !== bNew) return bNew - aNew;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-added-desc") {
+      const aDelta = getToolsAddedDelta(a);
+      const bDelta = getToolsAddedDelta(b);
+      if (aDelta !== bDelta) return bDelta - aDelta;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-desc") {
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-asc") {
+      if (aTools !== bTools) return aTools - bTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-asc") {
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-desc") {
+      return bName.localeCompare(aName);
+    }
+    return 0;
+  });
+
+  metricsDisplay.innerHTML = `<strong>v${currentRelease}</strong> &mdash; Showing <strong>${displayServers.length}</strong> of <strong>${updateData.length}</strong> servers updated in this release.`;
+
+  if (displayServers.length === 0) {
+    serverGrid.innerHTML = `<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted);">No updates match the current filters.</div>`;
+    return;
+  }
+
+  let html = "";
+  displayServers.forEach(server => {function renderGrid(servers) {
+  const filterToolsOnly = document.getElementById("filterToolsOnly")?.checked;
+  const filterVerifiedOnly = document.getElementById("filterVerifiedOnly")?.checked;
+  const pq = parseUpdateSearchQuery(activeUpdateQuery);
+
+  const filterServer = (server) => {
+    if (filterToolsOnly && (!server.tools || server.tools.length === 0)) return false;
+    if (filterVerifiedOnly && !server.is_verified) return false;
+    if (activeUpdateEco !== "all" && (!server.ecosystem || server.ecosystem.toLowerCase() !== activeUpdateEco)) return false;
+
+    if (activeBadgeFilter === "new-server" && !server.badges.includes("NEW SERVER")) return false;
+    if (activeBadgeFilter === "new-version" && !server.badges.includes("NEW VERSION")) return false;
+    if (activeBadgeFilter === "tools-added" && !server.badges.some(b => b.includes("TOOLS ADDED"))) return false;
+    if (activeBadgeFilter === "params-updated" && !server.badges.includes("PARAMETERS UPDATED")) return false;
+
+    if (pq.minTools !== null && (!server.tools || server.tools.length < pq.minTools)) return false;
+
+    for (const term of pq.toolTerms) {
+      if (!server.tools || !server.tools.some(t => (t.name || "").toLowerCase().includes(term))) return false;
+    }
+
+    for (const token of pq.freeTextTokens) {
+      let match = false;
+      if ((server.name || "").toLowerCase().includes(token) || 
+          (server.description || "").toLowerCase().includes(token) ||
+          (server.command || "").toLowerCase().includes(token)) {
+        match = true;
+      } else if (server.tools && server.tools.some(t => 
+          (t.name || "").toLowerCase().includes(token) || 
+          (t.desc || t.description || "").toLowerCase().includes(token))) {
+        match = true;
+      }
+      if (!match) return false;
+    }
+    return true;
+  };
+
+  const getToolsAddedDelta = (s) => {
+    if (s.badges.includes("NEW SERVER")) return s.tools?.length || 0;
+    const addedBadge = s.badges.find(b => b.includes("TOOLS ADDED"));
+    if (addedBadge) {
+      const match = addedBadge.match(/\+(\d+)/);
+      if (match) return parseInt(match[1], 10);
+    }
+    return 0;
+  };
+
+  // Calculate badge counts
+  const badgeCounts = { "new-server": 0, "new-version": 0, "tools-added": 0, "params-updated": 0 };
+  
+  // Calculate based on search, eco, and checkbox filters (NOT badge filter)
+  const serversForCounts = servers.filter(s => {
+    const tempBadgeFilter = activeBadgeFilter;
+    activeBadgeFilter = "all";
+    const result = filterServer(s);
+    activeBadgeFilter = tempBadgeFilter;
+    return result;
+  });
+
+  serversForCounts.forEach(s => {
+    if (s.badges.includes("NEW SERVER")) badgeCounts["new-server"]++;
+    if (s.badges.includes("NEW VERSION")) badgeCounts["new-version"]++;
+    if (s.badges.some(b => b.includes("TOOLS ADDED"))) badgeCounts["tools-added"]++;
+    if (s.badges.includes("PARAMETERS UPDATED")) badgeCounts["params-updated"]++;
+  });
+
+  document.querySelectorAll(".badge-filter-btn").forEach(btn => {
+    const b = btn.getAttribute("data-badge");
+    if (b === "all") btn.innerHTML = `All Updates <span class="filter-count">(${serversForCounts.length})</span>`;
+    else if (b === "new-server") btn.innerHTML = `New Server <span class="filter-count">(${badgeCounts["new-server"]})</span>`;
+    else if (b === "new-version") btn.innerHTML = `New Version <span class="filter-count">(${badgeCounts["new-version"]})</span>`;
+    else if (b === "tools-added") btn.innerHTML = `+Tools Added <span class="filter-count">(${badgeCounts["tools-added"]})</span>`;
+    else if (b === "params-updated") btn.innerHTML = `Params Updated <span class="filter-count">(${badgeCounts["params-updated"]})</span>`;
+  });
+
+  let displayServers = servers.filter(filterServer);
+
+  displayServers.sort((a, b) => {
+    const aTools = a.tools?.length || 0;
+    const bTools = b.tools?.length || 0;
+    const aName = a.name || "";
+    const bName = b.name || "";
+    
+    if (activeUpdateSort === "default") {
+      const aNew = a.badges.includes("NEW SERVER") ? 1 : 0;
+      const bNew = b.badges.includes("NEW SERVER") ? 1 : 0;
+      if (aNew !== bNew) return bNew - aNew;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-added-desc") {
+      const aDelta = getToolsAddedDelta(a);
+      const bDelta = getToolsAddedDelta(b);
+      if (aDelta !== bDelta) return bDelta - aDelta;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-desc") {
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-asc") {
+      if (aTools !== bTools) return aTools - bTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-asc") {
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-desc") {
+      return bName.localeCompare(aName);
+    }
+    return 0;
+  });
+
+  metricsDisplay.innerHTML = `<strong>v${currentRelease}</strong> &mdash; Showing <strong>${displayServers.length}</strong> of <strong>${updateData.length}</strong> servers updated in this release.`;
+
+  if (displayServers.length === 0) {
+    serverGrid.innerHTML = `<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted);">No updates match the current filters.</div>`;
+    return;
+  }
+
+  let html = "";
+  displayServers.forEach(server => {
+  const filterToolsOnly = document.getElementById("filterToolsOnly")?.checked;
+  const filterVerifiedOnly = document.getElementById("filterVerifiedOnly")?.checked;
+  const pq = parseUpdateSearchQuery(activeUpdateQuery);
+
+  const filterServer = (server) => {
+    if (filterToolsOnly && (!server.tools || server.tools.length === 0)) return false;
+    if (filterVerifiedOnly && !server.is_verified) return false;
+    if (activeUpdateEco !== "all" && (!server.ecosystem || server.ecosystem.toLowerCase() !== activeUpdateEco)) return false;
+
+    if (activeBadgeFilter === "new-server" && !server.badges.includes("NEW SERVER")) return false;
+    if (activeBadgeFilter === "new-version" && !server.badges.includes("NEW VERSION")) return false;
+    if (activeBadgeFilter === "tools-added" && !server.badges.some(b => b.includes("TOOLS ADDED"))) return false;
+    if (activeBadgeFilter === "params-updated" && !server.badges.includes("PARAMETERS UPDATED")) return false;
+
+    if (pq.minTools !== null && (!server.tools || server.tools.length < pq.minTools)) return false;
+
+    for (const term of pq.toolTerms) {
+      if (!server.tools || !server.tools.some(t => (t.name || "").toLowerCase().includes(term))) return false;
+    }
+
+    for (const token of pq.freeTextTokens) {
+      let match = false;
+      if ((server.name || "").toLowerCase().includes(token) || 
+          (server.description || "").toLowerCase().includes(token) ||
+          (server.command || "").toLowerCase().includes(token)) {
+        match = true;
+      } else if (server.tools && server.tools.some(t => 
+          (t.name || "").toLowerCase().includes(token) || 
+          (t.desc || t.description || "").toLowerCase().includes(token))) {
+        match = true;
+      }
+      if (!match) return false;
+    }
+    return true;
+  };
+
+  const getToolsAddedDelta = (s) => {
+    if (s.badges.includes("NEW SERVER")) return s.tools?.length || 0;
+    const addedBadge = s.badges.find(b => b.includes("TOOLS ADDED"));
+    if (addedBadge) {
+      const match = addedBadge.match(/\+(\d+)/);
+      if (match) return parseInt(match[1], 10);
+    }
+    return 0;
+  };
+
+  // Calculate badge counts
+  const badgeCounts = { "new-server": 0, "new-version": 0, "tools-added": 0, "params-updated": 0 };
+  
+  // Calculate based on search, eco, and checkbox filters (NOT badge filter)
+  const serversForCounts = servers.filter(s => {
+    const tempBadgeFilter = activeBadgeFilter;
+    activeBadgeFilter = "all";
+    const result = filterServer(s);
+    activeBadgeFilter = tempBadgeFilter;
+    return result;
+  });
+
+  serversForCounts.forEach(s => {
+    if (s.badges.includes("NEW SERVER")) badgeCounts["new-server"]++;
+    if (s.badges.includes("NEW VERSION")) badgeCounts["new-version"]++;
+    if (s.badges.some(b => b.includes("TOOLS ADDED"))) badgeCounts["tools-added"]++;
+    if (s.badges.includes("PARAMETERS UPDATED")) badgeCounts["params-updated"]++;
+  });
+
+  document.querySelectorAll(".badge-filter-btn").forEach(btn => {
+    const b = btn.getAttribute("data-badge");
+    if (b === "all") btn.innerHTML = `All Updates <span class="filter-count">(${serversForCounts.length})</span>`;
+    else if (b === "new-server") btn.innerHTML = `New Server <span class="filter-count">(${badgeCounts["new-server"]})</span>`;
+    else if (b === "new-version") btn.innerHTML = `New Version <span class="filter-count">(${badgeCounts["new-version"]})</span>`;
+    else if (b === "tools-added") btn.innerHTML = `+Tools Added <span class="filter-count">(${badgeCounts["tools-added"]})</span>`;
+    else if (b === "params-updated") btn.innerHTML = `Params Updated <span class="filter-count">(${badgeCounts["params-updated"]})</span>`;
+  });
+
+  let displayServers = servers.filter(filterServer);
+
+  displayServers.sort((a, b) => {
+    const aTools = a.tools?.length || 0;
+    const bTools = b.tools?.length || 0;
+    const aName = a.name || "";
+    const bName = b.name || "";
+    
+    if (activeUpdateSort === "default") {
+      const aNew = a.badges.includes("NEW SERVER") ? 1 : 0;
+      const bNew = b.badges.includes("NEW SERVER") ? 1 : 0;
+      if (aNew !== bNew) return bNew - aNew;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-added-desc") {
+      const aDelta = getToolsAddedDelta(a);
+      const bDelta = getToolsAddedDelta(b);
+      if (aDelta !== bDelta) return bDelta - aDelta;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-desc") {
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-asc") {
+      if (aTools !== bTools) return aTools - bTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-asc") {
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-desc") {
+      return bName.localeCompare(aName);
+    }
+    return 0;
+  });
+
+  metricsDisplay.innerHTML = `<strong>v${currentRelease}</strong> &mdash; Showing <strong>${displayServers.length}</strong> of <strong>${updateData.length}</strong> servers updated in this release.`;
+
+  if (displayServers.length === 0) {
+    serverGrid.innerHTML = `<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted);">No updates match the current filters.</div>`;
+    return;
+  }
+
+  let html = "";
+  displayServers.forEach(server => {function renderGrid(servers) {
+  const filterToolsOnly = document.getElementById("filterToolsOnly")?.checked;
+  const filterVerifiedOnly = document.getElementById("filterVerifiedOnly")?.checked;
+  const pq = parseUpdateSearchQuery(activeUpdateQuery);
+
+  const filterServer = (server) => {
+    if (filterToolsOnly && (!server.tools || server.tools.length === 0)) return false;
+    if (filterVerifiedOnly && !server.is_verified) return false;
+    if (activeUpdateEco !== "all" && (!server.ecosystem || server.ecosystem.toLowerCase() !== activeUpdateEco)) return false;
+
+    if (activeBadgeFilter === "new-server" && !server.badges.includes("NEW SERVER")) return false;
+    if (activeBadgeFilter === "new-version" && !server.badges.includes("NEW VERSION")) return false;
+    if (activeBadgeFilter === "tools-added" && !server.badges.some(b => b.includes("TOOLS ADDED"))) return false;
+    if (activeBadgeFilter === "params-updated" && !server.badges.includes("PARAMETERS UPDATED")) return false;
+
+    if (pq.minTools !== null && (!server.tools || server.tools.length < pq.minTools)) return false;
+
+    for (const term of pq.toolTerms) {
+      if (!server.tools || !server.tools.some(t => (t.name || "").toLowerCase().includes(term))) return false;
+    }
+
+    for (const token of pq.freeTextTokens) {
+      let match = false;
+      if ((server.name || "").toLowerCase().includes(token) || 
+          (server.description || "").toLowerCase().includes(token) ||
+          (server.command || "").toLowerCase().includes(token)) {
+        match = true;
+      } else if (server.tools && server.tools.some(t => 
+          (t.name || "").toLowerCase().includes(token) || 
+          (t.desc || t.description || "").toLowerCase().includes(token))) {
+        match = true;
+      }
+      if (!match) return false;
+    }
+    return true;
+  };
+
+  const getToolsAddedDelta = (s) => {
+    if (s.badges.includes("NEW SERVER")) return s.tools?.length || 0;
+    const addedBadge = s.badges.find(b => b.includes("TOOLS ADDED"));
+    if (addedBadge) {
+      const match = addedBadge.match(/\+(\d+)/);
+      if (match) return parseInt(match[1], 10);
+    }
+    return 0;
+  };
+
+  // Calculate badge counts
+  const badgeCounts = { "new-server": 0, "new-version": 0, "tools-added": 0, "params-updated": 0 };
+  
+  // Calculate based on search, eco, and checkbox filters (NOT badge filter)
+  const serversForCounts = servers.filter(s => {
+    const tempBadgeFilter = activeBadgeFilter;
+    activeBadgeFilter = "all";
+    const result = filterServer(s);
+    activeBadgeFilter = tempBadgeFilter;
+    return result;
+  });
+
+  serversForCounts.forEach(s => {
+    if (s.badges.includes("NEW SERVER")) badgeCounts["new-server"]++;
+    if (s.badges.includes("NEW VERSION")) badgeCounts["new-version"]++;
+    if (s.badges.some(b => b.includes("TOOLS ADDED"))) badgeCounts["tools-added"]++;
+    if (s.badges.includes("PARAMETERS UPDATED")) badgeCounts["params-updated"]++;
+  });
+
+  document.querySelectorAll(".badge-filter-btn").forEach(btn => {
+    const b = btn.getAttribute("data-badge");
+    if (b === "all") btn.innerHTML = `All Updates <span class="filter-count">(${serversForCounts.length})</span>`;
+    else if (b === "new-server") btn.innerHTML = `New Server <span class="filter-count">(${badgeCounts["new-server"]})</span>`;
+    else if (b === "new-version") btn.innerHTML = `New Version <span class="filter-count">(${badgeCounts["new-version"]})</span>`;
+    else if (b === "tools-added") btn.innerHTML = `+Tools Added <span class="filter-count">(${badgeCounts["tools-added"]})</span>`;
+    else if (b === "params-updated") btn.innerHTML = `Params Updated <span class="filter-count">(${badgeCounts["params-updated"]})</span>`;
+  });
+
+  let displayServers = servers.filter(filterServer);
+
+  displayServers.sort((a, b) => {
+    const aTools = a.tools?.length || 0;
+    const bTools = b.tools?.length || 0;
+    const aName = a.name || "";
+    const bName = b.name || "";
+    
+    if (activeUpdateSort === "default") {
+      const aNew = a.badges.includes("NEW SERVER") ? 1 : 0;
+      const bNew = b.badges.includes("NEW SERVER") ? 1 : 0;
+      if (aNew !== bNew) return bNew - aNew;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-added-desc") {
+      const aDelta = getToolsAddedDelta(a);
+      const bDelta = getToolsAddedDelta(b);
+      if (aDelta !== bDelta) return bDelta - aDelta;
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-desc") {
+      if (aTools !== bTools) return bTools - aTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "tools-asc") {
+      if (aTools !== bTools) return aTools - bTools;
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-asc") {
+      return aName.localeCompare(bName);
+    } else if (activeUpdateSort === "name-desc") {
+      return bName.localeCompare(aName);
+    }
+    return 0;
+  });
+
+  metricsDisplay.innerHTML = `<strong>v${currentRelease}</strong> &mdash; Showing <strong>${displayServers.length}</strong> of <strong>${updateData.length}</strong> servers updated in this release.`;
+
+  if (displayServers.length === 0) {
+    serverGrid.innerHTML = `<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted);">No updates match the current filters.</div>`;
+    return;
+  }
+
+  let html = "";
+  displayServers.forEach(server => {function renderGrid(servers) {
   serverGrid.innerHTML = '';
   
   let displayServers = servers;
@@ -447,4 +842,154 @@ window.addEventListener("click", function(event) {
   if (event.target == configModal) {
     closeConfigModal();
   }
+});
+
+let activeUpdateQuery = "";
+let activeBadgeFilter = "all";
+let activeUpdateEco = "all";
+let activeUpdateSort = "default";
+
+function updateUpdatesURLState() {
+  const url = new URL(window.location);
+  
+  if (currentRelease) url.searchParams.set("release", currentRelease);
+  else url.searchParams.delete("release");
+  
+  if (activeUpdateQuery) url.searchParams.set("q", activeUpdateQuery);
+  else url.searchParams.delete("q");
+  
+  if (activeBadgeFilter !== "all") url.searchParams.set("badge", activeBadgeFilter);
+  else url.searchParams.delete("badge");
+  
+  if (activeUpdateEco !== "all") url.searchParams.set("eco", activeUpdateEco);
+  else url.searchParams.delete("eco");
+  
+  if (activeUpdateSort !== "default") url.searchParams.set("sort", activeUpdateSort);
+  else url.searchParams.delete("sort");
+
+  const elTools = document.getElementById("filterToolsOnly");
+  const elVerified = document.getElementById("filterVerifiedOnly");
+
+  if (elTools && elTools.checked) url.searchParams.set("tools", "1");
+  else url.searchParams.delete("tools");
+
+  if (elVerified && elVerified.checked) url.searchParams.set("verified", "1");
+  else url.searchParams.delete("verified");
+
+  history.replaceState(null, "", url);
+
+  const resetBtn = document.getElementById("resetUpdateFiltersBtn");
+  if (resetBtn) {
+    const hasNonDefault = activeUpdateQuery || activeBadgeFilter !== "all" || activeUpdateEco !== "all" || activeUpdateSort !== "default" || 
+                          (elTools && elTools.checked) || (elVerified && elVerified.checked);
+    resetBtn.style.display = hasNonDefault ? "inline-flex" : "none";
+  }
+}
+
+function initUpdatesFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  
+  activeUpdateQuery = params.get("q") || "";
+  activeBadgeFilter = params.get("badge") || "all";
+  activeUpdateEco = params.get("eco") || "all";
+  activeUpdateSort = params.get("sort") || "default";
+  
+  const searchInput = document.getElementById("updateSearchInput");
+  if (searchInput) searchInput.value = activeUpdateQuery;
+  
+  document.querySelectorAll(".badge-filter-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-badge") === activeBadgeFilter);
+  });
+  
+  const ecoSelect = document.getElementById("updateEcoSelect");
+  if (ecoSelect) ecoSelect.value = activeUpdateEco;
+  
+  const sortSelect = document.getElementById("updateSortSelect");
+  if (sortSelect) sortSelect.value = activeUpdateSort;
+  
+  const elTools = document.getElementById("filterToolsOnly");
+  const elVerified = document.getElementById("filterVerifiedOnly");
+  
+  if (elTools) elTools.checked = params.get("tools") === "1";
+  if (elVerified) elVerified.checked = params.get("verified") === "1";
+  
+  updateUpdatesURLState();
+}
+
+function parseUpdateSearchQuery(rawQuery) {
+  const q = (rawQuery || "").trim().toLowerCase();
+  const result = { freeTextTokens: [], toolTerms: [], minTools: null };
+  if (!q) return result;
+  const tokens = q.split(/\s+/);
+  for (const token of tokens) {
+    if (token.startsWith("tool:")) result.toolTerms.push(token.substring(5));
+    else if (token.startsWith("min-tools:")) {
+      const val = parseInt(token.substring(10), 10);
+      if (!isNaN(val)) result.minTools = val;
+    }
+    else result.freeTextTokens.push(token);
+  }
+  return result;
+}
+
+document.getElementById("updateSearchInput")?.addEventListener("input", (e) => {
+  activeUpdateQuery = e.target.value;
+  updateUpdatesURLState();
+  renderGrid(updateData);
+});
+
+document.querySelectorAll(".badge-filter-btn").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    activeBadgeFilter = e.target.getAttribute("data-badge");
+    document.querySelectorAll(".badge-filter-btn").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    updateUpdatesURLState();
+    renderGrid(updateData);
+  });
+});
+
+document.getElementById("updateEcoSelect")?.addEventListener("change", (e) => {
+  activeUpdateEco = e.target.value;
+  updateUpdatesURLState();
+  renderGrid(updateData);
+});
+
+document.getElementById("updateSortSelect")?.addEventListener("change", (e) => {
+  activeUpdateSort = e.target.value;
+  updateUpdatesURLState();
+  renderGrid(updateData);
+});
+
+document.getElementById("filterVerifiedOnly")?.addEventListener("change", () => {
+  updateUpdatesURLState();
+  renderGrid(updateData);
+});
+
+document.getElementById("resetUpdateFiltersBtn")?.addEventListener("click", () => {
+  activeUpdateQuery = "";
+  activeBadgeFilter = "all";
+  activeUpdateEco = "all";
+  activeUpdateSort = "default";
+  
+  const searchInput = document.getElementById("updateSearchInput");
+  if (searchInput) searchInput.value = "";
+  
+  document.querySelectorAll(".badge-filter-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-badge") === "all");
+  });
+  
+  const ecoSelect = document.getElementById("updateEcoSelect");
+  if (ecoSelect) ecoSelect.value = "all";
+  
+  const sortSelect = document.getElementById("updateSortSelect");
+  if (sortSelect) sortSelect.value = "default";
+  
+  const elTools = document.getElementById("filterToolsOnly");
+  const elVerified = document.getElementById("filterVerifiedOnly");
+  
+  if (elTools) elTools.checked = false;
+  if (elVerified) elVerified.checked = false;
+  
+  updateUpdatesURLState();
+  renderGrid(updateData);
 });

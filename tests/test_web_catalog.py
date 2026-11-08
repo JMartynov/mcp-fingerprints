@@ -321,3 +321,31 @@ def test_web_index_html_contains_filter():
     html_content = html_file.read_text(encoding="utf-8")
     assert "filterToolsOnly" in html_content
 
+
+def test_web_index_html_advanced_filtering():
+    html = Path("web/index.html").read_text(encoding="utf-8")
+    assert 'id="transportSelect"' in html
+    assert 'id="sortSelect"' in html
+    assert 'id="filterVerifiedOnly"' in html
+    assert 'id="filterZeroConf"' in html
+    assert 'id="resetFiltersBtn"' in html
+
+def test_web_app_js_advanced_filtering():
+    js = Path("web/app.js").read_text(encoding="utf-8")
+    assert "function parseSearchQuery" in js
+    assert "function sortCatalogItems" in js
+
+def test_web_updates_html_advanced_filtering():
+    html = Path("web/updates.html").read_text(encoding="utf-8")
+    assert 'id="updateSearchInput"' in html
+    assert 'class="filter-btn badge-filter-btn active"' in html
+    assert 'id="updateEcoSelect"' in html
+    assert 'id="updateSortSelect"' in html
+    assert 'id="resetUpdateFiltersBtn"' in html
+
+def test_web_updates_js_advanced_filtering():
+    js = Path("web/updates.js").read_text(encoding="utf-8")
+    assert "function initUpdatesFromURL" in js
+    assert "function updateUpdatesURLState" in js
+    assert "function parseUpdateSearchQuery" in js
+    assert "getToolsAddedDelta" in js
