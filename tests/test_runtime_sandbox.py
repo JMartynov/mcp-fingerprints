@@ -56,8 +56,11 @@ def write_message(msg):
     sys.stdout.write(json.dumps(msg) + '\\n')
     sys.stdout.flush()
 
-# Read initialize
+# Read initialize (or discover with fallback)
 msg1 = read_message()
+if msg1.get("method") == "server/discover":
+    write_message({"jsonrpc": "2.0", "id": msg1["id"], "error": {"code": -32601, "message": "Method not found"}})
+    msg1 = read_message()
 assert msg1["method"] == "initialize"
 write_message({"jsonrpc": "2.0", "id": msg1["id"], "result": {"protocolVersion": "2024-11-05", "capabilities": {}, "serverInfo": {"name": "MockServer", "version": "1.0"}}})
 

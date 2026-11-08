@@ -61,6 +61,10 @@ while True:
             resp = {"jsonrpc": "2.0", "id": msg_id, "result": {}}
             sys.stdout.write(json.dumps(resp) + "\\n")
             sys.stdout.flush()
+        else:
+            resp = {"jsonrpc": "2.0", "id": msg_id, "error": {"code": -32601, "message": "Method not found"}}
+            sys.stdout.write(json.dumps(resp) + "\\n")
+            sys.stdout.flush()
     except Exception:
         break
 """
