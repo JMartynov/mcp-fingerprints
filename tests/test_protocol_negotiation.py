@@ -155,6 +155,10 @@ def test_detect_mcp_http_discover():
         assert res["protocol_version"] == "2026-07-28"
 
 def test_prober_http_discover():
+    mock_get = MagicMock()
+    mock_get.getheader.return_value = "application/json"
+    mock_get.close.return_value = None
+
     mock_handshake = MagicMock()
     mock_handshake.read.return_value = json.dumps({
         "jsonrpc": "2.0",
@@ -167,6 +171,11 @@ def test_prober_http_discover():
     }).encode("utf-8")
     mock_handshake_ctx = MagicMock()
     mock_handshake_ctx.__enter__.return_value = mock_handshake
+
+    mock_notif = MagicMock()
+    mock_notif.read.return_value = b"{}"
+    mock_notif_ctx = MagicMock()
+    mock_notif_ctx.__enter__.return_value = mock_notif
     
     mock_tools = MagicMock()
     mock_tools.read.return_value = json.dumps({"jsonrpc": "2.0", "id": 3, "result": {"tools": []}}).encode("utf-8")
@@ -183,7 +192,7 @@ def test_prober_http_discover():
     mock_resources_ctx = MagicMock()
     mock_resources_ctx.__enter__.return_value = mock_resources
     
-    with patch("urllib.request.urlopen", side_effect=[mock_handshake_ctx, mock_tools_ctx, mock_prompts_ctx, mock_resources_ctx]):
+    with patch("urllib.request.urlopen", side_effect=[mock_get, mock_handshake_ctx, mock_notif_ctx, mock_tools_ctx, mock_prompts_ctx, mock_resources_ctx]):
         prober = McpHttpProber()
         report = prober.probe("http://example.com/mcp", timeout=1.0)
         assert report.connection_successful is True
