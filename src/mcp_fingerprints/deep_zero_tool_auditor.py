@@ -406,7 +406,10 @@ class DeepZeroToolAuditor:
                     if content is not None:
                         file_tools = self.inspect_file(path, content)
                         if file_tools:
-                            all_tools.extend(file_tools)
+                            for ft in file_tools:
+                                norm_name = ft.get("name", "").strip().lower()
+                                if not any(existing.get("name", "").strip().lower() == norm_name for existing in all_tools):
+                                    all_tools.append(ft)
                 except Exception:
                     pass
 

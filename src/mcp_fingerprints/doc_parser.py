@@ -21,6 +21,9 @@ def parse_markdown_tool_docs(content: str) -> list[dict[str, Any]]:
     in_tools_section = False
     section_level = 0
     
+    seen_tool_names = set()
+    deduplicated_tools = []
+    
     lines = content.splitlines()
     i = 0
     while i < len(lines):
@@ -97,11 +100,14 @@ def parse_markdown_tool_docs(content: str) -> list[dict[str, Any]]:
                                     properties[arg_name] = {"type": arg_type or "string"}
                                     required.append(arg_name)
                         if name_val:
-                            tools.append({
-                                "name": name_val, 
-                                "description": clean_markdown(desc_val), 
-                                "inputSchema": {"type": "object", "properties": properties, "required": required}
-                            })
+                            norm_name = name_val.strip().lower()
+                            if norm_name not in seen_tool_names:
+                                seen_tool_names.add(norm_name)
+                                deduplicated_tools.append({
+                                    "name": name_val, 
+                                    "description": clean_markdown(desc_val), 
+                                    "inputSchema": {"type": "object", "properties": properties, "required": required}
+                                })
             
             # Parse Markdown List items
             list_m = re.match(r'^[-*]\s+(.*)', line)
@@ -126,12 +132,15 @@ def parse_markdown_tool_docs(content: str) -> list[dict[str, Any]]:
                                 required.append(arg_name)
                             desc_clean = desc_clean.replace(param_m.group(0), '').strip()
 
-                    tools.append({
-                        "name": name_clean, 
-                        "description": desc_clean, 
-                        "inputSchema": {"type": "object", "properties": properties, "required": required}
-                    })
+                    norm_name = name_clean.strip().lower()
+                    if norm_name not in seen_tool_names:
+                        seen_tool_names.add(norm_name)
+                        deduplicated_tools.append({
+                            "name": name_clean, 
+                            "description": desc_clean, 
+                            "inputSchema": {"type": "object", "properties": properties, "required": required}
+                        })
                     
         i += 1
         
-    return tools
+    return deduplicated_tools
