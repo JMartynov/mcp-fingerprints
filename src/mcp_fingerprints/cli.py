@@ -1078,6 +1078,7 @@ def main() -> None:
             specs = list(passports.values())
 
         try:
+            from mcp_fingerprints.sbom_exporter import CycloneDXExporter
             sbom_data = CycloneDXExporter.export(specs, format=args.format)
             out_str = json.dumps(sbom_data, indent=2)
             if args.output:

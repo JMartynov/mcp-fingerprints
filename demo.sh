@@ -176,8 +176,7 @@ cat << 'CONF2' > "$SANDBOX_DIR/configs/cursor_mcp.json"
   "mcpServers": {
     // JSONC comment
     "demo-http": {
-      "command": "http://127.0.0.1:8888",
-      "isCommand": false
+      "url": "http://127.0.0.1:8888/mcp"
     }
   }
 }
@@ -255,11 +254,12 @@ demo_1() {
 demo_2() {
     echo -e "\n--- Scan Configs ---"
     run_cmd scan-configs --path "$SANDBOX_DIR/configs" --client claude --config-file "$SANDBOX_DIR/configs/claude_desktop_config.json" --custom-clients "$SANDBOX_DIR/configs/custom_clients.json" --probe-live --no-probe-live --scan-global --no-scan-global --auto-passport --format table --output "$SANDBOX_DIR/scan.json" --no-auto
-    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format summary --no-auto
-    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format detailed --no-auto
-    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format markdown --no-auto
-    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format json --no-auto
-    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --no-scan-global --no-auto --save-baseline "$SANDBOX_DIR/baseline.json"
+    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format summary --no-auto --no-scan-global --no-probe-live
+    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format detailed --no-auto --no-scan-global --no-probe-live
+    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format markdown --no-auto --no-scan-global --no-probe-live
+    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --format json --no-auto --no-scan-global --no-probe-live
+    run_cmd scan-configs --path "$SANDBOX_DIR/configs/claude_desktop_config.json" --probe-live --no-scan-global --no-auto
+    run_cmd scan-configs --path "$SANDBOX_DIR/configs" --no-scan-global --no-probe-live --no-auto --save-baseline "$SANDBOX_DIR/baseline.json"
     echo "Mutating baseline to trigger drift..."
     jq '.servers[0].toolset_canonical_hash = "sha256:tamperedhash" | .servers[0].toolset_hash = "sha256:tamperedhash"' "$SANDBOX_DIR/baseline.json" > "$SANDBOX_DIR/baseline.tmp" && mv "$SANDBOX_DIR/baseline.tmp" "$SANDBOX_DIR/baseline.json"
     run_cmd_exit 2 scan-configs --path "$SANDBOX_DIR/configs/claude_desktop_config.json" --no-scan-global --no-auto --compare-snapshot "$SANDBOX_DIR/baseline.json" --fail-on-drift
