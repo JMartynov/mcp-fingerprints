@@ -67,7 +67,7 @@ class DeepZeroToolAuditor:
         # 2. Markdown tables
         if filename.endswith(".md"):
             secondary_patterns = [
-                "changelog", "migration", "roadmap", "history", "optimizations", ".cursor/", "releases/", "changes/", "adr", "dev-docs", "features",
+                "changelog", "migration", "roadmap", "history", "optimizations", ".cursor/", "releases/", "changes/", "adr", "dev-docs", "features", "skills/", "claude.md", ".claude",
                 ".agents/", ".claude/", "configs/", "eval/", "evals/", "results.md", "release_notes", "contributing.md", "license", "contributing"
             ]
             if any(pattern in filename.lower() for pattern in secondary_patterns):
