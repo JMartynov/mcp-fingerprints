@@ -1,10 +1,12 @@
-const CACHE_NAME = 'mcp-catalog-v1794228165-grid-fix-1792228500';
+const CACHE_NAME = 'mcp-passports-v4';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
-  './manifest.json'
+  './manifest.json',
+  './updates.html',
+  './updates.js'
 ];
 
 self.addEventListener('install', event => {

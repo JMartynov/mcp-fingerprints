@@ -181,6 +181,15 @@ def test_compile_web_catalog_exception_and_sw_injection(tmp_path):
     assert "__CACHE_VERSION__" not in sw_updated
     assert "mcp-catalog-v" in sw_updated
 
+    sw_content_passports = "const CACHE_NAME = 'mcp-passports-v3'; __CACHE_VERSION__"
+    (web_dir / "sw.js").write_text(sw_content_passports, encoding="utf-8")
+
+    compile_web_catalog(passports_dir, web_dir)
+
+    sw_updated_passports = (web_dir / "sw.js").read_text(encoding="utf-8")
+    assert "__CACHE_VERSION__" not in sw_updated_passports
+    assert "mcp-passports-v4" in sw_updated_passports
+
 
 def test_cli_main(monkeypatch, tmp_path):
     import sys

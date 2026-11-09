@@ -228,7 +228,10 @@ def compile_web_catalog(
         import re
 
         sw_content = re.sub(
-            r"mcp-catalog-v[0-9a-zA-Z_]+", f"mcp-catalog-v{version_str}", sw_content
+            r"mcp-passports-v[0-9a-zA-Z_-]+", f"mcp-passports-v4-{version_str}", sw_content
+        )
+        sw_content = re.sub(
+            r"mcp-catalog-v[0-9a-zA-Z_-]+", f"mcp-catalog-v{version_str}", sw_content
         )
         sw_content = sw_content.replace("__CACHE_VERSION__", version_str)
         sw_path.write_text(sw_content, encoding="utf-8")
