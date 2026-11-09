@@ -23,6 +23,7 @@ class DeepZeroToolAuditor:
             try:
                 data = json.loads(content)
                 if isinstance(data, dict):
+                    # Sometimes tools might be nested, but usually at root level.
                     if "tools" in data and isinstance(data["tools"], list):
                         for tool in data["tools"]:
                             if isinstance(tool, dict) and "name" in tool:
@@ -32,6 +33,15 @@ class DeepZeroToolAuditor:
                                     "format": "JSON Config",
                                     "remedy": "Parse static JSON tool manifest"
                                 })
+                elif isinstance(data, list):
+                    for tool in data:
+                        if isinstance(tool, dict) and "name" in tool:
+                            tools.append({
+                                "name": tool["name"],
+                                "location": f"{filename}",
+                                "format": "JSON Config",
+                                "remedy": "Parse static JSON tool manifest"
+                            })
             except json.JSONDecodeError:
                 pass
                 
@@ -69,7 +79,7 @@ class DeepZeroToolAuditor:
             secondary_patterns = [
                 "changelog", "migration", "roadmap", "history", "optimizations", ".cursor/", "releases/", "changes/", "adr", "dev-docs", "features", "skills/", "claude.md", ".claude",
                 ".agents/", ".claude/", "configs/", "eval/", "evals/", "results.md", "release_notes", "contributing.md", "license", "contributing",
-                "docs/design/", "/design/", "-plan.md"
+                "docs/design/", "design/", "-plan.md", "/design/"
             ]
             if any(pattern in filename.lower() for pattern in secondary_patterns):
                 return tools
@@ -145,6 +155,14 @@ class DeepZeroToolAuditor:
                     "location": f"{filename}",
                     "format": "Explicit Tool Registration",
                     "remedy": "Support server.tool() TS pattern"
+                })
+
+            for match in re.finditer(r'server\.addTool\s*\(\s*["\']([^"\']+)["\']', content):
+                tools.append({
+                    "name": match.group(1),
+                    "location": f"{filename}",
+                    "format": "Explicit Tool Registration",
+                    "remedy": "Support server.addTool() TS pattern"
                 })
 
         # 6. Python explicit Tool(...) instantiation
