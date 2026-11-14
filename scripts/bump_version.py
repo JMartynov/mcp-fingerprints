@@ -27,6 +27,7 @@ def update_version_in_files(
     new_version: str,
     pyproject_path: str = "pyproject.toml",
     init_path: str = "src/mcp_fingerprints/__init__.py",
+    uv_lock_path: str | None = None,
 ) -> None:
     # Update pyproject.toml
     pyproject = Path(pyproject_path)
@@ -51,6 +52,18 @@ def update_version_in_files(
             flags=re.MULTILINE,
         )
         init_file.write_text(new_content, encoding="utf-8")
+
+    # Update uv.lock if present alongside pyproject.toml
+    uv_lock = Path(uv_lock_path) if uv_lock_path else pyproject.parent / "uv.lock"
+    if uv_lock.exists():
+        lock_content = uv_lock.read_text(encoding="utf-8")
+        new_lock = re.sub(
+            r'(name\s*=\s*"mcp-fingerprints"\nversion\s*=\s*")[^"]+(")',
+            rf'\g<1>{new_version}\g<2>',
+            lock_content,
+        )
+        if new_lock != lock_content:
+            uv_lock.write_text(new_lock, encoding="utf-8")
 
 
 def main(argv=None):
