@@ -1,5 +1,5 @@
 import pytest
-from src.mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor, map_audit_to_status
+from mcp_fingerprints.deep_zero_tool_auditor import DeepZeroToolAuditor, map_audit_to_status
 import urllib.request
 import urllib.error
 import urllib.parse

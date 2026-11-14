@@ -359,6 +359,8 @@ class NpmGlobalScanner:
                 
             for package_dir in nm_dir.iterdir():
                 if package_dir.name.startswith("@"):
+                    if not package_dir.is_dir():
+                        continue
                     for sub_pkg in package_dir.iterdir():
                         pkg_json_path = sub_pkg / "package.json"
                         if pkg_json_path.exists():
@@ -397,6 +399,8 @@ class NpmGlobalScanner:
                     
                 for package_dir in nm_dir.iterdir():
                     if package_dir.name.startswith("@"):
+                        if not package_dir.is_dir():
+                            continue
                         for sub_pkg in package_dir.iterdir():
                             pkg_json_path = sub_pkg / "package.json"
                             if pkg_json_path.exists():

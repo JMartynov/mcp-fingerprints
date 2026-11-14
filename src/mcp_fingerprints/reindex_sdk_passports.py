@@ -21,9 +21,9 @@ from typing import Any, Dict, List, Optional
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
-from src.mcp_fingerprints.ast_parser import parse_mcp_source_code
-from src.mcp_fingerprints.doc_parser import parse_markdown_tool_docs
-from src.mcp_fingerprints.canonicalizer import canonicalize_json, compute_sha256
+from mcp_fingerprints.ast_parser import parse_mcp_source_code
+from mcp_fingerprints.doc_parser import parse_markdown_tool_docs
+from mcp_fingerprints.canonicalizer import canonicalize_json, compute_sha256
 
 # Target Passports for Task 93
 TARGET_PASSPORTS = [

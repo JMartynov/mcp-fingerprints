@@ -39,7 +39,7 @@ def generate_auto_passport(probe_report: ProbeReport, output_dir: Path, server_n
          purl=purl,
          ecosystem="unknown",
          package_name=server_name,
-         versions=[version_fingerprint]
+         versions=(version_fingerprint,)
     )
     
     output_path = output_dir / f"{safe_filename}.json"

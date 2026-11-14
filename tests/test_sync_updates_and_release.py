@@ -2,7 +2,7 @@ import json
 import gzip
 from pathlib import Path
 import pytest
-from src.mcp_fingerprints.snapshot import build_snapshot
+from mcp_fingerprints.snapshot import build_snapshot
 
 def test_sync_updates_script_computes_new_server(tmp_path):
     old_data = {

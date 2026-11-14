@@ -2,6 +2,34 @@
 
 All notable changes to the `mcp-fingerprints` project will be documented in this file.
 
+# Release Notes - v1.4.5
+
+> **Release Version**: `v1.4.5`  
+> **Release Date**: 2026-11-13  
+> **Status**: Production Release  
+> **Package**: [`mcp-fingerprints`](https://pypi.org/project/mcp-fingerprints/)
+
+---
+
+## 🌟 Overview & Highlights
+
+`v1.4.5` expands the passport catalog and hardens reliability, security, and packaging across the library:
+1. **Catalog & Audit Expansion**: Consolidated 6,033 passports in `passports.json.gz` (5,862 individual files in `data/fingerprints/`) and reconciled master audit summaries.
+2. **Runtime & Security Hardening**:
+   - Fixed `.json.gz` dictionary iteration in `reporter.py` (`iter_passports()`).
+   - Fixed `by_purl` lookup normalization in `index.py` (`find_package_by_hint_or_alias()`).
+   - Fixed `db_engine.py` (`find_by_hash()`) to query canonical `"versions"` alongside legacy `"version_fingerprints"`.
+   - Restored verified TLS SSL context and removed module-level `logging.basicConfig()` pollution in `synchronizer.py`.
+   - Unified `McpStdioProber` onto `sanitize_environment()` and non-blocking threaded queue I/O to prevent pipe deadlocks and host secret leakage.
+   - Replaced lexicographical version sorting with `packaging.version.parse` in `sbom_exporter.py` and `crawler/__init__.py`.
+   - Guarded `config_scanner.py` scoped npm/npx directory traversal with `is_dir()`.
+3. **Packaging & Exports**:
+   - Fixed `from src.mcp_fingerprints...` wheel import errors across reindexers and tests.
+   - Moved `playwright` / `pytest-playwright` to `[project.optional-dependencies] dev` and added `numpy` to `semantic`.
+   - Exported `McpProber` and `ProbeReport` in `mcp_fingerprints.__all__` and cleaned up `crawler/__init__.py` exports.
+
+---
+
 # Release Notes - v1.3.0
 
 > **Release Version**: `v1.3.0`  

@@ -199,8 +199,9 @@ class FingerprintFastIndex:
             return self.packages.get(self.by_normalized_name[norm])
 
         # 3. PURL match
-        if norm in self.by_purl:
-            return self.packages.get(self.by_purl[norm])
+        purl_key = hint.strip().lower()
+        if purl_key in self.by_purl:
+            return self.packages.get(self.by_purl[purl_key])
 
         # 4. Alias match
         if norm in self.by_alias:

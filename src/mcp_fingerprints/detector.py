@@ -15,6 +15,7 @@ from mcp_fingerprints.protocol_validator import (
     build_initialize_request,
     is_discover_unsupported_error,
 )
+from mcp_fingerprints.runtime_sandbox import enqueue_output, sanitize_environment
 
 
 def detect_mcp_stdio(command: list[str], timeout: float = 3.0) -> dict[str, Any]:
@@ -33,17 +34,13 @@ def detect_mcp_stdio(command: list[str], timeout: float = 3.0) -> dict[str, Any]
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=sanitize_environment(),
             text=True,
             bufsize=1,
         )
 
-        q = queue.Queue()
-
-        def reader_thread():
-            for line in proc.stdout:
-                q.put(line)
-
-        t = threading.Thread(target=reader_thread, daemon=True)
+        q: queue.Queue[str] = queue.Queue()
+        t = threading.Thread(target=enqueue_output, args=(proc.stdout, q), daemon=True)
         t.start()
 
         discover_req = build_discover_request(req_id=1, client_name="detector")

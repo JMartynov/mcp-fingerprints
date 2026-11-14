@@ -6,7 +6,7 @@ Unit tests for reindex_golang_passports.py
 import json
 import pytest
 from pathlib import Path
-from src.mcp_fingerprints.go_sdk_parser import parse_official_go_tools
+from mcp_fingerprints.go_sdk_parser import parse_official_go_tools
 
 def test_parse_official_go_tools_composite_and_constants():
     code = '''

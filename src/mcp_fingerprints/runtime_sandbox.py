@@ -48,7 +48,8 @@ def sanitize_environment(env_updates: dict[str, str] | None = None) -> dict[str,
 def enqueue_output(out, q, max_bytes=10 * 1024 * 1024):
     total_bytes = 0
     try:
-        for line in iter(out.readline, ''):
+        lines = iter(out.readline, "") if hasattr(out, "readline") else iter(out)
+        for line in lines:
             total_bytes += len(line)
             if total_bytes > max_bytes:
                 break
@@ -56,7 +57,11 @@ def enqueue_output(out, q, max_bytes=10 * 1024 * 1024):
     except Exception:
         pass
     finally:
-        out.close()
+        if hasattr(out, "close"):
+            try:
+                out.close()
+            except Exception:
+                pass
 
 
 def probe_mcp_server_stdio(

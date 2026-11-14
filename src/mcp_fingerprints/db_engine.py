@@ -154,36 +154,38 @@ class EphemeralDBEngine:
             return results
 
     def find_by_hash(self, toolset_hash: str) -> Optional[Dict[str, Any]]:
-        # Using version_fingerprints[0].toolset_hash in DuckDB
         if self._duck_conn:
-            try:
-                # Use DuckDB list_filter/contains equivalent or UNNEST to check all elements
-                res = self._duck_conn.execute("""
-                    SELECT * FROM fingerprints 
-                    WHERE list_filter(version_fingerprints, x -> x.toolset_canonical_hash = ?) != []
-                    LIMIT 1
-                """, (toolset_hash,)).fetchall()
-                desc = self._duck_conn.description
-                cols = [d[0] for d in desc]
-                recs = [dict(zip(cols, row)) for row in res]
-                return recs[0] if recs else None
-            except Exception as e:
-                logger.error(f"DuckDB find_by_hash failed: {e}")
-                return None
-                
+            for col in ("versions", "version_fingerprints"):
+                try:
+                    res = self._duck_conn.execute(f"""
+                        SELECT * FROM fingerprints 
+                        WHERE list_filter({col}, x -> x.toolset_canonical_hash = ?) != []
+                        LIMIT 1
+                    """, (toolset_hash,)).fetchall()
+                    desc = self._duck_conn.description
+                    cols = [d[0] for d in desc]
+                    recs = [dict(zip(cols, row)) for row in res]
+                    if recs:
+                        return recs[0]
+                except Exception:
+                    continue
+            return None
+
         elif self._sqlite_conn:
             cur = self._sqlite_conn.cursor()
             cur.execute("SELECT data FROM fingerprints")
             for row in cur.fetchall():
                 data = json.loads(row["data"])
-                for vf in data.get("version_fingerprints", []):
+                versions = data.get("versions") or data.get("version_fingerprints") or []
+                for vf in versions:
                     if vf.get("toolset_canonical_hash") == toolset_hash:
                         return data
             return None
-            
+
         else:
             for pkg, data in self._dict_index.items():
-                for vf in data.get("version_fingerprints", []):
+                versions = data.get("versions") or data.get("version_fingerprints") or []
+                for vf in versions:
                     if vf.get("toolset_canonical_hash") == toolset_hash:
                         return data
             return None

@@ -19,8 +19,8 @@ from typing import Any, Dict, List, Optional
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
-from src.mcp_fingerprints.ast_parser import parse_golang_mcp_code
-from src.mcp_fingerprints.canonicalizer import canonicalize_json, compute_sha256
+from mcp_fingerprints.ast_parser import parse_golang_mcp_code
+from mcp_fingerprints.canonicalizer import canonicalize_json, compute_sha256
 
 def _get_ssl_context() -> ssl.SSLContext:
     try:

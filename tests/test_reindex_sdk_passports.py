@@ -3,7 +3,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, mock_open
 
-from src.mcp_fingerprints.reindex_sdk_passports import (
+from mcp_fingerprints.reindex_sdk_passports import (
     get_repo_owner_name,
     extract_tools_from_repo,
     update_passport_tools
@@ -18,8 +18,8 @@ def test_get_repo_owner_name():
     assert owner == "awkoy"
     assert repo == "notion-mcp-server"
 
-@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
-@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+@patch("mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
 def test_extract_tools_from_repo(mock_fetch_raw, mock_request):
     mock_request.side_effect = [
         {"default_branch": "main"},  # Repo fetch
@@ -64,8 +64,8 @@ def test_update_passport_tools():
             assert "canonical_hash" in updated_data["versions"][0]["tool_signatures"][0]
 
 
-@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
-@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+@patch("mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
 def test_extract_tools_from_repo_python(mock_fetch_raw, mock_request):
     mock_request.side_effect = [
         {"default_branch": "main"},  # Repo fetch
@@ -84,8 +84,8 @@ def get_tools():
     assert tools[0]["name"] == "python_tool"
     assert "description" in tools[0]
 
-@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
-@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+@patch("mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
 def test_extract_tools_from_repo_go(mock_fetch_raw, mock_request):
     mock_request.side_effect = [
         {"default_branch": "main"},  # Repo fetch
@@ -104,8 +104,8 @@ def test_extract_tools_from_repo_go(mock_fetch_raw, mock_request):
     assert tools[0]["name"] == "go_tool"
     assert "description" in tools[0]
 
-@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
-@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+@patch("mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
 def test_extract_tools_from_repo_markdown(mock_fetch_raw, mock_request):
     mock_request.side_effect = [
         {"default_branch": "main"},  # Repo fetch
@@ -124,7 +124,7 @@ def test_extract_tools_from_repo_markdown(mock_fetch_raw, mock_request):
     assert tools[0]["name"] == "md_tool"
     assert "description" in tools[0]
 
-@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
 def test_extract_tools_from_repo_empty_tree(mock_request):
     # Mocking repo fetch to return a default branch, but tree fetch to return no valid files or empty tree
     mock_request.side_effect = [
@@ -135,8 +135,8 @@ def test_extract_tools_from_repo_empty_tree(mock_request):
     tools = extract_tools_from_repo("test-owner", "test-repo")
     assert tools == []
 
-@patch("src.mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
-@patch("src.mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
+@patch("mcp_fingerprints.reindex_sdk_passports._request_with_backoff")
+@patch("mcp_fingerprints.reindex_sdk_passports.fetch_raw_file")
 def test_extract_tools_from_repo_missing_fields(mock_fetch_raw, mock_request):
     mock_request.side_effect = [
         {"default_branch": "main"},

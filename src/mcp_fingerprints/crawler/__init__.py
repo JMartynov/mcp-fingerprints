@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from packaging.version import InvalidVersion, parse as parse_version
 
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
@@ -72,14 +73,20 @@ class FingerprintGenerator:
             v for v in existing_spec.versions if v.version != version
         ]
         updated_versions.append(ver_fp)
-        # Sort versions
+        # Sort versions using semver with lexical fallback for non-PEP440 tags
+        def _ver_key(v: VersionFingerprint) -> tuple[int, Any]:
+            try:
+                return (1, parse_version(v.version))
+            except InvalidVersion:
+                return (0, v.version)
+
         return ServerPackageSpec(
             package_name=existing_spec.package_name,
             purl=existing_spec.purl,
             ecosystem=existing_spec.ecosystem,
             repository_url=existing_spec.repository_url,
             description=existing_spec.description,
-            versions=tuple(sorted(updated_versions, key=lambda x: x.version)),
+            versions=tuple(sorted(updated_versions, key=_ver_key)),
         )
 
     @classmethod
@@ -89,6 +96,8 @@ class FingerprintGenerator:
         target.parent.mkdir(parents=True, exist_ok=True)
         data = spec.to_dict()
         target.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-from .docker_hub import *
+from .crates_io import get_mcp_crates, query_crates_io
+from .docker_hub import extract_docker_stdio_args
 from .maven_central import EnterpriseIndexer
+from .pkg_go_dev import search_pkg_go_dev
 

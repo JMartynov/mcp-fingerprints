@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Iterable, Optional, Union
+from packaging.version import InvalidVersion, parse as parse_version
 
 from mcp_fingerprints.models import ServerPackageSpec, VersionFingerprint
 from mcp_fingerprints.canonicalizer import canonicalize_json
@@ -40,7 +41,14 @@ class CycloneDXExporter:
     def _get_latest_version(spec: ServerPackageSpec) -> Optional[VersionFingerprint]:
         if not spec.versions:
             return None
-        return sorted(spec.versions, key=lambda v: v.version)[-1]
+
+        def _ver_key(v: VersionFingerprint) -> tuple[int, Any]:
+            try:
+                return (1, parse_version(v.version))
+            except InvalidVersion:
+                return (0, v.version)
+
+        return sorted(spec.versions, key=_ver_key)[-1]
 
     @staticmethod
     def _derive_purl(spec: ServerPackageSpec) -> str:

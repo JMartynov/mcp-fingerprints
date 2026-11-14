@@ -21,6 +21,7 @@ from packaging.version import parse as parse_version
 
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import FingerprintMatchResult
+from mcp_fingerprints.runtime_sandbox import sanitize_environment
 from mcp_fingerprints.protocol_validator import (
     LATEST_PROTOCOL_VERSION,
     LEGACY_PROTOCOL_VERSION,
@@ -78,36 +79,72 @@ class McpStdioProber:
         self.matcher = matcher or FingerprintMatcher()
 
     @staticmethod
+    def _get_stdout_queue(process: Any, max_bytes: int) -> queue.Queue[bytes | None]:
+        """Attach or return a non-blocking daemon reader queue for process.stdout."""
+        existing = getattr(process, "_mcp_stdout_queue", None)
+        if isinstance(existing, queue.Queue):
+            return existing
+
+        q: queue.Queue[bytes | None] = queue.Queue(maxsize=64)
+
+        def _reader() -> None:
+            try:
+                while getattr(process, "_mcp_stop_reader", False) is not True:
+                    line = process.stdout.readline(max_bytes)
+                    if not line or not isinstance(line, (bytes, str)):
+                        break
+                    q.put(line, timeout=1.0)
+                    if len(line) >= max_bytes:
+                        break
+            except Exception:
+                pass
+            finally:
+                try:
+                    q.put_nowait(None)
+                except Exception:
+                    pass
+
+        t = threading.Thread(target=_reader, daemon=True)
+        t.start()
+        try:
+            setattr(process, "_mcp_stdout_queue", q)
+        except Exception:
+            pass
+        return q
+
+    @staticmethod
     def _read_jsonrpc_response(process: subprocess.Popen, timeout: float = 5.0) -> dict[str, Any] | None:
         """Read a single newline-delimited JSON-RPC message from process stdout."""
         if not process.stdout:
             return None
         start = time.time()
         max_bytes = 10 * 1024 * 1024
-        
-        # Read byte by byte or block to prevent single line OOM, but since readline is used, we can cap lines read length
-        # Python's readline actually reads up to EOF or newline, if a single line is huge it can OOM.
-        # But we can read line chunks with size limit.
-        while time.time() - start < timeout:
-            # use a max limit for readline
-            line = process.stdout.readline(max_bytes)
-            if not line:
-                if process.poll() is not None:
+        q = McpStdioProber._get_stdout_queue(process, max_bytes)
+
+        while True:
+            remaining = timeout - (time.time() - start)
+            if remaining <= 0:
+                break
+            try:
+                line = q.get(timeout=min(0.05, remaining))
+            except queue.Empty:
+                if process.poll() is not None and q.empty():
                     break
-                time.sleep(0.05)
                 continue
+
+            if line is None:
+                break
             if len(line) >= max_bytes:
-                # Exceeded buffer cap
                 try:
+                    setattr(process, "_mcp_stop_reader", True)
                     process.kill()
                 except Exception:
                     pass
                 return None
-            line_str = line.decode("utf-8", errors="replace").strip()
+            line_str = line.decode("utf-8", errors="replace").strip() if isinstance(line, bytes) else str(line).strip()
             if not line_str:
                 continue
-                
-            # Line-by-line prefix log filtering
+
             brace_idx = line_str.find('{')
             if brace_idx != -1:
                 json_part = line_str[brace_idx:]
@@ -117,7 +154,6 @@ class McpStdioProber:
                         return data
                 except json.JSONDecodeError:
                     pass
-            continue
         return None
 
     @staticmethod
@@ -165,9 +201,7 @@ class McpStdioProber:
         """Launch command, conduct MCP handshake, and query capabilities."""
         proc = None
         try:
-            merged_env = os.environ.copy()
-            if env:
-                merged_env.update(env)
+            merged_env = sanitize_environment(env)
             proc = subprocess.Popen(
                 command,
                 stdin=subprocess.PIPE,

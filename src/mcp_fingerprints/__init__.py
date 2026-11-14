@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from mcp_fingerprints.canonicalizer import (
     build_version_fingerprint,
     compute_sha256,
@@ -39,8 +41,7 @@ class McpIdentifier:
     """Top-level unified MCP identifier for stdio and HTTP."""
     def __init__(self, passports_dir: str | Path | None = None):
         from mcp_fingerprints.matcher import FingerprintMatcher
-        from pathlib import Path
-        
+
         self.matcher = FingerprintMatcher()
         if passports_dir:
             p = Path(passports_dir)
@@ -70,9 +71,8 @@ def scan_local_configs(probe_live: bool = True, scan_global: bool = True, custom
     scanner = ConfigScanner()
     return scanner.scan(probe_live=probe_live, scan_global=scan_global, custom_clients_path=custom_clients_path)
 
-def scan_config_file(path, probe_live: bool = True) -> LocalInventoryReport:
+def scan_config_file(path: str | Path, probe_live: bool = True) -> LocalInventoryReport:
     """Scans a single configuration file."""
-    from pathlib import Path
     scanner = ConfigScanner()
     return scanner.scan_file(Path(path), probe_live=probe_live)
 
@@ -80,6 +80,8 @@ __all__ = [
     "compare_snapshots",
     "InventorySnapshot",
     "McpIdentifier",
+    "McpProber",
+    "ProbeReport",
     "identify_stdio",
     "identify_http",
     "FingerprintGenerator",

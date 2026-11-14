@@ -608,13 +608,20 @@ def main() -> None:
             from mcp_fingerprints.auto_passport import generate_auto_passport
             from mcp_fingerprints.prober import ProbeReport
             for s in report.servers:
-                if s.get("live_probe", {}).get("connection_successful") and "tools_observed" in s["live_probe"]:
-                     probe_rep = ProbeReport(
-                         server_command=s.get("command", []),
-                         connection_successful=True,
-                         tools_observed=s["live_probe"]["tools_observed"]
-                     )
-                     generate_auto_passport(probe_rep, Path("data/fingerprints"), server_name=s.get("name"))
+                live_probe = s.get("live_probe", {})
+                if live_probe.get("connection_successful") and "tools_observed" in live_probe:
+                    raw_cmd = s.get("command", [])
+                    cmd_list = [raw_cmd] if isinstance(raw_cmd, str) else list(raw_cmd)
+                    if isinstance(s.get("args"), list):
+                        cmd_list.extend(str(a) for a in s["args"])
+                    probe_rep = ProbeReport(
+                        server_command=cmd_list,
+                        connection_successful=True,
+                        tools_observed=live_probe["tools_observed"],
+                        prompts_observed=live_probe.get("prompts_observed", []),
+                        resources_observed=live_probe.get("resources_observed", []),
+                    )
+                    generate_auto_passport(probe_rep, Path("data/fingerprints"), server_name=s.get("name"))
 
         if args.save_baseline:
             snapshot_diff.save_inventory_snapshot(inventory, args.save_baseline)

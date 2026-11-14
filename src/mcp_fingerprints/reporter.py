@@ -11,7 +11,11 @@ def iter_passports(fingerprints_dir: Path | str) -> Iterator[dict[str, Any]]:
     if path.is_file() and path.name.endswith(".json.gz"):
         with gzip.open(path, "rt", encoding="utf-8") as f:
             data = json.load(f)
-            yield from data.get("passports", [])
+            passports = data.get("passports", [])
+            if isinstance(passports, dict):
+                yield from passports.values()
+            else:
+                yield from passports
     elif path.is_dir():
         for file_path in path.rglob("*.json"):
             if file_path.name in ("sync_state.json", "index.json"):
