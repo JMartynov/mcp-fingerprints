@@ -2,10 +2,10 @@
 
 All notable changes to the `mcp-fingerprints` project will be documented in this file.
 
-# Release Notes - v1.4.5
+# Release Notes - v1.4.10
 
-> **Release Version**: `v1.4.5`  
-> **Release Date**: 2026-11-13  
+> **Release Version**: `v1.4.10`  
+> **Release Date**: 2026-11-14  
 > **Status**: Production Release  
 > **Package**: [`mcp-fingerprints`](https://pypi.org/project/mcp-fingerprints/)
 
@@ -13,7 +13,7 @@ All notable changes to the `mcp-fingerprints` project will be documented in this
 
 ## 🌟 Overview & Highlights
 
-`v1.4.5` expands the passport catalog and hardens reliability, security, and packaging across the library:
+`v1.4.10` expands the passport catalog and hardens reliability, security, modular architecture, and packaging across the library:
 1. **Catalog & Audit Expansion**: Consolidated 6,033 passports in `passports.json.gz` (5,862 individual files in `data/fingerprints/`) and reconciled master audit summaries.
 2. **Runtime & Security Hardening**:
    - Fixed `.json.gz` dictionary iteration in `reporter.py` (`iter_passports()`).
