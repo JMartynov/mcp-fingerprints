@@ -98,7 +98,7 @@ jobs:
               python scripts/generate_sync_updates.py --old previous_passports.json.gz --new passports.json.gz --version "${NEW_VERSION}"
               git add pyproject.toml src/mcp_fingerprints/__init__.py web/catalog.json web/sw.js web/updates/
               git commit -m "chore(release): bump version to v${NEW_VERSION} and sync MCP fingerprints"
-              git tag "v${NEW_VERSION}"
+              git tag -f "v${NEW_VERSION}"
               echo "release_created=true" >> "$GITHUB_OUTPUT"
               echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
             else
@@ -108,7 +108,7 @@ jobs:
             
             pushed=false
             for i in 1 2 3 4 5; do
-              if git push origin main --tags; then
+              if git push origin main; then
                 pushed=true
                 break
               fi
@@ -122,7 +122,9 @@ jobs:
             fi
             
             if [ -n "$FINGERPRINT_CHANGES" ] || [ "${{ inputs.force_release }}" = "true" ]; then
-              gh release create "v${NEW_VERSION}" passports.json.gz --title "v${NEW_VERSION}: Automated Fingerprint Sync Release" --generate-notes
+              git tag -f "v${NEW_VERSION}"
+              git push origin "refs/tags/v${NEW_VERSION}" --force
+              gh release create "v${NEW_VERSION}" passports.json.gz --title "v${NEW_VERSION}: Automated Fingerprint Sync Release" --generate-notes || true
               gh workflow run release.yml --ref "v${NEW_VERSION}" || true
             fi
           else
