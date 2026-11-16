@@ -33,7 +33,7 @@ from mcp_fingerprints.sanitizer import sanitize_unicode_text, sanitize_metadata,
 from mcp_fingerprints.data_loader import get_passports_path, load_passports
 
 
-__version__ = "1.4.11"
+__version__ = "1.4.12"
 
 from mcp_fingerprints.prober import McpProber, ProbeReport
 
