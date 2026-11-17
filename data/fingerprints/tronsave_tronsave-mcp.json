@@ -1,0 +1,3936 @@
+{
+  "passport_schema_version": "1.1.0",
+  "package_name": "tronsave/tronsave-mcp",
+  "purl": "pkg:generic/tronsave%2Ftronsave-mcp",
+  "ecosystem": "generic",
+  "display_name": "tronsave/tronsave-mcp",
+  "description": "TronSave MCP server focused on helping agents and clients buy and sell TRON resource quickly through one unified interface, with fast order execution, pricing/estimation tools, and secure session-based workflows.",
+  "author": null,
+  "repository_url": "https://github.com/tronsave/tronsave-mcp",
+  "homepage_url": null,
+  "license": null,
+  "keywords": [],
+  "aliases": [
+    "TronSave",
+    "tronsave/tronsave-mcp"
+  ],
+  "sources_merged": [
+    "github",
+    "official_registry",
+    "smithery"
+  ],
+  "dist_tags": {},
+  "versions": [
+    {
+      "version": "1.5.2",
+      "toolset_canonical_hash": "sha256:a9e311fadd339fad0e45eae85c48f9938824aa36f177203829393f64632fe264",
+      "release_date": null,
+      "dependencies": {},
+      "connections": [
+        {
+          "type": "http",
+          "deploymentUrl": "https://tronsave-mcp--tronsave.run.tools",
+          "configSchema": {}
+        },
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://mcp.tronsave.io/mcp",
+          "configSchema": {}
+        },
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://mcp.tronsave.io/testnet/mcp",
+          "configSchema": {}
+        },
+        {
+          "type": "streamable-http",
+          "deploymentUrl": "https://mcp.tronsave.io/oauth/mcp",
+          "configSchema": {}
+        }
+      ],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "tronsave_cancel_order",
+          "canonical_hash": "sha256:6fcb884925b4eb7d446fa500706b78f24b648cded958dde61bdab978421b3e91",
+          "description": "Cancel an open order by `orderId`. Returns the cancelled order payload after the status flip. Side effect: marks the order non-matchable and refunds locked balance per backend rules; effectively destructive on the live order. Idempotent — cancelling an already-cancelled order is a no-op success. Fails for fulfilled orders or unauthorized callers. Requires a signature session and `mcp-session-id`. Verify state with `tronsave_get_order` first; prefer `tronsave_update_order` when only price/receiver should change.",
+          "is_mutating": false,
+          "property_keys": [
+            "orderId"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orderId": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orderId": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Target order id (`MObjectId`) to cancel. Must be an active order owned/authorized by the current session; already-fulfilled or already-cancelled orders are expected to fail."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:e3649931081866c68017e2c40a914c00d19b3eaa2d148f5ae4e07bb932bc9e2e",
+          "parameters": [
+            {
+              "name": "orderId",
+              "type": "string",
+              "description": "Target order id (`MObjectId`) to cancel. Must be an active order owned/authorized by the current session; already-fulfilled or already-cancelled orders are expected to fail.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_create_order",
+          "canonical_hash": "sha256:9aa1dca98b831272da9128b77273edb45e1600a6146ea62889f1cfd24fa8a3cd",
+          "description": "Create a new buy order on the TronSave market. Key inputs: `orderResourceType` (ENERGY|BANDWIDTH), `orderReceiver` (TRON base58), `orderUnitPrice` in SUN (NOT TRX), `orderDurationSec`, `orderResourceAmount`, and `paymentMethod`: (1) `onchain` — requires a signed payment tx in `paymentSignedTx`; (2) `internal` — deducts from internal balance. Side effect: creates a live order matchable by the market. Requires a signature session and `mcp-session-id`. Always derive `orderUnitPrice` and `paymentPaymentAmount` from the latest `tronsave_estimate_buy_resource` for the same receiver, amount, and duration to avoid reverts.",
+          "is_mutating": false,
+          "property_keys": [
+            "orderDurationSec",
+            "orderReceiver",
+            "orderResourceAmount",
+            "orderResourceType",
+            "orderUnitPrice",
+            "paymentMethod",
+            "paymentPaymentAmount",
+            "paymentSignedTx"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orderReceiver": "string",
+            "paymentMethod": "string",
+            "orderUnitPrice": "number",
+            "paymentSignedTx": "object",
+            "orderDurationSec": "number",
+            "orderResourceType": "string",
+            "orderResourceAmount": "number",
+            "paymentPaymentAmount": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orderReceiver": {
+                "type": "string",
+                "minLength": 1,
+                "description": "TRON base58 address (starts with T) that receives delegated resource. Same as `receiver` passed to `tronsave_estimate_buy_resource`."
+              },
+              "paymentMethod": {
+                "enum": [
+                  "onchain",
+                  "internal"
+                ],
+                "type": "string",
+                "description": "Payment method for this order: `onchain` (wallet signed tx) or `internal` (internal balance)."
+              },
+              "orderUnitPrice": {
+                "type": "number",
+                "description": "Unit price in SUN. Prefer aligning with `minResourcePrice` or `buyResourcePrice` from the latest `tronsave_estimate_buy_resource` for the same receiver, amount, and duration.",
+                "exclusiveMinimum": 0
+              },
+              "paymentSignedTx": {
+                "type": "object",
+                "required": [
+                  "txID",
+                  "raw_data",
+                  "raw_data_hex",
+                  "signature"
+                ],
+                "properties": {
+                  "txID": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]+$",
+                    "maxLength": 64,
+                    "minLength": 64,
+                    "description": "Transaction hash (64 hex chars, lowercase, no `0x` prefix)."
+                  },
+                  "visible": {
+                    "type": "boolean",
+                    "description": "Whether addresses inside `raw_data.contract` are base58 (`true`) vs hex (`false`)."
+                  },
+                  "raw_data": {
+                    "type": "object",
+                    "required": [
+                      "contract",
+                      "ref_block_bytes",
+                      "ref_block_hash",
+                      "expiration",
+                      "timestamp"
+                    ],
+                    "properties": {
+                      "contract": {
+                        "type": "array",
+                        "items": {},
+                        "minItems": 1,
+                        "description": "At least one TRON contract entry; shape varies by contract type."
+                      },
+                      "timestamp": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "description": "Tx timestamp (Unix epoch ms).",
+                        "exclusiveMinimum": 0
+                      },
+                      "expiration": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "description": "Tx expiration (Unix epoch ms).",
+                        "exclusiveMinimum": 0
+                      },
+                      "ref_block_hash": {
+                        "type": "string",
+                        "description": "Reference block hash (hex)."
+                      },
+                      "ref_block_bytes": {
+                        "type": "string",
+                        "description": "Reference block bytes (hex)."
+                      }
+                    },
+                    "description": "Raw transaction body produced by TronWeb (`raw_data`).",
+                    "additionalProperties": {}
+                  },
+                  "signature": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]+$",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Wallet signatures over `raw_data_hex`; usually a single hex string (130 chars for 65-byte secp256k1)."
+                  },
+                  "raw_data_hex": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]+$",
+                    "description": "Hex-encoded `raw_data` body."
+                  }
+                },
+                "description": "Required when `paymentMethod=onchain`. TronWeb-shaped signed TRON transaction (`{ txID, raw_data, raw_data_hex, signature[] }`). Must be produced client-side by the user's wallet; never fabricate or hand-edit.",
+                "additionalProperties": {}
+              },
+              "orderDurationSec": {
+                "type": "number",
+                "description": "Delegation duration in seconds. Must match the `durationSec` used in `tronsave_estimate_buy_resource`.",
+                "exclusiveMinimum": 0
+              },
+              "orderResourceType": {
+                "enum": [
+                  "ENERGY",
+                  "BANDWIDTH"
+                ],
+                "type": "string",
+                "description": "Resource to buy: ENERGY (smart contracts) or BANDWIDTH (transactions). Must match `tronsave_estimate_buy_resource`."
+              },
+              "orderResourceAmount": {
+                "type": "number",
+                "description": "Amount of ENERGY or BANDWIDTH units to purchase. Same as `buyResourceAmount` in estimate when applicable.",
+                "exclusiveMinimum": 0
+              },
+              "paymentPaymentAmount": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Payment amount in SUN. Prefer deriving from `tronsave_estimate_buy_resource`; if converting to TRX, divide SUN by `1e6`."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "data": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "orderId"
+                    ],
+                    "properties": {
+                      "orderId": {
+                        "type": "string",
+                        "description": "Newly created order id (`MObjectId`); pass to `tronsave_get_order` to inspect status."
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:99a32e8d1665b9a4a9c929c0a46355d661d2af4c37d3093ef5948f0ca7477ee6",
+          "parameters": [
+            {
+              "name": "orderDurationSec",
+              "type": "number",
+              "description": "Delegation duration in seconds. Must match the `durationSec` used in `tronsave_estimate_buy_resource`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "orderReceiver",
+              "type": "string",
+              "description": "TRON base58 address (starts with T) that receives delegated resource. Same as `receiver` passed to `tronsave_estimate_buy_resource`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "orderResourceAmount",
+              "type": "number",
+              "description": "Amount of ENERGY or BANDWIDTH units to purchase. Same as `buyResourceAmount` in estimate when applicable.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "orderResourceType",
+              "type": "string",
+              "description": "Resource to buy: ENERGY (smart contracts) or BANDWIDTH (transactions). Must match `tronsave_estimate_buy_resource`.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "ENERGY",
+                "BANDWIDTH"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "orderUnitPrice",
+              "type": "number",
+              "description": "Unit price in SUN. Prefer aligning with `minResourcePrice` or `buyResourcePrice` from the latest `tronsave_estimate_buy_resource` for the same receiver, amount, and duration.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "paymentMethod",
+              "type": "string",
+              "description": "Payment method for this order: `onchain` (wallet signed tx) or `internal` (internal balance).",
+              "required": false,
+              "default": null,
+              "enum": [
+                "onchain",
+                "internal"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "paymentPaymentAmount",
+              "type": "number",
+              "description": "Payment amount in SUN. Prefer deriving from `tronsave_estimate_buy_resource`; if converting to TRX, divide SUN by `1e6`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "paymentSignedTx",
+              "type": "object",
+              "description": "Required when `paymentMethod=onchain`. TronWeb-shaped signed TRON transaction (`{ txID, raw_data, raw_data_hex, signature[] }`). Must be produced client-side by the user's wallet; never fabricate or hand-edit.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "txID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]+$",
+                  "maxLength": 64,
+                  "minLength": 64,
+                  "description": "Transaction hash (64 hex chars, lowercase, no `0x` prefix)."
+                },
+                "visible": {
+                  "type": "boolean",
+                  "description": "Whether addresses inside `raw_data.contract` are base58 (`true`) vs hex (`false`)."
+                },
+                "raw_data": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "ref_block_bytes",
+                    "ref_block_hash",
+                    "expiration",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "array",
+                      "items": {},
+                      "minItems": 1,
+                      "description": "At least one TRON contract entry; shape varies by contract type."
+                    },
+                    "timestamp": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "description": "Tx timestamp (Unix epoch ms).",
+                      "exclusiveMinimum": 0
+                    },
+                    "expiration": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "description": "Tx expiration (Unix epoch ms).",
+                      "exclusiveMinimum": 0
+                    },
+                    "ref_block_hash": {
+                      "type": "string",
+                      "description": "Reference block hash (hex)."
+                    },
+                    "ref_block_bytes": {
+                      "type": "string",
+                      "description": "Reference block bytes (hex)."
+                    }
+                  },
+                  "description": "Raw transaction body produced by TronWeb (`raw_data`).",
+                  "additionalProperties": {}
+                },
+                "signature": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]+$",
+                    "minLength": 1
+                  },
+                  "minItems": 1,
+                  "description": "Wallet signatures over `raw_data_hex`; usually a single hex string (130 chars for 65-byte secp256k1)."
+                },
+                "raw_data_hex": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]+$",
+                  "description": "Hex-encoded `raw_data` body."
+                }
+              }
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_delete_auto_buy_setting",
+          "canonical_hash": "sha256:5312ff0b476fa4ae04032a3f4dc3119bc371cb442ffd4993379ff799f2b2cb98",
+          "description": "Permanently delete one auto-buy rule by `id` (`MObjectId`). Side effect: stops all future executions matching that rule; the rule cannot be restored. Idempotent — deleting a non-existent or already-removed id returns success. Requires a signature session and `mcp-session-id`. Use `tronsave_get_user_auto_setting` to list current rules first; prefer disabling/updating instead when reversibility is desired.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Auto-buy setting id (`MObjectId`) to delete."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:d7e471a8a9d7bbaae0450655815d7ad4bb88159a896263166aea29a4035ba3bb",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Auto-buy setting id (`MObjectId`) to delete.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_estimate_buy_resource",
+          "canonical_hash": "sha256:17b17a94fc4e72b4adf6d989559c80a66b5aa0072bbc6e85f988713079fc0a43",
+          "description": "Quote price and availability for buying ENERGY or BANDWIDTH for a receiver address before placing an order. Returns estimated `unitPrice` (SUN per resource unit), `paymentAmount`, and availability fields used to populate `tronsave_create_order` inputs (`orderUnitPrice`, `paymentPaymentAmount`). Read-only and safe to call repeatedly; no session is required, but backend rate limits apply. For order-book depth use `tronsave_list_order_books`; for the minimum unit price only use `tronsave_get_min_price`.",
+          "is_mutating": false,
+          "property_keys": [
+            "allowPartialFill",
+            "buyResourceAmount",
+            "durationSec",
+            "minResourceDelegateRequiredAmount",
+            "receiver",
+            "resourceType",
+            "unitPrice"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "receiver": "string",
+            "unitPrice": "number",
+            "durationSec": "number",
+            "resourceType": "string",
+            "allowPartialFill": "boolean",
+            "buyResourceAmount": "number",
+            "minResourceDelegateRequiredAmount": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "receiver": {
+                "type": "string",
+                "description": "receiver address."
+              },
+              "unitPrice": {
+                "type": "number",
+                "description": "Unit price in SUN."
+              },
+              "durationSec": {
+                "type": "number",
+                "description": "Duration of the order in seconds. Default 15 minutes"
+              },
+              "resourceType": {
+                "enum": [
+                  "ENERGY",
+                  "BANDWIDTH"
+                ],
+                "type": "string",
+                "default": "ENERGY",
+                "description": "Resource type to buy. Default ENERGY"
+              },
+              "allowPartialFill": {
+                "type": "boolean",
+                "description": "Allow partial fill of the order."
+              },
+              "buyResourceAmount": {
+                "type": "number",
+                "description": "Amount of resource to buy. Default 100000 for ENERGY and 1000 for BANDWIDTH"
+              },
+              "minResourceDelegateRequiredAmount": {
+                "type": "number",
+                "description": "Minimum amount of resource to delegate."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "unitPrice": {
+                "type": "number",
+                "description": "Unit price in SUN"
+              },
+              "durationSec": {
+                "type": "number",
+                "description": "Delegated duration in seconds"
+              },
+              "estimateTrx": {
+                "type": "number",
+                "description": "Estimated TRX cost in SUN"
+              },
+              "availableResource": {
+                "type": "number",
+                "description": "Available resource amount"
+              },
+              "systemDepositAddress": {
+                "type": "string",
+                "description": "System deposit address for onchain payment"
+              }
+            },
+            "required": [
+              "systemDepositAddress",
+              "unitPrice",
+              "durationSec",
+              "estimateTrx",
+              "availableResource"
+            ]
+          },
+          "description_hash": "sha256:f8f61d6fd85db46899bc366b9e4feea9c53f9eb68d61f9866b88b1728ff9b4f5",
+          "parameters": [
+            {
+              "name": "allowPartialFill",
+              "type": "boolean",
+              "description": "Allow partial fill of the order.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "buyResourceAmount",
+              "type": "number",
+              "description": "Amount of resource to buy. Default 100000 for ENERGY and 1000 for BANDWIDTH",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "durationSec",
+              "type": "number",
+              "description": "Duration of the order in seconds. Default 15 minutes",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "minResourceDelegateRequiredAmount",
+              "type": "number",
+              "description": "Minimum amount of resource to delegate.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "receiver",
+              "type": "string",
+              "description": "receiver address.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resourceType",
+              "type": "string",
+              "description": "Resource type to buy. Default ENERGY",
+              "required": false,
+              "default": "ENERGY",
+              "enum": [
+                "ENERGY",
+                "BANDWIDTH"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "unitPrice",
+              "type": "number",
+              "description": "Unit price in SUN.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_generate_api_key",
+          "canonical_hash": "sha256:1f42c52eb5f80d12bed95b2d6f2d415cc2a1c2b5d48f7863a61e4e820b693120",
+          "description": "Generate a new internal API key credential for the current user. Returns `data` containing the issued key — store it securely and pass it to `tronsave_login` (`apiKey` mode) for internal-tool access. Side effect: issues secret material; not idempotent — each call mints a fresh key. If a previous key existed, treat it as rotated; call `tronsave_revoke_api_key` on the old key once the new one is wired up. Requires a signature session and `mcp-session-id`. Sensitive output — never log raw keys; unauthorized sessions or policy checks may reject issuance.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "data": {
+                "type": "string",
+                "description": "For `generateApiKey`: the freshly issued internal API key — treat as SECRET, store securely. For `revokeApiKey`: server-defined confirmation string (no key material)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message",
+              "data"
+            ]
+          },
+          "description_hash": "sha256:7bc2e0a9bea23a91606f98b5207e26febd8343044325c623765b2a5c474dbd8c",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_deposit_address",
+          "canonical_hash": "sha256:70bb13584a26405e60c315d750ae40addf070c4d466862e390cb8638d8ce540c",
+          "description": "Fetches the specific deposit address for the TronSave internal account. Requires a logged-in MCP session created by the `tronsave_login` tool: include `mcp-session-id: <sessionId>` returned by `tronsave_login` on subsequent MCP requests. Internal tools never accept API keys via tool arguments; the server forwards the API key cached in session to TronSave internal REST endpoints. Trigger this tool if the user asks for a deposit address or needs to top up their TronSave TRX balance. Constraints: 1) TRX only; 2) Minimum deposit amount is 10 TRX; 3) Read-only operation.",
+          "is_mutating": false,
+          "property_keys": [
+            "amountTrx"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "amountTrx": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "amountTrx": {
+                "type": "number",
+                "minimum": 10,
+                "description": "Amount of TRX to deposit"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "amountTrx": {
+                "type": "number",
+                "description": "Amount of TRX to deposit"
+              },
+              "depositAddress": {
+                "type": "string",
+                "description": "TRON base58 deposit address, used for deposit TRX to TronSave internal account"
+              }
+            },
+            "required": [
+              "depositAddress",
+              "amountTrx"
+            ]
+          },
+          "description_hash": "sha256:8db4a7a708643f80a504167ceb6f40accb25320c91d120ec36ac25a0e4d468e6",
+          "parameters": [
+            {
+              "name": "amountTrx",
+              "type": "number",
+              "description": "Amount of TRX to deposit",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_internal_account",
+          "canonical_hash": "sha256:c5472682fef452a3b28879b219e18812eac7ff4ee095b02d905c58c8aa3064be",
+          "description": "Retrieve the Tronsave internal account profile for the current logged-in session (wallet/represent address, balances, deposit address). Requires a logged-in MCP session created by the `tronsave_login` tool: include `mcp-session-id: <sessionId>` returned by `tronsave_login` on subsequent MCP requests. Internal tools never accept API keys via tool arguments; the server forwards the API key cached in session to TronSave internal REST endpoints. Use when the user needs their linked address or balance. Read-only; does not submit orders or change chain state.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "balance": {
+                "type": "string",
+                "description": "Amount in SUN"
+              },
+              "depositAddress": {
+                "type": "string",
+                "description": "TRON base58 deposit address, used for deposit TRX to TronSave internal account"
+              },
+              "representAddress": {
+                "type": "string",
+                "description": "TRON base58 represent address"
+              }
+            },
+            "required": [
+              "id",
+              "balance",
+              "representAddress",
+              "depositAddress"
+            ]
+          },
+          "description_hash": "sha256:2e7cb156837bf6505dfbd6fdc91718c07aaeca5580386f76738f9298a3449822",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_min_price",
+          "canonical_hash": "sha256:0ac0aa616a9bef5ce8e72460f2fb2c0245340e1678f6f053e1e2edf760ac994f",
+          "description": "Quote the minimum unit price for a buy. Returns `{ minPrice }` (SUN per resource unit) from GraphQL `market.estimateMinPrice` for the given `resourceType`, `buyAmount`, and `durationSec`. Optional `address` scopes context when the API supports it. No login required; an optional session forwards auth like `tronsave_list_order_books`. Read-only and idempotent. Pair with `tronsave_estimate_buy_resource` for full buy quotes and `tronsave_list_order_books` for depth buckets.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "buyAmount",
+            "durationSec",
+            "resourceType"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "buyAmount": "number",
+            "durationSec": "number",
+            "resourceType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Optional TRON base58 address (`TronAddress`). When omitted, the server uses anonymous/global market context."
+              },
+              "buyAmount": {
+                "type": "number",
+                "description": "Resource amount to price (same units as order book / delegate amounts for that resource type). Default 100000 for ENERGY and 1000 for BANDWIDTH",
+                "exclusiveMinimum": 0
+              },
+              "durationSec": {
+                "type": "number",
+                "default": 900,
+                "description": "Delegation window in seconds; must match the duration you plan to use on a real order for comparable quotes. Default 15 minutes",
+                "exclusiveMinimum": 0
+              },
+              "resourceType": {
+                "enum": [
+                  "ENERGY",
+                  "BANDWIDTH"
+                ],
+                "type": "string",
+                "default": "ENERGY",
+                "description": "Market leg: `ENERGY` or `BANDWIDTH`. Default ENERGY"
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "minPrice": {
+                "type": "number",
+                "description": "Estimated minimum unit price in SUN for the given `resourceType`, `buyAmount`, and `durationSec`; align with `tronsave_estimate_buy_resource` and order `unitPrice` conventions (same as GraphQL `market.estimateMinPrice`)."
+              }
+            },
+            "required": [
+              "minPrice"
+            ]
+          },
+          "description_hash": "sha256:521af7a7982871d536e338dc2c248766d4afcd6f8e796a2cef4e9cdd4d681fd0",
+          "parameters": [
+            {
+              "name": "address",
+              "type": "string",
+              "description": "Optional TRON base58 address (`TronAddress`). When omitted, the server uses anonymous/global market context.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "buyAmount",
+              "type": "number",
+              "description": "Resource amount to price (same units as order book / delegate amounts for that resource type). Default 100000 for ENERGY and 1000 for BANDWIDTH",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "durationSec",
+              "type": "number",
+              "description": "Delegation window in seconds; must match the duration you plan to use on a real order for comparable quotes. Default 15 minutes",
+              "required": false,
+              "default": 900,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resourceType",
+              "type": "string",
+              "description": "Market leg: `ENERGY` or `BANDWIDTH`. Default ENERGY",
+              "required": false,
+              "default": "ENERGY",
+              "enum": [
+                "ENERGY",
+                "BANDWIDTH"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_order",
+          "canonical_hash": "sha256:6ef50cf68a796514449c628fc2846516889111c7db49d0e5032015c93645c608",
+          "description": "Read one order by `id` and return its full snapshot for NORMAL, FAST, or EXTEND order types. Use this as the source of truth before `tronsave_update_order`, `tronsave_sell_order_manual`, or `tronsave_cancel_order` to avoid acting on stale state. Requires a signature session and `mcp-session-id`. Read-only and idempotent.",
+          "is_mutating": false,
+          "property_keys": [
+            "id"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "id": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Target order id (`MObjectId`) to inspect. Use this to confirm current status/price before update, sell, or cancel actions."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "order": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "receiver",
+                      "resourceType",
+                      "resourceAmount",
+                      "remainAmount",
+                      "durationSec",
+                      "isOwner",
+                      "isMatching",
+                      "apy",
+                      "unitPrice",
+                      "createdAt",
+                      "typeOrder"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Order id (`MObjectId`); use with `tronsave_get_order` or mutate tools."
+                      },
+                      "apy": {
+                        "type": "number",
+                        "description": "Annualized yield hint as returned by the API (see TronSave semantics)."
+                      },
+                      "isOwner": {
+                        "type": "boolean",
+                        "description": "Whether the list query’s viewer context treats this row as owned by `myAddress`."
+                      },
+                      "receiver": {
+                        "type": "object",
+                        "required": [
+                          "address"
+                        ],
+                        "properties": {
+                          "address": {
+                            "type": "string",
+                            "description": "TRON base58 address for this party."
+                          }
+                        },
+                        "description": "Receiver wallet and related party info for the delegation leg.",
+                        "additionalProperties": false
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                        "description": "Order creation time (ISO-8601)."
+                      },
+                      "requester": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "required": [
+                              "address"
+                            ],
+                            "properties": {
+                              "address": {
+                                "type": "string",
+                                "description": "TRON base58 address for this party."
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Requester party when present."
+                      },
+                      "typeOrder": {
+                        "enum": [
+                          "NORMAL",
+                          "FAST",
+                          "EXTEND"
+                        ],
+                        "type": "string",
+                        "description": "Market order flavor."
+                      },
+                      "unitPrice": {
+                        "type": "number",
+                        "description": "Unit price in SUN."
+                      },
+                      "isMatching": {
+                        "type": "boolean",
+                        "description": "Whether this order matches the viewer/matching filter used in the query."
+                      },
+                      "durationSec": {
+                        "type": "number",
+                        "description": "Delegation duration in seconds."
+                      },
+                      "remainAmount": {
+                        "type": "number",
+                        "description": "Resource not yet consumed or remaining to fulfill."
+                      },
+                      "resourceType": {
+                        "enum": [
+                          "ENERGY",
+                          "BANDWIDTH"
+                        ],
+                        "type": "string",
+                        "description": "`ENERGY` or `BANDWIDTH`."
+                      },
+                      "resourceAmount": {
+                        "type": "number",
+                        "description": "Original resource amount on the order."
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "order"
+            ]
+          },
+          "description_hash": "sha256:5f720c8482caeb7ae608c156481f0206cd9a51ae2cecac0c07627f971802caab",
+          "parameters": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Target order id (`MObjectId`) to inspect. Use this to confirm current status/price before update, sell, or cancel actions.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_sign_message",
+          "canonical_hash": "sha256:7d7d4e82cad1511ebc7fd9e29a4c2d530d1f101b4699c6a1d4a507d325103029",
+          "description": "Issue a wallet-signable timestamp message helper for signature login. Returns `{ message, timestamp }`: sign `message` exactly client-side, then submit `<signature>_<timestamp>` to `tronsave_login` (signature mode). Optional helper only — clients may also sign their own timestamp payload directly as long as it matches the `signature_timestamp` format expected by `tronsave_login`.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "Hex-encoded nonce message to sign client-side with the user's TRON wallet. The signature must be produced over THIS exact message (case-sensitive)."
+              },
+              "timestamp": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "description": "Unix epoch seconds corresponding to `message`. Pair it with the wallet signature in `<signature>_<timestamp>` form when calling `tronsave_login` (signature mode). This endpoint is a convenience helper; clients may provide their own timestamp payload as well.",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "message",
+              "timestamp"
+            ]
+          },
+          "description_hash": "sha256:bb1f530085645a057a3bea410d307193d92f905af7e90c7d97a6c06700d61064",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_user_auto_setting",
+          "canonical_hash": "sha256:225e44c0574e33775f2c2289c8b7c25825a3e699b7c1806e49e523fcc1ad5b53",
+          "description": "Read the current user's auto-sell configuration (`autoSettings`). Returns the full `autoSettings` object — call this before `tronsave_register_auto_sell` or `tronsave_update_auto_sell_setting` to avoid overwriting fields you do not intend to change. Requires a signature session and `mcp-session-id`. Read-only and idempotent.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "vote": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Whether vote-related automation is enabled for the wallet."
+              },
+              "energy": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "isActive",
+                      "minPrice",
+                      "minDelegateAmount",
+                      "maintainUnDelegate",
+                      "profitShare",
+                      "minDelegateDurationSec",
+                      "maxDelegateDurationSec",
+                      "isAcceptExtended"
+                    ],
+                    "properties": {
+                      "isActive": {
+                        "type": "boolean",
+                        "description": "Whether auto-sell is currently active for this resource leg."
+                      },
+                      "minPrice": {
+                        "type": "number",
+                        "description": "Minimum unit price the seller accepts for auto matches (SUN per resource unit)."
+                      },
+                      "profitShare": {
+                        "type": "number",
+                        "description": "Profit share percentage for this resource leg."
+                      },
+                      "isAcceptExtended": {
+                        "type": "boolean",
+                        "description": "Whether incoming extend-style matches are accepted for this leg."
+                      },
+                      "minDelegateAmount": {
+                        "type": "number",
+                        "description": "Minimum per-delegation resource amount accepted by auto matches."
+                      },
+                      "maintainUnDelegate": {
+                        "type": "number",
+                        "description": "Buffer of undelegated resource the seller keeps reserved."
+                      },
+                      "maxDelegateDurationSec": {
+                        "type": "number",
+                        "description": "Upper bound of accepted delegation duration in seconds."
+                      },
+                      "minDelegateDurationSec": {
+                        "type": "number",
+                        "description": "Lower bound of accepted delegation duration in seconds."
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Energy auto-sell pool snapshot; null when energy automation is disabled."
+              },
+              "bandwidth": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "isActive",
+                      "minPrice",
+                      "minDelegateAmount",
+                      "maintainUnDelegate",
+                      "profitShare",
+                      "minDelegateDurationSec",
+                      "maxDelegateDurationSec",
+                      "isAcceptExtended"
+                    ],
+                    "properties": {
+                      "isActive": {
+                        "type": "boolean",
+                        "description": "Whether auto-sell is currently active for this resource leg."
+                      },
+                      "minPrice": {
+                        "type": "number",
+                        "description": "Minimum unit price the seller accepts for auto matches (SUN per resource unit)."
+                      },
+                      "profitShare": {
+                        "type": "number",
+                        "description": "Profit share percentage for this resource leg."
+                      },
+                      "isAcceptExtended": {
+                        "type": "boolean",
+                        "description": "Whether incoming extend-style matches are accepted for this leg."
+                      },
+                      "minDelegateAmount": {
+                        "type": "number",
+                        "description": "Minimum per-delegation resource amount accepted by auto matches."
+                      },
+                      "maintainUnDelegate": {
+                        "type": "number",
+                        "description": "Buffer of undelegated resource the seller keeps reserved."
+                      },
+                      "maxDelegateDurationSec": {
+                        "type": "number",
+                        "description": "Upper bound of accepted delegation duration in seconds."
+                      },
+                      "minDelegateDurationSec": {
+                        "type": "number",
+                        "description": "Lower bound of accepted delegation duration in seconds."
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Bandwidth auto-sell pool snapshot; null when bandwidth automation is disabled."
+              },
+              "suggestSell": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Whether suggest-sell UX hints are enabled."
+              },
+              "withdrawVote": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Withdraw-vote configuration as a backend-defined string; semantics from TronSave docs."
+              },
+              "permitOperations": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Backend-assigned permission row id; null when not yet persisted."
+                        },
+                        "type": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Permission category as labelled by the backend (e.g. role/scope tag)."
+                        },
+                        "operations": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Numeric operation codes enabled for this row; semantics defined by the backend."
+                        },
+                        "permissionName": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Human-readable permission name; meant for display rather than equality checks."
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Permission rows enabled for this user; null/empty when no automation has been configured."
+              },
+              "reclaimOnlyTronSave": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Reclaim flag — when `true`, only TronSave-managed delegations are reclaimed automatically."
+              }
+            }
+          },
+          "description_hash": "sha256:e8f9d4ad294e340f56c47078f7d6924a4970d7711b72922f3115b4404a3be986",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_user_info",
+          "canonical_hash": "sha256:0991ed5b99efe28662b00cf1524fab5c92327d3df65b0ece048b2ba8240670ef",
+          "description": "Read the current authenticated user's profile and linked TronSave internal account. Returns `{ caller, address, balance (SUN string), info, internalAccount }` — `info` carries referral/contact metadata and may be null; `internalAccount` is null when the wallet has not provisioned a TronSave internal balance yet. Requires a signature session from `tronsave_login` and `mcp-session-id`. Read-only and idempotent. Use `tronsave_get_user_auto_setting` for the auto-sell config or `tronsave_get_user_permissions` for permission flags when the full profile is unnecessary.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "info": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "createdBotCount",
+                      "contacts",
+                      "whitelistLevel",
+                      "userRefCode",
+                      "sponsor",
+                      "pendingRefCode",
+                      "totalRef",
+                      "totalPendingRef",
+                      "totalRefBonus",
+                      "remainRefBonus",
+                      "rank"
+                    ],
+                    "properties": {
+                      "rank": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Rank"
+                      },
+                      "sponsor": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Sponsor"
+                      },
+                      "contacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "type",
+                            "contactId",
+                            "isActive",
+                            "isVerify",
+                            "username"
+                          ],
+                          "properties": {
+                            "type": {
+                              "enum": [
+                                "EMAIL",
+                                "PHONE",
+                                "TELEGRAM",
+                                "WECHAT"
+                              ],
+                              "type": "string"
+                            },
+                            "isActive": {
+                              "type": "boolean",
+                              "description": "Whether the contact is active"
+                            },
+                            "isVerify": {
+                              "type": "boolean",
+                              "description": "Whether the contact is verified"
+                            },
+                            "username": {
+                              "type": "string",
+                              "description": "Username"
+                            },
+                            "contactId": {
+                              "type": "string",
+                              "description": "Contact id"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "totalRef": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Total ref"
+                      },
+                      "userRefCode": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "User ref code"
+                      },
+                      "totalRefBonus": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Total ref bonus"
+                      },
+                      "pendingRefCode": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Pending ref code"
+                      },
+                      "remainRefBonus": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Remain ref bonus"
+                      },
+                      "whitelistLevel": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Whitelist level"
+                      },
+                      "createdBotCount": {
+                        "type": "number",
+                        "description": "Number of bots created by the user"
+                      },
+                      "totalPendingRef": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Total pending ref"
+                      }
+                    },
+                    "description": "user information",
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "caller": {
+                "type": "string",
+                "description": "TRON base58 address of the caller"
+              },
+              "address": {
+                "type": "string",
+                "description": "TRON base58 address"
+              },
+              "balance": {
+                "type": "string",
+                "description": "Amount in SUN, onchain balance of the address"
+              },
+              "internalAccount": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "depositAddress",
+                      "balance",
+                      "apiKey"
+                    ],
+                    "properties": {
+                      "apiKey": {
+                        "type": "string",
+                        "description": "Internal API key cached server-side from this account; treat as sensitive credential material."
+                      },
+                      "balance": {
+                        "type": "string",
+                        "description": "Internal-account balance as a decimal string in SUN (BigInt-safe; TRX = SUN / 1e6)."
+                      },
+                      "depositAddress": {
+                        "type": "string",
+                        "description": "TRON base58 deposit address used for depositing TRX to the TronSave internal balance."
+                      }
+                    },
+                    "description": "Internal account information; null when the wallet has not provisioned a TronSave internal account yet.",
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "caller",
+              "address",
+              "balance",
+              "info",
+              "internalAccount"
+            ]
+          },
+          "description_hash": "sha256:cfa3964af88f53a0c971b4e0d76128fe73842bd739798e4046d780d73bf50ea0",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_get_user_permissions",
+          "canonical_hash": "sha256:80ae5701ae6da6962df92d7a479f2e13011fb1f5f66fce5fb22c0806ed2afac8",
+          "description": "Read the enabled permission operations (`autoSettings.permitOperations`) for the authenticated user. Returns `{ permitOperations: string[] }` — use it before mutating auto-sell or auto-buy rules to confirm the action is allowed for the wallet. Requires a signature session and `mcp-session-id`. Read-only and idempotent.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "permitOperations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Backend-assigned permission row id; null when not yet persisted."
+                    },
+                    "type": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Permission category as labelled by the backend (e.g. role/scope tag)."
+                    },
+                    "operations": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Numeric operation codes enabled for this row; semantics defined by the backend."
+                    },
+                    "permissionName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable permission name; meant for display rather than equality checks."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "default": [],
+                "description": "Permission rows enabled for this user; defaults to `[]` when nothing is configured."
+              }
+            },
+            "required": [
+              "permitOperations"
+            ]
+          },
+          "description_hash": "sha256:f3a2a5b33953708c3a925b135d8a127789bd62b7dcc4c43e33d9157f837449c4",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_internal_create_extend_request",
+          "canonical_hash": "sha256:4f15e38d70d2d3b88fa5141e491974472f9fcd53611abd6d4598ef5085183ee4",
+          "description": "Submit an extension request for existing delegated resources on TronSave via authenticated REST `POST /v2/extend-request`. Requires a logged-in MCP session created by the `tronsave_login` tool: include `mcp-session-id: <sessionId>` returned by `tronsave_login` on subsequent MCP requests. Internal tools never accept API keys via tool arguments; the server forwards the API key cached in session to TronSave internal REST endpoints. Side effect: creates an extension order and may commit TRX from the internal account. `extendData` must follow the REST contract (see schema on each row). Populate it from TronSave outside this MCP—for example the authenticated `POST /v2/get-extendable-delegates` response field `extendData`, or another TronSave client. Do not copy rows blindly from `tronsave_list_extendable_delegates` (GraphQL); that payload shape differs and is for market discovery only.",
+          "is_mutating": false,
+          "property_keys": [
+            "extendData",
+            "receiver",
+            "resourceType"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "receiver": "string",
+            "extendData": "array",
+            "resourceType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "receiver": {
+                "type": "string",
+                "minLength": 1,
+                "description": "TRON base58 address of the account that receives the delegated resource."
+              },
+              "extendData": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "delegator",
+                    "isExtend",
+                    "extraAmount",
+                    "extendTo"
+                  ],
+                  "properties": {
+                    "extendTo": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "description": "Target end time as Unix epoch milliseconds (UTC) for this delegator row in `POST /v2/extend-request`.",
+                      "exclusiveMinimum": 0
+                    },
+                    "isExtend": {
+                      "type": "boolean",
+                      "description": "Whether to extend this delegation row."
+                    },
+                    "delegator": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "TRON base58 delegator address."
+                    },
+                    "extraAmount": {
+                      "type": "number",
+                      "minimum": 0,
+                      "description": "Additional resource amount to add (resource units)."
+                    }
+                  }
+                },
+                "minItems": 1,
+                "description": "Delegator-level rows for `POST /v2/extend-request`. Each row matches TronSave's REST extend contract (delegator, isExtend, extraAmount, extendTo ms)—typically taken from `extendData` returned by `POST /v2/get-extendable-delegates` when called with the user's session, not from GraphQL `tronsave_list_extendable_delegates`."
+              },
+              "resourceType": {
+                "enum": [
+                  "ENERGY",
+                  "BANDWIDTH"
+                ],
+                "type": "string",
+                "description": "Resource type. Default ENERGY when omitted."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "orderId": {
+                "type": "string",
+                "description": "TronSave order ID (hex string)"
+              }
+            },
+            "required": [
+              "orderId"
+            ]
+          },
+          "description_hash": "sha256:ea0ea68116114089ad64566c4a6401210f8cffdb3696b527bdfc203f32da268e",
+          "parameters": [
+            {
+              "name": "extendData",
+              "type": "array",
+              "description": "Delegator-level rows for `POST /v2/extend-request`. Each row matches TronSave's REST extend contract (delegator, isExtend, extraAmount, extendTo ms)—typically taken from `extendData` returned by `POST /v2/get-extendable-delegates` when called with the user's session, not from GraphQL `tronsave_list_extendable_delegates`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": "object",
+              "nested_properties": null
+            },
+            {
+              "name": "receiver",
+              "type": "string",
+              "description": "TRON base58 address of the account that receives the delegated resource.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resourceType",
+              "type": "string",
+              "description": "Resource type. Default ENERGY when omitted.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "ENERGY",
+                "BANDWIDTH"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_list_extendable_delegates",
+          "canonical_hash": "sha256:e787aaf37cbbca8d9de9859a374c0b9aa1156ef3deaafed5ebd056b28e72dc88",
+          "description": "List extendable delegate candidates for a `receiver` and `resourceType` (ENERGY|BANDWIDTH). Optional `suggestData` scores an extend-and-buy scenario for planning purposes. Read-only; does NOT create orders or change on-chain state. Works without `mcp-session-id`; when a session is present, auth is forwarded so results can reflect the logged-in account where supported. NOTE: this is GraphQL market data for discovery only. To actually submit an extension, use `tronsave_internal_create_extend_request` with `extendData` from the authenticated REST `POST /v2/get-extendable-delegates` (payload shape differs from this GraphQL response).",
+          "is_mutating": false,
+          "property_keys": [
+            "receiver",
+            "requester",
+            "resourceType",
+            "suggestData"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "receiver": "string",
+            "requester": "string",
+            "suggestData": "object",
+            "resourceType": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "receiver": {
+                "type": "string",
+                "minLength": 1,
+                "description": "TRON base58 address (typically starts with `T`) that currently receives or will receive the delegated resource. This is the primary filter: the response describes delegates relevant to extending that account's delegation."
+              },
+              "requester": {
+                "type": "string",
+                "description": "Optional TRON base58 address of the viewing/requesting party. When an MCP session is active, the server may still derive identity from auth headers; use this when the API expects an explicit requester string distinct from the receiver."
+              },
+              "suggestData": {
+                "type": "object",
+                "required": [
+                  "extendTo",
+                  "extraBuyAmount",
+                  "extendAmount",
+                  "maxPrice"
+                ],
+                "properties": {
+                  "extendTo": {
+                    "type": "number",
+                    "description": "Target end time for the extended delegation window, as Unix epoch milliseconds (UTC); align with TronSave REST extend flows when comparing suggest windows."
+                  },
+                  "maxPrice": {
+                    "type": "number",
+                    "description": "Maximum unit price in SUN the user is willing to pay for the suggested extend/buy path; used for server-side scoring, not a live order placement by itself."
+                  },
+                  "extendAmount": {
+                    "type": "number",
+                    "description": "Hypothetical amount of existing delegation to extend (resource units matching `resourceType`)."
+                  },
+                  "extraBuyAmount": {
+                    "type": "number",
+                    "description": "Hypothetical extra ENERGY or BANDWIDTH units to buy beyond simple extension; units match `resourceType`, not SUN."
+                  }
+                },
+                "description": "Optional nested scenario for extend-and-buy suggestion scoring. If omitted, the query returns delegate rows without that hypothetical. If provided, supply all four fields together; partial objects are invalid for typical GraphQL input shapes."
+              },
+              "resourceType": {
+                "enum": [
+                  "ENERGY",
+                  "BANDWIDTH"
+                ],
+                "type": "string",
+                "description": "Which resource market leg to query: `ENERGY` for contract execution headroom, `BANDWIDTH` for transaction bandwidth. Must match how you plan to extend or buy."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "extendableDelegates": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "maxExtendAmount"
+                    ],
+                    "properties": {
+                      "data": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "amount": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Delegate amount associated with this row (resource units)."
+                                },
+                                "reason": {
+                                  "anyOf": [
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Human-readable reasons when extension is blocked or conditional."
+                                },
+                                "extendPrice": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Indicative unit price or price component for extending this row (SUN unless API documents otherwise)."
+                                },
+                                "reclaimTime": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Timestamp related to reclaim/unlock timing when relevant."
+                                },
+                                "isExtendable": {
+                                  "anyOf": [
+                                    {
+                                      "type": "boolean"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Whether this delegate entry can be extended under current rules."
+                                },
+                                "minTimeExtendTo": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Minimum end time boundary required before extension is allowed."
+                                },
+                                "availableExtendAt": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Earliest time at which extension becomes available for this row."
+                                },
+                                "availableResource": {
+                                  "anyOf": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ],
+                                  "description": "Resource still available from this delegate for matching/extension."
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Per-delegator or per-offer rows backing the aggregates above; may be empty when nothing is extendable."
+                      },
+                      "overBuyPrice": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Price facet associated with the over-buy leg (SUN-related aggregate; exact semantics from TronSave API)."
+                      },
+                      "overBuyAmount": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Amount considered in excess of a simple extend-only path when `suggestData` implies extra buy."
+                      },
+                      "maxExtendAmount": {
+                        "type": "number",
+                        "description": "Largest extendable resource amount (units) aggregated for this query."
+                      },
+                      "minExtendRequired": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Minimum resource amount the market requires to treat an extension as valid, if applicable."
+                      },
+                      "overBuyAmountAvailable": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "How much of the over-buy amount is currently matchable."
+                      },
+                      "overBuyAmountMaxAvailable": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Upper cap for over-buy availability under current book conditions."
+                      },
+                      "totalAvailableExtraBuyAmount": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Capacity hint for additional buy amount on top of extension under current market state."
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Null when the market has no payload or GraphQL returned no branch; check tool-level errors for hard failures."
+              }
+            },
+            "required": [
+              "extendableDelegates"
+            ]
+          },
+          "description_hash": "sha256:a40d0875f3a4f4b2fb58585eca03b488b952b936f682f436b0d28e5052155858",
+          "parameters": [
+            {
+              "name": "receiver",
+              "type": "string",
+              "description": "TRON base58 address (typically starts with `T`) that currently receives or will receive the delegated resource. This is the primary filter: the response describes delegates relevant to extending that account's delegation.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "requester",
+              "type": "string",
+              "description": "Optional TRON base58 address of the viewing/requesting party. When an MCP session is active, the server may still derive identity from auth headers; use this when the API expects an explicit requester string distinct from the receiver.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resourceType",
+              "type": "string",
+              "description": "Which resource market leg to query: `ENERGY` for contract execution headroom, `BANDWIDTH` for transaction bandwidth. Must match how you plan to extend or buy.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "ENERGY",
+                "BANDWIDTH"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "suggestData",
+              "type": "object",
+              "description": "Optional nested scenario for extend-and-buy suggestion scoring. If omitted, the query returns delegate rows without that hypothetical. If provided, supply all four fields together; partial objects are invalid for typical GraphQL input shapes.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "extendTo": {
+                  "type": "number",
+                  "description": "Target end time for the extended delegation window, as Unix epoch milliseconds (UTC); align with TronSave REST extend flows when comparing suggest windows."
+                },
+                "maxPrice": {
+                  "type": "number",
+                  "description": "Maximum unit price in SUN the user is willing to pay for the suggested extend/buy path; used for server-side scoring, not a live order placement by itself."
+                },
+                "extendAmount": {
+                  "type": "number",
+                  "description": "Hypothetical amount of existing delegation to extend (resource units matching `resourceType`)."
+                },
+                "extraBuyAmount": {
+                  "type": "number",
+                  "description": "Hypothetical extra ENERGY or BANDWIDTH units to buy beyond simple extension; units match `resourceType`, not SUN."
+                }
+              }
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_list_order_books",
+          "canonical_hash": "sha256:16333f6e5fb193fc202043a401b96e5aaa7576d4cea9c14e9e90244c17694d7d",
+          "description": "Read market depth buckets for `ENERGY` or `BANDWIDTH`. Returns price buckets `{ min, max, value }` optionally scoped by viewer address, minimum delegate amount, and duration. No login required; read-only and idempotent. Use this to estimate market ranges before create/update decisions; pair with `tronsave_estimate_buy_resource` for quote-style buy estimation and `tronsave_get_order` for one concrete order.",
+          "is_mutating": false,
+          "property_keys": [
+            "address",
+            "durationSec",
+            "minDelegateAmount",
+            "resourceType"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "address": "string",
+            "durationSec": "number",
+            "resourceType": "string",
+            "minDelegateAmount": "number"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Optional viewer/requester wallet context."
+              },
+              "durationSec": {
+                "type": "number",
+                "description": "Optional delegation duration filter in seconds."
+              },
+              "resourceType": {
+                "enum": [
+                  "ENERGY",
+                  "BANDWIDTH"
+                ],
+                "type": "string",
+                "description": "Order-book side to query (`ENERGY` or `BANDWIDTH`)."
+              },
+              "minDelegateAmount": {
+                "type": "number",
+                "description": "Optional minimum delegate amount floor for bucket filtering."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "orderBook": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "min",
+                    "max",
+                    "value"
+                  ],
+                  "properties": {
+                    "max": {
+                      "type": "number"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "value": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "orderBook"
+            ]
+          },
+          "description_hash": "sha256:1939bc33443b2f938d8aca61944ac10325c6afdc9be09a92a15dc0003ab20b72",
+          "parameters": [
+            {
+              "name": "address",
+              "type": "string",
+              "description": "Optional viewer/requester wallet context.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "durationSec",
+              "type": "number",
+              "description": "Optional delegation duration filter in seconds.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "minDelegateAmount",
+              "type": "number",
+              "description": "Optional minimum delegate amount floor for bucket filtering.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resourceType",
+              "type": "string",
+              "description": "Order-book side to query (`ENERGY` or `BANDWIDTH`).",
+              "required": false,
+              "default": null,
+              "enum": [
+                "ENERGY",
+                "BANDWIDTH"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_list_orders",
+          "canonical_hash": "sha256:5dcacc26b633c9d5890aee92b62a4c6cf47b5692b29281a627f335647a4f91b8",
+          "description": "Query the order list with paging. Returns `{ orders: [{ id, requester?.address, receiver.address, resourceType, resourceAmount, remainAmount, durationSec, unitPrice (SUN), isOwner, isMatching, apy, createdAt, typeOrder (NORMAL|FAST|EXTEND) }] }`. Filter `status` maps to GraphQL `isFulfilled`: `ACTIVE` → `UNFULFILLED`, `COMPLETED` → `FULFILLED`. Set `onlyMyOrder=true` (requires signature login + `mcp-session-id`) to scope to the caller's wallet as requester. Paging uses `offset`/`limit`. Use `tronsave_get_order` with an `id` for one full snapshot before mutating an order.",
+          "is_mutating": false,
+          "property_keys": [
+            "isOnlyMyOrder",
+            "limit",
+            "offset",
+            "resourceType",
+            "status"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "limit": "integer",
+            "offset": "integer",
+            "status": "string",
+            "resourceType": "string",
+            "isOnlyMyOrder": "boolean"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "maximum": 10,
+                "minimum": 1,
+                "description": "Maximum rows to return in one call. Prefer modest limits to avoid huge payloads; page with `offset`."
+              },
+              "offset": {
+                "type": "integer",
+                "maximum": 200,
+                "minimum": 0,
+                "description": "Zero-based row offset for page N (skip first `offset` matches). Omit when starting from the first page."
+              },
+              "status": {
+                "enum": [
+                  "ACTIVE",
+                  "COMPLETED"
+                ],
+                "type": "string",
+                "description": "Lifecycle filter mapped to GraphQL `isFulfilled`: `ACTIVE` → `UNFULFILLED` (not yet fulfilled), `COMPLETED` → `FULFILLED`."
+              },
+              "resourceType": {
+                "enum": [
+                  "ENERGY",
+                  "BANDWIDTH"
+                ],
+                "type": "string",
+                "description": "Restrict to `ENERGY` or `BANDWIDTH` orders; omit for both."
+              },
+              "isOnlyMyOrder": {
+                "type": "boolean",
+                "description": "When `true`, only orders whose `requester` is the wallet from the signature session; include `mcp-session-id`. Api-key-only sessions have no wallet address and cannot use this filter."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "orders": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "receiver",
+                    "resourceType",
+                    "resourceAmount",
+                    "remainAmount",
+                    "durationSec",
+                    "isOwner",
+                    "isMatching",
+                    "apy",
+                    "unitPrice",
+                    "createdAt",
+                    "typeOrder"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Order id (`MObjectId`); use with `tronsave_get_order` or mutate tools."
+                    },
+                    "apy": {
+                      "type": "number",
+                      "description": "Annualized yield hint as returned by the API (see TronSave semantics)."
+                    },
+                    "isOwner": {
+                      "type": "boolean",
+                      "description": "Whether the list query’s viewer context treats this row as owned by `myAddress`."
+                    },
+                    "receiver": {
+                      "type": "object",
+                      "required": [
+                        "address"
+                      ],
+                      "properties": {
+                        "address": {
+                          "type": "string",
+                          "description": "TRON base58 address for this party."
+                        }
+                      },
+                      "description": "Receiver wallet and related party info for the delegation leg.",
+                      "additionalProperties": false
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                      "description": "Order creation time (ISO-8601)."
+                    },
+                    "requester": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "address"
+                          ],
+                          "properties": {
+                            "address": {
+                              "type": "string",
+                              "description": "TRON base58 address for this party."
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Requester party when present."
+                    },
+                    "typeOrder": {
+                      "enum": [
+                        "NORMAL",
+                        "FAST",
+                        "EXTEND"
+                      ],
+                      "type": "string",
+                      "description": "Market order flavor."
+                    },
+                    "unitPrice": {
+                      "type": "number",
+                      "description": "Unit price in SUN."
+                    },
+                    "isMatching": {
+                      "type": "boolean",
+                      "description": "Whether this order matches the viewer/matching filter used in the query."
+                    },
+                    "durationSec": {
+                      "type": "number",
+                      "description": "Delegation duration in seconds."
+                    },
+                    "remainAmount": {
+                      "type": "number",
+                      "description": "Resource not yet consumed or remaining to fulfill."
+                    },
+                    "resourceType": {
+                      "enum": [
+                        "ENERGY",
+                        "BANDWIDTH"
+                      ],
+                      "type": "string",
+                      "description": "`ENERGY` or `BANDWIDTH`."
+                    },
+                    "resourceAmount": {
+                      "type": "number",
+                      "description": "Original resource amount on the order."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "Matching orders for this page; may be large—use pagination inputs to chunk."
+              }
+            },
+            "required": [
+              "orders"
+            ]
+          },
+          "description_hash": "sha256:bacd2bb312ff94af56540da417abcfca4700eabf78867bf6903b1a5fed3ec0cd",
+          "parameters": [
+            {
+              "name": "isOnlyMyOrder",
+              "type": "boolean",
+              "description": "When `true`, only orders whose `requester` is the wallet from the signature session; include `mcp-session-id`. Api-key-only sessions have no wallet address and cannot use this filter.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "integer",
+              "description": "Maximum rows to return in one call. Prefer modest limits to avoid huge payloads; page with `offset`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "offset",
+              "type": "integer",
+              "description": "Zero-based row offset for page N (skip first `offset` matches). Omit when starting from the first page.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "resourceType",
+              "type": "string",
+              "description": "Restrict to `ENERGY` or `BANDWIDTH` orders; omit for both.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "ENERGY",
+                "BANDWIDTH"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Lifecycle filter mapped to GraphQL `isFulfilled`: `ACTIVE` → `UNFULFILLED` (not yet fulfilled), `COMPLETED` → `FULFILLED`.",
+              "required": false,
+              "default": null,
+              "enum": [
+                "ACTIVE",
+                "COMPLETED"
+              ],
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_login",
+          "canonical_hash": "sha256:f6264454e72efd93ceefc7c8fa0a42dcc343da301f456b206e5e9cead52695dd",
+          "description": "Authenticate with TronSave and create a server session. Returns `{ sessionId, walletAddress?, expiresAt }` — pass `sessionId` as the `mcp-session-id` header on every subsequent MCP request. `walletAddress` is set only for signature-mode logins. Two modes: (1) wallet signature (preferred for platform tools) — call this tool with `signature_timestamp` formatted as `<signature>_<timestamp>`, where `<signature>` must be produced client-side by signing the timestamp message; you may optionally call `tronsave_get_sign_message` to obtain a helper message/timestamp pair; (2) API key (internal tools) — pass `apiKey` (raw key, no prefix). Side effect: creates a new session on the server. Wallet signing must happen client-side; never send private keys to the server.",
+          "is_mutating": false,
+          "property_keys": [
+            "apiKey",
+            "signature"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "apiKey": "string",
+            "signature": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "apiKey": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Raw API key for internal-tools login. Provide EXACTLY ONE of `apiKey` or `signature`."
+              },
+              "signature": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Signature token in `signature_timestamp` format (timestamp is the signed message). Provide EXACTLY ONE of `apiKey` or `signature`."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+              },
+              "sessionId": {
+                "type": "string",
+                "description": "Session id to pass as mcp-session-id in subsequent calls."
+              },
+              "walletAddress": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "sessionId",
+              "expiresAt"
+            ]
+          },
+          "description_hash": "sha256:adcd7a6908b5ebb630dc06405be7cb7c041bf2d9c33ad7cf48e02f92c9aa453f",
+          "parameters": [
+            {
+              "name": "apiKey",
+              "type": "string",
+              "description": "Raw API key for internal-tools login. Provide EXACTLY ONE of `apiKey` or `signature`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "signature",
+              "type": "string",
+              "description": "Signature token in `signature_timestamp` format (timestamp is the signed message). Provide EXACTLY ONE of `apiKey` or `signature`.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_register_auto_sell",
+          "canonical_hash": "sha256:ae5e1c914a3873a115298ca9afd2257a4a338806d7bb5e2550e674e55d64a08a",
+          "description": "Create the initial auto-sell configuration for the authenticated user. Returns the persisted `autoSettings` payload. Side effect: persists automation settings that affect future delegation/sell behavior; not idempotent — calling twice may reset fields. Requires a signature session and `mcp-session-id`. Use for FIRST-TIME setup only; for subsequent edits use `tronsave_update_auto_sell_setting`, and always read the current state with `tronsave_get_user_auto_setting` first to avoid overwriting unknown fields. Fails for invalid config combinations, unauthorized sessions, or backend policy restrictions.",
+          "is_mutating": false,
+          "property_keys": [
+            "addOnFeature",
+            "paymentConfig",
+            "poolSetting"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "poolSetting": "object",
+            "addOnFeature": "object",
+            "paymentConfig": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "poolSetting": {
+                "type": "object",
+                "properties": {
+                  "energy": {
+                    "type": "object",
+                    "properties": {
+                      "minPrice": {
+                        "type": "number",
+                        "description": "Minimum unit price accepted for auto matches."
+                      },
+                      "profitShare": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Profit share percentage for this resource leg."
+                      },
+                      "isAcceptExtended": {
+                        "type": "boolean",
+                        "description": "Whether incoming extend-style matches are accepted."
+                      },
+                      "minDelegateAmount": {
+                        "type": "number",
+                        "description": "Minimum per-delegation resource amount."
+                      },
+                      "maintainUnDelegate": {
+                        "type": "number",
+                        "description": "Buffer of undelegated resource the seller keeps."
+                      },
+                      "maxDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Upper bound delegation duration (seconds)."
+                      },
+                      "minDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Lower bound delegation duration (seconds)."
+                      }
+                    }
+                  },
+                  "reclaim": {
+                    "enum": [
+                      "ALL",
+                      "ONLY_TRONSAVE"
+                    ],
+                    "type": "string",
+                    "description": "Reclaim behaviour: ALL resources vs ONLY_TRONSAVE-managed delegations."
+                  },
+                  "bandwidth": {
+                    "type": "object",
+                    "properties": {
+                      "minPrice": {
+                        "type": "number",
+                        "description": "Minimum unit price accepted for auto matches."
+                      },
+                      "profitShare": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Profit share percentage for this resource leg."
+                      },
+                      "isAcceptExtended": {
+                        "type": "boolean",
+                        "description": "Whether incoming extend-style matches are accepted."
+                      },
+                      "minDelegateAmount": {
+                        "type": "number",
+                        "description": "Minimum per-delegation resource amount."
+                      },
+                      "maintainUnDelegate": {
+                        "type": "number",
+                        "description": "Buffer of undelegated resource the seller keeps."
+                      },
+                      "maxDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Upper bound delegation duration (seconds)."
+                      },
+                      "minDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Lower bound delegation duration (seconds)."
+                      }
+                    }
+                  }
+                }
+              },
+              "addOnFeature": {
+                "type": "object",
+                "properties": {
+                  "vote": {
+                    "type": "boolean",
+                    "description": "Enable vote-related automation when supported."
+                  },
+                  "stake": {
+                    "type": "object",
+                    "required": [
+                      "minAmount",
+                      "remainBalance",
+                      "resourceStake"
+                    ],
+                    "properties": {
+                      "minAmount": {
+                        "type": "number",
+                        "description": "Minimum TRX (sun semantics per API) for auto-stake trigger."
+                      },
+                      "remainBalance": {
+                        "type": "number",
+                        "description": "TRX balance floor to preserve after staking."
+                      },
+                      "resourceStake": {
+                        "enum": [
+                          "ENERGY",
+                          "BANDWIDTH"
+                        ],
+                        "type": "string",
+                        "description": "Whether auto-stake targets ENERGY or BANDWIDTH."
+                      }
+                    },
+                    "description": "Optional auto-stake policy."
+                  },
+                  "suggestSell": {
+                    "type": "boolean",
+                    "description": "Enable suggest-sell UX hints."
+                  },
+                  "withdrawVote": {
+                    "type": "number",
+                    "description": "GraphQL Float input for withdraw-vote configuration."
+                  }
+                }
+              },
+              "paymentConfig": {
+                "type": "object",
+                "properties": {
+                  "paymentMode": {
+                    "enum": [
+                      "FIXED",
+                      "RANDOM"
+                    ],
+                    "type": "string",
+                    "description": "FIXED vs RANDOM payout mode when applicable."
+                  },
+                  "paymentAddress": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "TRON address that receives payouts."
+                  },
+                  "paymentFrequency": {
+                    "enum": [
+                      "DAILY",
+                      "IMMEDIATE"
+                    ],
+                    "type": "string",
+                    "description": "DAILY vs IMMEDIATE settlement rhythm."
+                  },
+                  "paymentTimeWindow": {
+                    "type": "object",
+                    "required": [
+                      "start",
+                      "end"
+                    ],
+                    "properties": {
+                      "end": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "description": "Window end as a non-negative GraphQL `Int` (same unit as `start`); end > start is enforced server-side, not by this schema."
+                      },
+                      "start": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "description": "Window start as a non-negative GraphQL `Int` (TronSave commonly uses minutes from midnight UTC, `0..1439`)."
+                      }
+                    },
+                    "description": "Optional daily time window for scheduled payouts."
+                  }
+                }
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "data": {
+                "type": "string",
+                "description": "Opaque server-defined payload (tx id, setting id, or status text). Treat as identifier-or-message; rely on `message` for human routing."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message",
+              "data"
+            ]
+          },
+          "description_hash": "sha256:81994ec3e43c8785031478baaf90cfb9ad64cd6f6e07ec9ad4c39e879bbe4772",
+          "parameters": [
+            {
+              "name": "addOnFeature",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "vote": {
+                  "type": "boolean",
+                  "description": "Enable vote-related automation when supported."
+                },
+                "stake": {
+                  "type": "object",
+                  "required": [
+                    "minAmount",
+                    "remainBalance",
+                    "resourceStake"
+                  ],
+                  "properties": {
+                    "minAmount": {
+                      "type": "number",
+                      "description": "Minimum TRX (sun semantics per API) for auto-stake trigger."
+                    },
+                    "remainBalance": {
+                      "type": "number",
+                      "description": "TRX balance floor to preserve after staking."
+                    },
+                    "resourceStake": {
+                      "enum": [
+                        "ENERGY",
+                        "BANDWIDTH"
+                      ],
+                      "type": "string",
+                      "description": "Whether auto-stake targets ENERGY or BANDWIDTH."
+                    }
+                  },
+                  "description": "Optional auto-stake policy."
+                },
+                "suggestSell": {
+                  "type": "boolean",
+                  "description": "Enable suggest-sell UX hints."
+                },
+                "withdrawVote": {
+                  "type": "number",
+                  "description": "GraphQL Float input for withdraw-vote configuration."
+                }
+              }
+            },
+            {
+              "name": "paymentConfig",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "paymentMode": {
+                  "enum": [
+                    "FIXED",
+                    "RANDOM"
+                  ],
+                  "type": "string",
+                  "description": "FIXED vs RANDOM payout mode when applicable."
+                },
+                "paymentAddress": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "TRON address that receives payouts."
+                },
+                "paymentFrequency": {
+                  "enum": [
+                    "DAILY",
+                    "IMMEDIATE"
+                  ],
+                  "type": "string",
+                  "description": "DAILY vs IMMEDIATE settlement rhythm."
+                },
+                "paymentTimeWindow": {
+                  "type": "object",
+                  "required": [
+                    "start",
+                    "end"
+                  ],
+                  "properties": {
+                    "end": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "description": "Window end as a non-negative GraphQL `Int` (same unit as `start`); end > start is enforced server-side, not by this schema."
+                    },
+                    "start": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "description": "Window start as a non-negative GraphQL `Int` (TronSave commonly uses minutes from midnight UTC, `0..1439`)."
+                    }
+                  },
+                  "description": "Optional daily time window for scheduled payouts."
+                }
+              }
+            },
+            {
+              "name": "poolSetting",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "energy": {
+                  "type": "object",
+                  "properties": {
+                    "minPrice": {
+                      "type": "number",
+                      "description": "Minimum unit price accepted for auto matches."
+                    },
+                    "profitShare": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Profit share percentage for this resource leg."
+                    },
+                    "isAcceptExtended": {
+                      "type": "boolean",
+                      "description": "Whether incoming extend-style matches are accepted."
+                    },
+                    "minDelegateAmount": {
+                      "type": "number",
+                      "description": "Minimum per-delegation resource amount."
+                    },
+                    "maintainUnDelegate": {
+                      "type": "number",
+                      "description": "Buffer of undelegated resource the seller keeps."
+                    },
+                    "maxDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Upper bound delegation duration (seconds)."
+                    },
+                    "minDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Lower bound delegation duration (seconds)."
+                    }
+                  }
+                },
+                "reclaim": {
+                  "enum": [
+                    "ALL",
+                    "ONLY_TRONSAVE"
+                  ],
+                  "type": "string",
+                  "description": "Reclaim behaviour: ALL resources vs ONLY_TRONSAVE-managed delegations."
+                },
+                "bandwidth": {
+                  "type": "object",
+                  "properties": {
+                    "minPrice": {
+                      "type": "number",
+                      "description": "Minimum unit price accepted for auto matches."
+                    },
+                    "profitShare": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Profit share percentage for this resource leg."
+                    },
+                    "isAcceptExtended": {
+                      "type": "boolean",
+                      "description": "Whether incoming extend-style matches are accepted."
+                    },
+                    "minDelegateAmount": {
+                      "type": "number",
+                      "description": "Minimum per-delegation resource amount."
+                    },
+                    "maintainUnDelegate": {
+                      "type": "number",
+                      "description": "Buffer of undelegated resource the seller keeps."
+                    },
+                    "maxDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Upper bound delegation duration (seconds)."
+                    },
+                    "minDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Lower bound delegation duration (seconds)."
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_revoke_api_key",
+          "canonical_hash": "sha256:edb75c3017eef72499ce1f4fd87e8dd460e2923397e23851ede94b4b90d2120c",
+          "description": "Revoke the caller's current internal API key. Side effect: any future request using the previous key is rejected. Existing in-flight sessions cached by the server may continue serving until their TTL expires — treat the effect as 'best-effort immediate' rather than guaranteed instantaneous cutoff. Idempotent — revoking an already-revoked key returns success. Requires a signature session and `mcp-session-id`. Call `tronsave_generate_api_key` afterwards to mint a replacement when continued internal access is needed.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "data": {
+                "type": "string",
+                "description": "For `generateApiKey`: the freshly issued internal API key — treat as SECRET, store securely. For `revokeApiKey`: server-defined confirmation string (no key material)."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message",
+              "data"
+            ]
+          },
+          "description_hash": "sha256:b9a4cde45efe37f3dd9089470b96bdda7913083f16211bd4c97f09de09d6c417",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_sell_order_manual",
+          "canonical_hash": "sha256:420d3f90cfd5dc0810d059b99aad917519c27899e74e705f8123605196b8caba",
+          "description": "Manually execute seller-side fulfillment of an existing order with a wallet `signedTx`. Returns the updated order payload after sell. Side effect: broadcasts a market/delegation transaction and may consume balances/resources; not idempotent — each call re-executes. Backend requires a signature session and `mcp-session-id`; the MCP gate is `public` to allow anonymous read-fallthrough, but the GraphQL helper rejects api-key-only sessions. Use only when explicit manual sell is intended; call `tronsave_get_order` first to verify order state before signing.",
+          "is_mutating": false,
+          "property_keys": [
+            "orderId",
+            "paymentAddress",
+            "signedTx"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orderId": "string",
+            "signedTx": "object",
+            "paymentAddress": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orderId": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Target order id (`MObjectId`) to manually fulfill. Should be an order eligible for seller-side manual execution."
+              },
+              "signedTx": {
+                "type": "object",
+                "required": [
+                  "txID",
+                  "raw_data",
+                  "raw_data_hex",
+                  "signature"
+                ],
+                "properties": {
+                  "txID": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]+$",
+                    "maxLength": 64,
+                    "minLength": 64,
+                    "description": "Transaction hash (64 hex chars, lowercase, no `0x` prefix)."
+                  },
+                  "visible": {
+                    "type": "boolean",
+                    "description": "Whether addresses inside `raw_data.contract` are base58 (`true`) vs hex (`false`)."
+                  },
+                  "raw_data": {
+                    "type": "object",
+                    "required": [
+                      "contract",
+                      "ref_block_bytes",
+                      "ref_block_hash",
+                      "expiration",
+                      "timestamp"
+                    ],
+                    "properties": {
+                      "contract": {
+                        "type": "array",
+                        "items": {},
+                        "minItems": 1,
+                        "description": "At least one TRON contract entry; shape varies by contract type."
+                      },
+                      "timestamp": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "description": "Tx timestamp (Unix epoch ms).",
+                        "exclusiveMinimum": 0
+                      },
+                      "expiration": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "description": "Tx expiration (Unix epoch ms).",
+                        "exclusiveMinimum": 0
+                      },
+                      "ref_block_hash": {
+                        "type": "string",
+                        "description": "Reference block hash (hex)."
+                      },
+                      "ref_block_bytes": {
+                        "type": "string",
+                        "description": "Reference block bytes (hex)."
+                      }
+                    },
+                    "description": "Raw transaction body produced by TronWeb (`raw_data`).",
+                    "additionalProperties": {}
+                  },
+                  "signature": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]+$",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Wallet signatures over `raw_data_hex`; usually a single hex string (130 chars for 65-byte secp256k1)."
+                  },
+                  "raw_data_hex": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]+$",
+                    "description": "Hex-encoded `raw_data` body."
+                  }
+                },
+                "description": "Required wallet-signed transaction payload (TronWeb shape: `{ txID, raw_data, raw_data_hex, signature[] }`). Must come from client-side signing; never fabricate.",
+                "additionalProperties": {}
+              },
+              "paymentAddress": {
+                "type": "string",
+                "description": "Optional payout/payment address override when settlement flow requires it."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              },
+              "delegatedId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "On-chain delegate id created by the manual sell when the underlying transaction is confirmed; null until confirmation lands."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:b09719f457eec01ca476358a5b2b6ce6ae39571d5f69ac31e71080e0f133a207",
+          "parameters": [
+            {
+              "name": "orderId",
+              "type": "string",
+              "description": "Target order id (`MObjectId`) to manually fulfill. Should be an order eligible for seller-side manual execution.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "paymentAddress",
+              "type": "string",
+              "description": "Optional payout/payment address override when settlement flow requires it.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "signedTx",
+              "type": "object",
+              "description": "Required wallet-signed transaction payload (TronWeb shape: `{ txID, raw_data, raw_data_hex, signature[] }`). Must come from client-side signing; never fabricate.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "txID": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]+$",
+                  "maxLength": 64,
+                  "minLength": 64,
+                  "description": "Transaction hash (64 hex chars, lowercase, no `0x` prefix)."
+                },
+                "visible": {
+                  "type": "boolean",
+                  "description": "Whether addresses inside `raw_data.contract` are base58 (`true`) vs hex (`false`)."
+                },
+                "raw_data": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "ref_block_bytes",
+                    "ref_block_hash",
+                    "expiration",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "array",
+                      "items": {},
+                      "minItems": 1,
+                      "description": "At least one TRON contract entry; shape varies by contract type."
+                    },
+                    "timestamp": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "description": "Tx timestamp (Unix epoch ms).",
+                      "exclusiveMinimum": 0
+                    },
+                    "expiration": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "description": "Tx expiration (Unix epoch ms).",
+                      "exclusiveMinimum": 0
+                    },
+                    "ref_block_hash": {
+                      "type": "string",
+                      "description": "Reference block hash (hex)."
+                    },
+                    "ref_block_bytes": {
+                      "type": "string",
+                      "description": "Reference block bytes (hex)."
+                    }
+                  },
+                  "description": "Raw transaction body produced by TronWeb (`raw_data`).",
+                  "additionalProperties": {}
+                },
+                "signature": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]+$",
+                    "minLength": 1
+                  },
+                  "minItems": 1,
+                  "description": "Wallet signatures over `raw_data_hex`; usually a single hex string (130 chars for 65-byte secp256k1)."
+                },
+                "raw_data_hex": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]+$",
+                  "description": "Hex-encoded `raw_data` body."
+                }
+              }
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_update_auto_sell_setting",
+          "canonical_hash": "sha256:f9dd7498387c83f081fe220b49f15ad2a08a358c2747c05e8c55dc092d1c63b8",
+          "description": "Update the existing auto-sell configuration with partial fields. Returns the updated `autoSettings` payload. Side effect: overwrites stored automation settings for the current user; not idempotent across different field sets. Requires a signature session and `mcp-session-id`. Use for INCREMENTAL changes after registration; read the baseline via `tronsave_get_user_auto_setting` to avoid accidental resets, and use `tronsave_register_auto_sell` only for first-time setup. Fails for invalid field combinations, unauthorized sessions, or policy constraints.",
+          "is_mutating": false,
+          "property_keys": [
+            "addOnFeature",
+            "paymentConfig",
+            "poolSetting"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "poolSetting": "object",
+            "addOnFeature": "object",
+            "paymentConfig": "object"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "poolSetting": {
+                "type": "object",
+                "properties": {
+                  "energy": {
+                    "type": "object",
+                    "properties": {
+                      "minPrice": {
+                        "type": "number",
+                        "description": "Minimum unit price accepted for auto matches."
+                      },
+                      "profitShare": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Profit share percentage for this resource leg."
+                      },
+                      "isAcceptExtended": {
+                        "type": "boolean",
+                        "description": "Whether incoming extend-style matches are accepted."
+                      },
+                      "minDelegateAmount": {
+                        "type": "number",
+                        "description": "Minimum per-delegation resource amount."
+                      },
+                      "maintainUnDelegate": {
+                        "type": "number",
+                        "description": "Buffer of undelegated resource the seller keeps."
+                      },
+                      "maxDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Upper bound delegation duration (seconds)."
+                      },
+                      "minDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Lower bound delegation duration (seconds)."
+                      }
+                    }
+                  },
+                  "reclaim": {
+                    "enum": [
+                      "ALL",
+                      "ONLY_TRONSAVE"
+                    ],
+                    "type": "string",
+                    "description": "Reclaim behaviour: ALL resources vs ONLY_TRONSAVE-managed delegations."
+                  },
+                  "bandwidth": {
+                    "type": "object",
+                    "properties": {
+                      "minPrice": {
+                        "type": "number",
+                        "description": "Minimum unit price accepted for auto matches."
+                      },
+                      "profitShare": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Profit share percentage for this resource leg."
+                      },
+                      "isAcceptExtended": {
+                        "type": "boolean",
+                        "description": "Whether incoming extend-style matches are accepted."
+                      },
+                      "minDelegateAmount": {
+                        "type": "number",
+                        "description": "Minimum per-delegation resource amount."
+                      },
+                      "maintainUnDelegate": {
+                        "type": "number",
+                        "description": "Buffer of undelegated resource the seller keeps."
+                      },
+                      "maxDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Upper bound delegation duration (seconds)."
+                      },
+                      "minDelegateDurationSec": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "description": "Lower bound delegation duration (seconds)."
+                      }
+                    }
+                  }
+                }
+              },
+              "addOnFeature": {
+                "type": "object",
+                "properties": {
+                  "vote": {
+                    "type": "boolean",
+                    "description": "Enable vote-related automation when supported."
+                  },
+                  "stake": {
+                    "type": "object",
+                    "required": [
+                      "minAmount",
+                      "remainBalance",
+                      "resourceStake"
+                    ],
+                    "properties": {
+                      "minAmount": {
+                        "type": "number",
+                        "description": "Minimum TRX (sun semantics per API) for auto-stake trigger."
+                      },
+                      "remainBalance": {
+                        "type": "number",
+                        "description": "TRX balance floor to preserve after staking."
+                      },
+                      "resourceStake": {
+                        "enum": [
+                          "ENERGY",
+                          "BANDWIDTH"
+                        ],
+                        "type": "string",
+                        "description": "Whether auto-stake targets ENERGY or BANDWIDTH."
+                      }
+                    },
+                    "description": "Optional auto-stake policy."
+                  },
+                  "suggestSell": {
+                    "type": "boolean",
+                    "description": "Enable suggest-sell UX hints."
+                  },
+                  "withdrawVote": {
+                    "type": "number",
+                    "description": "GraphQL Float input for withdraw-vote configuration."
+                  }
+                }
+              },
+              "paymentConfig": {
+                "type": "object",
+                "properties": {
+                  "paymentMode": {
+                    "enum": [
+                      "FIXED",
+                      "RANDOM"
+                    ],
+                    "type": "string",
+                    "description": "FIXED vs RANDOM payout mode when applicable."
+                  },
+                  "paymentAddress": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "TRON address that receives payouts."
+                  },
+                  "paymentFrequency": {
+                    "enum": [
+                      "DAILY",
+                      "IMMEDIATE"
+                    ],
+                    "type": "string",
+                    "description": "DAILY vs IMMEDIATE settlement rhythm."
+                  },
+                  "paymentTimeWindow": {
+                    "type": "object",
+                    "required": [
+                      "start",
+                      "end"
+                    ],
+                    "properties": {
+                      "end": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "description": "Window end as a non-negative GraphQL `Int` (same unit as `start`); end > start is enforced server-side, not by this schema."
+                      },
+                      "start": {
+                        "type": "integer",
+                        "maximum": 9007199254740991,
+                        "minimum": 0,
+                        "description": "Window start as a non-negative GraphQL `Int` (TronSave commonly uses minutes from midnight UTC, `0..1439`)."
+                      }
+                    },
+                    "description": "Optional daily time window for scheduled payouts."
+                  }
+                }
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "data": {
+                "type": "string",
+                "description": "Opaque server-defined payload (tx id, setting id, or status text). Treat as identifier-or-message; rely on `message` for human routing."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message",
+              "data"
+            ]
+          },
+          "description_hash": "sha256:ee171821eff53150f25c107bada15c0875521a443d766f4e9f4f1c5a9491653f",
+          "parameters": [
+            {
+              "name": "addOnFeature",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "vote": {
+                  "type": "boolean",
+                  "description": "Enable vote-related automation when supported."
+                },
+                "stake": {
+                  "type": "object",
+                  "required": [
+                    "minAmount",
+                    "remainBalance",
+                    "resourceStake"
+                  ],
+                  "properties": {
+                    "minAmount": {
+                      "type": "number",
+                      "description": "Minimum TRX (sun semantics per API) for auto-stake trigger."
+                    },
+                    "remainBalance": {
+                      "type": "number",
+                      "description": "TRX balance floor to preserve after staking."
+                    },
+                    "resourceStake": {
+                      "enum": [
+                        "ENERGY",
+                        "BANDWIDTH"
+                      ],
+                      "type": "string",
+                      "description": "Whether auto-stake targets ENERGY or BANDWIDTH."
+                    }
+                  },
+                  "description": "Optional auto-stake policy."
+                },
+                "suggestSell": {
+                  "type": "boolean",
+                  "description": "Enable suggest-sell UX hints."
+                },
+                "withdrawVote": {
+                  "type": "number",
+                  "description": "GraphQL Float input for withdraw-vote configuration."
+                }
+              }
+            },
+            {
+              "name": "paymentConfig",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "paymentMode": {
+                  "enum": [
+                    "FIXED",
+                    "RANDOM"
+                  ],
+                  "type": "string",
+                  "description": "FIXED vs RANDOM payout mode when applicable."
+                },
+                "paymentAddress": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "TRON address that receives payouts."
+                },
+                "paymentFrequency": {
+                  "enum": [
+                    "DAILY",
+                    "IMMEDIATE"
+                  ],
+                  "type": "string",
+                  "description": "DAILY vs IMMEDIATE settlement rhythm."
+                },
+                "paymentTimeWindow": {
+                  "type": "object",
+                  "required": [
+                    "start",
+                    "end"
+                  ],
+                  "properties": {
+                    "end": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "description": "Window end as a non-negative GraphQL `Int` (same unit as `start`); end > start is enforced server-side, not by this schema."
+                    },
+                    "start": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "description": "Window start as a non-negative GraphQL `Int` (TronSave commonly uses minutes from midnight UTC, `0..1439`)."
+                    }
+                  },
+                  "description": "Optional daily time window for scheduled payouts."
+                }
+              }
+            },
+            {
+              "name": "poolSetting",
+              "type": "object",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": {
+                "energy": {
+                  "type": "object",
+                  "properties": {
+                    "minPrice": {
+                      "type": "number",
+                      "description": "Minimum unit price accepted for auto matches."
+                    },
+                    "profitShare": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Profit share percentage for this resource leg."
+                    },
+                    "isAcceptExtended": {
+                      "type": "boolean",
+                      "description": "Whether incoming extend-style matches are accepted."
+                    },
+                    "minDelegateAmount": {
+                      "type": "number",
+                      "description": "Minimum per-delegation resource amount."
+                    },
+                    "maintainUnDelegate": {
+                      "type": "number",
+                      "description": "Buffer of undelegated resource the seller keeps."
+                    },
+                    "maxDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Upper bound delegation duration (seconds)."
+                    },
+                    "minDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Lower bound delegation duration (seconds)."
+                    }
+                  }
+                },
+                "reclaim": {
+                  "enum": [
+                    "ALL",
+                    "ONLY_TRONSAVE"
+                  ],
+                  "type": "string",
+                  "description": "Reclaim behaviour: ALL resources vs ONLY_TRONSAVE-managed delegations."
+                },
+                "bandwidth": {
+                  "type": "object",
+                  "properties": {
+                    "minPrice": {
+                      "type": "number",
+                      "description": "Minimum unit price accepted for auto matches."
+                    },
+                    "profitShare": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Profit share percentage for this resource leg."
+                    },
+                    "isAcceptExtended": {
+                      "type": "boolean",
+                      "description": "Whether incoming extend-style matches are accepted."
+                    },
+                    "minDelegateAmount": {
+                      "type": "number",
+                      "description": "Minimum per-delegation resource amount."
+                    },
+                    "maintainUnDelegate": {
+                      "type": "number",
+                      "description": "Buffer of undelegated resource the seller keeps."
+                    },
+                    "maxDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Upper bound delegation duration (seconds)."
+                    },
+                    "minDelegateDurationSec": {
+                      "type": "integer",
+                      "maximum": 9007199254740991,
+                      "minimum": -9007199254740991,
+                      "description": "Lower bound delegation duration (seconds)."
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "tronsave_update_order",
+          "canonical_hash": "sha256:390ac5764d65decaa6396bd71e37a2da6629af7d8cb77ddf7feb0bd349345de4",
+          "description": "Update an open order by `orderId` with partial fields (`receiver`, `newPrice`). Returns the updated order payload. Side effect: overwrites live order parameters; not idempotent — each call with a different `newPrice` produces a new state. Backend requires a signature session and `mcp-session-id`; the MCP gate is `public` to allow anonymous read-fallthrough, but the GraphQL helper rejects api-key-only sessions. Prefer this over cancel+recreate when only price/receiver should change. Verify state with `tronsave_get_order` first; fails for already-fulfilled, already-cancelled, or non-editable orders.",
+          "is_mutating": false,
+          "property_keys": [
+            "newPrice",
+            "orderId",
+            "receiver"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "orderId": "string",
+            "newPrice": "number",
+            "receiver": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "orderId": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Target order id (`MObjectId`) to update. Order must still be open and editable."
+              },
+              "newPrice": {
+                "type": "number",
+                "description": "Optional replacement unit price in SUN."
+              },
+              "receiver": {
+                "type": "string",
+                "description": "Optional replacement receiver TRON address."
+              }
+            }
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "maximum": 9007199254740991,
+                "minimum": -9007199254740991,
+                "description": "GraphQL mutation status code (HTTP-like; `0`/`200` indicates success). Always pair with `success` for routing."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable status text. Populated even on success; localized error messages may appear here on failure."
+              },
+              "success": {
+                "type": "boolean",
+                "description": "Whether the mutation succeeded at the backend level. Always check this before reading `data`."
+              }
+            },
+            "required": [
+              "code",
+              "success",
+              "message"
+            ]
+          },
+          "description_hash": "sha256:ae5884d56d7854bd6dabba035ea636ff87d317d926f0fa47eb6ca3f949bff028",
+          "parameters": [
+            {
+              "name": "newPrice",
+              "type": "number",
+              "description": "Optional replacement unit price in SUN.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "orderId",
+              "type": "string",
+              "description": "Target order id (`MObjectId`) to update. Order must still be open and editable.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "receiver",
+              "type": "string",
+              "description": "Optional replacement receiver TRON address.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    }
+  ],
+  "transport": "stdio",
+  "remote_endpoint": null,
+  "auth_type": "none",
+  "headers_schema": {}
+}
