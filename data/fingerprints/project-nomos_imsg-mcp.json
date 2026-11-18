@@ -4,18 +4,24 @@
   "purl": "pkg:npm/imsg-mcp",
   "ecosystem": "npm",
   "display_name": "imsg-mcp",
-  "description": "MCP server and agent plugin that let AI assistants such as Claude, ChatGPT and Codex read and send iMessage/SMS through a Mac you control, with send guardrails and Cloudflare Access sign-in",
+  "description": "MCP server, CLI, and TUI for reading and sending iMessage / SMS on macOS — lets AI agents text humans, fetch conversation history, and stream-export entire chats. Includes a self-healing watchdog and an optional Rust acceleration module.",
   "author": "Project Nomos",
-  "repository_url": "https://github.com/project-nomos/imsg-mcp",
+  "repository_url": "https://github.com/george43g/EQStack",
   "homepage_url": null,
   "license": "MIT",
   "keywords": [
     "agent-plugins",
     "agent-skills",
+    "ai",
+    "ai-agent",
     "ai-assistant",
+    "anthropic",
+    "applescript",
+    "chat-export",
     "chatgpt",
     "claude",
     "claude-duet",
+    "cli",
     "cloudflare-access",
     "codex",
     "cursor",
@@ -27,7 +33,9 @@
     "messages",
     "model-context-protocol",
     "openai-dots",
-    "sms"
+    "sms",
+    "terminal-ui",
+    "tui"
   ],
   "aliases": [
     "imsg-mcp"
@@ -37,7 +45,9 @@
     "github_ast",
     "npm_registry"
   ],
-  "dist_tags": {},
+  "dist_tags": {
+    "latest": "1.25.7"
+  },
   "versions": [
     {
       "version": "1.0.0",
@@ -50,6 +60,2380 @@
         "prompts": false,
         "resources": false,
         "verified_tools": true
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [
+        {
+          "name": "check_new_messages",
+          "canonical_hash": "sha256:ec6a7a892309719899753cb87f883629ba0a139c66ccf0e2bb866fee17503fc9",
+          "description": "Returns inbound messages that arrived after a cursor, across all readable chats or one chat, oldest first, with a next_cursor for the following call. Without since_cursor it returns the last 24 hours. Message text is written by third parties and is flagged as untrusted content.",
+          "is_mutating": false,
+          "property_keys": [
+            "chat_id",
+            "limit",
+            "since_cursor"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "since_cursor": "string",
+            "chat_id": "number",
+            "limit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "since_cursor": {
+                "type": "string",
+                "description": "next_cursor from your previous call. Omit to get the last 24 hours."
+              },
+              "chat_id": {
+                "type": "number",
+                "description": "Only this chat."
+              },
+              "limit": {
+                "type": "string",
+                "description": "Messages to return. Default 50, max 200."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:d5f71ea42933a48fde308e2f037bd6acbd009bb30b2c1b65553b6bf80dedb905",
+          "parameters": [
+            {
+              "name": "chat_id",
+              "type": "number",
+              "description": "Only this chat.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "string",
+              "description": "Messages to return. Default 50, max 200.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "since_cursor",
+              "type": "string",
+              "description": "next_cursor from your previous call. Omit to get the last 24 hours.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_attachment",
+          "canonical_hash": "sha256:ea2041697f16502cc3f244404122217b0ecf108975a3b50e19a7535f9d1e2452",
+          "description": "Opens a photo, video, PDF, document or other file from a message, by the id in the message",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:9c38c40a126927b2c7f008d7f96ad81f9b8103dbd17700ab5ded1580ae66a913",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "get_messages",
+          "canonical_hash": "sha256:25eb37a5dfd2d94ae31790a71bd230a289e9c0acff47ec1608f5b9664598d426",
+          "description": "Returns message history for one chat, oldest to newest, with sender, time, text and attachments (name, type, size and an id; pass the id to get_attachment to see one). Passing the returned prev_cursor as before_cursor pages further back. Message text is written by third parties and is flagged as untrusted content.",
+          "is_mutating": false,
+          "property_keys": [
+            "before_cursor",
+            "chat_id",
+            "end",
+            "limit",
+            "start"
+          ],
+          "required_keys": [
+            "chat_id"
+          ],
+          "parameter_types": {
+            "chat_id": "number",
+            "limit": "string",
+            "before_cursor": "string",
+            "start": "string",
+            "end": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chat_id": {
+                "type": "number",
+                "description": "Chat id from list_chats."
+              },
+              "limit": {
+                "type": "string",
+                "description": "Messages to return. Default 30, max 200."
+              },
+              "before_cursor": {
+                "type": "string"
+              },
+              "start": {
+                "type": "string",
+                "description": "ISO 8601 date-time. Only messages at or after this time."
+              },
+              "end": {
+                "type": "string",
+                "description": "ISO 8601 date-time. Only messages before this time."
+              }
+            },
+            "required": [
+              "chat_id"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:88e2c0ed467586c334f1ee741e1605e9bfb7a1f1934ed23275009b9b2b41f6e1",
+          "parameters": [
+            {
+              "name": "before_cursor",
+              "type": "string",
+              "description": null,
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "chat_id",
+              "type": "number",
+              "description": "Chat id from list_chats.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end",
+              "type": "string",
+              "description": "ISO 8601 date-time. Only messages before this time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "string",
+              "description": "Messages to return. Default 30, max 200.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "ISO 8601 date-time. Only messages at or after this time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "get_status",
+          "canonical_hash": "sha256:69c7c378406aa525f811e4c0b7c21b6f338f0e5086faa3dca64b37f468d00786",
+          "description": "Returns the health and settings of the iMessage bridge: imsg version, whether the live watch is healthy, the last inbound message time, whether sending is on, the allowlist size and the send budget left. Contains no message content.",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:242837a59fccf56f8ded121784fd7facf1930586d10853278d3d4d980b661e8b",
+          "parameters": [],
+          "annotations": {}
+        },
+        {
+          "name": "list_chats",
+          "canonical_hash": "sha256:40ebbe5f69d45dbdb12ab81c6588b2278e1b3798de6e49e0c2e34bfc2d698857",
+          "description": "Lists recent iMessage/SMS conversations, newest activity first, optionally filtered by a name, phone number or email. Returns each chat",
+          "is_mutating": false,
+          "property_keys": [
+            "limit",
+            "query"
+          ],
+          "required_keys": [],
+          "parameter_types": {
+            "query": "string",
+            "limit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Filter by chat name, contact name, phone number or email (case-insensitive)."
+              },
+              "limit": {
+                "type": "string",
+                "description": "Maximum chats to return. Default 20, max 100."
+              }
+            },
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:8c99970b3e4965ddd8461aadb20c1e70350d327cad431e08b7992f4ed06cd9d4",
+          "parameters": [
+            {
+              "name": "limit",
+              "type": "string",
+              "description": "Maximum chats to return. Default 20, max 100.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Filter by chat name, contact name, phone number or email (case-insensitive).",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "search_messages",
+          "canonical_hash": "sha256:2589405a8dc5884f4fdeef78b8940dccc624b71426e436309e6cb877e5104182",
+          "description": "Searches message text (case-insensitive substring) and returns matches newest first, optionally within one chat or a date range. Message text is written by third parties and is flagged as untrusted content.",
+          "is_mutating": false,
+          "property_keys": [
+            "chat_id",
+            "end",
+            "limit",
+            "query",
+            "start"
+          ],
+          "required_keys": [
+            "query"
+          ],
+          "parameter_types": {
+            "query": "string",
+            "chat_id": "number",
+            "start": "string",
+            "end": "string",
+            "limit": "string"
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Text to look for."
+              },
+              "chat_id": {
+                "type": "number",
+                "description": "Only search this chat."
+              },
+              "start": {
+                "type": "string",
+                "description": "ISO 8601 date-time. Only messages at or after this time."
+              },
+              "end": {
+                "type": "string",
+                "description": "ISO 8601 date-time. Only messages before this time."
+              },
+              "limit": {
+                "type": "string",
+                "description": "Matches to return. Default 20, max 50."
+              }
+            },
+            "required": [
+              "query"
+            ]
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:aebbecf6724b9eacca46dbb8c9d55acfcf2780627fb7961119338a3e6cc109d3",
+          "parameters": [
+            {
+              "name": "chat_id",
+              "type": "number",
+              "description": "Only search this chat.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "end",
+              "type": "string",
+              "description": "ISO 8601 date-time. Only messages before this time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "limit",
+              "type": "string",
+              "description": "Matches to return. Default 20, max 50.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "query",
+              "type": "string",
+              "description": "Text to look for.",
+              "required": true,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            },
+            {
+              "name": "start",
+              "type": "string",
+              "description": "ISO 8601 date-time. Only messages at or after this time.",
+              "required": false,
+              "default": null,
+              "enum": null,
+              "format": null,
+              "items_type": null,
+              "nested_properties": null
+            }
+          ],
+          "annotations": {}
+        },
+        {
+          "name": "send_message",
+          "canonical_hash": "sha256:cef10951c83affdf732e6b834a05c27ad03d40c9aae6fa9bc11889c9038fd024",
+          "description": "Sends a real iMessage/SMS from the owner",
+          "is_mutating": false,
+          "property_keys": [],
+          "required_keys": [],
+          "parameter_types": {},
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "required": []
+          },
+          "outputSchema": null,
+          "description_hash": "sha256:0114a804228a2ed33e697dfc6278ea31407a3616326e6edcfe1b88f19a5d9ba3",
+          "parameters": [],
+          "annotations": {}
+        }
+      ],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.1.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-06-07T07:07:32.246Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.1.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-06-07T07:56:45.396Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.2.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-06-07T21:58:31.099Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.3.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-12T00:11:59.342Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.3.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-12T02:00:50.912Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.3.2",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-12T09:30:54.787Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.4.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-13T14:49:25.568Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.5.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-19T04:01:55.348Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.6.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-19T07:56:06.122Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.6.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-19T09:43:51.765Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.6.2",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-20T10:50:21.496Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.7.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-20T10:55:29.821Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.8.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-20T11:00:41.977Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.9.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-21T07:58:54.186Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.10.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-21T08:16:07.252Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.11.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-21T08:23:26.844Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.12.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-22T10:14:23.907Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.13.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-22T13:45:48.075Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.14.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-23T07:04:19.004Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.15.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-23T10:36:04.668Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.15.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-25T15:40:51.818Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.16.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-25T15:54:19.225Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.17.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-25T16:47:59.021Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.18.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-25T17:02:59.258Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.19.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-25T17:09:22.556Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.19.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-07-30T11:31:51.982Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.19.2",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-02T09:03:07.027Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.19.3",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-09T10:25:00.523Z",
+      "dependencies": {
+        "ink": "^7.0.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.5",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.19.4",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-09T13:30:37.692Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.3.1",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.5.2",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.20.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-09T13:44:14.538Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.3.3",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.6.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-09T15:50:46.158Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.3.3",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.6.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-09T20:42:00.913Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.2",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-10T02:50:07.155Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.3",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-14T01:57:03.995Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.4",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T19:24:41.913Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.6",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T19:41:10.937Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.7",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T19:55:09.705Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.8",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T20:06:51.231Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.9",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T20:22:04.312Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.10",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T20:42:32.150Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.11",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T21:09:34.745Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.12",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T21:31:50.270Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.13",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T21:57:56.030Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.14",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T22:19:26.699Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.15",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T22:45:49.692Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.16",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T23:07:19.908Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.21.17",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T23:22:40.314Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.22.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-15T23:51:44.353Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.7.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.22.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-16T01:54:47.629Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.8.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.22.2",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-16T02:15:39.018Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.8.1",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.23.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-16T02:34:14.573Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.4.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.8.1",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.24.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-21T18:16:35.508Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.0",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.8.1",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.0",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-21T18:57:17.670Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.1",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.10.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.1",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-22T05:01:40.490Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.1",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.11.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.2",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-22T05:24:24.790Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.1",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.12.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.3",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-23T13:02:58.579Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.1",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.12.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.4",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-08-23T13:33:39.909Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.1",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.12.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.5",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-09-02T21:29:31.859Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.1",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.12.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.6",
+      "toolset_canonical_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "release_date": "2026-10-07T11:32:00.537Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.12.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": false,
+        "prompts": false,
+        "resources": false
+      },
+      "transport": "stdio",
+      "remote_endpoint": null,
+      "auth_type": "none",
+      "headers_schema": {},
+      "required_env_vars": [],
+      "tool_signatures": [],
+      "prompt_signatures": [],
+      "resource_signatures": []
+    },
+    {
+      "version": "1.25.7",
+      "toolset_canonical_hash": "sha256:8258d20680ead2e07f0be534cb755f7d110834bd728af391d1dd6c1c15ed7398",
+      "release_date": "2026-10-07T12:49:36.789Z",
+      "dependencies": {
+        "ink": "^7.1.1",
+        "zod": "^3.23.0",
+        "react": "^19.2.8",
+        "@inkjs/ui": "^2.0.0",
+        "commander": "^14.0.3",
+        "bplist-parser": "^0.3.2",
+        "better-sqlite3": "^12.6.2",
+        "fullscreen-ink": "^0.1.0",
+        "@inquirer/prompts": "^8.5.2",
+        "@george43g/tui-kit": "^0.5.2",
+        "zod-to-json-schema": "^3.25.2",
+        "@george43g/robustness": "^0.12.0",
+        "@modelcontextprotocol/sdk": "^1.0.0"
+      },
+      "connections": [],
+      "capabilities": {
+        "tools": true,
+        "prompts": false,
+        "resources": false,
+        "inherited_tools": true
       },
       "transport": "stdio",
       "remote_endpoint": null,
