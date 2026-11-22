@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mcp-passports-v4-1795263494';
+const CACHE_NAME = 'mcp-passports-v4-1795350760';
 const ASSETS = [
   './',
   './index.html',
