@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 from collections import Counter
+from typing import Any
 
 from mcp_fingerprints.config_exporter import (
     export_all_client_configs,
@@ -19,6 +20,7 @@ from mcp_fingerprints.drift_detector import (
     dispatch_drift_webhook,
     format_drift_report,
 )
+from mcp_fingerprints.index import FingerprintFastIndex
 from mcp_fingerprints.matcher import FingerprintMatcher
 from mcp_fingerprints.models import ServerPackageSpec
 from mcp_fingerprints.prober import McpProber
@@ -26,11 +28,24 @@ from mcp_fingerprints.schema_validator import PassportSchemaValidator
 from mcp_fingerprints.search import format_search_results, search_passports
 from mcp_fingerprints.snapshot import build_snapshot
 from mcp_fingerprints.synchronizer import PassportSynchronizer
+from mcp_fingerprints.wizard import load_user_config
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 logger = logging.getLogger("mcp_fingerprints.cli")
+
+
+def _resolve_passport_for_export(
+    search_pkg: str,
+    passports_dir: str | Path,
+    fast_index: FingerprintFastIndex | None = None,
+) -> dict[str, Any] | None:
+    """Resolve a passport dict for export via FingerprintFastIndex (O(1) lookup)."""
+    if fast_index is None:
+        fast_index = FingerprintFastIndex()
+        fast_index.load_from_directory(passports_dir)
+    return fast_index.lookup(search_pkg)
 
 
 def print_ecosystem_health_report(data_dir: str | Path) -> None:
@@ -98,6 +113,21 @@ def main() -> None:
         run_interactive_hub()
         return
 
+    user_cfg = load_user_config()
+    default_dir = (
+        str(user_cfg["default_dir"])
+        if user_cfg.get("default_dir")
+        else "data/fingerprints"
+    )
+    if user_cfg.get("github_token"):
+        os.environ.setdefault("GITHUB_TOKEN", str(user_cfg["github_token"]))
+    sync_workers = (
+        int(user_cfg["concurrency"])
+        if isinstance(user_cfg.get("concurrency"), int)
+        and user_cfg["concurrency"] > 0
+        else 8
+    )
+
     parser = argparse.ArgumentParser(
         description="MCP Fingerprint & Passport Knowledge Base CLI"
     )
@@ -129,7 +159,7 @@ def main() -> None:
         "sync", help="Synchronize MCP server passports from registries"
     )
     sync_p.add_argument(
-        "--output", default="data/fingerprints", help="Output directory"
+        "--output", default=default_dir, help="Output directory"
     )
     sync_p.add_argument(
         "--update-existing",
@@ -152,7 +182,7 @@ def main() -> None:
     )
     sync_p.add_argument("--limit", type=int, default=500, help="Max passports to probe")
     sync_p.add_argument(
-        "--workers", type=int, default=8, help="Concurrency worker threads"
+        "--workers", type=int, default=sync_workers, help="Concurrency worker threads"
     )
     sync_p.add_argument(
         "--report",
@@ -214,7 +244,7 @@ def main() -> None:
         help="Path to JSON file containing observed tools/manifest, or '-' for stdin",
     )
     match_p.add_argument(
-        "--dir", default="data/fingerprints", help="Directory containing passport files"
+        "--dir", default=default_dir, help="Directory containing passport files"
     )
     match_p.add_argument(
         "--server-hint",
@@ -236,7 +266,7 @@ def main() -> None:
         help="Probe a live MCP server over stdio, extract signatures, and match against passport knowledge base",
     )
     probe_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
+        "--dir", default=default_dir, help="Passport data directory"
     )
     probe_p.add_argument(
         "--url", help="HTTP/HTTPS endpoint URL to probe (alternative to stdio command)"
@@ -285,7 +315,7 @@ def main() -> None:
         "validate", help="Validate passport directory invariants"
     )
     val_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport directory to validate"
+        "--dir", default=default_dir, help="Passport directory to validate"
     )
     val_p.add_argument(
         "--no-cache", action="store_true", help="Disable caching and force revalidation"
@@ -302,7 +332,7 @@ def main() -> None:
         "snapshot", help="Compile all passports into consolidated .json.gz"
     )
     snap_p.add_argument(
-        "--data-dir", default="data/fingerprints", help="Passport data directory"
+        "--data-dir", default=default_dir, help="Passport data directory"
     )
     snap_p.add_argument(
         "--output-gz", default="passports.json.gz", help="Output gzip file path"
@@ -317,7 +347,7 @@ def main() -> None:
     )
     build_index_p.add_argument(
         "--passports-dir",
-        default="data/fingerprints",
+        default=default_dir,
         help="Path to passports directory",
     )
     build_index_p.add_argument(
@@ -330,7 +360,7 @@ def main() -> None:
     )
     search_p.add_argument("query", help="Search query")
     search_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
+        "--dir", default=default_dir, help="Passport data directory"
     )
     search_p.add_argument(
         "--limit", type=int, default=10, help="Maximum results to return"
@@ -346,7 +376,7 @@ def main() -> None:
         "browse", help="Interactive TUI browser for the MCP catalog"
     )
     browse_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
+        "--dir", default=default_dir, help="Passport data directory"
     )
     browse_p.add_argument("--query", default="", help="Initial search query")
 
@@ -359,7 +389,7 @@ def main() -> None:
         "package", nargs="?", help="Package name to export configuration for"
     )
     export_p.add_argument(
-        "--dir", default="data/fingerprints", help="Passport data directory"
+        "--dir", default=default_dir, help="Passport data directory"
     )
     export_p.add_argument(
         "--target",
@@ -383,6 +413,11 @@ def main() -> None:
     export_p.add_argument(
         "--server", help="Server name/alias (overrides package name for config key)"
     )
+    export_p.add_argument(
+        "--server-id",
+        dest="server_id",
+        help="Server ID (package name, alias, purl, or toolset hash)",
+    )
 
     # SBOM Exporter
     export_sbom_parser = subparsers.add_parser(
@@ -396,7 +431,9 @@ def main() -> None:
     )
     export_sbom_parser.add_argument("--output", help="Output file path")
     export_sbom_parser.add_argument(
-        "--dir", default="data/fingerprints", help="Directory containing passports (default: data/fingerprints)"
+        "--dir",
+        default=default_dir,
+        help="Directory containing passports (default: %(default)s)",
     )
 
     # Validate Protocol
@@ -939,7 +976,6 @@ def main() -> None:
         print(format_search_results(results))
 
     elif args.command == "export-config":
-        import urllib.parse
         from mcp_fingerprints.config_exporter import (
             ZedExporter,
             ClineExporter,
@@ -951,7 +987,7 @@ def main() -> None:
         )
 
         target_client = args.target if args.target else args.client
-        search_pkg = args.package or args.server
+        search_pkg = args.package or getattr(args, "server_id", None) or args.server
 
         if not search_pkg:
             print(
@@ -959,66 +995,49 @@ def main() -> None:
             )
             sys.exit(1)
 
-        urllib.parse.quote_plus(search_pkg).replace("%40", "@")
+        content = _resolve_passport_for_export(search_pkg, args.dir)
 
-        # In actual structure it looks like dir / package_name.json but slashes are replaced by _
-        # Usually it's purl or name - let's search for package_name
-        found = False
-        for j_file in Path(args.dir).rglob("*.json"):
-            if j_file.name in (
-                "sync_state.json",
-                "index.json",
-                ".passport_index.pickle",
-            ):
-                continue
-            try:
-                content = json.loads(j_file.read_text(encoding="utf-8"))
-                if content.get("package_name") == search_pkg:
-                    if args.config:
-                        # Patch in place
-                        exporters = {
-                            "zed": ZedExporter,
-                            "cline": ClineExporter,
-                            "windsurf": WindsurfExporter,
-                            "claude": ClaudeExporter,
-                            "cursor": CursorExporter,
-                            "docker": DockerExporter,
-                        }
-                        exporter_cls = exporters.get(target_client, ClaudeExporter)
-
-                        config_path = Path(args.config)
-                        existing_content = (
-                            config_path.read_text(encoding="utf-8")
-                            if config_path.exists()
-                            else ""
-                        )
-
-                        base_config = extract_base_config(content)
-                        package_name = content.get("package_name", "unknown")
-                        server_name = args.server or package_name.replace(
-                            "@", ""
-                        ).replace("/", "-").replace("_", "-")
-
-                        patched = exporter_cls.patch_config(
-                            existing_content, server_name, base_config
-                        )
-                        config_path.write_text(patched, encoding="utf-8")
-                        print(f"Patched configuration into {config_path}")
-                    else:
-                        if args.all_clients:
-                            configs = export_all_client_configs(content)
-                            print(json.dumps(configs, indent=2))
-                        else:
-                            config = export_client_config(content, client=target_client)
-                            print(json.dumps(config, indent=2))
-                    found = True
-                    break
-            except Exception:
-                pass
-
-        if not found:
+        if content is None:
             print(f"ERROR: Package '{search_pkg}' not found in passports.")
             sys.exit(1)
+
+        if args.config:
+            # Patch in place
+            exporters = {
+                "zed": ZedExporter,
+                "cline": ClineExporter,
+                "windsurf": WindsurfExporter,
+                "claude": ClaudeExporter,
+                "cursor": CursorExporter,
+                "docker": DockerExporter,
+            }
+            exporter_cls = exporters.get(target_client, ClaudeExporter)
+
+            config_path = Path(args.config)
+            existing_content = (
+                config_path.read_text(encoding="utf-8")
+                if config_path.exists()
+                else ""
+            )
+
+            base_config = extract_base_config(content)
+            package_name = content.get("package_name", "unknown")
+            server_name = args.server or package_name.replace(
+                "@", ""
+            ).replace("/", "-").replace("_", "-")
+
+            patched = exporter_cls.patch_config(
+                existing_content, server_name, base_config
+            )
+            config_path.write_text(patched, encoding="utf-8")
+            print(f"Patched configuration into {config_path}")
+        else:
+            if args.all_clients:
+                configs = export_all_client_configs(content)
+                print(json.dumps(configs, indent=2))
+            else:
+                config = export_client_config(content, client=target_client)
+                print(json.dumps(config, indent=2))
 
     elif args.command == "browse":
         if not sys.stdin.isatty():

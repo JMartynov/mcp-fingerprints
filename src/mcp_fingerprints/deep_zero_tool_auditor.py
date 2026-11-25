@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import ssl
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -13,6 +14,10 @@ logger = logging.getLogger(__name__)
 class DeepZeroToolAuditor:
     def __init__(self):
         pass
+
+    def _create_ssl_context(self) -> ssl.SSLContext:
+        """Create a verified TLS context with certificate and hostname checking enforced."""
+        return ssl.create_default_context()
 
     def inspect_file(self, filename: str, content: str) -> List[Dict[str, Any]]:
         """Inspect a single file content for missed tools."""
@@ -226,20 +231,9 @@ class DeepZeroToolAuditor:
 
             if (ecosystem == "pypi" or not ecosystem) and package_name:
                 try:
-                    import ssl
                     req = urllib.request.Request(f"https://pypi.org/pypi/{package_name}/json")
-                    try:
-                        with urllib.request.urlopen(req, timeout=5) as response:
-                            data = json.loads(response.read().decode())
-                    except urllib.error.URLError as e:
-                        if hasattr(e, 'reason') and isinstance(e.reason, ssl.SSLError):
-                            ctx = ssl.create_default_context()
-                            ctx.check_hostname = False
-                            ctx.verify_mode = ssl.CERT_NONE
-                            with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
-                                data = json.loads(response.read().decode())
-                        else:
-                            raise
+                    with urllib.request.urlopen(req, timeout=5, context=self._create_ssl_context()) as response:
+                        data = json.loads(response.read().decode())
                     
                     project_urls = data.get("info", {}).get("project_urls", {})
                     if project_urls:
@@ -251,21 +245,10 @@ class DeepZeroToolAuditor:
                     pass
             if not resolved_url and (ecosystem == "npm" or not ecosystem) and package_name:
                 try:
-                    import ssl
                     req = urllib.request.Request(f"https://registry.npmjs.org/{package_name}")
-                    try:
-                        with urllib.request.urlopen(req, timeout=5) as response:
-                            data = json.loads(response.read().decode())
-                    except urllib.error.URLError as e:
-                        if hasattr(e, 'reason') and isinstance(e.reason, ssl.SSLError):
-                            ctx = ssl.create_default_context()
-                            ctx.check_hostname = False
-                            ctx.verify_mode = ssl.CERT_NONE
-                            with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
-                                data = json.loads(response.read().decode())
-                        else:
-                            raise
-                            
+                    with urllib.request.urlopen(req, timeout=5, context=self._create_ssl_context()) as response:
+                        data = json.loads(response.read().decode())
+
                     repo_info = data.get("repository", {})
                     if isinstance(repo_info, dict) and "url" in repo_info and "github.com" in repo_info["url"]:
                         resolved_url = clean_repo_url(repo_info["url"])
@@ -298,24 +281,13 @@ class DeepZeroToolAuditor:
         api_url = f"https://api.github.com/repos/{owner}/{repo}"
         
         def _request_with_backoff(url):
-            import ssl
             req = urllib.request.Request(url)
             if "GITHUB_TOKEN" in os.environ:
                  req.add_header("Authorization", f"Bearer {os.environ['GITHUB_TOKEN']}")
             for attempt in range(1):
                 try:
-                    try:
-                        with urllib.request.urlopen(req, timeout=10) as response:
-                            return json.loads(response.read().decode())
-                    except urllib.error.URLError as e:
-                        if hasattr(e, 'reason') and isinstance(e.reason, ssl.SSLError):
-                            ctx = ssl.create_default_context()
-                            ctx.check_hostname = False
-                            ctx.verify_mode = ssl.CERT_NONE
-                            with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
-                                return json.loads(response.read().decode())
-                        else:
-                            raise
+                    with urllib.request.urlopen(req, timeout=10, context=self._create_ssl_context()) as response:
+                        return json.loads(response.read().decode())
                 except urllib.error.HTTPError as e:
                     if e.code == 403:
                         reset = int(e.headers.get("X-RateLimit-Reset", time.time() + 60))
@@ -387,22 +359,10 @@ class DeepZeroToolAuditor:
                 # Fetch file content
                 raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{default_branch}/{path}"
                 try:
-                    import ssl
                     req = urllib.request.Request(raw_url)
-                    content = None
-                    try:
-                        with urllib.request.urlopen(req, timeout=5) as response:
-                            content = response.read().decode('utf-8', errors='ignore')
-                    except urllib.error.URLError as e:
-                        if hasattr(e, 'reason') and isinstance(e.reason, ssl.SSLError):
-                            ctx = ssl.create_default_context()
-                            ctx.check_hostname = False
-                            ctx.verify_mode = ssl.CERT_NONE
-                            with urllib.request.urlopen(req, timeout=5, context=ctx) as response:
-                                content = response.read().decode('utf-8', errors='ignore')
-                        else:
-                            raise
-                            
+                    with urllib.request.urlopen(req, timeout=5, context=self._create_ssl_context()) as response:
+                        content = response.read().decode('utf-8', errors='ignore')
+
                     if content is not None:
                         file_tools = self.inspect_file(path, content)
                         if file_tools:

@@ -8,6 +8,7 @@ import pickle
 import time
 from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 from mcp_fingerprints.models import (
     ServerPackageSpec,
@@ -210,4 +211,20 @@ class FingerprintFastIndex:
                 first_match = next(iter(alias_matches))
                 return self.packages.get(first_match)
 
+        return None
+
+    def lookup(self, server_id: str) -> dict[str, Any] | None:
+        """O(1) resolve a package fingerprint dict by server id, alias, name, or toolset hash."""
+        if not isinstance(server_id, str):
+            return None
+        if not server_id or not server_id.strip():
+            return None
+        spec = self.find_package_by_hint_or_alias(server_id)
+        if spec is not None:
+            return spec.to_dict()
+        matches = self.by_toolset_hash.get(server_id.strip())
+        if matches:
+            spec = self.packages.get(matches[0][0])
+            if spec is not None:
+                return spec.to_dict()
         return None

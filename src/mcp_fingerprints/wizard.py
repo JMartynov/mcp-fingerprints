@@ -1,5 +1,32 @@
+from __future__ import annotations
+
 import sys
 from pathlib import Path
+from typing import Any
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
+
+
+def load_user_config(config_path: Path | None = None) -> dict[str, Any]:
+    """Load ~/.mcp_fingerprints.toml (or config_path) and merge the [mcp_fingerprints] section."""
+    path = config_path or (Path.home() / ".mcp_fingerprints.toml")
+    try:
+        if not path.is_file():
+            return {}
+        with open(path, "rb") as f:
+            data = tomllib.load(f)
+    except (OSError, tomllib.TOMLDecodeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    result: dict[str, Any] = dict(data)
+    section = result.pop("mcp_fingerprints", None)
+    if isinstance(section, dict):
+        result.update(section)
+    return result
 
 
 def run_init_wizard() -> None:
