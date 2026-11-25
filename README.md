@@ -51,10 +51,18 @@ Export an MCP server configuration for Claude Desktop:
 python3 -m mcp_fingerprints.cli export-config @modelcontextprotocol/server-postgres --client claude
 ```
 
-Export an MCP server configuration for Cursor:
+Export an MCP server configuration for Cursor (resolves passports in $O(1)$ via `FingerprintFastIndex.lookup` using package name, alias, purl, or `--server-id`):
 ```bash
 python3 -m mcp_fingerprints.cli export-config @modelcontextprotocol/server-postgres --client cursor
+python3 -m mcp_fingerprints.cli export-config --server-id @modelcontextprotocol/server-postgres --client claude
 ```
+
+Bootstrap defaults (`default_dir`, `concurrency`, `github_token`) into `~/.mcp_fingerprints.toml`, which the CLI loads automatically on startup:
+```bash
+mcp-fingerprints init
+```
+
+*Note: `DeepZeroToolAuditor` (`deep-audit` / zero-tool repository auditing) enforces verified TLS (`ssl.create_default_context()` with `CERT_REQUIRED` and hostname verification).*
 
 ## 🧭 Interactive Command Hub (`mcp-fingerprints interactive`)
 
