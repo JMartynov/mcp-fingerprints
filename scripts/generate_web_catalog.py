@@ -112,21 +112,29 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
             author = parts[1].split("/")[0]
 
     versions_data = []
-    for v in versions:
+    for idx, v in enumerate(versions):
         v_num = v.get("version", "1.0.0")
         v_tool_sigs = v.get("tool_signatures", [])
         v_tools = []
         for t in v_tool_sigs:
             if isinstance(t, dict) and "name" in t:
-                v_tools.append(
-                    {
-                        "name": t["name"],
-                        "description": t.get("description") or "",
-                        "canonical_hash": t.get("canonical_hash") or "",
-                        "annotations": t.get("annotations") or {},
-                        "parameters": t.get("parameters") or [],
-                    }
-                )
+                if idx == 0:
+                    v_tools.append(
+                        {
+                            "name": t["name"],
+                            "description": t.get("description") or "",
+                            "canonical_hash": t.get("canonical_hash") or "",
+                            "annotations": t.get("annotations") or {},
+                            "parameters": t.get("parameters") or [],
+                        }
+                    )
+                else:
+                    v_tools.append(
+                        {
+                            "name": t["name"],
+                            "canonical_hash": t.get("canonical_hash") or "",
+                        }
+                    )
         v_conns = v.get("connections", [])
         v_transports = list(dict.fromkeys([c["type"] for c in v_conns if c.get("type")]))
 
@@ -151,18 +159,18 @@ def build_catalog_entry(passport: dict[str, Any]) -> dict[str, Any]:
             v_install_cmd = f"{pkg_name} {v_num}"
             v_conn_type = "generic"
 
-        versions_data.append(
-            {
-                "version": v_num,
-                "release_date": v.get("release_date") or "",
-                "tool_count": len(v_tools),
-                "tools": v_tools,
-                "transports": v_transports,
-                "required_env_vars": v.get("required_env_vars") or [],
-                "connection_type": v_conn_type,
-                "command": v_install_cmd,
-            }
-        )
+        version_entry: dict[str, Any] = {
+            "version": v_num,
+            "release_date": v.get("release_date") or "",
+            "tool_count": len(v_tools),
+            "transports": v_transports,
+            "required_env_vars": v.get("required_env_vars") or [],
+            "connection_type": v_conn_type,
+            "command": v_install_cmd,
+        }
+        if idx > 0:
+            version_entry["tools"] = v_tools
+        versions_data.append(version_entry)
 
     return {
         "name": pkg_name,
