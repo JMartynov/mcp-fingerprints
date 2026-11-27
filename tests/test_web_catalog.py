@@ -358,3 +358,118 @@ def test_web_updates_js_advanced_filtering():
     assert "function updateUpdatesURLState" in js
     assert "function parseUpdateSearchQuery" in js
     assert "getToolsAddedDelta" in js
+
+
+def test_build_catalog_entry_dedups_latest_and_slims_historical_versions():
+    """Latest version omits duplicate tools; historical versions keep only name & canonical_hash."""
+    from scripts.normalize_catalog_tools import normalize_server_item
+
+    def rich_tool(name: str, h: str) -> dict:
+        return {
+            "name": name,
+            "description": f"Detailed description for {name} " * 5,
+            "canonical_hash": h,
+            "annotations": {"readOnlyHint": True},
+            "parameters": [
+                {"name": "path", "type": "string", "required": True, "description": "File path"}
+            ],
+        }
+
+    passport = {
+        "package_name": "multi-ver-rich",
+        "ecosystem": "npm",
+        "versions": [
+            {
+                "version": "2.0.0",
+                "tool_signatures": [
+                    rich_tool("tool_latest_a", "sha256:aaa"),
+                    rich_tool("tool_latest_b", "sha256:bbb"),
+                ],
+            },
+            {
+                "version": "1.1.0",
+                "tool_signatures": [
+                    rich_tool("tool_old", "sha256:ccc"),
+                ],
+            },
+            {
+                "version": "1.0.0",
+                "tool_signatures": [],
+            },
+        ],
+    }
+
+    entry = build_catalog_entry(passport)
+
+    # Top-level tools preserve full metadata for latest version
+    assert entry["tool_count"] == 2
+    assert len(entry["tools"]) == 2
+    assert entry["tools"][0]["description"].startswith("Detailed description")
+    assert entry["tools"][0]["parameters"][0]["name"] == "path"
+    assert entry["tools"][0]["annotations"] == {"readOnlyHint": True}
+
+    # Latest version in versions[0] omits duplicate tools array while preserving tool_count
+    v0 = entry["versions"][0]
+    assert v0["version"] == "2.0.0"
+    assert v0["tool_count"] == 2
+    assert "tools" not in v0
+
+    # Historical versions slim tools to name + canonical_hash only
+    v1 = entry["versions"][1]
+    assert v1["version"] == "1.1.0"
+    assert v1["tool_count"] == 1
+    assert v1["tools"] == [{"name": "tool_old", "canonical_hash": "sha256:ccc"}]
+
+    # Zero-tool historical version retains explicit empty list so frontend does not inherit latest tools
+    v2 = entry["versions"][2]
+    assert v2["version"] == "1.0.0"
+    assert v2["tool_count"] == 0
+    assert v2["tools"] == []
+
+    # Normalizer still resolves latest version's full tools cleanly
+    normalized = normalize_server_item(entry)
+    assert normalized["latest_version"] == "2.0.0"
+    assert normalized["tool_count"] == 2
+    assert normalized["tools"][0]["name"] == "tool_latest_a"
+    assert len(normalized["tools"][0]["parameters"]) == 1
+
+
+def test_compile_web_catalog_size_budget(tmp_path):
+    """Compiled catalog.json stays compact by avoiding bloated version tool schemas."""
+    passports_dir = tmp_path / "passports"
+    passports_dir.mkdir(parents=True)
+    web_dir = tmp_path / "web"
+
+    big_params = [
+        {"name": f"param_{i}", "type": "string", "description": "Long param description " * 4}
+        for i in range(10)
+    ]
+    versions = [
+        {
+            "version": f"1.{v}.0",
+            "tool_signatures": [
+                {
+                    "name": f"tool_{t}",
+                    "description": "Verbose tool description " * 8,
+                    "canonical_hash": f"sha256:{v:02x}{t:02x}",
+                    "annotations": {"destructiveHint": False},
+                    "parameters": big_params,
+                }
+                for t in range(5)
+            ],
+        }
+        for v in range(10)
+    ]
+    (passports_dir / "heavy.json").write_text(
+        json.dumps({"package_name": "heavy-mcp", "ecosystem": "npm", "versions": versions}),
+        encoding="utf-8",
+    )
+
+    catalog_file = compile_web_catalog(passports_dir, web_dir)
+    # Unslimmed 10 versions x 5 tools x 10 verbose params would exceed ~70 KB; slimmed should be < 15 KB
+    assert catalog_file.stat().st_size < 15 * 1024
+
+    repo_catalog = Path("web/catalog.json")
+    if repo_catalog.exists():
+        assert repo_catalog.stat().st_size < 100 * 1024 * 1024
+
