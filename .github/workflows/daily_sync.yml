@@ -86,7 +86,7 @@ jobs:
           # Check if there are changes in data/fingerprints/
           FINGERPRINT_CHANGES=$(git status --porcelain data/fingerprints/ | grep -v "sync_state.json" | grep -v "index.json" | grep -v ".passport_index.pickle" || true)
           
-          git add data/fingerprints/ passports.json.gz web/catalog.json
+          git add data/fingerprints/ passports.json.gz
           [ -f data/embeddings.npz ] && git add data/embeddings.npz data/.embeddings_hash || true
           
           if ! git diff --staged --quiet || [ "${{ inputs.force_release }}" = "true" ]; then
@@ -96,7 +96,7 @@ jobs:
               python scripts/bump_version.py --apply
               PYTHONPATH=src:. python scripts/generate_web_catalog.py
               python scripts/generate_sync_updates.py --old previous_passports.json.gz --new passports.json.gz --version "${NEW_VERSION}"
-              git add pyproject.toml uv.lock src/mcp_fingerprints/__init__.py web/catalog.json web/sw.js web/updates/
+              git add pyproject.toml uv.lock src/mcp_fingerprints/__init__.py web/sw.js web/updates/
               git commit -m "chore(release): bump version to v${NEW_VERSION} and sync MCP fingerprints"
               git tag "v${NEW_VERSION}"
               echo "release_created=true" >> "$GITHUB_OUTPUT"
@@ -180,6 +180,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate Web Catalog
+        run: |
+          python -m pip install --upgrade pip packaging
+          PYTHONPATH=src:. python scripts/generate_web_catalog.py
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4

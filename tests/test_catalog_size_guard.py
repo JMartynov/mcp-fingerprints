@@ -5,8 +5,25 @@ from pathlib import Path
 MAX_BYTES = 50 * 1024 * 1024
 
 
-def test_web_catalog_under_50mb():
+def test_web_catalog_under_50mb(tmp_path):
     path = Path("web/catalog.json")
+    if not path.exists():
+        import os
+        import subprocess
+        import sys
+
+        env = {**os.environ, "PYTHONPATH": "src:."}
+        subprocess.run(
+            [
+                sys.executable,
+                "scripts/generate_web_catalog.py",
+                "--output-dir",
+                str(tmp_path),
+            ],
+            check=True,
+            env=env,
+        )
+        path = tmp_path / "catalog.json"
     assert path.exists(), "web/catalog.json should exist"
     assert path.stat().st_size < MAX_BYTES, f"catalog.json is {path.stat().st_size} bytes"
 

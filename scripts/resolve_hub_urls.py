@@ -46,6 +46,9 @@ def update_catalog(resolved_map):
         return
         
     catalog_path = "web/catalog.json"
+    if not os.path.exists(catalog_path):
+        print(f"{catalog_path} not found; skipping catalog update")
+        return
     with open(catalog_path, "r") as f:
         catalog = json.load(f)
         
