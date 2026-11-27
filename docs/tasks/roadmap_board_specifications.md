@@ -1461,3 +1461,30 @@ Update `README.md` and `docs/SPECIFICATION.md` with an exhaustive, 100% verified
 - [ ] Real terminal outputs from sandbox execution embedded in README code blocks.
 - [ ] Quickstart section added for `demo.sh`.
 
+---
+
+## 104. Task 104: Align Pages Workflow Unit Test with upload-pages-artifact@v4 and Gate Push CI on Fast Unit Tests
+- **Category**: CI/CD & Quality Assurance
+- **Status**: In Progress
+
+### 1. Architectural Context & Technical Objective
+Commit `6fb94b61` upgraded `actions/upload-pages-artifact` from `@v3` to `@v4` in `.github/workflows/deploy_pages.yml` and `.github/workflows/daily_sync.yml`, leaving `tests/test_pages_workflow.py:32` asserting `@v3`. This broke `.github/workflows/daily_sync.yml` (`Run Test Suite`) on Nov 24–26 (runs `45413389496`, `45626071243`, `45828058680`) and went undetected on push because `.github/workflows/e2e.yml` only executed `-m "integration"`.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: Stale `@v3` assertion in `tests/test_pages_workflow.py` causes scheduled daily sync CI failures, while push/PR CI in `e2e.yml` skips fast unit tests.
+- **What it Fixes**: Aligns workflow assertions with `@v4` across both `deploy_pages.yml` and `daily_sync.yml` and gates push/PR CI on fast unit tests.
+- **How it Solves It**: Updates `tests/test_pages_workflow.py` to assert `@v4` and `daily_sync.yml` `deploy-pages` concurrency/actions, and adds `Run Fast Unit Test Suite` (`uv run pytest -v -m "not integration"`) to `.github/workflows/e2e.yml` before the Playwright E2E step.
+
+### 3. Target Files & Documentation to Update
+- `tests/test_pages_workflow.py`
+- `.github/workflows/e2e.yml`
+- `docs/tasks/task_104_ci_pages_workflow_test_and_fast_unit_gate.md`
+- `docs/tasks/roadmap_board_specifications.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] `tests/test_pages_workflow.py` asserts `actions/upload-pages-artifact@v4` in `deploy_pages.yml`.
+- [ ] `tests/test_pages_workflow.py` verifies `daily_sync.yml`'s `deploy-pages` job uses `actions/upload-pages-artifact@v4`, `actions/deploy-pages@v4`, and `concurrency.group == "pages"`.
+- [ ] `.github/workflows/e2e.yml` runs `uv run pytest -v -m "not integration"` (`Run Fast Unit Test Suite`) before the Playwright E2E step.
+- [ ] Full fast unit test suite passes locally and on push CI.
+
+

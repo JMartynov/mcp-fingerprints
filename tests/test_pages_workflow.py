@@ -29,5 +29,25 @@ def test_deploy_pages_workflow():
 
     uses = [step.get("uses") for step in steps if "uses" in step]
 
-    assert "actions/upload-pages-artifact@v3" in uses
+    assert "actions/upload-pages-artifact@v4" in uses
+    assert "actions/deploy-pages@v4" in uses
+
+
+def test_daily_sync_deploy_pages_job():
+    workflow_path = Path(".github/workflows/daily_sync.yml")
+    assert workflow_path.exists(), "daily_sync.yml workflow file should exist"
+
+    with open(workflow_path, "r") as f:
+        workflow = yaml.safe_load(f)
+
+    assert "jobs" in workflow
+    assert "deploy-pages" in workflow["jobs"]
+
+    job = workflow["jobs"]["deploy-pages"]
+    assert job.get("concurrency") == {"group": "pages", "cancel-in-progress": True}
+
+    steps = job["steps"]
+    uses = [step.get("uses") for step in steps if "uses" in step]
+
+    assert "actions/upload-pages-artifact@v4" in uses
     assert "actions/deploy-pages@v4" in uses
