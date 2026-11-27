@@ -1514,5 +1514,36 @@ Commit `6fb94b61` upgraded `actions/upload-pages-artifact` from `@v3` to `@v4` i
 - [x] Regenerated `web/catalog.json` is well below 100 MB (`45.50 MB` pre-sync; `46.59 MB` after `v1.4.20` sync) and fast unit tests pass (`564 passed`).
 - [x] `daily_sync.yml` (`45997591293`), `e2e.yml` (`45997579968`), and `deploy_pages.yml` (`45997579848`) succeed on CI.
 
+---
+
+## 106. Task 106: Untrack `web/catalog.json` from Git and Build Dynamically in CI
+- **Category**: CI/CD & Repository Hygiene
+- **Status**: In Progress
+
+### 1. Architectural Context & Technical Objective
+Even after Task 105 slimmed historical `versions` entries in `web/catalog.json`, the compiled file remains `~46.64 MiB` (`48,902,783` bytes), approaching GitHub's `50 MB` warning threshold and bloating Git history on every daily sync. Because `web/catalog.json` is a purely derived build artifact from `data/fingerprints/*.json` via `scripts/generate_web_catalog.py`, it should be untracked from Git and generated dynamically in CI (`e2e.yml`, `daily_sync.yml`, `deploy_pages.yml`) while preserving the `$0` GitHub Free budget and leaving `web/app.js`, `web/index.html`, `web/sw.js`, and `passports.json.gz` untouched.
+
+### 2. Concrete Real-World Problem & Workflow
+- **The Problem**: Tracking a ~46.64 MiB generated JSON catalog in Git slows repository operations, risks future `50 MB`/`100 MB` (`GH001`) push rejections, and duplicates build output already reproducible from `data/fingerprints/*.json`.
+- **What it Fixes**: Removes `web/catalog.json` from Git tracking and ensures all CI workflows and local maintenance scripts generate or handle `web/catalog.json` dynamically on-demand.
+- **How it Solves It**: Adds `web/catalog.json` to `.gitignore` with `git rm --cached web/catalog.json`, updates `.github/workflows/daily_sync.yml` (omitting `web/catalog.json` from `git add` and generating it in `deploy-pages`) and `.github/workflows/e2e.yml` (generating `web/catalog.json` before checks/E2E), and updates `tests/test_catalog_size_guard.py`, `bin/run-daily-card-audit.sh`, and `scripts/resolve_hub_urls.py` to handle dynamic generation safely.
+
+### 3. Target Files & Documentation to Update
+- `.gitignore`
+- `git rm --cached web/catalog.json` (Git index)
+- `.github/workflows/daily_sync.yml`
+- `.github/workflows/e2e.yml`
+- `tests/test_catalog_size_guard.py`
+- `bin/run-daily-card-audit.sh`
+- `scripts/resolve_hub_urls.py`
+- `docs/tasks/task_106_untrack_web_catalog.md`
+- `docs/tasks/roadmap_board_specifications.md`
+
+### 4. Clear Acceptance Criteria
+- [ ] `web/catalog.json` is untracked from Git (`git ls-files web/catalog.json` is empty) and ignored in `.gitignore`.
+- [ ] Zero changes to `web/app.js`, `web/index.html`, `web/sw.js`, or `passports.json.gz`.
+- [ ] `uv run pytest -v -m "not integration"` and `uv run ruff check src tests` pass.
+- [ ] CI workflows (`e2e.yml` / `deploy_pages.yml`) pass dynamically building `web/catalog.json` within `$0` GitHub Free budget.
+
 
 
