@@ -1491,7 +1491,7 @@ Commit `6fb94b61` upgraded `actions/upload-pages-artifact` from `@v3` to `@v4` i
 
 ## 105. Task 105: Slim Historical Version Tools in `web/catalog.json` to Prevent GH001 100 MB Push Limit Failure
 - **Category**: CI/CD & Web Catalog Optimization
-- **Status**: In Progress
+- **Status**: Done
 
 ### 1. Architectural Context & Technical Objective
 `.github/workflows/daily_sync.yml` run `45983774823` failed during `Commit and push updated passports & snapshot` with `GH001` because `web/catalog.json` reached `101.30 MB` (> GitHub's `100.00 MB` file limit). `scripts/generate_web_catalog.py` (`build_catalog_entry()`) duplicated the full `tools` payload in `versions[0]` and embedded full tool descriptions/parameter schemas in every historical `versions[1:]` entry.
@@ -1509,10 +1509,10 @@ Commit `6fb94b61` upgraded `actions/upload-pages-artifact` from `@v3` to `@v4` i
 - `docs/tasks/roadmap_board_specifications.md`
 
 ### 4. Clear Acceptance Criteria
-- [ ] `scripts/generate_web_catalog.py` omits duplicate `tools` from `versions[0]` and slims historical `versions[1:]` `tools` to `name` and `canonical_hash`.
-- [ ] `tests/test_web_catalog.py` verifies slimmed `versions` structure and catalog size safety threshold.
-- [ ] Regenerated `web/catalog.json` is well below 100 MB and fast unit tests + lint pass.
-- [ ] `daily_sync.yml`, `e2e.yml`, and `deploy_pages.yml` succeed on CI.
+- [x] `scripts/generate_web_catalog.py` omits duplicate `tools` from `versions[0]` and slims historical `versions[1:]` `tools` to `name` and `canonical_hash`.
+- [x] `tests/test_web_catalog.py` verifies slimmed `versions` structure and catalog size safety threshold.
+- [x] Regenerated `web/catalog.json` is well below 100 MB (`45.50 MB` pre-sync; `46.59 MB` after `v1.4.20` sync) and fast unit tests pass (`564 passed`).
+- [x] `daily_sync.yml` (`45997591293`), `e2e.yml` (`45997579968`), and `deploy_pages.yml` (`45997579848`) succeed on CI.
 
 
 
