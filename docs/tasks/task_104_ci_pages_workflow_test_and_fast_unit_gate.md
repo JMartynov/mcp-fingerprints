@@ -3,7 +3,7 @@
 - **Target Repository:** [`JMartynov/mcp-fingerprints`](https://github.com/JMartynov/mcp-fingerprints)
 - **Target Files:** `tests/test_pages_workflow.py`, `.github/workflows/e2e.yml`, `docs/tasks/task_104_ci_pages_workflow_test_and_fast_unit_gate.md`, `docs/tasks/roadmap_board_specifications.md`
 - **Category:** CI/CD & Quality Assurance
-- **Status:** In Progress
+- **Status:** Done
 
 ## 1. Architectural Context & Technical Objective
 Commit `6fb94b61` upgraded `actions/upload-pages-artifact` from `@v3` to `@v4` in both `.github/workflows/deploy_pages.yml` and `.github/workflows/daily_sync.yml`. However, `tests/test_pages_workflow.py` (line 32) was left asserting `"actions/upload-pages-artifact@v3" in uses`.
@@ -26,10 +26,10 @@ The objective of Task 104 is to align `tests/test_pages_workflow.py` with the up
 - Ensure push and pull request CI fails fast whenever non-integration unit tests regress, preventing silent breakage between scheduled `daily_sync.yml` runs.
 
 ## 3. Clear Acceptance Criteria
-- [ ] `tests/test_pages_workflow.py` asserts `actions/upload-pages-artifact@v4` and `actions/deploy-pages@v4` in `.github/workflows/deploy_pages.yml`.
-- [ ] `tests/test_pages_workflow.py` verifies `.github/workflows/daily_sync.yml`'s `deploy-pages` job uses `actions/upload-pages-artifact@v4`, `actions/deploy-pages@v4`, and `concurrency.group == "pages"`.
-- [ ] `.github/workflows/e2e.yml` includes the `Run Fast Unit Test Suite` step (`uv run pytest -v -m "not integration"`) before the Playwright E2E step.
-- [ ] `uv run pytest tests/test_pages_workflow.py -v` and `uv run pytest -v -m "not integration"` pass cleanly without regressions.
+- [x] `tests/test_pages_workflow.py` asserts `actions/upload-pages-artifact@v4` and `actions/deploy-pages@v4` in `.github/workflows/deploy_pages.yml`.
+- [x] `tests/test_pages_workflow.py` verifies `.github/workflows/daily_sync.yml`'s `deploy-pages` job uses `actions/upload-pages-artifact@v4`, `actions/deploy-pages@v4`, and `concurrency.group == "pages"`.
+- [x] `.github/workflows/e2e.yml` includes the `Run Fast Unit Test Suite` step (`uv run pytest -v -m "not integration"`) before the Playwright E2E step.
+- [x] `uv run pytest tests/test_pages_workflow.py -v` and `uv run pytest -v -m "not integration"` pass cleanly without regressions.
 
 ## 4. Unit Test Plan
 - Run `uv run pytest tests/test_pages_workflow.py -v`.
@@ -39,3 +39,13 @@ The objective of Task 104 is to align `tests/test_pages_workflow.py` with the up
 ## 5. Live Acceptance Test Plan
 1. Push the fix commit to `main` (or open a PR) and observe `.github/workflows/e2e.yml` executing `Run Fast Unit Test Suite` with green status.
 2. Verify `.github/workflows/daily_sync.yml` passes its `Run Test Suite` step on the next scheduled or manually dispatched run.
+
+## 6. Verification & CI Run Evidence
+- **Implementation Commit:** `22285e9b` (`fix(ci): align pages workflow unit test with upload-pages-artifact@v4 and gate push CI on unit tests (Task 104)`)
+- **Local Verification:**
+  - `uv run pytest tests/test_pages_workflow.py -v`: `2 passed in 0.03s`
+  - `uv run pytest -m "not integration" -q`: `562 passed, 1 skipped, 12 deselected in 92.51s`
+- **GitHub Actions Verification:**
+  - **`Playwright E2E Tests` (`.github/workflows/e2e.yml`, Run [`45983768561`](https://github.com/JMartynov/mcp-fingerprints/actions/runs/45983768561)):** `success` (`2m42s`). Both `Run Fast Unit Test Suite` (`1m53s`) and `Run E2E Tests` (`11s`) passed.
+  - **`Deploy GitHub Pages` (`.github/workflows/deploy_pages.yml`, Run [`45983769899`](https://github.com/JMartynov/mcp-fingerprints/actions/runs/45983769899)):** `success` (`39s`).
+  - **`Daily MCP Fingerprint & Passport Sync` (`.github/workflows/daily_sync.yml`, Run [`45983774823`](https://github.com/JMartynov/mcp-fingerprints/actions/runs/45983774823)):** `Run Test Suite` **passed** (`2m04s`), confirming Task 104 resolved the Nov 24–26 unit test regression. *(Note: the 4-day catch-up sync later failed in `Commit and push updated passports & snapshot` due to a newly uncovered separate blocker: `web/catalog.json` reached `101.30 MB`, exceeding GitHub's `100.00 MB` file size limit [`GH001`].)*
