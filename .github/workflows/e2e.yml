@@ -27,6 +27,18 @@ jobs:
       - name: Install Playwright Browsers
         run: uv run playwright install --with-deps chromium
 
+      - name: Ruff lint (critical rules gate)
+        run: uv run ruff check src tests scripts --select E9,F63,F7,F82
+
+      - name: Guard web/catalog.json size (<50MB)
+        run: |
+          SIZE=$(wc -c < web/catalog.json | tr -d ' ')
+          echo "web/catalog.json size: ${SIZE} bytes"
+          if [ "$SIZE" -ge 52428800 ]; then
+            echo "::error::web/catalog.json is ${SIZE} bytes (>=50MB GitHub limit); slim or shard the catalog"
+            exit 1
+          fi
+
       - name: Run Fast Unit Test Suite
         run: uv run pytest -v -m "not integration"
 
